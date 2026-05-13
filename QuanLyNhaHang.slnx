@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="QuanLyNhaHang.Api/QuanLyNhaHang.Api.csproj" />
+  <Project Path="QuanLyNhaHang.Application/QuanLyNhaHang.Application.csproj" Id="1cc45a71-b10a-4567-900d-15dbbb23bdae" />
+  <Project Path="QuanLyNhaHang.Domain/QuanLyNhaHang.Domain.csproj" Id="05c1b7a9-00d5-4646-8467-9a98655b8b6b" />
+  <Project Path="QuanLyNhaHang.Infrastructure/QuanLyNhaHang.Infrastructure.csproj" Id="84b6261d-34ea-4101-b4f4-a7ccec42ecb6" />
+</Solution>
