@@ -427,7 +427,7 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
-# Local ASP.NET Core settings - do not commit secrets
+# Ignore ASP.NET Core local settings
+**/appsettings.json
 **/appsettings.Development.json
-**/appsettings.Local.json
-**/appsettings.*.local.json
+**/appsettings.*.json
