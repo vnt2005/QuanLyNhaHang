@@ -38,7 +38,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         }
 
         var user = new User(
-            request.FullName,
+            request.Ho,
+            request.Ten,
             request.Email,
             request.PhoneNumber,
             request.PasswordHash,

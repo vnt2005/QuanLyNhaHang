@@ -26,10 +26,14 @@ public class GetUsersWithPaginatedListQueryHandler
 
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
+            var keyword = request.Keyword.Trim();
+
             query = query.Where(x =>
-                x.FullName.Contains(request.Keyword) ||
-                x.Email.Contains(request.Keyword) ||
-                x.PhoneNumber.Contains(request.Keyword));
+                (x.Ho != null && x.Ho.Contains(keyword)) ||
+                x.Ten.Contains(keyword) ||
+                ((x.Ho ?? "") + " " + x.Ten).Contains(keyword) ||
+                x.Email.Contains(keyword) ||
+                x.PhoneNumber.Contains(keyword));
         }
 
         var result = query
@@ -37,7 +41,8 @@ public class GetUsersWithPaginatedListQueryHandler
             .Select(x => new UserDto
             {
                 Id = x.Id,
-                FullName = x.FullName,
+                Ho = x.Ho,
+                Ten = x.Ten,
                 Email = x.Email,
                 PhoneNumber = x.PhoneNumber,
                 Role = x.Role,

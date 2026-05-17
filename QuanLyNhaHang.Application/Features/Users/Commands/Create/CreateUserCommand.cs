@@ -4,7 +4,9 @@ namespace QuanLyNhaHang.Application.Features.Users.Commands.Create;
 
 public class CreateUserCommand : IRequest<Guid>
 {
-    public string FullName { get; set; } = string.Empty;
+    public string? Ho { get; set; }
+
+    public string Ten { get; set; } = default!;
 
     public string Email { get; set; } = string.Empty;
 

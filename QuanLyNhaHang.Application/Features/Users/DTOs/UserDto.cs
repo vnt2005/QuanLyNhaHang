@@ -4,7 +4,9 @@ public class UserDto
 {
     public Guid Id { get; set; }
 
-    public string FullName { get; set; } = string.Empty;
+    public string? Ho { get; set; }
+
+    public string Ten { get; set; } = default!;
 
     public string Email { get; set; } = string.Empty;
 

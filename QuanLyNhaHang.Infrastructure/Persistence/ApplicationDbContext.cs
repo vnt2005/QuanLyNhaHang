@@ -12,7 +12,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     }
 
     public DbSet<User> Users => Set<User>();
-
+    public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<Shift> Shifts => Set<Shift>();
+    public DbSet<EmployeeShift> EmployeeShifts => Set<EmployeeShift>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

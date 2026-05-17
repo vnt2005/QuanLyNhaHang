@@ -25,7 +25,8 @@ public class GetUserByIdQueryHandler
             .Select(x => new UserDto
             {
                 Id = x.Id,
-                FullName = x.FullName,
+                Ho = x.Ho,
+                Ten = x.Ten,
                 Email = x.Email,
                 PhoneNumber = x.PhoneNumber,
                 Role = x.Role,

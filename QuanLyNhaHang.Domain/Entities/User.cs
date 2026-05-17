@@ -4,7 +4,8 @@ public class User
 {
     public Guid Id { get; private set; }
 
-    public string FullName { get; private set; } = string.Empty;
+    public string? Ho { get; set; }
+    public string Ten { get; set; } = default!;
 
     public string Email { get; private set; } = string.Empty;
 
@@ -25,7 +26,8 @@ public class User
     }
 
     public User(
-        string fullName,
+        string? ho,
+        string ten,
         string email,
         string phoneNumber,
         string passwordHash,
@@ -33,7 +35,8 @@ public class User
     {
         Id = Guid.NewGuid();
 
-        SetFullName(fullName);
+        SetHo(ho);
+        SetTen(ten);
         SetEmail(email);
         SetPhoneNumber(phoneNumber);
         SetPasswordHash(passwordHash);
@@ -44,12 +47,14 @@ public class User
     }
 
     public void UpdateInfo(
-        string fullName,
+        string? ho,
+        string ten,
         string email,
         string phoneNumber,
         string role)
     {
-        SetFullName(fullName);
+        SetHo(ho);
+        SetTen(ten);
         SetEmail(email);
         SetPhoneNumber(phoneNumber);
         SetRole(role);
@@ -75,12 +80,17 @@ public class User
         UpdatedAt = DateTime.UtcNow;
     }
 
-    private void SetFullName(string fullName)
+    private void SetHo(string? ho)
     {
-        if (string.IsNullOrWhiteSpace(fullName))
-            throw new ArgumentException("Họ tên người dùng không được để trống.");
+        Ho = string.IsNullOrWhiteSpace(ho) ? null : ho.Trim();
+    }
 
-        FullName = fullName.Trim();
+    private void SetTen(string ten)
+    {
+        if (string.IsNullOrWhiteSpace(ten))
+            throw new ArgumentException("Tên người dùng không được để trống.");
+
+        Ten = ten.Trim();
     }
 
     private void SetEmail(string email)

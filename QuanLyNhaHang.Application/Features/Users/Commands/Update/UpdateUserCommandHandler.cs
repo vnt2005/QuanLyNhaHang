@@ -51,7 +51,8 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
         }
 
         user.UpdateInfo(
-            request.FullName,
+            request.Ho,
+            request.Ten,
             request.Email,
             request.PhoneNumber,
             request.Role);
