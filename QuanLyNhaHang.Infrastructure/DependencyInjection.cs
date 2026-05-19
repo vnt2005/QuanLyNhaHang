@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Infrastructure.Persistence;
+using QuanLyNhaHang.Infrastructure.Services;
 
 namespace QuanLyNhaHang.Infrastructure;
 
@@ -20,6 +21,10 @@ public static class DependencyInjection
 
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
+
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         return services;
     }
