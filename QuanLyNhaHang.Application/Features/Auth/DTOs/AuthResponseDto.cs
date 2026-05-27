@@ -14,5 +14,13 @@ public class AuthResponseDto
 
     public string Role { get; set; } = string.Empty;
 
+    public bool IsActive { get; set; }
+
+    public bool TwoFactorEnabled { get; set; }
+
+    public bool RequiresTwoFactor { get; set; }
+
     public string Token { get; set; } = string.Empty;
+
+    public string Message { get; set; } = string.Empty;
 }

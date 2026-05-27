@@ -4,8 +4,9 @@ public class User
 {
     public Guid Id { get; private set; }
 
-    public string? Ho { get; set; }
-    public string Ten { get; set; } = default!;
+    public string? Ho { get; private set; }
+
+    public string Ten { get; private set; } = default!;
 
     public string Email { get; private set; } = string.Empty;
 
@@ -16,6 +17,16 @@ public class User
     public string Role { get; private set; } = string.Empty;
 
     public bool IsActive { get; private set; }
+
+    public bool TwoFactorEnabled { get; private set; }
+
+    public string? TwoFactorCode { get; private set; }
+
+    public DateTime? TwoFactorCodeExpiresAt { get; private set; }
+
+    public string? PasswordResetCode { get; private set; }
+
+    public DateTime? PasswordResetCodeExpiresAt { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
 
@@ -43,6 +54,7 @@ public class User
         SetRole(role);
 
         IsActive = true;
+        TwoFactorEnabled = false;
         CreatedAt = DateTime.UtcNow;
     }
 
@@ -65,6 +77,9 @@ public class User
     public void ChangePassword(string newPasswordHash)
     {
         SetPasswordHash(newPasswordHash);
+
+        ClearPasswordResetCode();
+
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -78,6 +93,93 @@ public class User
     {
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void EnableTwoFactor()
+    {
+        TwoFactorEnabled = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void DisableTwoFactor()
+    {
+        TwoFactorEnabled = false;
+
+        ClearTwoFactorCode();
+
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetTwoFactorCode(string code, DateTime expiresAt)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ArgumentException("Mã xác thực 2 yếu tố không được để trống.");
+
+        TwoFactorCode = code.Trim();
+        TwoFactorCodeExpiresAt = expiresAt;
+
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ClearTwoFactorCode()
+    {
+        TwoFactorCode = null;
+        TwoFactorCodeExpiresAt = null;
+
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool IsTwoFactorCodeValid(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(TwoFactorCode))
+            return false;
+
+        if (TwoFactorCodeExpiresAt == null)
+            return false;
+
+        if (TwoFactorCodeExpiresAt < DateTime.UtcNow)
+            return false;
+
+        return TwoFactorCode == code.Trim();
+    }
+
+    public void SetPasswordResetCode(string code, DateTime expiresAt)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ArgumentException("Mã đặt lại mật khẩu không được để trống.");
+
+        PasswordResetCode = code.Trim();
+        PasswordResetCodeExpiresAt = expiresAt;
+
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ClearPasswordResetCode()
+    {
+        PasswordResetCode = null;
+        PasswordResetCodeExpiresAt = null;
+
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool IsPasswordResetCodeValid(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(PasswordResetCode))
+            return false;
+
+        if (PasswordResetCodeExpiresAt == null)
+            return false;
+
+        if (PasswordResetCodeExpiresAt < DateTime.UtcNow)
+            return false;
+
+        return PasswordResetCode == code.Trim();
     }
 
     private void SetHo(string? ho)

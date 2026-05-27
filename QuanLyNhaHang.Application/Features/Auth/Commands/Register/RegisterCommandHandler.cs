@@ -69,7 +69,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
-            Token = token
+            Token = token,
+            Message = "Đăng ký thành công."
         };
     }
 }

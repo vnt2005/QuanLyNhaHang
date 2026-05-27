@@ -10,15 +10,18 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IEmailService _emailService;
 
     public LoginCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher,
-        IJwtTokenService jwtTokenService)
+        IJwtTokenService jwtTokenService,
+        IEmailService emailService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
+        _emailService = emailService;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -49,6 +52,37 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
             throw new Exception("Email hoặc mật khẩu không đúng.");
         }
 
+        if (user.TwoFactorEnabled)
+        {
+            var code = Random.Shared.Next(100000, 999999).ToString();
+
+            user.SetTwoFactorCode(
+                code,
+                DateTime.UtcNow.AddMinutes(5));
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            await _emailService.SendAsync(
+                user.Email,
+                "Mã xác thực đăng nhập",
+                $"Mã xác thực đăng nhập của bạn là: {code}. Mã này có hiệu lực trong 5 phút.");
+
+            return new AuthResponseDto
+            {
+                UserId = user.Id,
+                Ho = user.Ho,
+                Ten = user.Ten,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                TwoFactorEnabled = user.TwoFactorEnabled,
+                RequiresTwoFactor = true,
+                Token = string.Empty,
+                Message = "Vui lòng kiểm tra email để lấy mã xác thực."
+            };
+        }
+
         var token = _jwtTokenService.GenerateToken(user);
 
         return new AuthResponseDto
@@ -59,7 +93,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
-            Token = token
+            IsActive = user.IsActive,
+            TwoFactorEnabled = user.TwoFactorEnabled,
+            RequiresTwoFactor = false,
+            Token = token,
+            Message = "Đăng nhập thành công."
         };
     }
 }
