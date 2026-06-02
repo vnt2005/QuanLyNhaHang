@@ -1,4 +1,6 @@
-﻿namespace QuanLyNhaHang.Application.Features.Auth.DTOs;
+﻿using System.Text.Json.Serialization;
+
+namespace QuanLyNhaHang.Application.Features.Auth.DTOs;
 
 public class AuthResponseDto
 {
@@ -22,5 +24,6 @@ public class AuthResponseDto
 
     public string Token { get; set; } = string.Empty;
 
+    [JsonIgnore]
     public string Message { get; set; } = string.Empty;
 }
