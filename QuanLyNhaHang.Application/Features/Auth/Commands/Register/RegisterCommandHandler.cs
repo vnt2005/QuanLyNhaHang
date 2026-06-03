@@ -50,10 +50,10 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
         var user = new User(
             request.Ho,
             request.Ten,
-            request.Email,
-            request.PhoneNumber,
+            email,
+            phoneNumber,
             passwordHash,
-            "Staff");
+            request.Role);
 
         _context.Users.Add(user);
 
@@ -69,6 +69,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
+            IsActive = user.IsActive,
+            TwoFactorEnabled = user.TwoFactorEnabled,
+            RequiresTwoFactor = false,
             Token = token,
             Message = "Đăng ký thành công."
         };

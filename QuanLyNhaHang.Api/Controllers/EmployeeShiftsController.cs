@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using QuanLyNhaHang.Application.Features.EmployeeShifts.Commands.Create;
 using QuanLyNhaHang.Application.Features.EmployeeShifts.Commands.Delete;
 using QuanLyNhaHang.Application.Features.EmployeeShifts.Commands.Update;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Admin")]
 public class EmployeeShiftsController : ControllerBase
 {
     private readonly IMediator _mediator;

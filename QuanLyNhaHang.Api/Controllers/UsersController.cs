@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using QuanLyNhaHang.Application.Features.Users.Commands.Create;
 using QuanLyNhaHang.Application.Features.Users.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Users.Commands.Update;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Admin")]
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
