@@ -9,5 +9,12 @@ public interface IApplicationDbContext
     DbSet<Employee> Employees { get; }
     DbSet<Shift> Shifts { get; }
     DbSet<EmployeeShift> EmployeeShifts { get; }
+    DbSet<Area> Areas { get; }
+    DbSet<RestaurantTable> RestaurantTables { get; }
+    DbSet<MenuCategory> MenuCategories { get; }
+    DbSet<MenuItem> MenuItems { get; }
+    DbSet<Order> Orders { get; }
+
+    DbSet<OrderItem> OrderItems { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
