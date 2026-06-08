@@ -18,11 +18,14 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Area> Areas => Set<Area>();
     public DbSet<RestaurantTable> RestaurantTables => Set<RestaurantTable>();
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
-
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<Order> Orders => Set<Order>();
-
+    public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
+    public DbSet<RevenueReport> RevenueReports => Set<RevenueReport>();
+    public DbSet<RevenueReportItem> RevenueReportItems => Set<RevenueReportItem>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

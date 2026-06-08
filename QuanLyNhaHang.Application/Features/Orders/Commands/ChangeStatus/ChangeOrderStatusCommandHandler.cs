@@ -51,6 +51,10 @@ public class ChangeOrderStatusCommandHandler
             throw new Exception("Bàn của order không tồn tại.");
         }
 
+        var orderItems = await _context.OrderItems
+            .Where(x => x.OrderId == order.Id)
+            .ToListAsync(cancellationToken);
+
         var status = request.Status.Trim();
 
         switch (status)
@@ -58,30 +62,50 @@ public class ChangeOrderStatusCommandHandler
             case "Pending":
                 order.MarkPending();
                 table.MarkOccupied();
+
+                foreach (var item in orderItems.Where(x => x.Status != "Cancelled"))
+                {
+                    item.MarkPending();
+                }
+
                 break;
 
             case "Cooking":
                 order.MarkCooking();
                 table.MarkOccupied();
+
+                foreach (var item in orderItems.Where(x => x.Status != "Cancelled"))
+                {
+                    item.MarkCooking();
+                }
+
                 break;
 
             case "Served":
                 order.MarkServed();
                 table.MarkOccupied();
+
+                foreach (var item in orderItems.Where(x => x.Status != "Cancelled"))
+                {
+                    item.MarkServed();
+                }
+
                 break;
 
             case "Completed":
                 order.MarkCompleted();
                 table.MarkAvailable();
+
+                foreach (var item in orderItems.Where(x => x.Status != "Cancelled"))
+                {
+                    item.MarkServed();
+                }
+
                 break;
 
             case "Cancelled":
                 order.Cancel();
                 table.MarkAvailable();
-
-                var orderItems = await _context.OrderItems
-                    .Where(x => x.OrderId == order.Id)
-                    .ToListAsync(cancellationToken);
 
                 foreach (var item in orderItems)
                 {

@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Orders.DTOs;
-
 namespace QuanLyNhaHang.Application.Features.Orders.Queries.GetById;
 
 public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, OrderDto?>

@@ -14,7 +14,11 @@ public interface IApplicationDbContext
     DbSet<MenuCategory> MenuCategories { get; }
     DbSet<MenuItem> MenuItems { get; }
     DbSet<Order> Orders { get; }
-
     DbSet<OrderItem> OrderItems { get; }
+    DbSet<Payment> Payments { get; }
+    DbSet<Invoice> Invoices { get; }
+    DbSet<InvoiceItem> InvoiceItems { get; }
+    DbSet<RevenueReport> RevenueReports { get; }
+    DbSet<RevenueReportItem> RevenueReportItems { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

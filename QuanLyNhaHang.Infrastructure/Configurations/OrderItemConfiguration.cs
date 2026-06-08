@@ -45,5 +45,11 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.Property(x => x.UpdatedAt)
             .IsRequired(false);
+
+        builder.Property(x => x.StartedAt)
+            .IsRequired(false);
+
+        builder.Property(x => x.CompletedAt)
+            .IsRequired(false);
     }
 }

@@ -24,6 +24,10 @@ public class OrderItem
 
     public DateTime? UpdatedAt { get; private set; }
 
+    public DateTime? StartedAt { get; private set; }
+
+    public DateTime? CompletedAt { get; private set; }
+
     protected OrderItem()
     {
     }
@@ -52,32 +56,76 @@ public class OrderItem
 
     public void UpdateQuantity(int quantity)
     {
+        if (Status == "Cancelled")
+            throw new InvalidOperationException("Món đã hủy, không thể cập nhật số lượng.");
+
+        if (Status == "Served")
+            throw new InvalidOperationException("Món đã phục vụ, không thể cập nhật số lượng.");
+
         SetQuantity(quantity);
 
         TotalPrice = Quantity * UnitPrice;
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void UpdateNote(string? note)
+    {
+        SetNote(note);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void MarkPending()
     {
+        if (Status == "Served")
+            throw new InvalidOperationException("Món đã phục vụ, không thể chuyển về chờ xử lý.");
+
         Status = "Pending";
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void MarkCooking()
     {
+        if (Status == "Cancelled")
+            throw new InvalidOperationException("Món đã hủy, không thể bắt đầu nấu.");
+
+        if (Status == "Ready")
+            throw new InvalidOperationException("Món đã hoàn thành, không thể chuyển sang đang nấu.");
+
+        if (Status == "Served")
+            throw new InvalidOperationException("Món đã phục vụ, không thể bắt đầu nấu.");
+
         Status = "Cooking";
+        StartedAt ??= DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void MarkReady()
+    {
+        if (Status == "Cancelled")
+            throw new InvalidOperationException("Món đã hủy, không thể hoàn thành.");
+
+        if (Status == "Served")
+            throw new InvalidOperationException("Món đã phục vụ.");
+
+        Status = "Ready";
+        CompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void MarkServed()
     {
+        if (Status != "Ready")
+            throw new InvalidOperationException("Chỉ món đã hoàn thành mới được phục vụ.");
+
         Status = "Served";
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void Cancel()
     {
+        if (Status == "Served")
+            throw new InvalidOperationException("Món đã phục vụ, không thể hủy.");
+
         Status = "Cancelled";
         UpdatedAt = DateTime.UtcNow;
     }
