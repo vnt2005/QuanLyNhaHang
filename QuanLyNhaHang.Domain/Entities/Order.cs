@@ -48,6 +48,12 @@ public class Order
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void ChangeRestaurantTable(Guid restaurantTableId)
+    {
+        SetRestaurantTableId(restaurantTableId);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void UpdateTotalAmount(decimal totalAmount)
     {
         if (totalAmount < 0)

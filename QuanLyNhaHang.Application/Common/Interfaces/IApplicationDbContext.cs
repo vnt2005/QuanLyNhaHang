@@ -20,5 +20,15 @@ public interface IApplicationDbContext
     DbSet<InvoiceItem> InvoiceItems { get; }
     DbSet<RevenueReport> RevenueReports { get; }
     DbSet<RevenueReportItem> RevenueReportItems { get; }
+    DbSet<TableQrCode> TableQrCodes { get; }
+    DbSet<TableOperation> TableOperations { get; }
+    DbSet<TableOperationDetail> TableOperationDetails { get; }
+    DbSet<Reservation> Reservations { get; }
+    DbSet<Role> Roles { get; }
+    DbSet<Permission> Permissions { get; }
+    DbSet<RolePermission> RolePermissions { get; }
+    DbSet<RestaurantSetting> RestaurantSettings { get; }
+    DbSet<Promotion> Promotions { get; }
+    DbSet<PromotionUsage> PromotionUsages { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

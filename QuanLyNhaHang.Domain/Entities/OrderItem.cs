@@ -176,4 +176,23 @@ public class OrderItem
             ? null
             : note.Trim();
     }
+
+    public void ChangeOrder(Guid orderId)
+    {
+        SetOrderId(orderId);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void DecreaseQuantity(int quantity)
+    {
+        if (quantity <= 0)
+            throw new ArgumentException("Số lượng giảm phải lớn hơn 0.");
+
+        if (quantity >= Quantity)
+            throw new ArgumentException("Số lượng giảm phải nhỏ hơn số lượng hiện tại.");
+
+        Quantity -= quantity;
+        TotalPrice = Quantity * UnitPrice;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

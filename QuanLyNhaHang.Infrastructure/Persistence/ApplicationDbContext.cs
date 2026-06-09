@@ -26,6 +26,16 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
     public DbSet<RevenueReport> RevenueReports => Set<RevenueReport>();
     public DbSet<RevenueReportItem> RevenueReportItems => Set<RevenueReportItem>();
+    public DbSet<TableQrCode> TableQrCodes => Set<TableQrCode>();
+    public DbSet<TableOperation> TableOperations => Set<TableOperation>();
+    public DbSet<TableOperationDetail> TableOperationDetails => Set<TableOperationDetail>();
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<RestaurantSetting> RestaurantSettings => Set<RestaurantSetting>();
+    public DbSet<Promotion> Promotions => Set<Promotion>();
+    public DbSet<PromotionUsage> PromotionUsages => Set<PromotionUsage>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

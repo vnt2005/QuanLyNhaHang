@@ -1,0 +1,103 @@
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Features.PromotionUsages.DTOs;
+
+namespace QuanLyNhaHang.Application.Features.PromotionUsages.Queries.GetList;
+
+public class GetPromotionUsagesQueryHandler
+    : IRequestHandler<GetPromotionUsagesQuery, List<PromotionUsageDto>>
+{
+    private readonly IApplicationDbContext _context;
+
+    public GetPromotionUsagesQueryHandler(IApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<PromotionUsageDto>> Handle(
+        GetPromotionUsagesQuery request,
+        CancellationToken cancellationToken)
+    {
+        var query =
+            from usage in _context.PromotionUsages.AsNoTracking()
+            join promotion in _context.Promotions.AsNoTracking()
+                on usage.PromotionId equals promotion.Id into promotionGroup
+            from promotion in promotionGroup.DefaultIfEmpty()
+            join order in _context.Orders.AsNoTracking()
+                on usage.OrderId equals order.Id into orderGroup
+            from order in orderGroup.DefaultIfEmpty()
+            join payment in _context.Payments.AsNoTracking()
+                on usage.PaymentId equals (Guid?)payment.Id into paymentGroup
+            from payment in paymentGroup.DefaultIfEmpty()
+            select new
+            {
+                Usage = usage,
+                Promotion = promotion,
+                Order = order,
+                Payment = payment
+            };
+
+        if (request.PromotionId.HasValue)
+        {
+            query = query.Where(x => x.Usage.PromotionId == request.PromotionId.Value);
+        }
+
+        if (request.OrderId.HasValue)
+        {
+            query = query.Where(x => x.Usage.OrderId == request.OrderId.Value);
+        }
+
+        if (request.PaymentId.HasValue)
+        {
+            query = query.Where(x => x.Usage.PaymentId == request.PaymentId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.PromotionCode))
+        {
+            var promotionCode = request.PromotionCode.Trim().ToUpper();
+
+            query = query.Where(x => x.Usage.PromotionCode.Contains(promotionCode));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            var status = request.Status.Trim();
+
+            query = query.Where(x => x.Usage.Status == status);
+        }
+
+        if (request.FromDate.HasValue)
+        {
+            query = query.Where(x => x.Usage.UsedAt >= request.FromDate.Value);
+        }
+
+        if (request.ToDate.HasValue)
+        {
+            query = query.Where(x => x.Usage.UsedAt <= request.ToDate.Value);
+        }
+
+        var result = await query
+            .OrderByDescending(x => x.Usage.UsedAt)
+            .Select(x => new PromotionUsageDto
+            {
+                Id = x.Usage.Id,
+                PromotionId = x.Usage.PromotionId,
+                PromotionCode = x.Usage.PromotionCode,
+                PromotionName = x.Promotion != null ? x.Promotion.Name : string.Empty,
+                OrderId = x.Usage.OrderId,
+                OrderCode = x.Order != null ? x.Order.OrderCode : string.Empty,
+                PaymentId = x.Usage.PaymentId,
+                PaymentCode = x.Payment != null ? x.Payment.PaymentCode : null,
+                OrderAmount = x.Usage.OrderAmount,
+                DiscountAmount = x.Usage.DiscountAmount,
+                Status = x.Usage.Status,
+                Note = x.Usage.Note,
+                UsedAt = x.Usage.UsedAt,
+                CancelledAt = x.Usage.CancelledAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return result;
+    }
+}
