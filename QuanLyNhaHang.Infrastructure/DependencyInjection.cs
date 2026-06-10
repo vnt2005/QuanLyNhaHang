@@ -28,6 +28,8 @@ public static class DependencyInjection
 
         services.AddScoped<IEmailService, EmailService>();
 
+        services.AddScoped<IActivityLogService, ActivityLogService>();
+
         return services;
     }
 }

@@ -4,6 +4,10 @@ builder.Services.AddApplication();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();

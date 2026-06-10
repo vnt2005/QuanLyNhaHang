@@ -36,6 +36,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<RestaurantSetting> RestaurantSettings => Set<RestaurantSetting>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
     public DbSet<PromotionUsage> PromotionUsages => Set<PromotionUsage>();
+    public DbSet<IngredientCategory> IngredientCategories => Set<IngredientCategory>();
+    public DbSet<Ingredient> Ingredients => Set<Ingredient>();
+    public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

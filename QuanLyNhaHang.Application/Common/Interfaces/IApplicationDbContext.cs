@@ -30,5 +30,9 @@ public interface IApplicationDbContext
     DbSet<RestaurantSetting> RestaurantSettings { get; }
     DbSet<Promotion> Promotions { get; }
     DbSet<PromotionUsage> PromotionUsages { get; }
+    DbSet<IngredientCategory> IngredientCategories { get; }
+    DbSet<Ingredient> Ingredients { get; }
+    DbSet<InventoryTransaction> InventoryTransactions { get; }
+    DbSet<ActivityLog> ActivityLogs { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

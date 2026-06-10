@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using MediatR;
+using QuanLyNhaHang.Application.Common.Behaviors;
 
 namespace QuanLyNhaHang.Application;
 
@@ -11,6 +13,8 @@ public static class DependencyInjection
         {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
         });
+
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ActivityLogBehavior<,>));
 
         return services;
     }
