@@ -6,6 +6,7 @@ using QuanLyNhaHang.Application.Features.RevenueReports.Commands.Update;
 using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetById;
 using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetList;
 using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetWithPaginatedList;
+using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetSummary;
 
 namespace QuanLyNhaHang.Api.Controllers;
 
@@ -65,6 +66,20 @@ public class RevenueReportsController : ControllerBase
             ToDate = toDate,
             PageNumber = pageNumber,
             PageSize = pageSize
+        });
+
+        return Ok(result);
+    }
+
+    [HttpGet("summary")]
+    public async Task<IActionResult> GetSummary(
+    [FromQuery] DateTime? fromDate,
+    [FromQuery] DateTime? toDate)
+    {
+        var result = await _mediator.Send(new GetRevenueReportSummaryQuery
+        {
+            FromDate = fromDate,
+            ToDate = toDate
         });
 
         return Ok(result);
