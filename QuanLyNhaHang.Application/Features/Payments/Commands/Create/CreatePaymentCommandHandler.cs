@@ -89,6 +89,53 @@ public class CreatePaymentCommandHandler
             table.MarkAvailable();
         }
 
+        // THÊM MỚI:
+        // Nếu IssueInvoice = true thì thanh toán xong tự động tạo hóa đơn
+        if (request.IssueInvoice)
+        {
+            if (table == null)
+                throw new Exception("Không tìm thấy bàn để xuất hóa đơn.");
+
+            var existedInvoice = await _context.Invoices
+                .AnyAsync(x =>
+                    (x.OrderId == order.Id || x.PaymentId == payment.Id) &&
+                    x.Status != "Cancelled",
+                    cancellationToken);
+
+            if (existedInvoice)
+                throw new Exception("Đơn hàng hoặc thanh toán này đã có hóa đơn.");
+
+            var invoice = new Invoice(
+                order.Id,
+                payment.Id,
+                order.RestaurantTableId,
+                order.OrderCode,
+                payment.PaymentCode,
+                table.Name,
+                payment.TotalAmount,
+                payment.DiscountAmount,
+                payment.VatAmount,
+                payment.FinalAmount,
+                payment.CustomerPaid,
+                payment.ChangeAmount,
+                payment.PaymentMethod,
+                request.Note ?? "Xuất hóa đơn tự động sau thanh toán");
+
+            await _context.Invoices.AddAsync(invoice, cancellationToken);
+
+            var invoiceItems = orderItems.Select(item => new InvoiceItem(
+                invoice.Id,
+                item.Id,
+                item.MenuItemId,
+                item.MenuItemName,
+                item.Quantity,
+                item.UnitPrice,
+                item.TotalPrice,
+                item.Note)).ToList();
+
+            await _context.InvoiceItems.AddRangeAsync(invoiceItems, cancellationToken);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return new PaymentDto

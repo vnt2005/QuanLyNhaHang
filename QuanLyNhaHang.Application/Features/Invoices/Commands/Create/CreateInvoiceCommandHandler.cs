@@ -35,6 +35,17 @@ public class CreateInvoiceCommandHandler
         if (existedInvoice)
             throw new Exception("Thanh toán này đã có hóa đơn.");
 
+        // THÊM MỚI:
+        // Chặn trường hợp một order bị xuất nhiều hóa đơn
+        var existedInvoiceByOrder = await _context.Invoices
+            .AnyAsync(x =>
+        x.OrderId == payment.OrderId &&
+        x.Status != "Cancelled",
+        cancellationToken);
+
+        if (existedInvoiceByOrder)
+            throw new Exception("Đơn hàng này đã được xuất hóa đơn.");
+
         var order = await _context.Orders
             .FirstOrDefaultAsync(x => x.Id == payment.OrderId, cancellationToken);
 

@@ -16,4 +16,9 @@ public class CreatePaymentCommand : IRequest<PaymentDto>
     public string PaymentMethod { get; set; } = string.Empty;
 
     public string? Note { get; set; }
+
+    // THÊM MỚI:
+    // true  = Thanh toán xong tự động xuất hóa đơn
+    // false = Chỉ thanh toán, chưa xuất hóa đơn
+    public bool IssueInvoice { get; set; } = true;
 }
