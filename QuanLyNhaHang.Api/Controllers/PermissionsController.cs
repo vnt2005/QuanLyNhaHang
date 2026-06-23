@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.Create;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.Delete;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/permissions")]
+[Authorize(Roles = "Admin")]
 public class PermissionsController : ControllerBase
 {
     private readonly IMediator _mediator;

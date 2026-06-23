@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.Ingredients.Commands.Create;
 using QuanLyNhaHang.Application.Features.Ingredients.Commands.Delete;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/ingredients")]
+[Authorize(Roles = "Admin")]
 public class IngredientsController : ControllerBase
 {
     private readonly IMediator _mediator;

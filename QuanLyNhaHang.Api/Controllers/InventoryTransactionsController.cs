@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.InventoryTransactions.Commands.Create;
 using QuanLyNhaHang.Application.Features.InventoryTransactions.Commands.Delete;
@@ -10,6 +11,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/inventory-transactions")]
+[Authorize(Roles = "Admin")]
 public class InventoryTransactionsController : ControllerBase
 {
     private readonly IMediator _mediator;

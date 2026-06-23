@@ -1,17 +1,19 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.RevenueReports.Commands.Create;
 using QuanLyNhaHang.Application.Features.RevenueReports.Commands.Delete;
 using QuanLyNhaHang.Application.Features.RevenueReports.Commands.Update;
 using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetById;
 using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetList;
-using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetWithPaginatedList;
 using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetSummary;
+using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetWithPaginatedList;
 
 namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/revenue-reports")]
+[Authorize(Roles = "Admin")]
 public class RevenueReportsController : ControllerBase
 {
     private readonly IMediator _mediator;

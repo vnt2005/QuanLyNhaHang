@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.Kitchen.Commands.Update;
 using QuanLyNhaHang.Application.Features.Kitchen.Queries.GetList;
@@ -7,6 +8,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/kitchen")]
+[Authorize(Roles = "Admin")]
 public class KitchenController : ControllerBase
 {
     private readonly IMediator _mediator;

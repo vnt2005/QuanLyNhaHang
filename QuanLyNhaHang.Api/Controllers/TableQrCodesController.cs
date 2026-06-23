@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Commands.Create;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Commands.Delete;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/table-qr-codes")]
+[Authorize(Roles = "Admin")]
 public class TableQrCodesController : ControllerBase
 {
     private readonly IMediator _mediator;

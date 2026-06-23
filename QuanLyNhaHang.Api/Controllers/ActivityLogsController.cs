@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.ActivityLogs.Commands.Create;
 using QuanLyNhaHang.Application.Features.ActivityLogs.Commands.Delete;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/activity-logs")]
+[Authorize(Roles = "Admin")]
 public class ActivityLogsController : ControllerBase
 {
     private readonly IMediator _mediator;

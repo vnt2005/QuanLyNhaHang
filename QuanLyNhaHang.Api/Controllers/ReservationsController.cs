@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.Reservations.Commands.Create;
 using QuanLyNhaHang.Application.Features.Reservations.Commands.Delete;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/reservations")]
+[Authorize(Roles = "Admin")]
 public class ReservationsController : ControllerBase
 {
     private readonly IMediator _mediator;

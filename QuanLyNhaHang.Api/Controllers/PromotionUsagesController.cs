@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.PromotionUsages.Commands.Delete;
 using QuanLyNhaHang.Application.Features.PromotionUsages.Commands.Update;
@@ -10,6 +11,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/promotion-usages")]
+[Authorize(Roles = "Admin")]
 public class PromotionUsagesController : ControllerBase
 {
     private readonly IMediator _mediator;

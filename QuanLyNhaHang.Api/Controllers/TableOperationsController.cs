@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.TableOperations.Commands.Create;
 using QuanLyNhaHang.Application.Features.TableOperations.Commands.Delete;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/table-operations")]
+[Authorize(Roles = "Admin")]
 public class TableOperationsController : ControllerBase
 {
     private readonly IMediator _mediator;

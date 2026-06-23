@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.QrOrders.Commands.Create;
 using QuanLyNhaHang.Application.Features.QrOrders.Queries.GetById;
@@ -8,6 +9,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/qr-order")]
+[Authorize(Roles = "Admin")]
 public class QrOrdersController : ControllerBase
 {
     private readonly IMediator _mediator;

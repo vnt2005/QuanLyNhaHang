@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Features.Payments.Commands.Create;
 using QuanLyNhaHang.Application.Features.Payments.Commands.Delete;
@@ -11,6 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/payments")]
+[Authorize(Roles = "Admin")]
 public class PaymentsController : ControllerBase
 {
     private readonly IMediator _mediator;
