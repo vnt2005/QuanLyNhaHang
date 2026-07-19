@@ -18,35 +18,65 @@ public sealed class EmployeeAuthorizationTests
         SystemRoles.Manager,
         "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
         "Payments.Update|Payments.Cancel|Orders.View|Orders.Create|" +
-        "Orders.Update|Orders.Delete",
+        "Orders.Update|Orders.Delete|Inventory.View|" +
+        "Inventory.ManageCatalog|Inventory.Transact|Inventory.Adjust|" +
+        "Reservations.View|Reservations.Create|Reservations.Update|" +
+        "Reservations.Cancel|Menu.View|Menu.Manage|" +
+        "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
+        "Tables.UpdateStatus",
+        true,
+        true,
+        true,
+        true,
         true,
         true,
         true)]
     [InlineData(
         SystemRoles.Cashier,
         "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
-        "Payments.Cancel",
+        "Payments.Cancel|Reservations.View|Reservations.Create|" +
+        "Reservations.Update|Reservations.Cancel|Menu.View|" +
+        "Tables.View|Tables.UpdateStatus",
         true,
         true,
-        false)]
-    [InlineData(
-        SystemRoles.Kitchen,
-        "Kitchen.View|Kitchen.UpdateStatus",
         false,
         false,
+        true,
+        true,
         true)]
     [InlineData(
-        SystemRoles.Staff,
-        "Orders.View|Orders.Create|Orders.Update",
+        SystemRoles.Kitchen,
+        "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
+        "Menu.UpdateAvailability",
+        false,
+        false,
         true,
         false,
+        false,
+        true,
         false)]
+    [InlineData(
+        SystemRoles.Staff,
+        "Orders.View|Orders.Create|Orders.Update|Reservations.View|" +
+        "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
+        "Menu.View|Tables.View|Tables.UpdateStatus",
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true)]
     public async Task AdminCreatedEmployee_LoginReceivesLeastPrivilegeAccess(
         string role,
         string expectedCodes,
         bool canViewOrders,
         bool canViewPayments,
-        bool canViewKitchen)
+        bool canViewKitchen,
+        bool canViewInventory,
+        bool canManageReservations,
+        bool canViewMenu,
+        bool canOperateTables)
     {
         using var factory = new ApiWebApplicationFactory();
         using var adminClient = factory.CreateHttpsClient();
@@ -85,6 +115,46 @@ public sealed class EmployeeAuthorizationTests
             employeeClient,
             "/api/kitchen/orders",
             canViewKitchen);
+
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/inventory-transactions",
+            canViewInventory);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/ingredients",
+            canViewInventory);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/ingredient-categories",
+            canViewInventory);
+
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/reservations",
+            canManageReservations);
+
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/menuitems",
+            canViewMenu);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/menucategories",
+            canViewMenu);
+
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/restauranttables",
+            canOperateTables);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/areas",
+            canOperateTables);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/table-qr-codes",
+            canOperateTables);
 
         using var employeesResponse = await employeeClient.GetAsync(
             "/api/employees");
@@ -149,6 +219,10 @@ public sealed class EmployeeAuthorizationTests
             employeeClient,
             "/api/payments",
             isAllowed: false);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/reservations",
+            isAllowed: false);
     }
 
     [Fact]
@@ -195,7 +269,9 @@ public sealed class EmployeeAuthorizationTests
             new[]
             {
                 PermissionCodes.KitchenView,
-                PermissionCodes.KitchenUpdateStatus
+                PermissionCodes.KitchenUpdateStatus,
+                PermissionCodes.MenuView,
+                PermissionCodes.MenuUpdateAvailability
             }.OrderBy(x => x, StringComparer.Ordinal),
             login.Permissions.OrderBy(x => x, StringComparer.Ordinal));
 
@@ -209,6 +285,14 @@ public sealed class EmployeeAuthorizationTests
         await AssertAccessAsync(
             employeeClient,
             "/api/orders",
+            isAllowed: false);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/menuitems",
+            isAllowed: true);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/inventory-transactions",
             isAllowed: false);
     }
 
