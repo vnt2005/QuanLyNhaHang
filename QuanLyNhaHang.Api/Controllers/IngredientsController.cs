@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Ingredients.Commands.Create;
 using QuanLyNhaHang.Application.Features.Ingredients.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Ingredients.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/ingredients")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class IngredientsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class IngredientsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetList(
         [FromQuery] Guid? ingredientCategoryId,
         [FromQuery] bool? isActive,
@@ -39,6 +41,7 @@ public class IngredientsController : ControllerBase
     }
 
     [HttpGet("low-stock")]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetLowStock()
     {
         var result = await _mediator.Send(new GetLowStockIngredientsQuery());
@@ -47,6 +50,7 @@ public class IngredientsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] Guid? ingredientCategoryId,
@@ -69,6 +73,7 @@ public class IngredientsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetIngredientByIdQuery
@@ -86,6 +91,7 @@ public class IngredientsController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.InventoryManageCatalog)]
     public async Task<IActionResult> Create([FromBody] CreateIngredientCommand command)
     {
         var result = await _mediator.Send(command);
@@ -99,6 +105,7 @@ public class IngredientsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.InventoryManageCatalog)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateIngredientCommand command)
@@ -116,6 +123,7 @@ public class IngredientsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.InventoryManageCatalog)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteIngredientCommand
