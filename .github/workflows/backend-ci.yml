@@ -69,3 +69,51 @@ jobs:
           for project in "${test_projects[@]}"; do
             dotnet test "$project" --configuration Release --verbosity normal
           done
+
+      - name: Validate Docker Compose
+        env:
+          MSSQL_SA_PASSWORD: "CiOnly_StrongPassword_123!"
+          JWT_SECRET_KEY: "ci-only-jwt-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        run: docker compose config --quiet
+
+      - name: Build Docker image
+        run: docker build --tag quan-ly-nha-hang-api:ci .
+
+      - name: Smoke test Docker container
+        shell: bash
+        env:
+          JWT_SECRET_KEY: "ci-only-jwt-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        run: |
+          docker run --detach --name quan-ly-nha-hang-api-ci \
+            --publish 8080:8080 \
+            --env ASPNETCORE_ENVIRONMENT=Production \
+            --env ASPNETCORE_HTTP_PORTS=8080 \
+            --env Hosting__DisableHttpsRedirection=true \
+            --env Database__ApplyMigrationsOnStartup=false \
+            --env "ConnectionStrings__DefaultConnection=Server=localhost;Database=QuanLyNhaHang;User Id=sa;Password=CiOnly_StrongPassword_123!;Encrypt=True;TrustServerCertificate=True" \
+            --env "Jwt__SecretKey=$JWT_SECRET_KEY" \
+            --env Jwt__Issuer=QuanLyNhaHang \
+            --env Jwt__Audience=QuanLyNhaHang.Client \
+            quan-ly-nha-hang-api:ci
+
+          cleanup() {
+            docker logs quan-ly-nha-hang-api-ci || true
+            docker rm --force quan-ly-nha-hang-api-ci || true
+          }
+          trap cleanup EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://localhost:8080/health; then
+              exit 0
+            fi
+
+            if ! docker inspect --format '{{.State.Running}}' quan-ly-nha-hang-api-ci | grep --quiet true; then
+              echo "::error::Docker container exited before becoming healthy."
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          echo "::error::Docker container did not become healthy within 60 seconds."
+          exit 1

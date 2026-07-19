@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Infrastructure.Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
@@ -11,6 +14,8 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
+
+builder.Services.AddHealthChecks();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -136,12 +141,27 @@ builder.Services.AddSingleton<
 
 var app = builder.Build();
 
+if (app.Configuration.GetValue<bool>(
+        "Database:ApplyMigrationsOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    await dbContext.Database.MigrateAsync();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+if (!app.Configuration.GetValue<bool>(
+        "Hosting:DisableHttpsRedirection"))
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -152,6 +172,8 @@ app.UseRateLimiter();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.MapHealthChecks("/health");
 
 app.MapControllers();
 
