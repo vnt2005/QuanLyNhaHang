@@ -17,13 +17,17 @@ public sealed class EmployeeAuthorizationTests
     [InlineData(
         SystemRoles.Manager,
         "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
-        "Payments.Update|Payments.Cancel|Orders.View|Orders.Create|" +
-        "Orders.Update|Orders.Delete|Inventory.View|" +
-        "Inventory.ManageCatalog|Inventory.Transact|Inventory.Adjust|" +
-        "Reservations.View|Reservations.Create|Reservations.Update|" +
-        "Reservations.Cancel|Menu.View|Menu.Manage|" +
+        "Payments.Update|Payments.Cancel|Invoices.View|Invoices.Manage|" +
+        "Orders.View|Orders.Create|Orders.Update|Orders.Delete|" +
+        "Inventory.View|Inventory.ManageCatalog|Inventory.Transact|" +
+        "Inventory.Adjust|Reservations.View|Reservations.Create|" +
+        "Reservations.Update|Reservations.Cancel|Menu.View|Menu.Manage|" +
         "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
-        "Tables.UpdateStatus",
+        "Tables.UpdateStatus|RevenueReports.View|RevenueReports.Manage|" +
+        "Dashboard.View",
+        true,
+        true,
+        true,
         true,
         true,
         true,
@@ -34,11 +38,14 @@ public sealed class EmployeeAuthorizationTests
     [InlineData(
         SystemRoles.Cashier,
         "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
-        "Payments.Cancel|Reservations.View|Reservations.Create|" +
-        "Reservations.Update|Reservations.Cancel|Menu.View|" +
-        "Tables.View|Tables.UpdateStatus",
+        "Payments.Cancel|Invoices.View|Reservations.View|" +
+        "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
+        "Menu.View|Tables.View|Tables.UpdateStatus",
         true,
         true,
+        true,
+        false,
+        false,
         false,
         false,
         true,
@@ -48,6 +55,9 @@ public sealed class EmployeeAuthorizationTests
         SystemRoles.Kitchen,
         "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
         "Menu.UpdateAvailability",
+        false,
+        false,
+        false,
         false,
         false,
         true,
@@ -64,6 +74,9 @@ public sealed class EmployeeAuthorizationTests
         false,
         false,
         false,
+        false,
+        false,
+        false,
         true,
         true,
         true)]
@@ -72,6 +85,9 @@ public sealed class EmployeeAuthorizationTests
         string expectedCodes,
         bool canViewOrders,
         bool canViewPayments,
+        bool canViewInvoices,
+        bool canViewDashboard,
+        bool canViewRevenueReports,
         bool canViewKitchen,
         bool canViewInventory,
         bool canManageReservations,
@@ -111,6 +127,18 @@ public sealed class EmployeeAuthorizationTests
             employeeClient,
             "/api/payments",
             canViewPayments);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/invoices",
+            canViewInvoices);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/dashboard",
+            canViewDashboard);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/revenue-reports",
+            canViewRevenueReports);
         await AssertAccessAsync(
             employeeClient,
             "/api/kitchen/orders",
@@ -190,7 +218,6 @@ public sealed class EmployeeAuthorizationTests
             context.Permissions.Add(permission);
             context.RolePermissions.Add(
                 new RolePermission(role.Id, permission.Id));
-
             await context.SaveChangesAsync();
         }
 
@@ -218,6 +245,18 @@ public sealed class EmployeeAuthorizationTests
         await AssertAccessAsync(
             employeeClient,
             "/api/payments",
+            isAllowed: false);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/invoices",
+            isAllowed: false);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/dashboard",
+            isAllowed: false);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/revenue-reports",
             isAllowed: false);
         await AssertAccessAsync(
             employeeClient,
@@ -336,7 +375,6 @@ public sealed class EmployeeAuthorizationTests
         await factory.SeedUserAsync(email, password);
 
         var login = await LoginAsync(client, email, password);
-
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", login.Token);
     }
