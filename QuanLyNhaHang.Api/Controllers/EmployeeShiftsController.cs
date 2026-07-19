@@ -1,6 +1,7 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.EmployeeShifts.Commands.Create;
 using QuanLyNhaHang.Application.Features.EmployeeShifts.Commands.Delete;
 using QuanLyNhaHang.Application.Features.EmployeeShifts.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class EmployeeShiftsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -22,8 +23,8 @@ public class EmployeeShiftsController : ControllerBase
         _mediator = mediator;
     }
 
-    // GET: api/employeeshifts
     [HttpGet]
+    [HasPermission(PermissionCodes.EmployeeShiftsView)]
     public async Task<IActionResult> GetList(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -33,8 +34,8 @@ public class EmployeeShiftsController : ControllerBase
         return Ok(result);
     }
 
-    // GET: api/employeeshifts/paginated?keyword=NV001&workDate=2026-05-17&pageNumber=1&pageSize=10
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.EmployeeShiftsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] DateTime? workDate,
@@ -59,8 +60,8 @@ public class EmployeeShiftsController : ControllerBase
         return Ok(result);
     }
 
-    // GET: api/employeeshifts/{id}
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.EmployeeShiftsView)]
     public async Task<IActionResult> GetById(
         Guid id,
         CancellationToken cancellationToken)
@@ -80,8 +81,8 @@ public class EmployeeShiftsController : ControllerBase
         return Ok(result);
     }
 
-    // POST: api/employeeshifts
     [HttpPost]
+    [HasPermission(PermissionCodes.EmployeeShiftsManage)]
     public async Task<IActionResult> Create(
         [FromBody] CreateEmployeeShiftCommand command,
         CancellationToken cancellationToken)
@@ -98,8 +99,8 @@ public class EmployeeShiftsController : ControllerBase
             });
     }
 
-    // PUT: api/employeeshifts/{id}
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.EmployeeShiftsManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateEmployeeShiftCommand command,
@@ -129,8 +130,8 @@ public class EmployeeShiftsController : ControllerBase
         });
     }
 
-    // DELETE: api/employeeshifts/{id}
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.EmployeeShiftsManage)]
     public async Task<IActionResult> Delete(
         Guid id,
         CancellationToken cancellationToken)
