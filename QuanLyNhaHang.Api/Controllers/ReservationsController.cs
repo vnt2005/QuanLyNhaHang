@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Reservations.Commands.Create;
 using QuanLyNhaHang.Application.Features.Reservations.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Reservations.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/reservations")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class ReservationsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.ReservationsView)]
     public async Task<IActionResult> GetList(
         [FromQuery] string? status,
         [FromQuery] DateTime? fromDate,
@@ -39,6 +41,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.ReservationsView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetReservationByIdQuery
@@ -56,6 +59,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.ReservationsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] string? status,
@@ -78,6 +82,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.ReservationsCreate)]
     public async Task<IActionResult> Create([FromBody] CreateReservationCommand command)
     {
         var result = await _mediator.Send(command);
@@ -91,6 +96,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.ReservationsUpdate)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateReservationCommand command)
@@ -108,6 +114,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/status")]
+    [HasPermission(PermissionCodes.ReservationsUpdate)]
     public async Task<IActionResult> UpdateStatus(
         Guid id,
         [FromBody] UpdateReservationStatusCommand command)
@@ -125,6 +132,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.ReservationsCancel)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteReservationCommand
