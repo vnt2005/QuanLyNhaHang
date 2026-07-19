@@ -39,12 +39,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
 
         if (user == null)
         {
-            throw new Exception("Email hoặc mật khẩu không đúng.");
+            throw new UnauthorizedAccessException(
+                "Email hoặc mật khẩu không đúng.");
         }
 
         if (!user.IsActive)
         {
-            throw new Exception("Tài khoản đã bị khóa.");
+            throw new UnauthorizedAccessException(
+                "Tài khoản đã bị khóa.");
         }
 
         var passwordValid = _passwordHasher.VerifyPassword(
@@ -53,7 +55,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
 
         if (!passwordValid)
         {
-            throw new Exception("Email hoặc mật khẩu không đúng.");
+            throw new UnauthorizedAccessException(
+                "Email hoặc mật khẩu không đúng.");
         }
 
         if (user.TwoFactorEnabled)

@@ -55,15 +55,16 @@ jobs:
         shell: bash
         run: |
           mapfile -t test_projects < <(
-            find . -type f \(
-              -name '*Tests.csproj' -o -name '*Test.csproj'
-            \)
+            find . -type f \( -name '*Tests.csproj' -o -name '*Test.csproj' \) -print |
+              sort
           )
 
           if [ "${#test_projects[@]}" -eq 0 ]; then
-            echo "No test projects found; skipping test execution."
-            exit 0
+            echo "::error::No test projects were found."
+            exit 1
           fi
+
+          printf 'Discovered test project: %s\n' "${test_projects[@]}"
 
           for project in "${test_projects[@]}"; do
             dotnet test "$project" --configuration Release --verbosity normal
