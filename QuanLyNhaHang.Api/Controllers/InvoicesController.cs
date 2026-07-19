@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Invoices.Commands.Create;
 using QuanLyNhaHang.Application.Features.Invoices.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Invoices.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/invoices")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class InvoicesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.InvoicesView)]
     public async Task<IActionResult> GetList(
         [FromQuery] string? status,
         [FromQuery] string? paymentMethod)
@@ -37,6 +39,7 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.InvoicesView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetInvoiceByIdQuery
@@ -51,6 +54,7 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.InvoicesView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] string? status,
@@ -71,6 +75,7 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.InvoicesManage)]
     public async Task<IActionResult> Create([FromBody] CreateInvoiceCommand command)
     {
         var result = await _mediator.Send(command);
@@ -84,6 +89,7 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.InvoicesManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateInvoiceCommand command)
@@ -101,6 +107,7 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.InvoicesManage)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteInvoiceCommand
