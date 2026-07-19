@@ -68,6 +68,12 @@ public sealed class DefaultRolePermissionsTests
         Assert.DoesNotContain(PermissionCodes.EmployeesManage, permissions);
         Assert.DoesNotContain(PermissionCodes.UsersView, permissions);
         Assert.DoesNotContain(PermissionCodes.UsersManage, permissions);
+        Assert.DoesNotContain(PermissionCodes.RolesView, permissions);
+        Assert.DoesNotContain(PermissionCodes.RolesManage, permissions);
+        Assert.DoesNotContain(PermissionCodes.PermissionsView, permissions);
+        Assert.DoesNotContain(PermissionCodes.PermissionsManage, permissions);
+        Assert.DoesNotContain(PermissionCodes.RolePermissionsView, permissions);
+        Assert.DoesNotContain(PermissionCodes.RolePermissionsManage, permissions);
         Assert.Contains(PermissionCodes.ShiftsView, permissions);
         Assert.Contains(PermissionCodes.ShiftsManage, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsView, permissions);

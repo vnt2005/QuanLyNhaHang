@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.Create;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/permissions")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class PermissionsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class PermissionsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.PermissionsView)]
     public async Task<IActionResult> GetList(
         [FromQuery] string? groupName,
         [FromQuery] bool? isActive)
@@ -37,6 +39,7 @@ public class PermissionsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.PermissionsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] string? groupName,
@@ -57,6 +60,7 @@ public class PermissionsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.PermissionsView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetPermissionByIdQuery
@@ -74,6 +78,7 @@ public class PermissionsController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.PermissionsManage)]
     public async Task<IActionResult> Create([FromBody] CreatePermissionCommand command)
     {
         var result = await _mediator.Send(command);
@@ -87,6 +92,7 @@ public class PermissionsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.PermissionsManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdatePermissionCommand command)
@@ -104,6 +110,7 @@ public class PermissionsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.PermissionsManage)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeletePermissionCommand

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.RolePermissions.Commands.Create;
 using QuanLyNhaHang.Application.Features.RolePermissions.Commands.Delete;
 using QuanLyNhaHang.Application.Features.RolePermissions.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/role-permissions")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class RolePermissionsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.RolePermissionsView)]
     public async Task<IActionResult> GetList(
         [FromQuery] Guid? roleId,
         [FromQuery] Guid? permissionId,
@@ -39,6 +41,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.RolePermissionsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] Guid? roleId,
@@ -61,6 +64,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.RolePermissionsView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetRolePermissionByIdQuery
@@ -78,6 +82,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpGet("roles/{roleId:guid}/permissions")]
+    [HasPermission(PermissionCodes.RolePermissionsView)]
     public async Task<IActionResult> GetRoleWithPermissions(Guid roleId)
     {
         var result = await _mediator.Send(new GetRoleWithPermissionsByRoleIdQuery
@@ -95,6 +100,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpGet("roles/{roleId:guid}/selection")]
+    [HasPermission(PermissionCodes.RolePermissionsView)]
     public async Task<IActionResult> GetRolePermissionSelection(Guid roleId)
     {
         var result = await _mediator.Send(new GetRolePermissionSelectionByRoleIdQuery
@@ -112,6 +118,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.RolePermissionsManage)]
     public async Task<IActionResult> Create([FromBody] CreateRolePermissionCommand command)
     {
         var result = await _mediator.Send(command);
@@ -125,6 +132,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpPut("roles/{roleId:guid}")]
+    [HasPermission(PermissionCodes.RolePermissionsManage)]
     public async Task<IActionResult> UpdateRolePermissions(
         Guid roleId,
         [FromBody] UpdateRolePermissionsCommand command)
@@ -142,6 +150,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.RolePermissionsManage)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteRolePermissionCommand
@@ -157,6 +166,7 @@ public class RolePermissionsController : ControllerBase
     }
 
     [HttpDelete("roles/{roleId:guid}/permissions/{permissionId:guid}")]
+    [HasPermission(PermissionCodes.RolePermissionsManage)]
     public async Task<IActionResult> DeleteByRoleAndPermission(
         Guid roleId,
         Guid permissionId)
