@@ -4,8 +4,12 @@ using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Application.Features.Auth.Commands.ResetPassword;
 
-public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, string>
+public class ResetPasswordCommandHandler
+    : IRequestHandler<ResetPasswordCommand, string>
 {
+    private const string InvalidCodeMessage =
+        "Mã đặt lại mật khẩu không đúng hoặc đã hết hạn.";
+
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
 
@@ -21,30 +25,49 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
         ResetPasswordCommand request,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.NewPassword) ||
+            request.NewPassword.Length < 8)
+        {
+            throw new ArgumentException(
+                "Mật khẩu mới phải có ít nhất 8 ký tự.");
+        }
+
         var email = request.Email.Trim().ToLower();
 
         var user = await _context.Users
-            .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Email == email,
+                cancellationToken);
 
-        if (user == null)
+        if (user == null || !user.IsActive)
+            throw new ArgumentException(InvalidCodeMessage);
+
+        var now = DateTime.UtcNow;
+
+        if (user.IsPasswordResetLocked(now))
+            throw new ArgumentException(InvalidCodeMessage);
+
+        var codeValid =
+            user.HasActivePasswordResetCode(now) &&
+            _passwordHasher.VerifyPassword(
+                request.Code,
+                user.PasswordResetCode!);
+
+        if (!codeValid)
         {
-            throw new Exception("Tài khoản không tồn tại.");
+            user.RegisterPasswordResetFailure(now);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            throw new ArgumentException(InvalidCodeMessage);
         }
 
-        if (!user.IsActive)
-        {
-            throw new Exception("Tài khoản đã bị khóa.");
-        }
+        var newPasswordHash =
+            _passwordHasher.HashPassword(
+                request.NewPassword);
 
-        if (!user.IsPasswordResetCodeValid(request.Code))
-        {
-            throw new Exception("Mã đặt lại mật khẩu không đúng hoặc đã hết hạn.");
-        }
-
-        var newPasswordHash = _passwordHasher.HashPassword(request.NewPassword);
-
+        // ChangePassword đã tự ClearPasswordResetCode.
         user.ChangePassword(newPasswordHash);
-        user.ClearPasswordResetCode();
 
         await _context.SaveChangesAsync(cancellationToken);
 

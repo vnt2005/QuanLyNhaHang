@@ -7,6 +7,8 @@ using QuanLyNhaHang.Application.Features.Auth.Commands.Login;
 using QuanLyNhaHang.Application.Features.Auth.Commands.Register;
 using QuanLyNhaHang.Application.Features.Auth.Commands.ResetPassword;
 using QuanLyNhaHang.Application.Features.Auth.Commands.VerifyTwoFactor;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace QuanLyNhaHang.Api.Controllers;
 
@@ -22,6 +24,8 @@ public class AuthController : ControllerBase
     }
 
     // POST: api/auth/register
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthSensitive")]
     [HttpPost("register")]
     public async Task<IActionResult> Register(
         [FromBody] RegisterCommand command,
@@ -39,6 +43,8 @@ public class AuthController : ControllerBase
     }
 
     // POST: api/auth/login
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthLogin")]
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginCommand command,
@@ -56,6 +62,8 @@ public class AuthController : ControllerBase
     }
 
     // POST: api/auth/verify-2fa
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthSensitive")]
     [HttpPost("verify-2fa")]
     public async Task<IActionResult> VerifyTwoFactor(
         [FromBody] VerifyTwoFactorCommand command,
@@ -73,6 +81,8 @@ public class AuthController : ControllerBase
     }
 
     // POST: api/auth/forgot-password
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthSensitive")]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(
         [FromBody] ForgotPasswordCommand command,
@@ -87,6 +97,8 @@ public class AuthController : ControllerBase
     }
 
     // POST: api/auth/reset-password
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthSensitive")]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(
         [FromBody] ResetPasswordCommand command,
@@ -101,6 +113,8 @@ public class AuthController : ControllerBase
     }
 
     // POST: api/auth/enable-2fa
+    [Authorize]
+    [EnableRateLimiting("AuthSensitive")]
     [HttpPost("enable-2fa")]
     public async Task<IActionResult> EnableTwoFactor(
         [FromBody] EnableTwoFactorCommand command,
@@ -115,6 +129,8 @@ public class AuthController : ControllerBase
     }
 
     // POST: api/auth/disable-2fa
+    [Authorize]
+    [EnableRateLimiting("AuthSensitive")]
     [HttpPost("disable-2fa")]
     public async Task<IActionResult> DisableTwoFactor(
         [FromBody] DisableTwoFactorCommand command,

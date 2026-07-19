@@ -2,6 +2,10 @@
 
 public class User
 {
+    private const int MaxVerificationFailures = 5;
+
+    private static readonly TimeSpan VerificationLockDuration =
+        TimeSpan.FromMinutes(15);
     public Guid Id { get; private set; }
 
     public string? Ho { get; private set; }
@@ -32,6 +36,13 @@ public class User
 
     public DateTime? UpdatedAt { get; private set; }
 
+    public int TwoFactorFailedAttempts { get; private set; }
+
+    public DateTime? TwoFactorLockedUntil { get; private set; }
+
+    public int PasswordResetFailedAttempts { get; private set; }
+
+    public DateTime? PasswordResetLockedUntil { get; private set; }
     protected User()
     {
     }
@@ -56,6 +67,8 @@ public class User
         IsActive = true;
         TwoFactorEnabled = false;
         CreatedAt = DateTime.UtcNow;
+        TwoFactorFailedAttempts = 0;
+        PasswordResetFailedAttempts = 0;
     }
 
     public void UpdateInfo(
@@ -98,6 +111,7 @@ public class User
     public void EnableTwoFactor()
     {
         TwoFactorEnabled = true;
+        ClearTwoFactorCode();
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -110,76 +124,117 @@ public class User
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void SetTwoFactorCode(string code, DateTime expiresAt)
+    public void SetTwoFactorCode(
+    string codeHash,
+    DateTime expiresAt)
     {
-        if (string.IsNullOrWhiteSpace(code))
-            throw new ArgumentException("Mã xác thực 2 yếu tố không được để trống.");
+        if (string.IsNullOrWhiteSpace(codeHash))
+        {
+            throw new ArgumentException(
+                "Mã xác thực 2 yếu tố không hợp lệ.");
+        }
 
-        TwoFactorCode = code.Trim();
+        TwoFactorCode = codeHash;
         TwoFactorCodeExpiresAt = expiresAt;
-
+        TwoFactorFailedAttempts = 0;
+        TwoFactorLockedUntil = null;
         UpdatedAt = DateTime.UtcNow;
+    }
+    public bool HasActiveTwoFactorCode(DateTime utcNow)
+    {
+        return !IsTwoFactorLocked(utcNow) &&
+               !string.IsNullOrWhiteSpace(TwoFactorCode) &&
+               TwoFactorCodeExpiresAt.HasValue &&
+               TwoFactorCodeExpiresAt.Value > utcNow;
+    }
+    public bool IsTwoFactorLocked(DateTime utcNow)
+    {
+        return TwoFactorLockedUntil.HasValue &&
+               TwoFactorLockedUntil.Value > utcNow;
+    }
+    public void RegisterTwoFactorFailure(DateTime utcNow)
+    {
+        if (IsTwoFactorLocked(utcNow))
+            return;
+
+        TwoFactorFailedAttempts++;
+
+        if (TwoFactorFailedAttempts >= MaxVerificationFailures)
+        {
+            TwoFactorLockedUntil =
+                utcNow.Add(VerificationLockDuration);
+
+            TwoFactorCode = null;
+            TwoFactorCodeExpiresAt = null;
+        }
+
+        UpdatedAt = utcNow;
     }
 
     public void ClearTwoFactorCode()
     {
         TwoFactorCode = null;
         TwoFactorCodeExpiresAt = null;
-
+        TwoFactorFailedAttempts = 0;
+        TwoFactorLockedUntil = null;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public bool IsTwoFactorCodeValid(string code)
+    public void SetPasswordResetCode(
+    string codeHash,
+    DateTime expiresAt)
     {
-        if (string.IsNullOrWhiteSpace(code))
-            return false;
+        if (string.IsNullOrWhiteSpace(codeHash))
+        {
+            throw new ArgumentException(
+                "Mã đặt lại mật khẩu không hợp lệ.");
+        }
 
-        if (string.IsNullOrWhiteSpace(TwoFactorCode))
-            return false;
-
-        if (TwoFactorCodeExpiresAt == null)
-            return false;
-
-        if (TwoFactorCodeExpiresAt < DateTime.UtcNow)
-            return false;
-
-        return TwoFactorCode == code.Trim();
-    }
-
-    public void SetPasswordResetCode(string code, DateTime expiresAt)
-    {
-        if (string.IsNullOrWhiteSpace(code))
-            throw new ArgumentException("Mã đặt lại mật khẩu không được để trống.");
-
-        PasswordResetCode = code.Trim();
+        PasswordResetCode = codeHash;
         PasswordResetCodeExpiresAt = expiresAt;
-
+        PasswordResetFailedAttempts = 0;
+        PasswordResetLockedUntil = null;
         UpdatedAt = DateTime.UtcNow;
+    }
+    public bool HasActivePasswordResetCode(DateTime utcNow)
+    {
+        return !IsPasswordResetLocked(utcNow) &&
+               !string.IsNullOrWhiteSpace(PasswordResetCode) &&
+               PasswordResetCodeExpiresAt.HasValue &&
+               PasswordResetCodeExpiresAt.Value > utcNow;
+    }
+
+    public bool IsPasswordResetLocked(DateTime utcNow)
+    {
+        return PasswordResetLockedUntil.HasValue &&
+               PasswordResetLockedUntil.Value > utcNow;
+    }
+    public void RegisterPasswordResetFailure(DateTime utcNow)
+    {
+        if (IsPasswordResetLocked(utcNow))
+            return;
+
+        PasswordResetFailedAttempts++;
+
+        if (PasswordResetFailedAttempts >= MaxVerificationFailures)
+        {
+            PasswordResetLockedUntil =
+                utcNow.Add(VerificationLockDuration);
+
+            PasswordResetCode = null;
+            PasswordResetCodeExpiresAt = null;
+        }
+
+        UpdatedAt = utcNow;
     }
 
     public void ClearPasswordResetCode()
     {
         PasswordResetCode = null;
         PasswordResetCodeExpiresAt = null;
-
+        PasswordResetFailedAttempts = 0;
+        PasswordResetLockedUntil = null;
         UpdatedAt = DateTime.UtcNow;
-    }
-
-    public bool IsPasswordResetCodeValid(string code)
-    {
-        if (string.IsNullOrWhiteSpace(code))
-            return false;
-
-        if (string.IsNullOrWhiteSpace(PasswordResetCode))
-            return false;
-
-        if (PasswordResetCodeExpiresAt == null)
-            return false;
-
-        if (PasswordResetCodeExpiresAt < DateTime.UtcNow)
-            return false;
-
-        return PasswordResetCode == code.Trim();
     }
 
     private void SetHo(string? ho)

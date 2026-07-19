@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Auth.DTOs;
+using System.Security.Cryptography;
 
 namespace QuanLyNhaHang.Application.Features.Auth.Commands.Login;
 
@@ -57,18 +58,32 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
 
         if (user.TwoFactorEnabled)
         {
-            var code = Random.Shared.Next(100000, 999999).ToString();
+            var now = DateTime.UtcNow;
+
+            if (user.IsTwoFactorLocked(now))
+            {
+                throw new UnauthorizedAccessException(
+                    "Xác thực 2 yếu tố đang tạm khóa. " +
+                    "Vui lòng thử lại sau 15 phút.");
+            }
+
+            var code = RandomNumberGenerator
+                .GetInt32(0, 1_000_000)
+                .ToString("D6");
+
+            var codeHash = _passwordHasher.HashPassword(code);
 
             user.SetTwoFactorCode(
-                code,
-                DateTime.UtcNow.AddMinutes(5));
+                codeHash,
+                now.AddMinutes(5));
 
             await _context.SaveChangesAsync(cancellationToken);
 
             await _emailService.SendAsync(
                 user.Email,
                 "Mã xác thực đăng nhập",
-                $"Mã xác thực đăng nhập của bạn là: {code}. Mã này có hiệu lực trong 5 phút.");
+                $"Mã xác thực đăng nhập của bạn là: {code}. " +
+                "Mã này có hiệu lực trong 5 phút.");
 
             return new AuthResponseDto
             {
@@ -79,9 +94,10 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
                 PhoneNumber = user.PhoneNumber,
                 Role = user.Role,
                 IsActive = user.IsActive,
-                TwoFactorEnabled = user.TwoFactorEnabled,
+                TwoFactorEnabled = true,
                 RequiresTwoFactor = true,
                 Token = string.Empty,
+                Permissions = new List<string>(),
                 Message = "Vui lòng kiểm tra email để lấy mã xác thực."
             };
         }

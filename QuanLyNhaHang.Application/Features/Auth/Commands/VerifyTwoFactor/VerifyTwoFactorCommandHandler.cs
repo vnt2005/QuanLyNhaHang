@@ -5,20 +5,27 @@ using QuanLyNhaHang.Application.Features.Auth.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Auth.Commands.VerifyTwoFactor;
 
-public class VerifyTwoFactorCommandHandler : IRequestHandler<VerifyTwoFactorCommand, AuthResponseDto>
+public class VerifyTwoFactorCommandHandler
+    : IRequestHandler<VerifyTwoFactorCommand, AuthResponseDto>
 {
+    private const string InvalidCodeMessage =
+        "Mã xác thực không đúng hoặc đã hết hạn.";
+
     private readonly IApplicationDbContext _context;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IUserPermissionService _userPermissionService;
+    private readonly IPasswordHasher _passwordHasher;
 
     public VerifyTwoFactorCommandHandler(
         IApplicationDbContext context,
         IJwtTokenService jwtTokenService,
-        IUserPermissionService userPermissionService)
+        IUserPermissionService userPermissionService,
+        IPasswordHasher passwordHasher)
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
         _userPermissionService = userPermissionService;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -28,37 +35,54 @@ public class VerifyTwoFactorCommandHandler : IRequestHandler<VerifyTwoFactorComm
         var email = request.Email.Trim().ToLower();
 
         var user = await _context.Users
-            .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Email == email,
+                cancellationToken);
 
-        if (user == null)
+        if (user == null ||
+            !user.IsActive ||
+            !user.TwoFactorEnabled)
         {
-            throw new Exception("Tài khoản không tồn tại.");
+            throw new UnauthorizedAccessException(
+                InvalidCodeMessage);
         }
 
-        if (!user.IsActive)
+        var now = DateTime.UtcNow;
+
+        if (user.IsTwoFactorLocked(now))
         {
-            throw new Exception("Tài khoản đã bị khóa.");
+            throw new UnauthorizedAccessException(
+                "Xác thực đang tạm khóa. Vui lòng thử lại sau.");
         }
 
-        if (!user.TwoFactorEnabled)
-        {
-            throw new Exception("Tài khoản chưa bật xác thực 2 yếu tố.");
-        }
+        var codeValid =
+            user.HasActiveTwoFactorCode(now) &&
+            _passwordHasher.VerifyPassword(
+                request.Code,
+                user.TwoFactorCode!);
 
-        if (!user.IsTwoFactorCodeValid(request.Code))
+        if (!codeValid)
         {
-            throw new Exception("Mã xác thực không đúng hoặc đã hết hạn.");
+            user.RegisterTwoFactorFailure(now);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            throw new UnauthorizedAccessException(
+                InvalidCodeMessage);
         }
 
         user.ClearTwoFactorCode();
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var permissions = await _userPermissionService.GetPermissionsAsync(
-            user.Role,
-            cancellationToken);
+        var permissions =
+            await _userPermissionService.GetPermissionsAsync(
+                user.Role,
+                cancellationToken);
 
-        var token = _jwtTokenService.GenerateToken(user, permissions);
+        var token = _jwtTokenService.GenerateToken(
+            user,
+            permissions);
 
         return new AuthResponseDto
         {

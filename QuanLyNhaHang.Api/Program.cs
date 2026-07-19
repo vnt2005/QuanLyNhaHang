@@ -47,33 +47,13 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode =
         StatusCodes.Status429TooManyRequests;
 
-    options.AddPolicy("QrBrowse", context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey:
-                context.Connection.RemoteIpAddress?.ToString()
-                ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 60,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-                QueueProcessingOrder =
-                    QueueProcessingOrder.OldestFirst,
-                AutoReplenishment = true
-            }));
-
-    options.AddPolicy("QrCreate", context =>
+    options.AddPolicy("AuthLogin", context =>
     {
         var ip = context.Connection.RemoteIpAddress?.ToString()
                  ?? "unknown";
 
-        var token =
-            Convert.ToString(
-                context.Request.RouteValues["token"])
-            ?? "unknown";
-
         return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: $"{ip}:{token}",
+            partitionKey: $"auth-login:{ip}",
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
@@ -84,7 +64,28 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true
             });
     });
+
+    options.AddPolicy("AuthSensitive", context =>
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString()
+                 ?? "unknown";
+
+        var path = context.Request.Path.Value ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"auth-sensitive:{ip}:{path}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(5),
+                QueueLimit = 0,
+                QueueProcessingOrder =
+                    QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            });
+    });
 });
+
 
 builder.Services.AddAuthorization();
 

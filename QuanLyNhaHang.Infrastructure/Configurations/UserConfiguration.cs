@@ -53,5 +53,30 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(x => x.UpdatedAt)
             .IsRequired(false);
+        builder.Property(x => x.TwoFactorCode)
+    .HasMaxLength(500)
+    .IsRequired(false);
+
+        builder.Property(x => x.TwoFactorCodeExpiresAt)
+            .IsRequired(false);
+
+        builder.Property(x => x.TwoFactorFailedAttempts)
+            .IsRequired();
+
+        builder.Property(x => x.TwoFactorLockedUntil)
+            .IsRequired(false);
+
+        builder.Property(x => x.PasswordResetCode)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(x => x.PasswordResetCodeExpiresAt)
+            .IsRequired(false);
+
+        builder.Property(x => x.PasswordResetFailedAttempts)
+            .IsRequired();
+
+        builder.Property(x => x.PasswordResetLockedUntil)
+            .IsRequired(false);
     }
 }

@@ -1,54 +1,71 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using System.Security.Cryptography;
 
 namespace QuanLyNhaHang.Application.Features.Auth.Commands.ForgotPassword;
 
-public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, string>
+public class ForgotPasswordCommandHandler
+    : IRequestHandler<ForgotPasswordCommand, string>
 {
+    private const string GenericMessage =
+        "Nếu email tồn tại trong hệ thống, " +
+        "mã đặt lại mật khẩu sẽ được gửi đến email đó.";
+
     private readonly IApplicationDbContext _context;
     private readonly IEmailService _emailService;
+    private readonly IPasswordHasher _passwordHasher;
 
     public ForgotPasswordCommandHandler(
         IApplicationDbContext context,
-        IEmailService emailService)
+        IEmailService emailService,
+        IPasswordHasher passwordHasher)
     {
         _context = context;
         _emailService = emailService;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<string> Handle(
         ForgotPasswordCommand request,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return GenericMessage;
+
         var email = request.Email.Trim().ToLower();
 
         var user = await _context.Users
-            .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Email == email,
+                cancellationToken);
 
-        if (user == null)
-        {
-            throw new Exception("Email không tồn tại trong hệ thống.");
-        }
+        if (user == null || !user.IsActive)
+            return GenericMessage;
 
-        if (!user.IsActive)
-        {
-            throw new Exception("Tài khoản đã bị khóa.");
-        }
+        var now = DateTime.UtcNow;
 
-        var code = Random.Shared.Next(100000, 999999).ToString();
+        if (user.IsPasswordResetLocked(now))
+            return GenericMessage;
+
+        var code = RandomNumberGenerator
+            .GetInt32(0, 1_000_000)
+            .ToString("D6");
+
+        var codeHash = _passwordHasher.HashPassword(code);
 
         user.SetPasswordResetCode(
-            code,
-            DateTime.UtcNow.AddMinutes(10));
+            codeHash,
+            now.AddMinutes(10));
 
         await _context.SaveChangesAsync(cancellationToken);
 
         await _emailService.SendAsync(
             user.Email,
             "Mã đặt lại mật khẩu",
-            $"Mã đặt lại mật khẩu của bạn là: {code}. Mã này có hiệu lực trong 10 phút.");
+            $"Mã đặt lại mật khẩu của bạn là: {code}. " +
+            "Mã này có hiệu lực trong 10 phút.");
 
-        return "Mã đặt lại mật khẩu đã được gửi về email.";
+        return GenericMessage;
     }
 }

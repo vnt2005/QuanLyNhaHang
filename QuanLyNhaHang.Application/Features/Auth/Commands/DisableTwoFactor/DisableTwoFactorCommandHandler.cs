@@ -4,31 +4,54 @@ using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Application.Features.Auth.Commands.DisableTwoFactor;
 
-public class DisableTwoFactorCommandHandler : IRequestHandler<DisableTwoFactorCommand, string>
+public class DisableTwoFactorCommandHandler
+    : IRequestHandler<DisableTwoFactorCommand, string>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public DisableTwoFactorCommandHandler(IApplicationDbContext context)
+    public DisableTwoFactorCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IPasswordHasher passwordHasher)
     {
         _context = context;
+        _currentUserService = currentUserService;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<string> Handle(
         DisableTwoFactorCommand request,
         CancellationToken cancellationToken)
     {
+        var userId = _currentUserService.UserId
+            ?? throw new UnauthorizedAccessException(
+                "Bạn chưa đăng nhập.");
+
         var user = await _context.Users
-            .FirstOrDefaultAsync(x => x.Id == request.UserId, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Id == userId,
+                cancellationToken);
 
-        if (user == null)
+        if (user == null || !user.IsActive)
         {
-            throw new Exception("Người dùng không tồn tại.");
+            throw new UnauthorizedAccessException(
+                "Tài khoản không tồn tại hoặc đã bị khóa.");
         }
 
-        if (!user.IsActive)
+        var passwordValid = _passwordHasher.VerifyPassword(
+            request.Password,
+            user.PasswordHash);
+
+        if (!passwordValid)
         {
-            throw new Exception("Tài khoản đã bị khóa.");
+            throw new UnauthorizedAccessException(
+                "Mật khẩu xác nhận không đúng.");
         }
+
+        if (!user.TwoFactorEnabled)
+            return "Tài khoản chưa bật xác thực 2 yếu tố.";
 
         user.DisableTwoFactor();
 
