@@ -15,8 +15,9 @@ public sealed class DefaultRolePermissionsTests
         "Inventory.Adjust|Reservations.View|Reservations.Create|" +
         "Reservations.Update|Reservations.Cancel|Menu.View|Menu.Manage|" +
         "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
-        "Tables.UpdateStatus|RevenueReports.View|RevenueReports.Manage|" +
-        "Dashboard.View")]
+        "Tables.UpdateStatus|Shifts.View|Shifts.Manage|" +
+        "EmployeeShifts.View|EmployeeShifts.Manage|" +
+        "RevenueReports.View|RevenueReports.Manage|Dashboard.View")]
     [InlineData(
         SystemRoles.Cashier,
         "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
@@ -61,11 +62,11 @@ public sealed class DefaultRolePermissionsTests
     [Fact]
     public void GetForRole_IsCaseInsensitiveAndTrimsInput()
     {
-        var permissions = DefaultRolePermissions.GetForRole("  cashier  ");
+        var permissions = DefaultRolePermissions.GetForRole("  manager  ");
 
-        Assert.Contains(PermissionCodes.PaymentsCreate, permissions);
-        Assert.Contains(PermissionCodes.InvoicesView, permissions);
-        Assert.Contains(PermissionCodes.ReservationsCreate, permissions);
-        Assert.Contains(PermissionCodes.TablesView, permissions);
+        Assert.Contains(PermissionCodes.ShiftsView, permissions);
+        Assert.Contains(PermissionCodes.ShiftsManage, permissions);
+        Assert.Contains(PermissionCodes.EmployeeShiftsView, permissions);
+        Assert.Contains(PermissionCodes.EmployeeShiftsManage, permissions);
     }
 }
