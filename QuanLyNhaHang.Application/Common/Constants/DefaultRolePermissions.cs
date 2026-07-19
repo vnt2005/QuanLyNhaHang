@@ -31,6 +31,10 @@ public static class DefaultRolePermissions
             PermissionCodes.TablesView,
             PermissionCodes.TablesManage,
             PermissionCodes.TablesUpdateStatus,
+            PermissionCodes.ShiftsView,
+            PermissionCodes.ShiftsManage,
+            PermissionCodes.EmployeeShiftsView,
+            PermissionCodes.EmployeeShiftsManage,
             PermissionCodes.RevenueReportsView,
             PermissionCodes.RevenueReportsManage,
             PermissionCodes.DashboardView
