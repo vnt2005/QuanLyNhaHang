@@ -165,6 +165,83 @@ public sealed class OrderPaymentWorkflowTests
         Assert.Equal(2, invoiceItemCount);
     }
 
+    [Fact]
+    public async Task CancelPayment_CancelsInvoiceAndAllowsReplacement()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var scenario = await SeedOrderingScenarioAsync(factory);
+        var orderId = await CreateOrderAsync(client, scenario);
+        await MoveOrderToServedAsync(client, orderId);
+
+        using var paymentResponse = await PayAsync(client, orderId);
+        Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
+
+        using var paymentJson = await ReadJsonAsync(paymentResponse);
+        var paymentId = paymentJson.RootElement
+            .GetProperty("data")
+            .GetProperty("id")
+            .GetGuid();
+
+        using var cancelResponse = await client.DeleteAsync(
+            $"/api/payments/{paymentId}");
+
+        Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
+
+        using (var cancelledScope = factory.Services.CreateScope())
+        {
+            var context = cancelledScope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+
+            var order = await context.Orders
+                .AsNoTracking()
+                .SingleAsync(x => x.Id == orderId);
+            var table = await context.RestaurantTables
+                .AsNoTracking()
+                .SingleAsync(x => x.Id == scenario.TableId);
+            var payment = await context.Payments
+                .AsNoTracking()
+                .SingleAsync(x => x.Id == paymentId);
+            var invoice = await context.Invoices
+                .AsNoTracking()
+                .SingleAsync(x => x.PaymentId == paymentId);
+
+            Assert.Equal("Served", order.Status);
+            Assert.Equal("Available", table.Status);
+            Assert.Equal("Cancelled", payment.Status);
+            Assert.Equal("Cancelled", invoice.Status);
+        }
+
+        using var replacementResponse = await PayAsync(client, orderId);
+        Assert.Equal(HttpStatusCode.OK, replacementResponse.StatusCode);
+
+        using var replacementScope = factory.Services.CreateScope();
+        var replacementContext = replacementScope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+
+        var replacementOrder = await replacementContext.Orders
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == orderId);
+        var payments = await replacementContext.Payments
+            .AsNoTracking()
+            .Where(x => x.OrderId == orderId)
+            .ToListAsync();
+        var invoices = await replacementContext.Invoices
+            .AsNoTracking()
+            .Where(x => x.OrderId == orderId)
+            .ToListAsync();
+
+        Assert.Equal("Completed", replacementOrder.Status);
+        Assert.Equal(2, payments.Count);
+        Assert.Single(payments, x => x.Status == "Cancelled");
+        Assert.Single(payments, x => x.Status == "Paid");
+        Assert.Equal(2, invoices.Count);
+        Assert.Single(invoices, x => x.Status == "Cancelled");
+        Assert.Single(invoices, x => x.Status == "Issued");
+    }
+
     private static async Task AuthenticateAdminAsync(
         ApiWebApplicationFactory factory,
         HttpClient client)
