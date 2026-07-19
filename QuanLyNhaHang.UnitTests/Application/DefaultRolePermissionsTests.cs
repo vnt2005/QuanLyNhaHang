@@ -15,7 +15,7 @@ public sealed class DefaultRolePermissionsTests
         "Inventory.Adjust|Reservations.View|Reservations.Create|" +
         "Reservations.Update|Reservations.Cancel|Menu.View|Menu.Manage|" +
         "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
-        "Tables.UpdateStatus|Shifts.View|Shifts.Manage|" +
+        "Tables.UpdateStatus|Employees.View|Shifts.View|Shifts.Manage|" +
         "EmployeeShifts.View|EmployeeShifts.Manage|" +
         "RevenueReports.View|RevenueReports.Manage|Dashboard.View")]
     [InlineData(
@@ -64,6 +64,10 @@ public sealed class DefaultRolePermissionsTests
     {
         var permissions = DefaultRolePermissions.GetForRole("  manager  ");
 
+        Assert.Contains(PermissionCodes.EmployeesView, permissions);
+        Assert.DoesNotContain(PermissionCodes.EmployeesManage, permissions);
+        Assert.DoesNotContain(PermissionCodes.UsersView, permissions);
+        Assert.DoesNotContain(PermissionCodes.UsersManage, permissions);
         Assert.Contains(PermissionCodes.ShiftsView, permissions);
         Assert.Contains(PermissionCodes.ShiftsManage, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsView, permissions);
