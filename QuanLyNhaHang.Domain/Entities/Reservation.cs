@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Domain.Entities;
+namespace QuanLyNhaHang.Domain.Entities;
 
 public class Reservation
 {
@@ -76,11 +76,11 @@ public class Reservation
         decimal depositAmount,
         string? note)
     {
-        if (Status == "Cancelled")
-            throw new InvalidOperationException("Đặt bàn đã hủy, không thể cập nhật.");
-
-        if (Status == "Completed")
-            throw new InvalidOperationException("Đặt bàn đã hoàn tất, không thể cập nhật.");
+        if (Status != "Pending" && Status != "Confirmed")
+        {
+            throw new InvalidOperationException(
+                "Chỉ đặt bàn đang chờ hoặc đã xác nhận mới có thể cập nhật.");
+        }
 
         SetRestaurantTableId(restaurantTableId);
         SetCustomerName(customerName);
@@ -96,11 +96,11 @@ public class Reservation
 
     public void Confirm()
     {
-        if (Status == "Cancelled")
-            throw new InvalidOperationException("Đặt bàn đã hủy, không thể xác nhận.");
-
-        if (Status == "Completed")
-            throw new InvalidOperationException("Đặt bàn đã hoàn tất, không thể xác nhận.");
+        if (Status != "Pending")
+        {
+            throw new InvalidOperationException(
+                "Chỉ đặt bàn đang chờ mới có thể xác nhận.");
+        }
 
         Status = "Confirmed";
         ConfirmedAt = DateTime.UtcNow;
@@ -110,7 +110,10 @@ public class Reservation
     public void CheckIn()
     {
         if (Status != "Confirmed")
-            throw new InvalidOperationException("Chỉ đặt bàn đã xác nhận mới có thể nhận bàn.");
+        {
+            throw new InvalidOperationException(
+                "Chỉ đặt bàn đã xác nhận mới có thể nhận bàn.");
+        }
 
         Status = "CheckedIn";
         CheckedInAt = DateTime.UtcNow;
@@ -120,7 +123,10 @@ public class Reservation
     public void Complete()
     {
         if (Status != "CheckedIn")
-            throw new InvalidOperationException("Chỉ đặt bàn đã nhận bàn mới có thể hoàn tất.");
+        {
+            throw new InvalidOperationException(
+                "Chỉ đặt bàn đã nhận bàn mới có thể hoàn tất.");
+        }
 
         Status = "Completed";
         CompletedAt = DateTime.UtcNow;
@@ -129,11 +135,11 @@ public class Reservation
 
     public void Cancel()
     {
-        if (Status == "Completed")
-            throw new InvalidOperationException("Đặt bàn đã hoàn tất, không thể hủy.");
-
-        if (Status == "Cancelled")
-            throw new InvalidOperationException("Đặt bàn đã được hủy trước đó.");
+        if (Status != "Pending" && Status != "Confirmed")
+        {
+            throw new InvalidOperationException(
+                "Chỉ đặt bàn đang chờ hoặc đã xác nhận mới có thể hủy.");
+        }
 
         Status = "Cancelled";
         CancelledAt = DateTime.UtcNow;
@@ -142,11 +148,11 @@ public class Reservation
 
     public void MarkNoShow()
     {
-        if (Status == "Completed")
-            throw new InvalidOperationException("Đặt bàn đã hoàn tất, không thể chuyển sang vắng mặt.");
-
-        if (Status == "Cancelled")
-            throw new InvalidOperationException("Đặt bàn đã hủy, không thể chuyển sang vắng mặt.");
+        if (Status != "Pending" && Status != "Confirmed")
+        {
+            throw new InvalidOperationException(
+                "Chỉ đặt bàn đang chờ hoặc đã xác nhận mới có thể chuyển sang vắng mặt.");
+        }
 
         Status = "NoShow";
         UpdatedAt = DateTime.UtcNow;
