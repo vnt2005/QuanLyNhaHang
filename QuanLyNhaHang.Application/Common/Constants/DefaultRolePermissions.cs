@@ -11,6 +11,8 @@ public static class DefaultRolePermissions
             PermissionCodes.PaymentsCreate,
             PermissionCodes.PaymentsUpdate,
             PermissionCodes.PaymentsCancel,
+            PermissionCodes.InvoicesView,
+            PermissionCodes.InvoicesManage,
             PermissionCodes.OrdersView,
             PermissionCodes.OrdersCreate,
             PermissionCodes.OrdersUpdate,
@@ -28,7 +30,10 @@ public static class DefaultRolePermissions
             PermissionCodes.MenuUpdateAvailability,
             PermissionCodes.TablesView,
             PermissionCodes.TablesManage,
-            PermissionCodes.TablesUpdateStatus
+            PermissionCodes.TablesUpdateStatus,
+            PermissionCodes.RevenueReportsView,
+            PermissionCodes.RevenueReportsManage,
+            PermissionCodes.DashboardView
         });
 
     private static readonly IReadOnlyCollection<string> Cashier =
@@ -39,6 +44,7 @@ public static class DefaultRolePermissions
             PermissionCodes.PaymentsCreate,
             PermissionCodes.PaymentsUpdate,
             PermissionCodes.PaymentsCancel,
+            PermissionCodes.InvoicesView,
             PermissionCodes.ReservationsView,
             PermissionCodes.ReservationsCreate,
             PermissionCodes.ReservationsUpdate,
