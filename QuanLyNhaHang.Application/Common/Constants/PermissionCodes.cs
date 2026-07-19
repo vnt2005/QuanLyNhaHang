@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Application.Common.Constants;
+namespace QuanLyNhaHang.Application.Common.Constants;
 
 public static class PermissionCodes
 {
@@ -14,4 +14,22 @@ public static class PermissionCodes
     public const string OrdersCreate = "Orders.Create";
     public const string OrdersUpdate = "Orders.Update";
     public const string OrdersDelete = "Orders.Delete";
+
+    public const string InventoryView = "Inventory.View";
+    public const string InventoryManageCatalog = "Inventory.ManageCatalog";
+    public const string InventoryTransact = "Inventory.Transact";
+    public const string InventoryAdjust = "Inventory.Adjust";
+
+    public const string ReservationsView = "Reservations.View";
+    public const string ReservationsCreate = "Reservations.Create";
+    public const string ReservationsUpdate = "Reservations.Update";
+    public const string ReservationsCancel = "Reservations.Cancel";
+
+    public const string MenuView = "Menu.View";
+    public const string MenuManage = "Menu.Manage";
+    public const string MenuUpdateAvailability = "Menu.UpdateAvailability";
+
+    public const string TablesView = "Tables.View";
+    public const string TablesManage = "Tables.Manage";
+    public const string TablesUpdateStatus = "Tables.UpdateStatus";
 }
