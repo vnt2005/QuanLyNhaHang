@@ -37,6 +37,12 @@ public class CreateQrOrderCommandHandler
         if (table == null || !table.IsActive)
             throw new Exception("Bàn không tồn tại hoặc đã ngừng hoạt động.");
 
+        if (request.Items is null || request.Items.Count == 0)
+        {
+            throw new ArgumentException(
+                "Order phải có ít nhất một món.");
+        }
+
         if (request.Items.Count > 50)
             throw new Exception("Một order không được vượt quá 50 dòng món.");
 

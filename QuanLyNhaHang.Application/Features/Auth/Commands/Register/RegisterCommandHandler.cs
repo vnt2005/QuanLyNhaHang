@@ -81,6 +81,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,
+            Permissions = permissions.ToList(),
             Message = "Đăng ký thành công."
         };
     }

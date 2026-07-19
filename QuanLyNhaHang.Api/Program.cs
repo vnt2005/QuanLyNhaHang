@@ -107,6 +107,8 @@ app.UseHttpsRedirection();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+app.UseRouting();
+
 app.UseRateLimiter();
 
 app.UseAuthentication();

@@ -72,7 +72,7 @@ public class VerifyTwoFactorCommandHandler : IRequestHandler<VerifyTwoFactorComm
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,
-            Permissions = new List<string>(),
+            Permissions = permissions.ToList(),
             Message = "Xác thực 2 yếu tố thành công."
         };
     }
