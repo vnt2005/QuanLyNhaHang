@@ -69,3 +69,12 @@ jobs:
           for project in "${test_projects[@]}"; do
             dotnet test "$project" --configuration Release --verbosity normal
           done
+
+      - name: Validate Docker Compose
+        env:
+          MSSQL_SA_PASSWORD: "CiOnly_StrongPassword_123!"
+          JWT_SECRET_KEY: "ci-only-jwt-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        run: docker compose config --quiet
+
+      - name: Build Docker image
+        run: docker build --tag quan-ly-nha-hang-api:ci .
