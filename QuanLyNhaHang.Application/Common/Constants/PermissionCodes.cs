@@ -10,6 +10,9 @@ public static class PermissionCodes
     public const string PaymentsUpdate = "Payments.Update";
     public const string PaymentsCancel = "Payments.Cancel";
 
+    public const string InvoicesView = "Invoices.View";
+    public const string InvoicesManage = "Invoices.Manage";
+
     public const string OrdersView = "Orders.View";
     public const string OrdersCreate = "Orders.Create";
     public const string OrdersUpdate = "Orders.Update";
@@ -32,4 +35,9 @@ public static class PermissionCodes
     public const string TablesView = "Tables.View";
     public const string TablesManage = "Tables.Manage";
     public const string TablesUpdateStatus = "Tables.UpdateStatus";
+
+    public const string RevenueReportsView = "RevenueReports.View";
+    public const string RevenueReportsManage = "RevenueReports.Manage";
+
+    public const string DashboardView = "Dashboard.View";
 }
