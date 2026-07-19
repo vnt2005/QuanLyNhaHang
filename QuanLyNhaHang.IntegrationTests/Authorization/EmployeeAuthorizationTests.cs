@@ -25,10 +25,10 @@ public sealed class EmployeeAuthorizationTests
             "Inventory.Adjust|Reservations.View|Reservations.Create|" +
             "Reservations.Update|Reservations.Cancel|Menu.View|Menu.Manage|" +
             "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
-            "Tables.UpdateStatus|Shifts.View|Shifts.Manage|" +
+            "Tables.UpdateStatus|Employees.View|Shifts.View|Shifts.Manage|" +
             "EmployeeShifts.View|EmployeeShifts.Manage|" +
             "RevenueReports.View|RevenueReports.Manage|Dashboard.View",
-            true, true, true, true, true, true, true, true, true, true, true
+            true, true, true, true, true, true, true, true, true, true, true, true
         };
 
         yield return new object[]
@@ -38,7 +38,7 @@ public sealed class EmployeeAuthorizationTests
             "Payments.Cancel|Invoices.View|Reservations.View|" +
             "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
             "Menu.View|Tables.View|Tables.UpdateStatus",
-            true, true, true, false, false, false, false, true, true, true, false
+            true, true, true, false, false, false, false, true, true, true, false, false
         };
 
         yield return new object[]
@@ -46,7 +46,7 @@ public sealed class EmployeeAuthorizationTests
             SystemRoles.Kitchen,
             "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
             "Menu.UpdateAvailability",
-            false, false, false, false, false, true, false, false, true, false, false
+            false, false, false, false, false, true, false, false, true, false, false, false
         };
 
         yield return new object[]
@@ -55,7 +55,7 @@ public sealed class EmployeeAuthorizationTests
             "Orders.View|Orders.Create|Orders.Update|Reservations.View|" +
             "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
             "Menu.View|Tables.View|Tables.UpdateStatus",
-            true, false, false, false, false, false, false, true, true, true, false
+            true, false, false, false, false, false, false, true, true, true, false, false
         };
     }
 
@@ -74,7 +74,8 @@ public sealed class EmployeeAuthorizationTests
         bool canManageReservations,
         bool canViewMenu,
         bool canOperateTables,
-        bool canManageScheduling)
+        bool canManageScheduling,
+        bool canViewEmployees)
     {
         using var factory = new ApiWebApplicationFactory();
         using var adminClient = factory.CreateHttpsClient();
@@ -156,11 +157,52 @@ public sealed class EmployeeAuthorizationTests
             employeeClient,
             "/api/employeeshifts",
             canManageScheduling);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/employees",
+            canViewEmployees);
+        await AssertAccessAsync(employeeClient, "/api/users", false);
+    }
 
-        using var employeesResponse = await employeeClient.GetAsync(
-            "/api/employees");
+    [Fact]
+    public async Task Manager_CannotCreateEmployeesWithoutManagePermission()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var adminClient = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, adminClient);
 
-        Assert.Equal(HttpStatusCode.Forbidden, employeesResponse.StatusCode);
+        var manager = await CreateEmployeeAsync(
+            adminClient,
+            SystemRoles.Manager);
+
+        using var managerClient = factory.CreateHttpsClient();
+        var login = await LoginAsync(
+            managerClient,
+            manager.Email,
+            manager.Password);
+        managerClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", login.Token);
+
+        var suffix = Guid.NewGuid().ToString("N");
+        using var response = await managerClient.PostAsJsonAsync(
+            "/api/employees",
+            new
+            {
+                employeeCode = $"EMP-{suffix[..8]}",
+                ho = "Blocked",
+                ten = "Employee",
+                email = $"blocked-{suffix}@example.com",
+                phoneNumber = $"09{Random.Shared.Next(10_000_000, 99_999_999)}",
+                password = "Employee123!",
+                role = SystemRoles.Staff,
+                dateOfBirth = new DateTime(1995, 1, 1),
+                address = "Integration test",
+                position = "Staff",
+                baseSalary = 10_000_000m,
+                hireDate = new DateTime(2026, 1, 1)
+            });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
@@ -219,7 +261,9 @@ public sealed class EmployeeAuthorizationTests
                      "/api/revenue-reports",
                      "/api/reservations",
                      "/api/shifts",
-                     "/api/employeeshifts"
+                     "/api/employeeshifts",
+                     "/api/employees",
+                     "/api/users"
                  })
         {
             await AssertAccessAsync(employeeClient, endpoint, false);
@@ -288,6 +332,8 @@ public sealed class EmployeeAuthorizationTests
             false);
         await AssertAccessAsync(employeeClient, "/api/shifts", false);
         await AssertAccessAsync(employeeClient, "/api/employeeshifts", false);
+        await AssertAccessAsync(employeeClient, "/api/employees", false);
+        await AssertAccessAsync(employeeClient, "/api/users", false);
     }
 
     [Fact]
