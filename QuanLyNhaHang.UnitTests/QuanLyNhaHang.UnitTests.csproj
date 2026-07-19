@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\QuanLyNhaHang.Application\QuanLyNhaHang.Application.csproj" />
     <ProjectReference Include="..\QuanLyNhaHang.Domain\QuanLyNhaHang.Domain.csproj" />
   </ItemGroup>
 
