@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Roles.Commands.Create;
 using QuanLyNhaHang.Application.Features.Roles.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Roles.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/roles")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class RolesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.RolesView)]
     public async Task<IActionResult> GetList([FromQuery] bool? isActive)
     {
         var result = await _mediator.Send(new GetRolesQuery
@@ -34,6 +36,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.RolesView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] bool? isActive,
@@ -52,6 +55,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.RolesView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetRoleByIdQuery
@@ -69,6 +73,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.RolesManage)]
     public async Task<IActionResult> Create([FromBody] CreateRoleCommand command)
     {
         var result = await _mediator.Send(command);
@@ -82,6 +87,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.RolesManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateRoleCommand command)
@@ -99,6 +105,7 @@ public class RolesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.RolesManage)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteRoleCommand
