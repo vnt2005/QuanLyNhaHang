@@ -14,7 +14,21 @@ public static class DefaultRolePermissions
             PermissionCodes.OrdersView,
             PermissionCodes.OrdersCreate,
             PermissionCodes.OrdersUpdate,
-            PermissionCodes.OrdersDelete
+            PermissionCodes.OrdersDelete,
+            PermissionCodes.InventoryView,
+            PermissionCodes.InventoryManageCatalog,
+            PermissionCodes.InventoryTransact,
+            PermissionCodes.InventoryAdjust,
+            PermissionCodes.ReservationsView,
+            PermissionCodes.ReservationsCreate,
+            PermissionCodes.ReservationsUpdate,
+            PermissionCodes.ReservationsCancel,
+            PermissionCodes.MenuView,
+            PermissionCodes.MenuManage,
+            PermissionCodes.MenuUpdateAvailability,
+            PermissionCodes.TablesView,
+            PermissionCodes.TablesManage,
+            PermissionCodes.TablesUpdateStatus
         });
 
     private static readonly IReadOnlyCollection<string> Cashier =
@@ -24,14 +38,23 @@ public static class DefaultRolePermissions
             PermissionCodes.PaymentsView,
             PermissionCodes.PaymentsCreate,
             PermissionCodes.PaymentsUpdate,
-            PermissionCodes.PaymentsCancel
+            PermissionCodes.PaymentsCancel,
+            PermissionCodes.ReservationsView,
+            PermissionCodes.ReservationsCreate,
+            PermissionCodes.ReservationsUpdate,
+            PermissionCodes.ReservationsCancel,
+            PermissionCodes.MenuView,
+            PermissionCodes.TablesView,
+            PermissionCodes.TablesUpdateStatus
         });
 
     private static readonly IReadOnlyCollection<string> Kitchen =
         Array.AsReadOnly(new[]
         {
             PermissionCodes.KitchenView,
-            PermissionCodes.KitchenUpdateStatus
+            PermissionCodes.KitchenUpdateStatus,
+            PermissionCodes.MenuView,
+            PermissionCodes.MenuUpdateAvailability
         });
 
     private static readonly IReadOnlyCollection<string> Staff =
@@ -39,7 +62,14 @@ public static class DefaultRolePermissions
         {
             PermissionCodes.OrdersView,
             PermissionCodes.OrdersCreate,
-            PermissionCodes.OrdersUpdate
+            PermissionCodes.OrdersUpdate,
+            PermissionCodes.ReservationsView,
+            PermissionCodes.ReservationsCreate,
+            PermissionCodes.ReservationsUpdate,
+            PermissionCodes.ReservationsCancel,
+            PermissionCodes.MenuView,
+            PermissionCodes.TablesView,
+            PermissionCodes.TablesUpdateStatus
         });
 
     public static IReadOnlyCollection<string> GetForRole(string? role)
