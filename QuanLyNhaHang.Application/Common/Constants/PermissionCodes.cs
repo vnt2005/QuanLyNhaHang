@@ -42,6 +42,15 @@ public static class PermissionCodes
     public const string UsersView = "Users.View";
     public const string UsersManage = "Users.Manage";
 
+    public const string RolesView = "Roles.View";
+    public const string RolesManage = "Roles.Manage";
+
+    public const string PermissionsView = "Permissions.View";
+    public const string PermissionsManage = "Permissions.Manage";
+
+    public const string RolePermissionsView = "RolePermissions.View";
+    public const string RolePermissionsManage = "RolePermissions.Manage";
+
     public const string ShiftsView = "Shifts.View";
     public const string ShiftsManage = "Shifts.Manage";
 
