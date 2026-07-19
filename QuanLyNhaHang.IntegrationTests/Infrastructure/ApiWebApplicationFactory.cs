@@ -71,7 +71,8 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
         string email,
         string password,
         bool enableTwoFactor = false,
-        bool active = true)
+        bool active = true,
+        string role = "Admin")
     {
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider
@@ -87,7 +88,7 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
             email,
             $"09{Random.Shared.Next(10000000, 99999999)}",
             passwordHasher.HashPassword(password),
-            "Admin");
+            role);
 
         if (enableTwoFactor)
         {

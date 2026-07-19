@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.RestaurantTables.Commands.ChangeStatus;
 using QuanLyNhaHang.Application.Features.RestaurantTables.Commands.Create;
 using QuanLyNhaHang.Application.Features.RestaurantTables.Commands.Delete;
@@ -13,7 +14,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class RestaurantTablesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -25,6 +26,7 @@ public class RestaurantTablesController : ControllerBase
 
     // GET: api/restauranttables
     [HttpGet]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetList(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -36,6 +38,7 @@ public class RestaurantTablesController : ControllerBase
 
     // GET: api/restauranttables/paginated?keyword=ban&areaId=&status=Available&pageNumber=1&pageSize=10
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] Guid? areaId,
@@ -60,6 +63,7 @@ public class RestaurantTablesController : ControllerBase
 
     // GET: api/restauranttables/{id}
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetById(
         Guid id,
         CancellationToken cancellationToken)
@@ -81,6 +85,7 @@ public class RestaurantTablesController : ControllerBase
 
     // POST: api/restauranttables
     [HttpPost]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Create(
         [FromBody] CreateRestaurantTableCommand command,
         CancellationToken cancellationToken)
@@ -99,6 +104,7 @@ public class RestaurantTablesController : ControllerBase
 
     // PUT: api/restauranttables/{id}
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateRestaurantTableCommand command,
@@ -130,6 +136,7 @@ public class RestaurantTablesController : ControllerBase
 
     // PATCH: api/restauranttables/{id}/status
     [HttpPatch("{id:guid}/status")]
+    [HasPermission(PermissionCodes.TablesUpdateStatus)]
     public async Task<IActionResult> ChangeStatus(
         Guid id,
         [FromBody] ChangeRestaurantTableStatusCommand command,
@@ -161,6 +168,7 @@ public class RestaurantTablesController : ControllerBase
 
     // DELETE: api/restauranttables/{id}
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Delete(
         Guid id,
         CancellationToken cancellationToken)

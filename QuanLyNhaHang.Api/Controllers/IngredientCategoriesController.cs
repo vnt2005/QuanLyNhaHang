@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.IngredientCategories.Commands.Create;
 using QuanLyNhaHang.Application.Features.IngredientCategories.Commands.Delete;
 using QuanLyNhaHang.Application.Features.IngredientCategories.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/ingredient-categories")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class IngredientCategoriesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class IngredientCategoriesController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetList([FromQuery] bool? isActive)
     {
         var result = await _mediator.Send(new GetIngredientCategoriesQuery
@@ -34,6 +36,7 @@ public class IngredientCategoriesController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] bool? isActive,
@@ -52,6 +55,7 @@ public class IngredientCategoriesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetIngredientCategoryByIdQuery
@@ -69,6 +73,7 @@ public class IngredientCategoriesController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.InventoryManageCatalog)]
     public async Task<IActionResult> Create([FromBody] CreateIngredientCategoryCommand command)
     {
         var result = await _mediator.Send(command);
@@ -82,6 +87,7 @@ public class IngredientCategoriesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.InventoryManageCatalog)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateIngredientCategoryCommand command)
@@ -99,6 +105,7 @@ public class IngredientCategoriesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.InventoryManageCatalog)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteIngredientCategoryCommand

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Commands.Create;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Commands.Delete;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/table-qr-codes")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class TableQrCodesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class TableQrCodesController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetList(
         [FromQuery] string? status,
         [FromQuery] bool? isActive)
@@ -37,6 +39,7 @@ public class TableQrCodesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetTableQrCodeByIdQuery
@@ -54,6 +57,7 @@ public class TableQrCodesController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] string? status,
@@ -74,6 +78,7 @@ public class TableQrCodesController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Create([FromBody] CreateTableQrCodeCommand command)
     {
         var result = await _mediator.Send(command);
@@ -87,6 +92,7 @@ public class TableQrCodesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateTableQrCodeCommand command)
@@ -104,6 +110,7 @@ public class TableQrCodesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteTableQrCodeCommand

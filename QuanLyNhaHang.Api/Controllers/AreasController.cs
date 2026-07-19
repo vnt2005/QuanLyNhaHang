@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Areas.Commands.Create;
 using QuanLyNhaHang.Application.Features.Areas.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Areas.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class AreasController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -24,6 +25,7 @@ public class AreasController : ControllerBase
 
     // GET: api/areas
     [HttpGet]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetList(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -35,6 +37,7 @@ public class AreasController : ControllerBase
 
     // GET: api/areas/paginated?keyword=tang&pageNumber=1&pageSize=10
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] int pageNumber = 1,
@@ -55,6 +58,7 @@ public class AreasController : ControllerBase
 
     // GET: api/areas/{id}
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesView)]
     public async Task<IActionResult> GetById(
         Guid id,
         CancellationToken cancellationToken)
@@ -76,6 +80,7 @@ public class AreasController : ControllerBase
 
     // POST: api/areas
     [HttpPost]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Create(
         [FromBody] CreateAreaCommand command,
         CancellationToken cancellationToken)
@@ -94,6 +99,7 @@ public class AreasController : ControllerBase
 
     // PUT: api/areas/{id}
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateAreaCommand command,
@@ -125,6 +131,7 @@ public class AreasController : ControllerBase
 
     // DELETE: api/areas/{id}
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.TablesManage)]
     public async Task<IActionResult> Delete(
         Guid id,
         CancellationToken cancellationToken)

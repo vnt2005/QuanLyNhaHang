@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.InventoryTransactions.Commands.Create;
 using QuanLyNhaHang.Application.Features.InventoryTransactions.Commands.Delete;
 using QuanLyNhaHang.Application.Features.InventoryTransactions.Queries.GetById;
@@ -11,7 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/inventory-transactions")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class InventoryTransactionsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -22,6 +23,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetList(
         [FromQuery] Guid? ingredientId,
         [FromQuery] string? transactionType,
@@ -42,6 +44,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] Guid? ingredientId,
@@ -68,6 +71,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.InventoryView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetInventoryTransactionByIdQuery
@@ -85,6 +89,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpPost("import")]
+    [HasPermission(PermissionCodes.InventoryTransact)]
     public async Task<IActionResult> Import([FromBody] ImportInventoryTransactionCommand command)
     {
         var result = await _mediator.Send(command);
@@ -98,6 +103,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpPost("export")]
+    [HasPermission(PermissionCodes.InventoryTransact)]
     public async Task<IActionResult> Export([FromBody] ExportInventoryTransactionCommand command)
     {
         var result = await _mediator.Send(command);
@@ -111,6 +117,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpPost("adjust")]
+    [HasPermission(PermissionCodes.InventoryAdjust)]
     public async Task<IActionResult> Adjust([FromBody] AdjustInventoryTransactionCommand command)
     {
         var result = await _mediator.Send(command);
@@ -124,6 +131,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.InventoryAdjust)]
     public async Task<IActionResult> Cancel(Guid id)
     {
         var result = await _mediator.Send(new CancelInventoryTransactionCommand

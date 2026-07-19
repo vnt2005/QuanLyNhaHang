@@ -10,17 +10,27 @@ public sealed class DefaultRolePermissionsTests
         SystemRoles.Manager,
         "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
         "Payments.Update|Payments.Cancel|Orders.View|Orders.Create|" +
-        "Orders.Update|Orders.Delete")]
+        "Orders.Update|Orders.Delete|Inventory.View|" +
+        "Inventory.ManageCatalog|Inventory.Transact|Inventory.Adjust|" +
+        "Reservations.View|Reservations.Create|Reservations.Update|" +
+        "Reservations.Cancel|Menu.View|Menu.Manage|" +
+        "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
+        "Tables.UpdateStatus")]
     [InlineData(
         SystemRoles.Cashier,
         "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
-        "Payments.Cancel")]
+        "Payments.Cancel|Reservations.View|Reservations.Create|" +
+        "Reservations.Update|Reservations.Cancel|Menu.View|" +
+        "Tables.View|Tables.UpdateStatus")]
     [InlineData(
         SystemRoles.Kitchen,
-        "Kitchen.View|Kitchen.UpdateStatus")]
+        "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
+        "Menu.UpdateAvailability")]
     [InlineData(
         SystemRoles.Staff,
-        "Orders.View|Orders.Create|Orders.Update")]
+        "Orders.View|Orders.Create|Orders.Update|Reservations.View|" +
+        "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
+        "Menu.View|Tables.View|Tables.UpdateStatus")]
     public void GetForRole_ReturnsLeastPrivilegeMatrix(
         string role,
         string expectedCodes)
@@ -53,6 +63,7 @@ public sealed class DefaultRolePermissionsTests
         var permissions = DefaultRolePermissions.GetForRole("  cashier  ");
 
         Assert.Contains(PermissionCodes.PaymentsCreate, permissions);
-        Assert.Contains(PermissionCodes.OrdersView, permissions);
+        Assert.Contains(PermissionCodes.ReservationsCreate, permissions);
+        Assert.Contains(PermissionCodes.TablesView, permissions);
     }
 }
