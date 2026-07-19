@@ -261,7 +261,7 @@ public sealed class OrderPaymentWorkflowTests
                     {
                         menuItemId = scenario.SecondMenuItemId,
                         quantity = 1,
-                        note = "Ít đá"
+                        note = (string?)"Ít đá"
                     }
                 }
             });
