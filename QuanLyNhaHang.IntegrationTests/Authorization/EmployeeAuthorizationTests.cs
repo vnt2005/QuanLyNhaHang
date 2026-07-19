@@ -13,73 +13,54 @@ namespace QuanLyNhaHang.IntegrationTests.Authorization;
 
 public sealed class EmployeeAuthorizationTests
 {
+    public static IEnumerable<object[]> RoleCases()
+    {
+        yield return new object[]
+        {
+            SystemRoles.Manager,
+            "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
+            "Payments.Update|Payments.Cancel|Invoices.View|Invoices.Manage|" +
+            "Orders.View|Orders.Create|Orders.Update|Orders.Delete|" +
+            "Inventory.View|Inventory.ManageCatalog|Inventory.Transact|" +
+            "Inventory.Adjust|Reservations.View|Reservations.Create|" +
+            "Reservations.Update|Reservations.Cancel|Menu.View|Menu.Manage|" +
+            "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
+            "Tables.UpdateStatus|Shifts.View|Shifts.Manage|" +
+            "EmployeeShifts.View|EmployeeShifts.Manage|" +
+            "RevenueReports.View|RevenueReports.Manage|Dashboard.View",
+            true, true, true, true, true, true, true, true, true, true, true
+        };
+
+        yield return new object[]
+        {
+            SystemRoles.Cashier,
+            "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
+            "Payments.Cancel|Invoices.View|Reservations.View|" +
+            "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
+            "Menu.View|Tables.View|Tables.UpdateStatus",
+            true, true, true, false, false, false, false, true, true, true, false
+        };
+
+        yield return new object[]
+        {
+            SystemRoles.Kitchen,
+            "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
+            "Menu.UpdateAvailability",
+            false, false, false, false, false, true, false, false, true, false, false
+        };
+
+        yield return new object[]
+        {
+            SystemRoles.Staff,
+            "Orders.View|Orders.Create|Orders.Update|Reservations.View|" +
+            "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
+            "Menu.View|Tables.View|Tables.UpdateStatus",
+            true, false, false, false, false, false, false, true, true, true, false
+        };
+    }
+
     [Theory]
-    [InlineData(
-        SystemRoles.Manager,
-        "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
-        "Payments.Update|Payments.Cancel|Invoices.View|Invoices.Manage|" +
-        "Orders.View|Orders.Create|Orders.Update|Orders.Delete|" +
-        "Inventory.View|Inventory.ManageCatalog|Inventory.Transact|" +
-        "Inventory.Adjust|Reservations.View|Reservations.Create|" +
-        "Reservations.Update|Reservations.Cancel|Menu.View|Menu.Manage|" +
-        "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
-        "Tables.UpdateStatus|RevenueReports.View|RevenueReports.Manage|" +
-        "Dashboard.View",
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true)]
-    [InlineData(
-        SystemRoles.Cashier,
-        "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
-        "Payments.Cancel|Invoices.View|Reservations.View|" +
-        "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
-        "Menu.View|Tables.View|Tables.UpdateStatus",
-        true,
-        true,
-        true,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true)]
-    [InlineData(
-        SystemRoles.Kitchen,
-        "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
-        "Menu.UpdateAvailability",
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        true,
-        false)]
-    [InlineData(
-        SystemRoles.Staff,
-        "Orders.View|Orders.Create|Orders.Update|Reservations.View|" +
-        "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
-        "Menu.View|Tables.View|Tables.UpdateStatus",
-        true,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true)]
+    [MemberData(nameof(RoleCases))]
     public async Task AdminCreatedEmployee_LoginReceivesLeastPrivilegeAccess(
         string role,
         string expectedCodes,
@@ -92,7 +73,8 @@ public sealed class EmployeeAuthorizationTests
         bool canViewInventory,
         bool canManageReservations,
         bool canViewMenu,
-        bool canOperateTables)
+        bool canOperateTables,
+        bool canManageScheduling)
     {
         using var factory = new ApiWebApplicationFactory();
         using var adminClient = factory.CreateHttpsClient();
@@ -119,22 +101,10 @@ public sealed class EmployeeAuthorizationTests
         employeeClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", login.Token);
 
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/orders",
-            canViewOrders);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/payments",
-            canViewPayments);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/invoices",
-            canViewInvoices);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/dashboard",
-            canViewDashboard);
+        await AssertAccessAsync(employeeClient, "/api/orders", canViewOrders);
+        await AssertAccessAsync(employeeClient, "/api/payments", canViewPayments);
+        await AssertAccessAsync(employeeClient, "/api/invoices", canViewInvoices);
+        await AssertAccessAsync(employeeClient, "/api/dashboard", canViewDashboard);
         await AssertAccessAsync(
             employeeClient,
             "/api/revenue-reports",
@@ -144,52 +114,53 @@ public sealed class EmployeeAuthorizationTests
             "/api/kitchen/orders",
             canViewKitchen);
 
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/inventory-transactions",
-            canViewInventory);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/ingredients",
-            canViewInventory);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/ingredient-categories",
-            canViewInventory);
+        foreach (var endpoint in new[]
+                 {
+                     "/api/inventory-transactions",
+                     "/api/ingredients",
+                     "/api/ingredient-categories"
+                 })
+        {
+            await AssertAccessAsync(employeeClient, endpoint, canViewInventory);
+        }
 
         await AssertAccessAsync(
             employeeClient,
             "/api/reservations",
             canManageReservations);
 
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/menuitems",
-            canViewMenu);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/menucategories",
-            canViewMenu);
+        foreach (var endpoint in new[]
+                 {
+                     "/api/menuitems",
+                     "/api/menucategories"
+                 })
+        {
+            await AssertAccessAsync(employeeClient, endpoint, canViewMenu);
+        }
+
+        foreach (var endpoint in new[]
+                 {
+                     "/api/restauranttables",
+                     "/api/areas",
+                     "/api/table-qr-codes"
+                 })
+        {
+            await AssertAccessAsync(employeeClient, endpoint, canOperateTables);
+        }
 
         await AssertAccessAsync(
             employeeClient,
-            "/api/restauranttables",
-            canOperateTables);
+            "/api/shifts",
+            canManageScheduling);
         await AssertAccessAsync(
             employeeClient,
-            "/api/areas",
-            canOperateTables);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/table-qr-codes",
-            canOperateTables);
+            "/api/employeeshifts",
+            canManageScheduling);
 
         using var employeesResponse = await employeeClient.GetAsync(
             "/api/employees");
 
-        Assert.Equal(
-            HttpStatusCode.Forbidden,
-            employeesResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, employeesResponse.StatusCode);
     }
 
     [Fact]
@@ -238,30 +209,21 @@ public sealed class EmployeeAuthorizationTests
         employeeClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", login.Token);
 
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/orders",
-            isAllowed: true);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/payments",
-            isAllowed: false);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/invoices",
-            isAllowed: false);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/dashboard",
-            isAllowed: false);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/revenue-reports",
-            isAllowed: false);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/reservations",
-            isAllowed: false);
+        await AssertAccessAsync(employeeClient, "/api/orders", true);
+
+        foreach (var endpoint in new[]
+                 {
+                     "/api/payments",
+                     "/api/invoices",
+                     "/api/dashboard",
+                     "/api/revenue-reports",
+                     "/api/reservations",
+                     "/api/shifts",
+                     "/api/employeeshifts"
+                 })
+        {
+            await AssertAccessAsync(employeeClient, endpoint, false);
+        }
     }
 
     [Fact]
@@ -317,22 +279,15 @@ public sealed class EmployeeAuthorizationTests
         employeeClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", login.Token);
 
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/kitchen/orders",
-            isAllowed: true);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/orders",
-            isAllowed: false);
-        await AssertAccessAsync(
-            employeeClient,
-            "/api/menuitems",
-            isAllowed: true);
+        await AssertAccessAsync(employeeClient, "/api/kitchen/orders", true);
+        await AssertAccessAsync(employeeClient, "/api/orders", false);
+        await AssertAccessAsync(employeeClient, "/api/menuitems", true);
         await AssertAccessAsync(
             employeeClient,
             "/api/inventory-transactions",
-            isAllowed: false);
+            false);
+        await AssertAccessAsync(employeeClient, "/api/shifts", false);
+        await AssertAccessAsync(employeeClient, "/api/employeeshifts", false);
     }
 
     [Fact]
@@ -360,9 +315,7 @@ public sealed class EmployeeAuthorizationTests
                 password = employee.Password
             });
 
-        Assert.Equal(
-            HttpStatusCode.Unauthorized,
-            loginResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, loginResponse.StatusCode);
     }
 
     private static async Task AuthenticateAdminAsync(
@@ -384,7 +337,7 @@ public sealed class EmployeeAuthorizationTests
         string role)
     {
         var suffix = Guid.NewGuid().ToString("N");
-        var password = "Employee123!";
+        const string password = "Employee123!";
         var employeeCode = $"EMP-{suffix[..8]}";
         var email = $"employee-{role.ToLowerInvariant()}-{suffix}@example.com";
         var phoneNumber =
