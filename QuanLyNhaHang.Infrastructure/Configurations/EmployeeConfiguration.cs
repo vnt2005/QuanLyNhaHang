@@ -15,6 +15,18 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(x => x.Id)
             .IsRequired();
 
+        builder.Property(x => x.UserId)
+            .IsRequired(false);
+
+        builder.HasIndex(x => x.UserId)
+            .IsUnique()
+            .HasFilter("[UserId] IS NOT NULL");
+
+        builder.HasOne(x => x.User)
+            .WithOne()
+            .HasForeignKey<Employee>(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(x => x.EmployeeCode)
             .IsRequired()
             .HasMaxLength(50);

@@ -37,7 +37,12 @@ public class GetEmployeeListQueryHandler
                 HireDate = x.HireDate,
                 IsActive = x.IsActive,
                 CreatedAt = x.CreatedAt,
-                UpdatedAt = x.UpdatedAt
+                UpdatedAt = x.UpdatedAt,
+                UserId = x.UserId,
+                Role = x.User != null ? x.User.Role : null,
+                AccountIsActive = x.User != null
+                    ? x.User.IsActive
+                    : null
             })
             .ToListAsync(cancellationToken);
     }

@@ -23,6 +23,7 @@ public class AuthResponseDto
     public bool RequiresTwoFactor { get; set; }
 
     public string Token { get; set; } = string.Empty;
+    public List<string> Permissions { get; set; } = new();
 
     [JsonIgnore]
     public string Message { get; set; } = string.Empty;

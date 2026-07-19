@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,7 +18,9 @@ public class JwtTokenService : IJwtTokenService
         _configuration = configuration;
     }
 
-    public string GenerateToken(User user)
+    public string GenerateToken(
+        User user,
+        IEnumerable<string>? permissions = null)
     {
         var secretKey = _configuration["Jwt:SecretKey"];
 
@@ -40,19 +43,31 @@ public class JwtTokenService : IJwtTokenService
             securityKey,
             SecurityAlgorithms.HmacSha256);
 
+        var now = DateTime.UtcNow;
+
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, $"{user.Ho} {user.Ten}".Trim()),
-            new Claim(ClaimTypes.Role, user.Role)
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Name, $"{user.Ho} {user.Ten}".Trim()),
+            new(ClaimTypes.Role, user.Role)
         };
+
+        var permissionClaims = (permissions ?? Enumerable.Empty<string>())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(x => new Claim(CustomClaimTypes.Permission, x));
+
+        claims.AddRange(permissionClaims);
 
         var token = new JwtSecurityToken(
             issuer: issuer,
             audience: audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(expiresInMinutes),
+            notBefore: now,
+            expires: now.AddMinutes(expiresInMinutes),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

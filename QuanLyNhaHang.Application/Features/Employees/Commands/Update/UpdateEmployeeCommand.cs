@@ -12,9 +12,15 @@ public class UpdateEmployeeCommand : IRequest<bool>
 
     public string Ten { get; set; } = string.Empty;
 
-    public string? Email { get; set; }
+    public string Email { get; set; } = string.Empty;
 
     public string PhoneNumber { get; set; } = string.Empty;
+
+    // Để trống nếu không muốn đổi mật khẩu.
+    // Nhân viên cũ chưa có User thì bắt buộc nhập.
+    public string? Password { get; set; }
+
+    public string Role { get; set; } = string.Empty;
 
     public DateTime? DateOfBirth { get; set; }
 

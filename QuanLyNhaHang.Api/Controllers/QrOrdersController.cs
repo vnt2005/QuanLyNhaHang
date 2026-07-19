@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using QuanLyNhaHang.Application.Features.QrOrders.Commands.Create;
 using QuanLyNhaHang.Application.Features.QrOrders.Queries.GetById;
 using QuanLyNhaHang.Application.Features.QrOrders.Queries.GetList;
@@ -9,7 +10,6 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/qr-order")]
-[Authorize(Roles = "Admin")]
 public class QrOrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -19,40 +19,52 @@ public class QrOrdersController : ControllerBase
         _mediator = mediator;
     }
 
+    [AllowAnonymous]
+    [EnableRateLimiting("QrBrowse")]
     [HttpGet("{token}")]
     public async Task<IActionResult> GetTableByToken(string token)
     {
-        var result = await _mediator.Send(new GetQrOrderTableByTokenQuery
-        {
-            Token = token
-        });
+        var result = await _mediator.Send(
+            new GetQrOrderTableByTokenQuery
+            {
+                Token = token
+            });
 
         if (result == null)
+        {
             return NotFound(new
             {
                 message = "Mã QR không hợp lệ."
             });
+        }
 
         if (!result.IsActive || result.QrStatus != "Active")
+        {
             return BadRequest(new
             {
                 message = "Mã QR đã bị vô hiệu hóa."
+            });
+        }
+
+        return Ok(result);
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting("QrBrowse")]
+    [HttpGet("{token}/menu-items")]
+    public async Task<IActionResult> GetMenuItems(string token)
+    {
+        var result = await _mediator.Send(
+            new GetQrOrderMenuItemsQuery
+            {
+                Token = token
             });
 
         return Ok(result);
     }
 
-    [HttpGet("{token}/menu-items")]
-    public async Task<IActionResult> GetMenuItems(string token)
-    {
-        var result = await _mediator.Send(new GetQrOrderMenuItemsQuery
-        {
-            Token = token
-        });
-
-        return Ok(result);
-    }
-
+    [AllowAnonymous]
+    [EnableRateLimiting("QrCreate")]
     [HttpPost("{token}/orders")]
     public async Task<IActionResult> CreateOrder(
         string token,

@@ -1,14 +1,16 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Kitchen.Commands.Update;
 using QuanLyNhaHang.Application.Features.Kitchen.Queries.GetList;
+using QuanLyNhaHang.Api.Authorization;
 
 namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/kitchen")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class KitchenController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -19,6 +21,7 @@ public class KitchenController : ControllerBase
     }
 
     [HttpGet("orders")]
+    [HasPermission(PermissionCodes.KitchenView)]
     public async Task<IActionResult> GetKitchenOrders()
     {
         var result = await _mediator.Send(new GetKitchenOrdersQuery());
@@ -27,6 +30,7 @@ public class KitchenController : ControllerBase
     }
 
     [HttpGet("history")]
+    [HasPermission(PermissionCodes.KitchenView)]
     public async Task<IActionResult> GetKitchenHistory()
     {
         var result = await _mediator.Send(new GetKitchenHistoryQuery());
@@ -35,6 +39,7 @@ public class KitchenController : ControllerBase
     }
 
     [HttpPatch("order-items/{orderItemId:guid}/status")]
+    [HasPermission(PermissionCodes.KitchenUpdateStatus)]
     public async Task<IActionResult> UpdateKitchenOrderItemStatus(
         Guid orderItemId,
         [FromBody] UpdateKitchenOrderItemStatusCommand command)

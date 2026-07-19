@@ -4,6 +4,11 @@ public class EmployeeDto
 {
     public Guid Id { get; set; }
 
+    public Guid? UserId { get; set; }
+
+    public string? Role { get; set; }
+
+    public bool? AccountIsActive { get; set; }
     public string EmployeeCode { get; set; } = string.Empty;
 
     public string? Ho { get; set; }

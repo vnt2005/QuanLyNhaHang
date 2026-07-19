@@ -4,5 +4,7 @@ namespace QuanLyNhaHang.Application.Common.Interfaces;
 
 public interface IJwtTokenService
 {
-    string GenerateToken(User user);
+    string GenerateToken(
+        User user,
+        IEnumerable<string>? permissions = null);
 }

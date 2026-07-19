@@ -88,7 +88,7 @@ public class EmployeesController : ControllerBase
             new
             {
                 Id = id,
-                Message = "Tạo nhân viên thành công."
+                Message = "Tạo nhân viên và tài khoản đăng nhập thành công."
             });
     }
 
@@ -143,7 +143,7 @@ public class EmployeesController : ControllerBase
 
         return Ok(new
         {
-            Message = "Xóa nhân viên thành công."
+            Message = "Đã ngừng hoạt động nhân viên và tài khoản đăng nhập."
         });
     }
 }

@@ -11,17 +11,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IEmailService _emailService;
+    private readonly IUserPermissionService _userPermissionService;
 
     public LoginCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IUserPermissionService userPermissionService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
         _emailService = emailService;
+        _userPermissionService = userPermissionService;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -83,7 +86,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
             };
         }
 
-        var token = _jwtTokenService.GenerateToken(user);
+        var permissions = await _userPermissionService.GetPermissionsAsync(
+            user.Role,
+            cancellationToken);
+
+        var token = _jwtTokenService.GenerateToken(user, permissions);
 
         return new AuthResponseDto
         {
@@ -97,6 +104,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,
+            Permissions = permissions.ToList(),
             Message = "Đăng nhập thành công."
         };
     }

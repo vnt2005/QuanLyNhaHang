@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Auth.DTOs;
 using QuanLyNhaHang.Domain.Entities;
+using QuanLyNhaHang.Application.Common.Constants;
 
 namespace QuanLyNhaHang.Application.Features.Auth.Commands.Register;
 
@@ -11,15 +12,18 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IUserPermissionService _userPermissionService;
 
     public RegisterCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher,
-        IJwtTokenService jwtTokenService)
+        IJwtTokenService jwtTokenService,
+        IUserPermissionService userPermissionService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
+        _userPermissionService = userPermissionService;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -53,13 +57,17 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             email,
             phoneNumber,
             passwordHash,
-            request.Role);
+            SystemRoles.Customer);
 
         _context.Users.Add(user);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var token = _jwtTokenService.GenerateToken(user);
+        var permissions = await _userPermissionService.GetPermissionsAsync(
+            user.Role,
+            cancellationToken);
+
+        var token = _jwtTokenService.GenerateToken(user, permissions);
 
         return new AuthResponseDto
         {

@@ -3,6 +3,9 @@
 public class Employee
 {
     public Guid Id { get; private set; }
+    public Guid? UserId { get; private set; }
+
+    public User? User { get; private set; }
 
     public string EmployeeCode { get; private set; } = string.Empty;
 
@@ -35,19 +38,21 @@ public class Employee
     }
 
     public Employee(
-        string employeeCode,
-        string? ho,
-        string ten,
-        string? email,
-        string phoneNumber,
-        DateTime? dateOfBirth,
-        string? address,
-        string position,
-        decimal baseSalary,
-        DateTime hireDate)
+    Guid userId,
+    string employeeCode,
+    string? ho,
+    string ten,
+    string? email,
+    string phoneNumber,
+    DateTime? dateOfBirth,
+    string? address,
+    string position,
+    decimal baseSalary,
+    DateTime hireDate)
     {
         Id = Guid.NewGuid();
 
+        LinkUser(userId);
         SetEmployeeCode(employeeCode);
         SetHo(ho);
         SetTen(ten);
@@ -61,6 +66,18 @@ public class Employee
         HireDate = hireDate;
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
+    }
+    public void LinkUser(Guid userId)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("Tài khoản nhân viên không hợp lệ.");
+
+        if (UserId.HasValue && UserId.Value != userId)
+            throw new InvalidOperationException(
+                "Nhân viên đã được liên kết với một tài khoản khác.");
+
+        UserId = userId;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void UpdateInfo(

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Orders.Commands.AddOrderItem;
 using QuanLyNhaHang.Application.Features.Orders.Commands.CancelOrderItem;
 using QuanLyNhaHang.Application.Features.Orders.Commands.ChangeStatus;
@@ -16,7 +17,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -28,6 +29,7 @@ public class OrdersController : ControllerBase
 
     // GET: api/orders
     [HttpGet]
+    [HasPermission(PermissionCodes.OrdersView)]
     public async Task<IActionResult> GetList(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -39,6 +41,7 @@ public class OrdersController : ControllerBase
 
     // GET: api/orders/paginated?keyword=ORD&restaurantTableId=&status=Pending&isActive=true&pageNumber=1&pageSize=10
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.OrdersView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] Guid? restaurantTableId,
@@ -65,6 +68,7 @@ public class OrdersController : ControllerBase
 
     // GET: api/orders/{id}
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.OrdersView)]
     public async Task<IActionResult> GetById(
         Guid id,
         CancellationToken cancellationToken)
@@ -86,6 +90,7 @@ public class OrdersController : ControllerBase
 
     // POST: api/orders
     [HttpPost]
+    [HasPermission(PermissionCodes.OrdersCreate)]
     public async Task<IActionResult> Create(
         [FromBody] CreateOrderCommand command,
         CancellationToken cancellationToken)
@@ -104,6 +109,7 @@ public class OrdersController : ControllerBase
 
     // PUT: api/orders/{id}
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateOrderCommand command,
@@ -135,6 +141,7 @@ public class OrdersController : ControllerBase
 
     // DELETE: api/orders/{id}
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.OrdersDelete)]
     public async Task<IActionResult> Delete(
         Guid id,
         CancellationToken cancellationToken)
@@ -159,6 +166,7 @@ public class OrdersController : ControllerBase
 
     // PATCH: api/orders/{id}/status
     [HttpPatch("{id:guid}/status")]
+    [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> ChangeStatus(
         Guid id,
         [FromBody] ChangeOrderStatusCommand command,
@@ -190,6 +198,7 @@ public class OrdersController : ControllerBase
 
     // POST: api/orders/{id}/items
     [HttpPost("{id:guid}/items")]
+    [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> AddOrderItem(
         Guid id,
         [FromBody] AddOrderItemCommand command,
@@ -221,6 +230,7 @@ public class OrdersController : ControllerBase
 
     // PUT: api/orders/{id}/items/{orderItemId}
     [HttpPut("{id:guid}/items/{orderItemId:guid}")]
+    [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> UpdateOrderItemQuantity(
         Guid id,
         Guid orderItemId,
@@ -261,6 +271,7 @@ public class OrdersController : ControllerBase
 
     // DELETE: api/orders/{id}/items/{orderItemId}
     [HttpDelete("{id:guid}/items/{orderItemId:guid}")]
+    [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> CancelOrderItem(
         Guid id,
         Guid orderItemId,

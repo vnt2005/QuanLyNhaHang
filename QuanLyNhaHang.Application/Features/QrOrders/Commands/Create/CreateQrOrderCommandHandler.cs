@@ -34,19 +34,22 @@ public class CreateQrOrderCommandHandler
         var table = await _context.RestaurantTables
             .FirstOrDefaultAsync(x => x.Id == qrCode.RestaurantTableId, cancellationToken);
 
-        if (table == null)
-            throw new Exception("Không tìm thấy bàn.");
+        if (table == null || !table.IsActive)
+            throw new Exception("Bàn không tồn tại hoặc đã ngừng hoạt động.");
 
-        if (request.Items == null || !request.Items.Any())
-            throw new Exception("Order phải có ít nhất một món.");
+        if (request.Items.Count > 50)
+            throw new Exception("Một order không được vượt quá 50 dòng món.");
 
         foreach (var item in request.Items)
         {
             if (item.MenuItemId == Guid.Empty)
                 throw new Exception("Món ăn không hợp lệ.");
 
-            if (item.Quantity <= 0)
-                throw new Exception("Số lượng món phải lớn hơn 0.");
+            if (item.Quantity <= 0 || item.Quantity > 99)
+            {
+                throw new Exception(
+                    "Số lượng mỗi món phải từ 1 đến 99.");
+            }
         }
 
         var menuItemIds = request.Items
@@ -55,11 +58,17 @@ public class CreateQrOrderCommandHandler
             .ToList();
 
         var menuItems = await _context.MenuItems
-            .Where(x => menuItemIds.Contains(x.Id))
+            .Where(x =>
+                menuItemIds.Contains(x.Id) &&
+                x.IsActive &&
+                x.IsAvailable)
             .ToListAsync(cancellationToken);
 
         if (menuItems.Count != menuItemIds.Count)
-            throw new Exception("Có món ăn không tồn tại.");
+        {
+            throw new Exception(
+                "Có món không tồn tại hoặc hiện không phục vụ.");
+        }
 
         var orderCode = GenerateOrderCode();
 

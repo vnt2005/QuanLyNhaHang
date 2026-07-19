@@ -30,6 +30,8 @@ public static class DependencyInjection
 
         services.AddScoped<IActivityLogService, ActivityLogService>();
 
+        services.AddScoped<IUserPermissionService, UserPermissionService>();
+
         return services;
     }
 }

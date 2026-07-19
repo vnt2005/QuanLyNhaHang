@@ -9,13 +9,16 @@ public class VerifyTwoFactorCommandHandler : IRequestHandler<VerifyTwoFactorComm
 {
     private readonly IApplicationDbContext _context;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IUserPermissionService _userPermissionService;
 
     public VerifyTwoFactorCommandHandler(
         IApplicationDbContext context,
-        IJwtTokenService jwtTokenService)
+        IJwtTokenService jwtTokenService,
+        IUserPermissionService userPermissionService)
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
+        _userPermissionService = userPermissionService;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -51,7 +54,11 @@ public class VerifyTwoFactorCommandHandler : IRequestHandler<VerifyTwoFactorComm
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var token = _jwtTokenService.GenerateToken(user);
+        var permissions = await _userPermissionService.GetPermissionsAsync(
+            user.Role,
+            cancellationToken);
+
+        var token = _jwtTokenService.GenerateToken(user, permissions);
 
         return new AuthResponseDto
         {
@@ -65,6 +72,7 @@ public class VerifyTwoFactorCommandHandler : IRequestHandler<VerifyTwoFactorComm
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,
+            Permissions = new List<string>(),
             Message = "Xác thực 2 yếu tố thành công."
         };
     }

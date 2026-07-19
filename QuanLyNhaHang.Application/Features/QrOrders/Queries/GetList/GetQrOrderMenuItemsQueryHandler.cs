@@ -33,6 +33,7 @@ public class GetQrOrderMenuItemsQueryHandler
 
         var menuItems = await _context.MenuItems
             .AsNoTracking()
+            .Where(x => x.IsActive && x.IsAvailable)
             .OrderBy(x => x.Name)
             .Select(x => new QrOrderMenuItemDto
             {
