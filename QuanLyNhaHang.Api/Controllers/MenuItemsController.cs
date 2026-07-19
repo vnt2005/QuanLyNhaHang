@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.MenuItems.Commands.ChangeAvailability;
 using QuanLyNhaHang.Application.Features.MenuItems.Commands.Create;
 using QuanLyNhaHang.Application.Features.MenuItems.Commands.Delete;
@@ -13,7 +14,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class MenuItemsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -25,6 +26,7 @@ public class MenuItemsController : ControllerBase
 
     // GET: api/menuitems
     [HttpGet]
+    [HasPermission(PermissionCodes.MenuView)]
     public async Task<IActionResult> GetList(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -36,6 +38,7 @@ public class MenuItemsController : ControllerBase
 
     // GET: api/menuitems/paginated?keyword=tra&menuCategoryId=&isAvailable=true&isActive=true&pageNumber=1&pageSize=10
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.MenuView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] Guid? menuCategoryId,
@@ -62,6 +65,7 @@ public class MenuItemsController : ControllerBase
 
     // GET: api/menuitems/{id}
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.MenuView)]
     public async Task<IActionResult> GetById(
         Guid id,
         CancellationToken cancellationToken)
@@ -83,6 +87,7 @@ public class MenuItemsController : ControllerBase
 
     // POST: api/menuitems
     [HttpPost]
+    [HasPermission(PermissionCodes.MenuManage)]
     public async Task<IActionResult> Create(
         [FromBody] CreateMenuItemCommand command,
         CancellationToken cancellationToken)
@@ -101,6 +106,7 @@ public class MenuItemsController : ControllerBase
 
     // PUT: api/menuitems/{id}
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.MenuManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateMenuItemCommand command,
@@ -132,6 +138,7 @@ public class MenuItemsController : ControllerBase
 
     // PATCH: api/menuitems/{id}/availability
     [HttpPatch("{id:guid}/availability")]
+    [HasPermission(PermissionCodes.MenuUpdateAvailability)]
     public async Task<IActionResult> ChangeAvailability(
         Guid id,
         [FromBody] ChangeMenuItemAvailabilityCommand command,
@@ -163,6 +170,7 @@ public class MenuItemsController : ControllerBase
 
     // DELETE: api/menuitems/{id}
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.MenuManage)]
     public async Task<IActionResult> Delete(
         Guid id,
         CancellationToken cancellationToken)
