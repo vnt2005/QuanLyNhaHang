@@ -192,6 +192,65 @@ public sealed class ReservationTests
             null));
     }
 
+    [Fact]
+    public void ConfirmedReservation_CannotBeConfirmedAgain()
+    {
+        var reservation = CreateReservation();
+        reservation.Confirm();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.Confirm());
+    }
+
+    [Fact]
+    public void CheckedInReservation_CannotBeCancelledNoShowOrUpdated()
+    {
+        var reservation = CreateReservation();
+        reservation.Confirm();
+        reservation.CheckIn();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.Cancel());
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.MarkNoShow());
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.UpdateInfo(
+                Guid.NewGuid(),
+                "Khách mới",
+                "0911111111",
+                null,
+                2,
+                DateTime.UtcNow.AddHours(3),
+                0,
+                null));
+    }
+
+    [Fact]
+    public void NoShowReservation_IsTerminal()
+    {
+        var reservation = CreateReservation();
+        reservation.MarkNoShow();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.Confirm());
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.CheckIn());
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.Cancel());
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.MarkNoShow());
+        Assert.Throws<InvalidOperationException>(() =>
+            reservation.UpdateInfo(
+                Guid.NewGuid(),
+                "Khách mới",
+                "0911111111",
+                null,
+                2,
+                DateTime.UtcNow.AddHours(3),
+                0,
+                null));
+    }
+
     private static Reservation CreateReservation()
     {
         return new Reservation(
