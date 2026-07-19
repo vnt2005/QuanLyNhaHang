@@ -1,0 +1,58 @@
+services:
+  database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}"
+    ports:
+      - "${SQLSERVER_PORT:-1433}:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa
+          -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" ||
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa
+          -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  api:
+    image: quan-ly-nha-hang-api:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_HTTP_PORTS: "8080"
+      Hosting__DisableHttpsRedirection: "true"
+      Database__ApplyMigrationsOnStartup: "true"
+      ConnectionStrings__DefaultConnection: >-
+        Server=database,1433;Database=QuanLyNhaHang;
+        User Id=sa;Password=${MSSQL_SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True
+      Jwt__SecretKey: "${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}"
+      Jwt__Issuer: "${JWT_ISSUER:-QuanLyNhaHang}"
+      Jwt__Audience: "${JWT_AUDIENCE:-QuanLyNhaHang.Client}"
+      Jwt__ExpiresInMinutes: "${JWT_EXPIRES_IN_MINUTES:-60}"
+      Email__SmtpHost: "${EMAIL_SMTP_HOST:-smtp.example.com}"
+      Email__SmtpPort: "${EMAIL_SMTP_PORT:-587}"
+      Email__Username: "${EMAIL_USERNAME:-not-configured}"
+      Email__Password: "${EMAIL_PASSWORD:-not-configured}"
+      Email__From: "${EMAIL_FROM:-noreply@example.com}"
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:
