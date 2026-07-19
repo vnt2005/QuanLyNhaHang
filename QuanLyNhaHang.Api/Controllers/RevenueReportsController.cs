@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.RevenueReports.Commands.Create;
 using QuanLyNhaHang.Application.Features.RevenueReports.Commands.Delete;
 using QuanLyNhaHang.Application.Features.RevenueReports.Commands.Update;
@@ -13,7 +14,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/revenue-reports")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class RevenueReportsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -24,6 +25,7 @@ public class RevenueReportsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.RevenueReportsView)]
     public async Task<IActionResult> GetList([FromQuery] string? status)
     {
         var result = await _mediator.Send(new GetRevenueReportsQuery
@@ -35,6 +37,7 @@ public class RevenueReportsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.RevenueReportsView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetRevenueReportByIdQuery
@@ -52,6 +55,7 @@ public class RevenueReportsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.RevenueReportsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] string? status,
@@ -74,9 +78,10 @@ public class RevenueReportsController : ControllerBase
     }
 
     [HttpGet("summary")]
+    [HasPermission(PermissionCodes.RevenueReportsView)]
     public async Task<IActionResult> GetSummary(
-    [FromQuery] DateTime? fromDate,
-    [FromQuery] DateTime? toDate)
+        [FromQuery] DateTime? fromDate,
+        [FromQuery] DateTime? toDate)
     {
         var result = await _mediator.Send(new GetRevenueReportSummaryQuery
         {
@@ -88,6 +93,7 @@ public class RevenueReportsController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.RevenueReportsManage)]
     public async Task<IActionResult> Create([FromBody] CreateRevenueReportCommand command)
     {
         var result = await _mediator.Send(command);
@@ -101,6 +107,7 @@ public class RevenueReportsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.RevenueReportsManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateRevenueReportCommand command)
@@ -118,6 +125,7 @@ public class RevenueReportsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.RevenueReportsManage)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteRevenueReportCommand

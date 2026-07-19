@@ -1,13 +1,14 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Dashboard.Queries.GetDashboard;
 
 namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin,Manager")]
+[Authorize]
 public class DashboardController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -18,6 +19,7 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.DashboardView)]
     public async Task<IActionResult> GetDashboard(
         [FromQuery] DateTime? fromDate,
         [FromQuery] DateTime? toDate,
