@@ -36,6 +36,12 @@ public static class PermissionCodes
     public const string TablesManage = "Tables.Manage";
     public const string TablesUpdateStatus = "Tables.UpdateStatus";
 
+    public const string EmployeesView = "Employees.View";
+    public const string EmployeesManage = "Employees.Manage";
+
+    public const string UsersView = "Users.View";
+    public const string UsersManage = "Users.Manage";
+
     public const string ShiftsView = "Shifts.View";
     public const string ShiftsManage = "Shifts.Manage";
 

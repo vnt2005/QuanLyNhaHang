@@ -1,6 +1,7 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Employees.Commands.Create;
 using QuanLyNhaHang.Application.Features.Employees.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Employees.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class EmployeesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -22,8 +23,8 @@ public class EmployeesController : ControllerBase
         _mediator = mediator;
     }
 
-    // GET: api/employees
     [HttpGet]
+    [HasPermission(PermissionCodes.EmployeesView)]
     public async Task<IActionResult> GetList(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -33,8 +34,8 @@ public class EmployeesController : ControllerBase
         return Ok(result);
     }
 
-    // GET: api/employees/paginated?keyword=a&pageNumber=1&pageSize=10
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.EmployeesView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] int pageNumber = 1,
@@ -53,8 +54,8 @@ public class EmployeesController : ControllerBase
         return Ok(result);
     }
 
-    // GET: api/employees/{id}
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.EmployeesView)]
     public async Task<IActionResult> GetById(
         Guid id,
         CancellationToken cancellationToken)
@@ -74,8 +75,8 @@ public class EmployeesController : ControllerBase
         return Ok(result);
     }
 
-    // POST: api/employees
     [HttpPost]
+    [HasPermission(PermissionCodes.EmployeesManage)]
     public async Task<IActionResult> Create(
         [FromBody] CreateEmployeeCommand command,
         CancellationToken cancellationToken)
@@ -92,8 +93,8 @@ public class EmployeesController : ControllerBase
             });
     }
 
-    // PUT: api/employees/{id}
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.EmployeesManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateEmployeeCommand command,
@@ -123,8 +124,8 @@ public class EmployeesController : ControllerBase
         });
     }
 
-    // DELETE: api/employees/{id}
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.EmployeesManage)]
     public async Task<IActionResult> Delete(
         Guid id,
         CancellationToken cancellationToken)
