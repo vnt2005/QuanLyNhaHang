@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.PromotionUsages.Commands.Delete;
 using QuanLyNhaHang.Application.Features.PromotionUsages.Commands.Update;
 using QuanLyNhaHang.Application.Features.PromotionUsages.Queries.GetById;
@@ -11,7 +12,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/promotion-usages")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class PromotionUsagesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -22,6 +23,7 @@ public class PromotionUsagesController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.PromotionUsagesView)]
     public async Task<IActionResult> GetList(
         [FromQuery] Guid? promotionId,
         [FromQuery] Guid? orderId,
@@ -46,6 +48,7 @@ public class PromotionUsagesController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.PromotionUsagesView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] Guid? promotionId,
@@ -74,6 +77,7 @@ public class PromotionUsagesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.PromotionUsagesView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetPromotionUsageByIdQuery
@@ -91,6 +95,7 @@ public class PromotionUsagesController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/payment")]
+    [HasPermission(PermissionCodes.PromotionUsagesUpdatePayment)]
     public async Task<IActionResult> UpdatePayment(
         Guid id,
         [FromBody] UpdatePromotionUsagePaymentCommand command)
@@ -108,6 +113,7 @@ public class PromotionUsagesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.PromotionUsagesCancel)]
     public async Task<IActionResult> Cancel(Guid id)
     {
         var result = await _mediator.Send(new CancelPromotionUsageCommand
