@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
+using QuanLyNhaHang.Application.Features.Roles.Commands.SyncSystem;
 using QuanLyNhaHang.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -147,8 +148,12 @@ var applyMigrationsOnStartup = app.Configuration.GetValue<bool>(
     "Database:ApplyMigrationsOnStartup");
 var syncPermissionCatalogOnStartup = app.Configuration.GetValue<bool?>(
     "Database:SyncPermissionCatalogOnStartup") ?? applyMigrationsOnStartup;
+var syncSystemRolesOnStartup = app.Configuration.GetValue<bool?>(
+    "Database:SyncSystemRolesOnStartup") ?? syncPermissionCatalogOnStartup;
 
-if (applyMigrationsOnStartup || syncPermissionCatalogOnStartup)
+if (applyMigrationsOnStartup ||
+    syncPermissionCatalogOnStartup ||
+    syncSystemRolesOnStartup)
 {
     using var scope = app.Services.CreateScope();
 
@@ -160,12 +165,13 @@ if (applyMigrationsOnStartup || syncPermissionCatalogOnStartup)
         await dbContext.Database.MigrateAsync();
     }
 
-    if (syncPermissionCatalogOnStartup)
-    {
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+    var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
+    if (syncPermissionCatalogOnStartup || syncSystemRolesOnStartup)
         await mediator.Send(new SyncPermissionCatalogCommand());
-    }
+
+    if (syncSystemRolesOnStartup)
+        await mediator.Send(new SyncSystemRolesCommand());
 }
 
 if (app.Environment.IsDevelopment())
