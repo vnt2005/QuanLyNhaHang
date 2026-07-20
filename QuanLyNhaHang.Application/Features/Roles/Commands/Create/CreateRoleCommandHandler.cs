@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Roles.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -20,6 +21,12 @@ public class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, RoleD
         CancellationToken cancellationToken)
     {
         var roleName = request.Name.Trim();
+
+        if (SystemRoleCatalog.IsSystemRole(roleName))
+        {
+            throw new InvalidOperationException(
+                $"Tên vai trò '{roleName}' là tên hệ thống dành riêng. Hãy sử dụng chức năng đồng bộ vai trò hệ thống.");
+        }
 
         var existedRole = await _context.Roles
             .AnyAsync(x => x.Name == roleName, cancellationToken);
