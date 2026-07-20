@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Application.Features.Roles.Commands.Delete;
@@ -22,6 +23,12 @@ public class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand, bool>
 
         if (role == null)
             throw new Exception("Không tìm thấy vai trò.");
+
+        if (SystemRoleCatalog.IsSystemRole(role.Name))
+        {
+            throw new InvalidOperationException(
+                $"Vai trò hệ thống '{role.Name}' không thể bị vô hiệu hóa hoặc xóa.");
+        }
 
         role.Deactivate();
 

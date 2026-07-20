@@ -42,4 +42,16 @@ public static class SystemRoleCatalog
                 "Tài khoản khách hàng, không có quyền truy cập API quản trị mặc định.",
                 Array.Empty<string>())
         });
+
+    public static bool IsSystemRole(string? roleName)
+    {
+        if (string.IsNullOrWhiteSpace(roleName))
+            return false;
+
+        var normalizedRoleName = roleName.Trim();
+
+        return All.Any(role => role.Name.Equals(
+            normalizedRoleName,
+            StringComparison.OrdinalIgnoreCase));
+    }
 }
