@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Api.Authorization;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.TableOperations.Commands.Create;
 using QuanLyNhaHang.Application.Features.TableOperations.Commands.Delete;
 using QuanLyNhaHang.Application.Features.TableOperations.Commands.Update;
@@ -12,7 +14,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/table-operations")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class TableOperationsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +25,7 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.TableOperationsView)]
     public async Task<IActionResult> GetList(
         [FromQuery] string? operationType,
         [FromQuery] string? status)
@@ -37,6 +40,7 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.TableOperationsView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetTableOperationByIdQuery
@@ -54,6 +58,7 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.TableOperationsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] string? operationType,
@@ -74,6 +79,7 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpPost("transfer")]
+    [HasPermission(PermissionCodes.TableOperationsTransfer)]
     public async Task<IActionResult> TransferTable([FromBody] TransferTableCommand command)
     {
         var result = await _mediator.Send(command);
@@ -87,6 +93,7 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpPost("merge")]
+    [HasPermission(PermissionCodes.TableOperationsMerge)]
     public async Task<IActionResult> MergeTables([FromBody] MergeTablesCommand command)
     {
         var result = await _mediator.Send(command);
@@ -100,6 +107,7 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpPost("split")]
+    [HasPermission(PermissionCodes.TableOperationsSplit)]
     public async Task<IActionResult> SplitTable([FromBody] SplitTableCommand command)
     {
         var result = await _mediator.Send(command);
@@ -113,6 +121,7 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.TableOperationsUpdate)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateTableOperationCommand command)
@@ -130,6 +139,7 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.TableOperationsCancel)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteTableOperationCommand
