@@ -32,6 +32,12 @@ public static class DefaultRolePermissions
             PermissionCodes.TablesManage,
             PermissionCodes.TablesUpdateStatus,
             PermissionCodes.EmployeesView,
+            PermissionCodes.PromotionsView,
+            PermissionCodes.PromotionsManage,
+            PermissionCodes.PromotionsApply,
+            PermissionCodes.PromotionUsagesView,
+            PermissionCodes.PromotionUsagesUpdatePayment,
+            PermissionCodes.PromotionUsagesCancel,
             PermissionCodes.ShiftsView,
             PermissionCodes.ShiftsManage,
             PermissionCodes.EmployeeShiftsView,
@@ -56,7 +62,12 @@ public static class DefaultRolePermissions
             PermissionCodes.ReservationsCancel,
             PermissionCodes.MenuView,
             PermissionCodes.TablesView,
-            PermissionCodes.TablesUpdateStatus
+            PermissionCodes.TablesUpdateStatus,
+            PermissionCodes.PromotionsView,
+            PermissionCodes.PromotionsApply,
+            PermissionCodes.PromotionUsagesView,
+            PermissionCodes.PromotionUsagesUpdatePayment,
+            PermissionCodes.PromotionUsagesCancel
         });
 
     private static readonly IReadOnlyCollection<string> Kitchen =
