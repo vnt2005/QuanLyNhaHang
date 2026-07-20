@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.RestaurantSettings.Commands.Create;
 using QuanLyNhaHang.Application.Features.RestaurantSettings.Commands.Delete;
 using QuanLyNhaHang.Application.Features.RestaurantSettings.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/restaurant-settings")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class RestaurantSettingsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class RestaurantSettingsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.RestaurantSettingsView)]
     public async Task<IActionResult> GetList([FromQuery] bool? isActive)
     {
         var result = await _mediator.Send(new GetRestaurantSettingsQuery
@@ -34,6 +36,7 @@ public class RestaurantSettingsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.RestaurantSettingsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] bool? isActive,
@@ -52,6 +55,7 @@ public class RestaurantSettingsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.RestaurantSettingsView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetRestaurantSettingByIdQuery
@@ -69,6 +73,7 @@ public class RestaurantSettingsController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.RestaurantSettingsManage)]
     public async Task<IActionResult> Create([FromBody] CreateRestaurantSettingCommand command)
     {
         var result = await _mediator.Send(command);
@@ -82,6 +87,7 @@ public class RestaurantSettingsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.RestaurantSettingsManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateRestaurantSettingCommand command)
@@ -99,6 +105,7 @@ public class RestaurantSettingsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.RestaurantSettingsManage)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteRestaurantSettingCommand

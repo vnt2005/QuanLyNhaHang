@@ -18,6 +18,7 @@ public sealed class DefaultRolePermissionsTests
         "Tables.UpdateStatus|Employees.View|Promotions.View|" +
         "Promotions.Manage|Promotions.Apply|PromotionUsages.View|" +
         "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
+        "RestaurantSettings.View|RestaurantSettings.Manage|" +
         "Shifts.View|Shifts.Manage|EmployeeShifts.View|" +
         "EmployeeShifts.Manage|RevenueReports.View|" +
         "RevenueReports.Manage|Dashboard.View")]
@@ -28,7 +29,8 @@ public sealed class DefaultRolePermissionsTests
         "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
         "Menu.View|Tables.View|Tables.UpdateStatus|Promotions.View|" +
         "Promotions.Apply|PromotionUsages.View|" +
-        "PromotionUsages.UpdatePayment|PromotionUsages.Cancel")]
+        "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
+        "RestaurantSettings.View")]
     [InlineData(
         SystemRoles.Kitchen,
         "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
@@ -85,6 +87,8 @@ public sealed class DefaultRolePermissionsTests
         Assert.Contains(PermissionCodes.PromotionUsagesView, permissions);
         Assert.Contains(PermissionCodes.PromotionUsagesUpdatePayment, permissions);
         Assert.Contains(PermissionCodes.PromotionUsagesCancel, permissions);
+        Assert.Contains(PermissionCodes.RestaurantSettingsView, permissions);
+        Assert.Contains(PermissionCodes.RestaurantSettingsManage, permissions);
         Assert.Contains(PermissionCodes.ShiftsView, permissions);
         Assert.Contains(PermissionCodes.ShiftsManage, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsView, permissions);
@@ -102,5 +106,14 @@ public sealed class DefaultRolePermissionsTests
         Assert.Contains(PermissionCodes.PromotionUsagesView, permissions);
         Assert.Contains(PermissionCodes.PromotionUsagesUpdatePayment, permissions);
         Assert.Contains(PermissionCodes.PromotionUsagesCancel, permissions);
+    }
+
+    [Fact]
+    public void Cashier_CanViewRestaurantSettingsButCannotManageThem()
+    {
+        var permissions = DefaultRolePermissions.GetForRole(SystemRoles.Cashier);
+
+        Assert.Contains(PermissionCodes.RestaurantSettingsView, permissions);
+        Assert.DoesNotContain(PermissionCodes.RestaurantSettingsManage, permissions);
     }
 }

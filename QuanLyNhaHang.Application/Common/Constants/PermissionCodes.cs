@@ -59,6 +59,9 @@ public static class PermissionCodes
     public const string PromotionUsagesUpdatePayment = "PromotionUsages.UpdatePayment";
     public const string PromotionUsagesCancel = "PromotionUsages.Cancel";
 
+    public const string RestaurantSettingsView = "RestaurantSettings.View";
+    public const string RestaurantSettingsManage = "RestaurantSettings.Manage";
+
     public const string ShiftsView = "Shifts.View";
     public const string ShiftsManage = "Shifts.Manage";
 
