@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Common.Constants;
+using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
 using QuanLyNhaHang.Application.Features.Roles.Commands.Create;
 using QuanLyNhaHang.Application.Features.Roles.Commands.Delete;
+using QuanLyNhaHang.Application.Features.Roles.Commands.SyncSystem;
 using QuanLyNhaHang.Application.Features.Roles.Commands.Update;
 using QuanLyNhaHang.Application.Features.Roles.Queries.GetById;
 using QuanLyNhaHang.Application.Features.Roles.Queries.GetList;
@@ -83,6 +85,27 @@ public class RolesController : ControllerBase
             success = true,
             message = "Tạo vai trò thành công.",
             data = result
+        });
+    }
+
+    [HttpPost("sync-system")]
+    [HasPermission(PermissionCodes.RolesManage)]
+    public async Task<IActionResult> SyncSystemRoles()
+    {
+        var permissionResult = await _mediator.Send(
+            new SyncPermissionCatalogCommand());
+        var roleResult = await _mediator.Send(
+            new SyncSystemRolesCommand());
+
+        return Ok(new
+        {
+            success = true,
+            message = "Đồng bộ vai trò hệ thống thành công.",
+            data = new
+            {
+                permissions = permissionResult,
+                roles = roleResult
+            }
         });
     }
 
