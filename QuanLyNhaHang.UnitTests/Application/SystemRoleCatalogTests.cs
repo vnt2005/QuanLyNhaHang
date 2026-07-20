@@ -28,6 +28,30 @@ public sealed class SystemRoleCatalogTests
     }
 
     [Theory]
+    [InlineData("Admin")]
+    [InlineData(" admin ")]
+    [InlineData("MANAGER")]
+    [InlineData("cashier")]
+    [InlineData("Kitchen")]
+    [InlineData("STAFF")]
+    [InlineData("customer")]
+    public void IsSystemRole_RecognizesReservedNamesCaseInsensitively(string roleName)
+    {
+        Assert.True(SystemRoleCatalog.IsSystemRole(roleName));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("Supervisor")]
+    [InlineData("Custom.Admin")]
+    public void IsSystemRole_RejectsNonSystemNames(string? roleName)
+    {
+        Assert.False(SystemRoleCatalog.IsSystemRole(roleName));
+    }
+
+    [Theory]
     [InlineData(SystemRoles.Manager)]
     [InlineData(SystemRoles.Cashier)]
     [InlineData(SystemRoles.Kitchen)]
