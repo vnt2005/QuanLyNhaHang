@@ -28,11 +28,12 @@ public sealed class EmployeeAuthorizationTests
             "Tables.UpdateStatus|Employees.View|Promotions.View|" +
             "Promotions.Manage|Promotions.Apply|PromotionUsages.View|" +
             "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
+            "RestaurantSettings.View|RestaurantSettings.Manage|" +
             "Shifts.View|Shifts.Manage|EmployeeShifts.View|" +
             "EmployeeShifts.Manage|RevenueReports.View|" +
             "RevenueReports.Manage|Dashboard.View",
             true, true, true, true, true, true, true,
-            true, true, true, true, true, true
+            true, true, true, true, true, true, true
         };
 
         yield return new object[]
@@ -43,9 +44,10 @@ public sealed class EmployeeAuthorizationTests
             "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
             "Menu.View|Tables.View|Tables.UpdateStatus|Promotions.View|" +
             "Promotions.Apply|PromotionUsages.View|" +
-            "PromotionUsages.UpdatePayment|PromotionUsages.Cancel",
+            "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
+            "RestaurantSettings.View",
             true, true, true, false, false, false, false,
-            true, true, true, false, false, true
+            true, true, true, false, false, true, true
         };
 
         yield return new object[]
@@ -54,7 +56,7 @@ public sealed class EmployeeAuthorizationTests
             "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
             "Menu.UpdateAvailability",
             false, false, false, false, false, true, false,
-            false, true, false, false, false, false
+            false, true, false, false, false, false, false
         };
 
         yield return new object[]
@@ -64,7 +66,7 @@ public sealed class EmployeeAuthorizationTests
             "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
             "Menu.View|Tables.View|Tables.UpdateStatus",
             true, false, false, false, false, false, false,
-            true, true, true, false, false, false
+            true, true, true, false, false, false, false
         };
     }
 
@@ -85,7 +87,8 @@ public sealed class EmployeeAuthorizationTests
         bool canOperateTables,
         bool canManageScheduling,
         bool canViewEmployees,
-        bool canOperatePromotions)
+        bool canOperatePromotions,
+        bool canViewRestaurantSettings)
     {
         using var factory = new ApiWebApplicationFactory();
         using var adminClient = factory.CreateHttpsClient();
@@ -180,6 +183,10 @@ public sealed class EmployeeAuthorizationTests
             employeeClient,
             "/api/promotion-usages",
             canOperatePromotions);
+        await AssertAccessAsync(
+            employeeClient,
+            "/api/restaurant-settings",
+            canViewRestaurantSettings);
     }
 
     [Fact]
@@ -283,7 +290,8 @@ public sealed class EmployeeAuthorizationTests
                      "/api/employees",
                      "/api/users",
                      "/api/promotions",
-                     "/api/promotion-usages"
+                     "/api/promotion-usages",
+                     "/api/restaurant-settings"
                  })
         {
             await AssertAccessAsync(employeeClient, endpoint, false);
@@ -356,6 +364,7 @@ public sealed class EmployeeAuthorizationTests
         await AssertAccessAsync(employeeClient, "/api/users", false);
         await AssertAccessAsync(employeeClient, "/api/promotions", false);
         await AssertAccessAsync(employeeClient, "/api/promotion-usages", false);
+        await AssertAccessAsync(employeeClient, "/api/restaurant-settings", false);
     }
 
     [Fact]
