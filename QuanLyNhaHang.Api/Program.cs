@@ -1,4 +1,6 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
 using QuanLyNhaHang.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -141,15 +143,29 @@ builder.Services.AddSingleton<
 
 var app = builder.Build();
 
-if (app.Configuration.GetValue<bool>(
-        "Database:ApplyMigrationsOnStartup"))
+var applyMigrationsOnStartup = app.Configuration.GetValue<bool>(
+    "Database:ApplyMigrationsOnStartup");
+var syncPermissionCatalogOnStartup = app.Configuration.GetValue<bool?>(
+    "Database:SyncPermissionCatalogOnStartup") ?? applyMigrationsOnStartup;
+
+if (applyMigrationsOnStartup || syncPermissionCatalogOnStartup)
 {
     using var scope = app.Services.CreateScope();
 
-    var dbContext = scope.ServiceProvider
-        .GetRequiredService<ApplicationDbContext>();
+    if (applyMigrationsOnStartup)
+    {
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
 
-    await dbContext.Database.MigrateAsync();
+        await dbContext.Database.MigrateAsync();
+    }
+
+    if (syncPermissionCatalogOnStartup)
+    {
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+        await mediator.Send(new SyncPermissionCatalogCommand());
+    }
 }
 
 if (app.Environment.IsDevelopment())

@@ -1,9 +1,10 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.Create;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.Delete;
+using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.Update;
 using QuanLyNhaHang.Application.Features.Permissions.Queries.GetById;
 using QuanLyNhaHang.Application.Features.Permissions.Queries.GetList;
@@ -87,6 +88,20 @@ public class PermissionsController : ControllerBase
         {
             success = true,
             message = "Tạo quyền thành công.",
+            data = result
+        });
+    }
+
+    [HttpPost("sync-catalog")]
+    [HasPermission(PermissionCodes.PermissionsManage)]
+    public async Task<IActionResult> SyncCatalog()
+    {
+        var result = await _mediator.Send(new SyncPermissionCatalogCommand());
+
+        return Ok(new
+        {
+            success = true,
+            message = $"Đồng bộ danh mục quyền thành công. Đã bổ sung {result.AddedCount} quyền.",
             data = result
         });
     }

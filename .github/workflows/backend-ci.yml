@@ -90,6 +90,7 @@ jobs:
             --env ASPNETCORE_HTTP_PORTS=8080 \
             --env Hosting__DisableHttpsRedirection=true \
             --env Database__ApplyMigrationsOnStartup=false \
+            --env Database__SyncPermissionCatalogOnStartup=false \
             --env "ConnectionStrings__DefaultConnection=Server=localhost;Database=QuanLyNhaHang;User Id=sa;Password=CiOnly_StrongPassword_123!;Encrypt=True;TrustServerCertificate=True" \
             --env "Jwt__SecretKey=$JWT_SECRET_KEY" \
             --env Jwt__Issuer=QuanLyNhaHang \
