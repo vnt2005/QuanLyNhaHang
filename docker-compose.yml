@@ -33,6 +33,7 @@ services:
       ASPNETCORE_HTTP_PORTS: "8080"
       Hosting__DisableHttpsRedirection: "true"
       Database__ApplyMigrationsOnStartup: "true"
+      Database__SyncPermissionCatalogOnStartup: "true"
       ConnectionStrings__DefaultConnection: >-
         Server=database,1433;Database=QuanLyNhaHang;
         User Id=sa;Password=${MSSQL_SA_PASSWORD};
