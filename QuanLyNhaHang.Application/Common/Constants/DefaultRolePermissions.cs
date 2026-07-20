@@ -38,6 +38,8 @@ public static class DefaultRolePermissions
             PermissionCodes.PromotionUsagesView,
             PermissionCodes.PromotionUsagesUpdatePayment,
             PermissionCodes.PromotionUsagesCancel,
+            PermissionCodes.RestaurantSettingsView,
+            PermissionCodes.RestaurantSettingsManage,
             PermissionCodes.ShiftsView,
             PermissionCodes.ShiftsManage,
             PermissionCodes.EmployeeShiftsView,
@@ -67,7 +69,8 @@ public static class DefaultRolePermissions
             PermissionCodes.PromotionsApply,
             PermissionCodes.PromotionUsagesView,
             PermissionCodes.PromotionUsagesUpdatePayment,
-            PermissionCodes.PromotionUsagesCancel
+            PermissionCodes.PromotionUsagesCancel,
+            PermissionCodes.RestaurantSettingsView
         });
 
     private static readonly IReadOnlyCollection<string> Kitchen =
