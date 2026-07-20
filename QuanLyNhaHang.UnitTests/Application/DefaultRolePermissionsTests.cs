@@ -15,7 +15,9 @@ public sealed class DefaultRolePermissionsTests
         "Inventory.Adjust|Reservations.View|Reservations.Create|" +
         "Reservations.Update|Reservations.Cancel|Menu.View|Menu.Manage|" +
         "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
-        "Tables.UpdateStatus|Employees.View|Promotions.View|" +
+        "Tables.UpdateStatus|TableOperations.View|TableOperations.Transfer|" +
+        "TableOperations.Merge|TableOperations.Split|TableOperations.Update|" +
+        "TableOperations.Cancel|Employees.View|Promotions.View|" +
         "Promotions.Manage|Promotions.Apply|PromotionUsages.View|" +
         "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
         "RestaurantSettings.View|RestaurantSettings.Manage|" +
@@ -27,8 +29,8 @@ public sealed class DefaultRolePermissionsTests
         "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
         "Payments.Cancel|Invoices.View|Reservations.View|" +
         "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
-        "Menu.View|Tables.View|Tables.UpdateStatus|Promotions.View|" +
-        "Promotions.Apply|PromotionUsages.View|" +
+        "Menu.View|Tables.View|Tables.UpdateStatus|TableOperations.View|" +
+        "Promotions.View|Promotions.Apply|PromotionUsages.View|" +
         "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
         "RestaurantSettings.View")]
     [InlineData(
@@ -39,7 +41,9 @@ public sealed class DefaultRolePermissionsTests
         SystemRoles.Staff,
         "Orders.View|Orders.Create|Orders.Update|Reservations.View|" +
         "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
-        "Menu.View|Tables.View|Tables.UpdateStatus")]
+        "Menu.View|Tables.View|Tables.UpdateStatus|TableOperations.View|" +
+        "TableOperations.Transfer|TableOperations.Merge|TableOperations.Split|" +
+        "TableOperations.Update")]
     public void GetForRole_ReturnsLeastPrivilegeMatrix(
         string role,
         string expectedCodes)
@@ -92,6 +96,12 @@ public sealed class DefaultRolePermissionsTests
         Assert.Contains(PermissionCodes.ActivityLogsView, permissions);
         Assert.DoesNotContain(PermissionCodes.ActivityLogsCreate, permissions);
         Assert.DoesNotContain(PermissionCodes.ActivityLogsDelete, permissions);
+        Assert.Contains(PermissionCodes.TableOperationsView, permissions);
+        Assert.Contains(PermissionCodes.TableOperationsTransfer, permissions);
+        Assert.Contains(PermissionCodes.TableOperationsMerge, permissions);
+        Assert.Contains(PermissionCodes.TableOperationsSplit, permissions);
+        Assert.Contains(PermissionCodes.TableOperationsUpdate, permissions);
+        Assert.Contains(PermissionCodes.TableOperationsCancel, permissions);
         Assert.Contains(PermissionCodes.ShiftsView, permissions);
         Assert.Contains(PermissionCodes.ShiftsManage, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsView, permissions);
@@ -128,5 +138,28 @@ public sealed class DefaultRolePermissionsTests
         Assert.Contains(PermissionCodes.ActivityLogsView, permissions);
         Assert.DoesNotContain(PermissionCodes.ActivityLogsCreate, permissions);
         Assert.DoesNotContain(PermissionCodes.ActivityLogsDelete, permissions);
+    }
+
+    [Fact]
+    public void TableOperationRoles_FollowLeastPrivilege()
+    {
+        var manager = DefaultRolePermissions.GetForRole(SystemRoles.Manager);
+        var cashier = DefaultRolePermissions.GetForRole(SystemRoles.Cashier);
+        var staff = DefaultRolePermissions.GetForRole(SystemRoles.Staff);
+        var kitchen = DefaultRolePermissions.GetForRole(SystemRoles.Kitchen);
+
+        Assert.Contains(PermissionCodes.TableOperationsCancel, manager);
+
+        Assert.Contains(PermissionCodes.TableOperationsView, cashier);
+        Assert.DoesNotContain(PermissionCodes.TableOperationsTransfer, cashier);
+        Assert.DoesNotContain(PermissionCodes.TableOperationsCancel, cashier);
+
+        Assert.Contains(PermissionCodes.TableOperationsTransfer, staff);
+        Assert.Contains(PermissionCodes.TableOperationsMerge, staff);
+        Assert.Contains(PermissionCodes.TableOperationsSplit, staff);
+        Assert.Contains(PermissionCodes.TableOperationsUpdate, staff);
+        Assert.DoesNotContain(PermissionCodes.TableOperationsCancel, staff);
+
+        Assert.DoesNotContain(PermissionCodes.TableOperationsView, kitchen);
     }
 }
