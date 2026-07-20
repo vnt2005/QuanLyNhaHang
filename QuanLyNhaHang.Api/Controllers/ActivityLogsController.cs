@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.ActivityLogs.Commands.Create;
 using QuanLyNhaHang.Application.Features.ActivityLogs.Commands.Delete;
 using QuanLyNhaHang.Application.Features.ActivityLogs.Queries.GetById;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/activity-logs")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class ActivityLogsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class ActivityLogsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.ActivityLogsView)]
     public async Task<IActionResult> GetList(
         [FromQuery] Guid? userId,
         [FromQuery] string? action,
@@ -49,6 +51,7 @@ public class ActivityLogsController : ControllerBase
     }
 
     [HttpGet("summary")]
+    [HasPermission(PermissionCodes.ActivityLogsView)]
     public async Task<IActionResult> GetSummary(
         [FromQuery] Guid? userId,
         [FromQuery] string? moduleName,
@@ -67,6 +70,7 @@ public class ActivityLogsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.ActivityLogsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] Guid? userId,
@@ -99,6 +103,7 @@ public class ActivityLogsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.ActivityLogsView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetActivityLogByIdQuery
@@ -116,6 +121,7 @@ public class ActivityLogsController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.ActivityLogsCreate)]
     public async Task<IActionResult> Create([FromBody] CreateActivityLogCommand command)
     {
         var result = await _mediator.Send(command);
@@ -129,6 +135,7 @@ public class ActivityLogsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.ActivityLogsDelete)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeleteActivityLogCommand
