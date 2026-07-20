@@ -31,6 +31,12 @@ public static class DefaultRolePermissions
             PermissionCodes.TablesView,
             PermissionCodes.TablesManage,
             PermissionCodes.TablesUpdateStatus,
+            PermissionCodes.TableOperationsView,
+            PermissionCodes.TableOperationsTransfer,
+            PermissionCodes.TableOperationsMerge,
+            PermissionCodes.TableOperationsSplit,
+            PermissionCodes.TableOperationsUpdate,
+            PermissionCodes.TableOperationsCancel,
             PermissionCodes.EmployeesView,
             PermissionCodes.PromotionsView,
             PermissionCodes.PromotionsManage,
@@ -66,6 +72,7 @@ public static class DefaultRolePermissions
             PermissionCodes.MenuView,
             PermissionCodes.TablesView,
             PermissionCodes.TablesUpdateStatus,
+            PermissionCodes.TableOperationsView,
             PermissionCodes.PromotionsView,
             PermissionCodes.PromotionsApply,
             PermissionCodes.PromotionUsagesView,
@@ -95,7 +102,12 @@ public static class DefaultRolePermissions
             PermissionCodes.ReservationsCancel,
             PermissionCodes.MenuView,
             PermissionCodes.TablesView,
-            PermissionCodes.TablesUpdateStatus
+            PermissionCodes.TablesUpdateStatus,
+            PermissionCodes.TableOperationsView,
+            PermissionCodes.TableOperationsTransfer,
+            PermissionCodes.TableOperationsMerge,
+            PermissionCodes.TableOperationsSplit,
+            PermissionCodes.TableOperationsUpdate
         });
 
     public static IReadOnlyCollection<string> GetForRole(string? role)
