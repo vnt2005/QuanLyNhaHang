@@ -51,6 +51,14 @@ public static class PermissionCodes
     public const string RolePermissionsView = "RolePermissions.View";
     public const string RolePermissionsManage = "RolePermissions.Manage";
 
+    public const string PromotionsView = "Promotions.View";
+    public const string PromotionsManage = "Promotions.Manage";
+    public const string PromotionsApply = "Promotions.Apply";
+
+    public const string PromotionUsagesView = "PromotionUsages.View";
+    public const string PromotionUsagesUpdatePayment = "PromotionUsages.UpdatePayment";
+    public const string PromotionUsagesCancel = "PromotionUsages.Cancel";
+
     public const string ShiftsView = "Shifts.View";
     public const string ShiftsManage = "Shifts.Manage";
 

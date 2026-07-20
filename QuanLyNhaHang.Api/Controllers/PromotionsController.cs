@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Promotions.Commands.Create;
 using QuanLyNhaHang.Application.Features.Promotions.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Promotions.Commands.Update;
@@ -12,7 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/promotions")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class PromotionsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +24,7 @@ public class PromotionsController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(PermissionCodes.PromotionsView)]
     public async Task<IActionResult> GetList(
         [FromQuery] string? discountType,
         [FromQuery] bool? isActive,
@@ -39,6 +41,7 @@ public class PromotionsController : ControllerBase
     }
 
     [HttpGet("paginated")]
+    [HasPermission(PermissionCodes.PromotionsView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
         [FromQuery] string? discountType,
@@ -61,6 +64,7 @@ public class PromotionsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(PermissionCodes.PromotionsView)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetPromotionByIdQuery
@@ -78,6 +82,7 @@ public class PromotionsController : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission(PermissionCodes.PromotionsManage)]
     public async Task<IActionResult> Create([FromBody] CreatePromotionCommand command)
     {
         var result = await _mediator.Send(command);
@@ -91,6 +96,7 @@ public class PromotionsController : ControllerBase
     }
 
     [HttpPost("apply")]
+    [HasPermission(PermissionCodes.PromotionsApply)]
     public async Task<IActionResult> ApplyPromotion([FromBody] ApplyPromotionCommand command)
     {
         var result = await _mediator.Send(command);
@@ -104,6 +110,7 @@ public class PromotionsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [HasPermission(PermissionCodes.PromotionsManage)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdatePromotionCommand command)
@@ -121,6 +128,7 @@ public class PromotionsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [HasPermission(PermissionCodes.PromotionsManage)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _mediator.Send(new DeletePromotionCommand
