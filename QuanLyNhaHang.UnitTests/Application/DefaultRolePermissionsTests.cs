@@ -15,15 +15,20 @@ public sealed class DefaultRolePermissionsTests
         "Inventory.Adjust|Reservations.View|Reservations.Create|" +
         "Reservations.Update|Reservations.Cancel|Menu.View|Menu.Manage|" +
         "Menu.UpdateAvailability|Tables.View|Tables.Manage|" +
-        "Tables.UpdateStatus|Employees.View|Shifts.View|Shifts.Manage|" +
-        "EmployeeShifts.View|EmployeeShifts.Manage|" +
-        "RevenueReports.View|RevenueReports.Manage|Dashboard.View")]
+        "Tables.UpdateStatus|Employees.View|Promotions.View|" +
+        "Promotions.Manage|Promotions.Apply|PromotionUsages.View|" +
+        "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
+        "Shifts.View|Shifts.Manage|EmployeeShifts.View|" +
+        "EmployeeShifts.Manage|RevenueReports.View|" +
+        "RevenueReports.Manage|Dashboard.View")]
     [InlineData(
         SystemRoles.Cashier,
         "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
         "Payments.Cancel|Invoices.View|Reservations.View|" +
         "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
-        "Menu.View|Tables.View|Tables.UpdateStatus")]
+        "Menu.View|Tables.View|Tables.UpdateStatus|Promotions.View|" +
+        "Promotions.Apply|PromotionUsages.View|" +
+        "PromotionUsages.UpdatePayment|PromotionUsages.Cancel")]
     [InlineData(
         SystemRoles.Kitchen,
         "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
@@ -74,9 +79,28 @@ public sealed class DefaultRolePermissionsTests
         Assert.DoesNotContain(PermissionCodes.PermissionsManage, permissions);
         Assert.DoesNotContain(PermissionCodes.RolePermissionsView, permissions);
         Assert.DoesNotContain(PermissionCodes.RolePermissionsManage, permissions);
+        Assert.Contains(PermissionCodes.PromotionsView, permissions);
+        Assert.Contains(PermissionCodes.PromotionsManage, permissions);
+        Assert.Contains(PermissionCodes.PromotionsApply, permissions);
+        Assert.Contains(PermissionCodes.PromotionUsagesView, permissions);
+        Assert.Contains(PermissionCodes.PromotionUsagesUpdatePayment, permissions);
+        Assert.Contains(PermissionCodes.PromotionUsagesCancel, permissions);
         Assert.Contains(PermissionCodes.ShiftsView, permissions);
         Assert.Contains(PermissionCodes.ShiftsManage, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsView, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsManage, permissions);
+    }
+
+    [Fact]
+    public void Cashier_CanOperatePromotionsButCannotManageCatalog()
+    {
+        var permissions = DefaultRolePermissions.GetForRole(SystemRoles.Cashier);
+
+        Assert.Contains(PermissionCodes.PromotionsView, permissions);
+        Assert.Contains(PermissionCodes.PromotionsApply, permissions);
+        Assert.DoesNotContain(PermissionCodes.PromotionsManage, permissions);
+        Assert.Contains(PermissionCodes.PromotionUsagesView, permissions);
+        Assert.Contains(PermissionCodes.PromotionUsagesUpdatePayment, permissions);
+        Assert.Contains(PermissionCodes.PromotionUsagesCancel, permissions);
     }
 }
