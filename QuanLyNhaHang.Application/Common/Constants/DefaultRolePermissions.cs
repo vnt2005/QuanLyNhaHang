@@ -40,6 +40,7 @@ public static class DefaultRolePermissions
             PermissionCodes.PromotionUsagesCancel,
             PermissionCodes.RestaurantSettingsView,
             PermissionCodes.RestaurantSettingsManage,
+            PermissionCodes.ActivityLogsView,
             PermissionCodes.ShiftsView,
             PermissionCodes.ShiftsManage,
             PermissionCodes.EmployeeShiftsView,

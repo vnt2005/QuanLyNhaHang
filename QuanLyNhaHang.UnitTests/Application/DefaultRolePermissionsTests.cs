@@ -19,7 +19,7 @@ public sealed class DefaultRolePermissionsTests
         "Promotions.Manage|Promotions.Apply|PromotionUsages.View|" +
         "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
         "RestaurantSettings.View|RestaurantSettings.Manage|" +
-        "Shifts.View|Shifts.Manage|EmployeeShifts.View|" +
+        "ActivityLogs.View|Shifts.View|Shifts.Manage|EmployeeShifts.View|" +
         "EmployeeShifts.Manage|RevenueReports.View|" +
         "RevenueReports.Manage|Dashboard.View")]
     [InlineData(
@@ -89,6 +89,9 @@ public sealed class DefaultRolePermissionsTests
         Assert.Contains(PermissionCodes.PromotionUsagesCancel, permissions);
         Assert.Contains(PermissionCodes.RestaurantSettingsView, permissions);
         Assert.Contains(PermissionCodes.RestaurantSettingsManage, permissions);
+        Assert.Contains(PermissionCodes.ActivityLogsView, permissions);
+        Assert.DoesNotContain(PermissionCodes.ActivityLogsCreate, permissions);
+        Assert.DoesNotContain(PermissionCodes.ActivityLogsDelete, permissions);
         Assert.Contains(PermissionCodes.ShiftsView, permissions);
         Assert.Contains(PermissionCodes.ShiftsManage, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsView, permissions);
@@ -115,5 +118,15 @@ public sealed class DefaultRolePermissionsTests
 
         Assert.Contains(PermissionCodes.RestaurantSettingsView, permissions);
         Assert.DoesNotContain(PermissionCodes.RestaurantSettingsManage, permissions);
+    }
+
+    [Fact]
+    public void Manager_CanViewActivityLogsButCannotCreateOrDeleteThem()
+    {
+        var permissions = DefaultRolePermissions.GetForRole(SystemRoles.Manager);
+
+        Assert.Contains(PermissionCodes.ActivityLogsView, permissions);
+        Assert.DoesNotContain(PermissionCodes.ActivityLogsCreate, permissions);
+        Assert.DoesNotContain(PermissionCodes.ActivityLogsDelete, permissions);
     }
 }
