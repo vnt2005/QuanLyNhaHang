@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Roles.DTOs;
 
@@ -23,6 +24,12 @@ public class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand, RoleD
 
         if (role == null)
             throw new Exception("Không tìm thấy vai trò.");
+
+        if (SystemRoleCatalog.IsSystemRole(role.Name) && !request.IsActive)
+        {
+            throw new InvalidOperationException(
+                $"Vai trò hệ thống '{role.Name}' không thể bị vô hiệu hóa.");
+        }
 
         role.UpdateInfo(
             request.DisplayName,
