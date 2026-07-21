@@ -51,31 +51,24 @@ jobs:
           --configuration Release
           --no-restore
 
+      - name: Run unit tests
+        run: >-
+          dotnet test QuanLyNhaHang.UnitTests/QuanLyNhaHang.UnitTests.csproj
+          --configuration Release
+          --verbosity minimal
+
       - name: Run refresh token session tests
         run: >-
           dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj
           --configuration Release
           --filter FullyQualifiedName~RefreshTokenSessionTests
-          --verbosity normal
+          --verbosity minimal
 
-      - name: Run tests when present
-        shell: bash
-        run: |
-          mapfile -t test_projects < <(
-            find . -type f \( -name '*Tests.csproj' -o -name '*Test.csproj' \) -print |
-              sort
-          )
-
-          if [ "${#test_projects[@]}" -eq 0 ]; then
-            echo "::error::No test projects were found."
-            exit 1
-          fi
-
-          printf 'Discovered test project: %s\n' "${test_projects[@]}"
-
-          for project in "${test_projects[@]}"; do
-            dotnet test "$project" --configuration Release --verbosity normal
-          done
+      - name: Run integration tests
+        run: >-
+          dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj
+          --configuration Release
+          --verbosity minimal
 
       - name: Validate Docker Compose
         env:
