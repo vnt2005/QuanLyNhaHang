@@ -52,6 +52,29 @@ public sealed class SystemRoleCatalogTests
     }
 
     [Theory]
+    [InlineData("Admin")]
+    [InlineData(" admin ")]
+    [InlineData("CUSTOMER")]
+    [InlineData(" customer ")]
+    public void MustRemainWithoutPermissions_RecognizesProtectedRoles(string roleName)
+    {
+        Assert.True(SystemRoleCatalog.MustRemainWithoutPermissions(roleName));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("Manager")]
+    [InlineData("Cashier")]
+    [InlineData("Kitchen")]
+    [InlineData("Staff")]
+    [InlineData("Auditor")]
+    public void MustRemainWithoutPermissions_AllowsConfigurableRoles(string? roleName)
+    {
+        Assert.False(SystemRoleCatalog.MustRemainWithoutPermissions(roleName));
+    }
+
+    [Theory]
     [InlineData(SystemRoles.Manager)]
     [InlineData(SystemRoles.Cashier)]
     [InlineData(SystemRoles.Kitchen)]
