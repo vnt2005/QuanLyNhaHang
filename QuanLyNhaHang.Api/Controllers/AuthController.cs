@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using QuanLyNhaHang.Application.Features.Auth.Commands.ChangePassword;
 using QuanLyNhaHang.Application.Features.Auth.Commands.DisableTwoFactor;
 using QuanLyNhaHang.Application.Features.Auth.Commands.EnableTwoFactor;
 using QuanLyNhaHang.Application.Features.Auth.Commands.ForgotPassword;
@@ -167,6 +168,22 @@ public class AuthController : ControllerBase
         return Ok(new
         {
             Message = "Thu hồi phiên đăng nhập thành công."
+        });
+    }
+
+    // POST: api/auth/change-password
+    [Authorize]
+    [EnableRateLimiting("AuthSensitive")]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(new
+        {
+            Message = result
         });
     }
 
