@@ -138,7 +138,7 @@ builder.Services.AddSingleton<
     IAuthorizationPolicyProvider,
     PermissionAuthorizationPolicyProvider>();
 
-builder.Services.AddSingleton<
+builder.Services.AddScoped<
     IAuthorizationHandler,
     PermissionAuthorizationHandler>();
 
