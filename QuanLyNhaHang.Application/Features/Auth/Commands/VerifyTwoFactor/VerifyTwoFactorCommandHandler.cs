@@ -15,17 +15,23 @@ public class VerifyTwoFactorCommandHandler
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IUserPermissionService _userPermissionService;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IAuthSessionService _authSessionService;
+    private readonly ICurrentUserService _currentUserService;
 
     public VerifyTwoFactorCommandHandler(
         IApplicationDbContext context,
         IJwtTokenService jwtTokenService,
         IUserPermissionService userPermissionService,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IAuthSessionService authSessionService,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
         _userPermissionService = userPermissionService;
         _passwordHasher = passwordHasher;
+        _authSessionService = authSessionService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -72,7 +78,6 @@ public class VerifyTwoFactorCommandHandler
         }
 
         user.ClearTwoFactorCode();
-
         await _context.SaveChangesAsync(cancellationToken);
 
         var permissions =
@@ -80,13 +85,21 @@ public class VerifyTwoFactorCommandHandler
                 user.Role,
                 cancellationToken);
 
+        var session = await _authSessionService.CreateAsync(
+            user.Id,
+            _currentUserService.IpAddress,
+            _currentUserService.UserAgent,
+            cancellationToken);
+
         var token = _jwtTokenService.GenerateToken(
             user,
+            session.SessionId,
             permissions);
 
         return new AuthResponseDto
         {
             UserId = user.Id,
+            SessionId = session.SessionId,
             Ho = user.Ho,
             Ten = user.Ten,
             Email = user.Email,
@@ -96,6 +109,8 @@ public class VerifyTwoFactorCommandHandler
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,
+            RefreshToken = session.RefreshToken,
+            RefreshTokenExpiresAt = session.ExpiresAt,
             Permissions = permissions.ToList(),
             Message = "Xác thực 2 yếu tố thành công."
         };
