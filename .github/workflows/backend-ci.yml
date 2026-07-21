@@ -26,6 +26,23 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v7
 
+      - name: Reject tracked local secret files
+        shell: bash
+        run: |
+          tracked_local_secrets="$(
+            git ls-files |
+              grep -E '(^|/)(\.env($|\.)|appsettings(\.[^/]+)?\.json$)' |
+              grep -vE '(^|/)\.env\.example$' || true
+          )"
+
+          if [ -n "$tracked_local_secrets" ]; then
+            echo "::error::Local secret-bearing configuration files must not be committed."
+            echo "$tracked_local_secrets"
+            exit 1
+          fi
+
+          echo "No tracked .env or appsettings secret files were found."
+
       - name: Set up .NET 10
         id: setup-dotnet
         uses: actions/setup-dotnet@v6
