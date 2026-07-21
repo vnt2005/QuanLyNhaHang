@@ -1,5 +1,7 @@
-﻿using MediatR;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using QuanLyNhaHang.Application.Features.Auth.Commands.DisableTwoFactor;
 using QuanLyNhaHang.Application.Features.Auth.Commands.EnableTwoFactor;
 using QuanLyNhaHang.Application.Features.Auth.Commands.ForgotPassword;
@@ -7,8 +9,7 @@ using QuanLyNhaHang.Application.Features.Auth.Commands.Login;
 using QuanLyNhaHang.Application.Features.Auth.Commands.Register;
 using QuanLyNhaHang.Application.Features.Auth.Commands.ResetPassword;
 using QuanLyNhaHang.Application.Features.Auth.Commands.VerifyTwoFactor;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.RateLimiting;
+using QuanLyNhaHang.Application.Features.Auth.Queries.GetCurrentSession;
 
 namespace QuanLyNhaHang.Api.Controllers;
 
@@ -57,6 +58,23 @@ public class AuthController : ControllerBase
             Message = string.IsNullOrWhiteSpace(result.Message)
                 ? "Đăng nhập thành công."
                 : result.Message,
+            Data = result
+        });
+    }
+
+    // GET: api/auth/me
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentSession(
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetCurrentSessionQuery(),
+            cancellationToken);
+
+        return Ok(new
+        {
+            Message = "Lấy thông tin phiên đăng nhập hiện tại thành công.",
             Data = result
         });
     }
