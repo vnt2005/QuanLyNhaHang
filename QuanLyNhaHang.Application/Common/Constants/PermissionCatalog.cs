@@ -60,6 +60,16 @@ public static class PermissionCatalog
 
     public static IReadOnlyCollection<PermissionDefinition> All { get; } = Build();
 
+    private static readonly IReadOnlySet<string> SystemCodes = All
+        .Select(definition => definition.Code)
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    public static bool IsSystemPermission(string? code)
+    {
+        return !string.IsNullOrWhiteSpace(code) &&
+               SystemCodes.Contains(code.Trim());
+    }
+
     private static IReadOnlyCollection<PermissionDefinition> Build()
     {
         return typeof(PermissionCodes)

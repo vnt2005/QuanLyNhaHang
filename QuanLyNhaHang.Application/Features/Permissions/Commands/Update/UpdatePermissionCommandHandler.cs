@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Permissions.DTOs;
 
@@ -23,6 +24,12 @@ public class UpdatePermissionCommandHandler : IRequestHandler<UpdatePermissionCo
 
         if (permission == null)
             throw new Exception("Không tìm thấy quyền.");
+
+        if (PermissionCatalog.IsSystemPermission(permission.Code) && !request.IsActive)
+        {
+            throw new InvalidOperationException(
+                "Không thể vô hiệu hóa quyền hệ thống.");
+        }
 
         permission.UpdateInfo(
             request.Name,

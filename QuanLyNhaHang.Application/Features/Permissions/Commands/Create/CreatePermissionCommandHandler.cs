@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Permissions.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -20,6 +21,12 @@ public class CreatePermissionCommandHandler : IRequestHandler<CreatePermissionCo
         CancellationToken cancellationToken)
     {
         var permissionCode = request.Code.Trim();
+
+        if (PermissionCatalog.IsSystemPermission(permissionCode))
+        {
+            throw new InvalidOperationException(
+                "Mã quyền hệ thống là mã dành riêng và chỉ được tạo qua đồng bộ catalog.");
+        }
 
         var existedPermission = await _context.Permissions
             .AnyAsync(x => x.Code == permissionCode, cancellationToken);
