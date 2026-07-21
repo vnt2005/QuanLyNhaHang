@@ -51,6 +51,13 @@ jobs:
           --configuration Release
           --no-restore
 
+      - name: Run refresh token session tests
+        run: >-
+          dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj
+          --configuration Release
+          --filter FullyQualifiedName~RefreshTokenSessionTests
+          --verbosity normal
+
       - name: Run tests when present
         shell: bash
         run: |
