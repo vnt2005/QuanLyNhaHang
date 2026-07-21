@@ -13,19 +13,25 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IEmailService _emailService;
     private readonly IUserPermissionService _userPermissionService;
+    private readonly IAuthSessionService _authSessionService;
+    private readonly ICurrentUserService _currentUserService;
 
     public LoginCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
         IEmailService emailService,
-        IUserPermissionService userPermissionService)
+        IUserPermissionService userPermissionService,
+        IAuthSessionService authSessionService,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
         _emailService = emailService;
         _userPermissionService = userPermissionService;
+        _authSessionService = authSessionService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -99,8 +105,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
                 IsActive = user.IsActive,
                 TwoFactorEnabled = true,
                 RequiresTwoFactor = true,
-                Token = string.Empty,
-                Permissions = new List<string>(),
                 Message = "Vui lòng kiểm tra email để lấy mã xác thực."
             };
         }
@@ -109,11 +113,21 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
             user.Role,
             cancellationToken);
 
-        var token = _jwtTokenService.GenerateToken(user, permissions);
+        var session = await _authSessionService.CreateAsync(
+            user.Id,
+            _currentUserService.IpAddress,
+            _currentUserService.UserAgent,
+            cancellationToken);
+
+        var token = _jwtTokenService.GenerateToken(
+            user,
+            session.SessionId,
+            permissions);
 
         return new AuthResponseDto
         {
             UserId = user.Id,
+            SessionId = session.SessionId,
             Ho = user.Ho,
             Ten = user.Ten,
             Email = user.Email,
@@ -123,6 +137,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,
+            RefreshToken = session.RefreshToken,
+            RefreshTokenExpiresAt = session.ExpiresAt,
             Permissions = permissions.ToList(),
             Message = "Đăng nhập thành công."
         };
