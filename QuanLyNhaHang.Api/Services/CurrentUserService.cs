@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Api.Services;
@@ -23,10 +24,23 @@ public class CurrentUserService : ICurrentUserService
                 user?.FindFirstValue("sub") ??
                 user?.FindFirstValue("userId");
 
-            if (Guid.TryParse(value, out var userId))
-                return userId;
+            return Guid.TryParse(value, out var userId)
+                ? userId
+                : null;
+        }
+    }
 
-            return null;
+    public Guid? SessionId
+    {
+        get
+        {
+            var value = _httpContextAccessor.HttpContext?
+                .User
+                .FindFirstValue(CustomClaimTypes.SessionId);
+
+            return Guid.TryParse(value, out var sessionId)
+                ? sessionId
+                : null;
         }
     }
 
