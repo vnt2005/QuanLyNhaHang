@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Application.Features.Permissions.Commands.Delete;
@@ -22,6 +23,12 @@ public class DeletePermissionCommandHandler : IRequestHandler<DeletePermissionCo
 
         if (permission == null)
             throw new Exception("Không tìm thấy quyền.");
+
+        if (PermissionCatalog.IsSystemPermission(permission.Code))
+        {
+            throw new InvalidOperationException(
+                "Không thể vô hiệu hóa quyền hệ thống.");
+        }
 
         permission.Deactivate();
 
