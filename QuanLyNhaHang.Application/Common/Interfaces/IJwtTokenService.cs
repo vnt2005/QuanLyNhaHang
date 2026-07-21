@@ -6,5 +6,6 @@ public interface IJwtTokenService
 {
     string GenerateToken(
         User user,
+        Guid sessionId,
         IEnumerable<string>? permissions = null);
 }

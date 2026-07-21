@@ -51,24 +51,40 @@ jobs:
           --configuration Release
           --no-restore
 
-      - name: Run tests when present
+      - name: Run unit tests
+        run: >-
+          dotnet test QuanLyNhaHang.UnitTests/QuanLyNhaHang.UnitTests.csproj
+          --configuration Release
+          --verbosity minimal
+
+      - name: Run refresh token session tests
+        run: >-
+          dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj
+          --configuration Release
+          --filter FullyQualifiedName~RefreshTokenSessionTests
+          --verbosity minimal
+
+      - name: Run integration tests
         shell: bash
         run: |
-          mapfile -t test_projects < <(
-            find . -type f \( -name '*Tests.csproj' -o -name '*Test.csproj' \) -print |
-              sort
-          )
+          set +e
+          dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj \
+            --configuration Release \
+            --verbosity quiet \
+            > integration-tests.log 2>&1
+          status=$?
+          set -e
 
-          if [ "${#test_projects[@]}" -eq 0 ]; then
-            echo "::error::No test projects were found."
-            exit 1
+          if [ "$status" -ne 0 ]; then
+            echo "::group::Integration test failure summary"
+            grep -E -A 12 -B 3 \
+              'Failed |Error Message:|Stack Trace:|Test Run Failed|Total tests:' \
+              integration-tests.log | tail -n 240 || true
+            echo "::endgroup::"
+            exit "$status"
           fi
 
-          printf 'Discovered test project: %s\n' "${test_projects[@]}"
-
-          for project in "${test_projects[@]}"; do
-            dotnet test "$project" --configuration Release --verbosity normal
-          done
+          tail -n 20 integration-tests.log
 
       - name: Validate Docker Compose
         env:

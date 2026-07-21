@@ -20,8 +20,12 @@ public class JwtTokenService : IJwtTokenService
 
     public string GenerateToken(
         User user,
+        Guid sessionId,
         IEnumerable<string>? permissions = null)
     {
+        if (sessionId == Guid.Empty)
+            throw new ArgumentException("SessionId của JWT không hợp lệ.");
+
         var secretKey = _configuration["Jwt:SecretKey"];
 
         if (string.IsNullOrWhiteSpace(secretKey))
@@ -51,7 +55,8 @@ public class JwtTokenService : IJwtTokenService
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, $"{user.Ho} {user.Ten}".Trim()),
-            new(ClaimTypes.Role, user.Role)
+            new(ClaimTypes.Role, user.Role),
+            new(CustomClaimTypes.SessionId, sessionId.ToString())
         };
 
         var permissionClaims = (permissions ?? Enumerable.Empty<string>())

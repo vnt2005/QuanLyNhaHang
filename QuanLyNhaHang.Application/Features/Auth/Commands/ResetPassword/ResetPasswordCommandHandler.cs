@@ -12,13 +12,16 @@ public class ResetPasswordCommandHandler
 
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IAuthSessionService _authSessionService;
 
     public ResetPasswordCommandHandler(
         IApplicationDbContext context,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IAuthSessionService authSessionService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _authSessionService = authSessionService;
     }
 
     public async Task<string> Handle(
@@ -66,11 +69,14 @@ public class ResetPasswordCommandHandler
             _passwordHasher.HashPassword(
                 request.NewPassword);
 
-        // ChangePassword đã tự ClearPasswordResetCode.
         user.ChangePassword(newPasswordHash);
-
         await _context.SaveChangesAsync(cancellationToken);
 
-        return "Đặt lại mật khẩu thành công.";
+        await _authSessionService.RevokeAllAsync(
+            user.Id,
+            "Mật khẩu đã được đặt lại.",
+            cancellationToken);
+
+        return "Đặt lại mật khẩu thành công. Tất cả phiên đăng nhập đã được thu hồi.";
     }
 }

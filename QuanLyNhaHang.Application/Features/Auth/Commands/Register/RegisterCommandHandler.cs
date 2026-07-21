@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Auth.DTOs;
 using QuanLyNhaHang.Domain.Entities;
-using QuanLyNhaHang.Application.Common.Constants;
 
 namespace QuanLyNhaHang.Application.Features.Auth.Commands.Register;
 
@@ -13,17 +13,23 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IUserPermissionService _userPermissionService;
+    private readonly IAuthSessionService _authSessionService;
+    private readonly ICurrentUserService _currentUserService;
 
     public RegisterCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
-        IUserPermissionService userPermissionService)
+        IUserPermissionService userPermissionService,
+        IAuthSessionService authSessionService,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
         _userPermissionService = userPermissionService;
+        _authSessionService = authSessionService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -37,17 +43,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             .AnyAsync(x => x.Email == email, cancellationToken);
 
         if (emailExists)
-        {
             throw new Exception("Email đã tồn tại.");
-        }
 
         var phoneExists = await _context.Users
             .AnyAsync(x => x.PhoneNumber == phoneNumber, cancellationToken);
 
         if (phoneExists)
-        {
             throw new Exception("Số điện thoại đã tồn tại.");
-        }
 
         var passwordHash = _passwordHasher.HashPassword(request.Password);
 
@@ -60,18 +62,27 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             SystemRoles.Customer);
 
         _context.Users.Add(user);
-
         await _context.SaveChangesAsync(cancellationToken);
 
         var permissions = await _userPermissionService.GetPermissionsAsync(
             user.Role,
             cancellationToken);
 
-        var token = _jwtTokenService.GenerateToken(user, permissions);
+        var session = await _authSessionService.CreateAsync(
+            user.Id,
+            _currentUserService.IpAddress,
+            _currentUserService.UserAgent,
+            cancellationToken);
+
+        var token = _jwtTokenService.GenerateToken(
+            user,
+            session.SessionId,
+            permissions);
 
         return new AuthResponseDto
         {
             UserId = user.Id,
+            SessionId = session.SessionId,
             Ho = user.Ho,
             Ten = user.Ten,
             Email = user.Email,
@@ -81,6 +92,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,
+            RefreshToken = session.RefreshToken,
+            RefreshTokenExpiresAt = session.ExpiresAt,
             Permissions = permissions.ToList(),
             Message = "Đăng ký thành công."
         };

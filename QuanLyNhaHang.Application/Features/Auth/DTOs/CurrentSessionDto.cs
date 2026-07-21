@@ -4,6 +4,8 @@ public sealed class CurrentSessionDto
 {
     public Guid UserId { get; set; }
 
+    public Guid SessionId { get; set; }
+
     public string? Ho { get; set; }
 
     public string Ten { get; set; } = string.Empty;

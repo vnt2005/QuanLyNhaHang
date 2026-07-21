@@ -18,6 +18,8 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
 
     public FakeEmailService EmailService { get; } = new();
 
+    public FakeAuthSessionService AuthSessionService { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -34,7 +36,8 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
                         "integration-tests-only-secret-key-0123456789-abcdef",
                     ["Jwt:Issuer"] = "QuanLyNhaHang.IntegrationTests",
                     ["Jwt:Audience"] = "QuanLyNhaHang.IntegrationTests",
-                    ["Jwt:ExpiresInMinutes"] = "30"
+                    ["Jwt:ExpiresInMinutes"] = "30",
+                    ["Auth:RefreshTokenDays"] = "30"
                 });
         });
 
@@ -55,6 +58,9 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IEmailService>();
             services.AddSingleton<IEmailService>(EmailService);
+
+            services.RemoveAll<IAuthSessionService>();
+            services.AddSingleton<IAuthSessionService>(AuthSessionService);
         });
     }
 
