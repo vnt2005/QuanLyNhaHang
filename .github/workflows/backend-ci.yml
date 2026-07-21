@@ -65,10 +65,26 @@ jobs:
           --verbosity minimal
 
       - name: Run integration tests
-        run: >-
-          dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj
-          --configuration Release
-          --verbosity minimal
+        shell: bash
+        run: |
+          set +e
+          dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj \
+            --configuration Release \
+            --verbosity quiet \
+            > integration-tests.log 2>&1
+          status=$?
+          set -e
+
+          if [ "$status" -ne 0 ]; then
+            echo "::group::Integration test failure summary"
+            grep -E -A 12 -B 3 \
+              'Failed |Error Message:|Stack Trace:|Test Run Failed|Total tests:' \
+              integration-tests.log | tail -n 240 || true
+            echo "::endgroup::"
+            exit "$status"
+          fi
+
+          tail -n 20 integration-tests.log
 
       - name: Validate Docker Compose
         env:
