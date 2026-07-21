@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.RolePermissions.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -28,6 +29,13 @@ public class CreateRolePermissionCommandHandler
 
         if (!role.IsActive)
             throw new Exception("Vai trò đã bị vô hiệu hóa.");
+
+        if (SystemRoleCatalog.MustRemainWithoutPermissions(role.Name))
+        {
+            throw new InvalidOperationException(
+                $"Vai trò {role.Name} phải luôn không có RolePermission. " +
+                "Admin dùng cơ chế bypass, còn Customer không được truy cập API quản trị.");
+        }
 
         var permission = await _context.Permissions
             .FirstOrDefaultAsync(x => x.Id == request.PermissionId, cancellationToken);
