@@ -157,8 +157,9 @@ public sealed class LivePermissionAuthorizationTests
             await context.SaveChangesAsync();
         }
 
+        // Tài khoản inactive thất bại ngay ở bước JWT authentication.
         using (var protectedResponse = await adminClient.GetAsync("/api/orders"))
-            Assert.Equal(HttpStatusCode.Forbidden, protectedResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, protectedResponse.StatusCode);
 
         using var inactiveSessionResponse = await adminClient.GetAsync("/api/auth/me");
         Assert.Equal(HttpStatusCode.Unauthorized, inactiveSessionResponse.StatusCode);
