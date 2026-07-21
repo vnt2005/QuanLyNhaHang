@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
 using QuanLyNhaHang.Application.Features.Roles.Commands.SyncSystem;
 using QuanLyNhaHang.Infrastructure.Persistence;
@@ -48,6 +49,49 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(secretKey))
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userIdValue = context.Principal?
+                .FindFirstValue(ClaimTypes.NameIdentifier);
+            var sessionIdValue = context.Principal?
+                .FindFirstValue(CustomClaimTypes.SessionId);
+
+            if (!Guid.TryParse(userIdValue, out var userId) ||
+                !Guid.TryParse(sessionIdValue, out var sessionId))
+            {
+                context.Fail("JWT không chứa phiên đăng nhập hợp lệ.");
+                return;
+            }
+
+            var cancellationToken = context.HttpContext.RequestAborted;
+            var services = context.HttpContext.RequestServices;
+            var dbContext = services.GetRequiredService<IApplicationDbContext>();
+            var authSessionService = services.GetRequiredService<IAuthSessionService>();
+
+            var userIsActive = await dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(
+                    user => user.Id == userId && user.IsActive,
+                    cancellationToken);
+
+            if (!userIsActive)
+            {
+                context.Fail("Tài khoản không còn hoạt động.");
+                return;
+            }
+
+            var sessionIsActive = await authSessionService.IsActiveAsync(
+                userId,
+                sessionId,
+                cancellationToken);
+
+            if (!sessionIsActive)
+                context.Fail("Phiên đăng nhập đã hết hạn hoặc bị thu hồi.");
+        }
     };
 });
 builder.Services.AddRateLimiter(options =>
