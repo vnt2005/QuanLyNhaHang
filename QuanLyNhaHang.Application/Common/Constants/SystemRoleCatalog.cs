@@ -54,4 +54,19 @@ public static class SystemRoleCatalog
             normalizedRoleName,
             StringComparison.OrdinalIgnoreCase));
     }
+
+    public static bool MustRemainWithoutPermissions(string? roleName)
+    {
+        if (string.IsNullOrWhiteSpace(roleName))
+            return false;
+
+        var normalizedRoleName = roleName.Trim();
+
+        return normalizedRoleName.Equals(
+                   SystemRoles.Admin,
+                   StringComparison.OrdinalIgnoreCase) ||
+               normalizedRoleName.Equals(
+                   SystemRoles.Customer,
+                   StringComparison.OrdinalIgnoreCase);
+    }
 }
