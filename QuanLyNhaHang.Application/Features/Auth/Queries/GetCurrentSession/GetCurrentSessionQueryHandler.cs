@@ -27,16 +27,23 @@ public sealed class GetCurrentSessionQueryHandler
         CancellationToken cancellationToken)
     {
         var userId = _currentUserService.UserId;
+        var sessionId = _currentUserService.SessionId;
 
-        if (!userId.HasValue)
-            throw new UnauthorizedAccessException("Không xác định được người dùng hiện tại.");
+        if (!userId.HasValue || !sessionId.HasValue)
+        {
+            throw new UnauthorizedAccessException(
+                "Không xác định được phiên đăng nhập hiện tại.");
+        }
 
         var user = await _context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == userId.Value, cancellationToken);
 
         if (user == null || !user.IsActive)
-            throw new UnauthorizedAccessException("Tài khoản không tồn tại hoặc đã bị vô hiệu hóa.");
+        {
+            throw new UnauthorizedAccessException(
+                "Tài khoản không tồn tại hoặc đã bị vô hiệu hóa.");
+        }
 
         var permissions = await _userPermissionService
             .GetPermissionsAsync(user.Role, cancellationToken);
@@ -44,6 +51,7 @@ public sealed class GetCurrentSessionQueryHandler
         return new CurrentSessionDto
         {
             UserId = user.Id,
+            SessionId = sessionId.Value,
             Ho = user.Ho,
             Ten = user.Ten,
             Email = user.Email,
