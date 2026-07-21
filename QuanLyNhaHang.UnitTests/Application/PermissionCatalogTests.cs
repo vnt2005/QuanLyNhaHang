@@ -54,4 +54,26 @@ public sealed class PermissionCatalogTests
         Assert.Equal("Chuyển bàn Thao tác bàn", definition.Name);
         Assert.Equal("TableOperations", definition.GroupName);
     }
+
+    [Fact]
+    public void IsSystemPermission_RecognizesEveryCatalogCodeCaseInsensitively()
+    {
+        foreach (var definition in PermissionCatalog.All)
+        {
+            Assert.True(PermissionCatalog.IsSystemPermission(definition.Code));
+            Assert.True(PermissionCatalog.IsSystemPermission(
+                $"  {definition.Code.ToUpperInvariant()}  "));
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("Custom.Export")]
+    [InlineData("Orders.Unknown")]
+    public void IsSystemPermission_RejectsNonCatalogCodes(string? code)
+    {
+        Assert.False(PermissionCatalog.IsSystemPermission(code));
+    }
 }
