@@ -6,9 +6,14 @@ using QuanLyNhaHang.Application.Features.Auth.Commands.DisableTwoFactor;
 using QuanLyNhaHang.Application.Features.Auth.Commands.EnableTwoFactor;
 using QuanLyNhaHang.Application.Features.Auth.Commands.ForgotPassword;
 using QuanLyNhaHang.Application.Features.Auth.Commands.Login;
+using QuanLyNhaHang.Application.Features.Auth.Commands.Logout;
+using QuanLyNhaHang.Application.Features.Auth.Commands.LogoutAll;
+using QuanLyNhaHang.Application.Features.Auth.Commands.RefreshToken;
 using QuanLyNhaHang.Application.Features.Auth.Commands.Register;
 using QuanLyNhaHang.Application.Features.Auth.Commands.ResetPassword;
+using QuanLyNhaHang.Application.Features.Auth.Commands.RevokeSession;
 using QuanLyNhaHang.Application.Features.Auth.Commands.VerifyTwoFactor;
+using QuanLyNhaHang.Application.Features.Auth.Queries.GetAuthSessions;
 using QuanLyNhaHang.Application.Features.Auth.Queries.GetCurrentSession;
 
 namespace QuanLyNhaHang.Api.Controllers;
@@ -62,6 +67,57 @@ public class AuthController : ControllerBase
         });
     }
 
+    // POST: api/auth/refresh
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthSensitive")]
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken(
+        [FromBody] RefreshTokenCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(new
+        {
+            Message = result.Message,
+            Data = result
+        });
+    }
+
+    // POST: api/auth/logout
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthSensitive")]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(
+        [FromBody] LogoutCommand command,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok(new
+        {
+            Message = "Đăng xuất thành công."
+        });
+    }
+
+    // POST: api/auth/logout-all
+    [Authorize]
+    [EnableRateLimiting("AuthSensitive")]
+    [HttpPost("logout-all")]
+    public async Task<IActionResult> LogoutAll(
+        CancellationToken cancellationToken)
+    {
+        var revokedCount = await _mediator.Send(
+            new LogoutAllCommand(),
+            cancellationToken);
+
+        return Ok(new
+        {
+            Message = "Đã đăng xuất khỏi tất cả thiết bị.",
+            Data = new { RevokedCount = revokedCount }
+        });
+    }
+
     // GET: api/auth/me
     [Authorize]
     [HttpGet("me")]
@@ -76,6 +132,41 @@ public class AuthController : ControllerBase
         {
             Message = "Lấy thông tin phiên đăng nhập hiện tại thành công.",
             Data = result
+        });
+    }
+
+    // GET: api/auth/sessions
+    [Authorize]
+    [HttpGet("sessions")]
+    public async Task<IActionResult> GetSessions(
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetAuthSessionsQuery(),
+            cancellationToken);
+
+        return Ok(new
+        {
+            Message = "Lấy danh sách phiên đăng nhập thành công.",
+            Data = result
+        });
+    }
+
+    // DELETE: api/auth/sessions/{sessionId}
+    [Authorize]
+    [EnableRateLimiting("AuthSensitive")]
+    [HttpDelete("sessions/{sessionId:guid}")]
+    public async Task<IActionResult> RevokeSession(
+        Guid sessionId,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(
+            new RevokeSessionCommand { SessionId = sessionId },
+            cancellationToken);
+
+        return Ok(new
+        {
+            Message = "Thu hồi phiên đăng nhập thành công."
         });
     }
 
