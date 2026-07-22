@@ -96,6 +96,16 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
         if (loginStateChanged)
             user.ClearLoginFailures(now);
 
+        if (!user.IsEmailVerified)
+        {
+            if (loginStateChanged)
+                await _context.SaveChangesAsync(cancellationToken);
+
+            throw new UnauthorizedAccessException(
+                "Email chưa được xác minh. " +
+                "Vui lòng kiểm tra email hoặc yêu cầu gửi mã mới.");
+        }
+
         if (user.TwoFactorEnabled)
         {
             if (user.IsTwoFactorLocked(now))
@@ -135,6 +145,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
                 PhoneNumber = user.PhoneNumber,
                 Role = user.Role,
                 IsActive = user.IsActive,
+                IsEmailVerified = user.IsEmailVerified,
+                RequiresEmailVerification = false,
                 TwoFactorEnabled = true,
                 RequiresTwoFactor = true,
                 Message = "Vui lòng kiểm tra email để lấy mã xác thực."
@@ -169,6 +181,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
             IsActive = user.IsActive,
+            IsEmailVerified = user.IsEmailVerified,
+            RequiresEmailVerification = false,
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,
