@@ -75,6 +75,27 @@ public sealed class AuthEndpointsTests
         Assert.NotNull(lockedUser.LoginLockedUntil);
         Assert.True(lockedUser.LoginLockedUntil > DateTime.UtcNow);
 
+        using var lockedWrongPasswordResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new
+            {
+                email,
+                password = "AnotherWrongPassword123!"
+            });
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            lockedWrongPasswordResponse.StatusCode);
+
+        using (var wrongPasswordJson =
+               await ReadJsonAsync(lockedWrongPasswordResponse))
+        {
+            Assert.Equal(
+                "Email hoặc mật khẩu không đúng.",
+                wrongPasswordJson.RootElement
+                    .GetProperty("message")
+                    .GetString());
+        }
+
         using var correctPasswordResponse = await client.PostAsJsonAsync(
             "/api/auth/login",
             new { email, password });
