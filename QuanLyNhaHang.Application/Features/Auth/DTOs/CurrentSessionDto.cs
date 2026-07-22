@@ -18,6 +18,8 @@ public sealed class CurrentSessionDto
 
     public bool IsActive { get; set; }
 
+    public bool IsEmailVerified { get; set; }
+
     public bool TwoFactorEnabled { get; set; }
 
     public List<string> Permissions { get; set; } = new();
