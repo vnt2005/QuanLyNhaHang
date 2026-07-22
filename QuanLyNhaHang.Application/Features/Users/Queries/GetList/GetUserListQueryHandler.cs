@@ -31,6 +31,7 @@ public class GetUserListQueryHandler
                 PhoneNumber = x.PhoneNumber,
                 Role = x.Role,
                 IsActive = x.IsActive,
+                IsEmailVerified = x.IsEmailVerified,
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt
             })
