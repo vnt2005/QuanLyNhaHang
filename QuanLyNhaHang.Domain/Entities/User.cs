@@ -26,6 +26,16 @@ public class User
 
     public bool IsActive { get; private set; }
 
+    public bool IsEmailVerified { get; private set; }
+
+    public string? EmailVerificationCode { get; private set; }
+
+    public DateTime? EmailVerificationCodeExpiresAt { get; private set; }
+
+    public int EmailVerificationFailedAttempts { get; private set; }
+
+    public DateTime? EmailVerificationLockedUntil { get; private set; }
+
     public bool TwoFactorEnabled { get; private set; }
 
     public string? TwoFactorCode { get; private set; }
@@ -73,9 +83,11 @@ public class User
         SetRole(role);
 
         IsActive = true;
+        IsEmailVerified = false;
         TwoFactorEnabled = false;
         CreatedAt = DateTime.UtcNow;
         LoginFailedAttempts = 0;
+        EmailVerificationFailedAttempts = 0;
         TwoFactorFailedAttempts = 0;
         PasswordResetFailedAttempts = 0;
     }
@@ -87,11 +99,16 @@ public class User
         string phoneNumber,
         string role)
     {
+        var previousEmail = Email;
+
         SetHo(ho);
         SetTen(ten);
         SetEmail(email);
         SetPhoneNumber(phoneNumber);
         SetRole(role);
+
+        if (!string.Equals(previousEmail, Email, StringComparison.Ordinal))
+            MarkEmailUnverified();
 
         UpdatedAt = DateTime.UtcNow;
     }
@@ -152,6 +169,81 @@ public class User
         LoginFailedAttempts = 0;
         LoginLockedUntil = null;
         UpdatedAt = utcNow;
+    }
+
+    public void SetEmailVerificationCode(
+        string codeHash,
+        DateTime expiresAt)
+    {
+        if (string.IsNullOrWhiteSpace(codeHash))
+        {
+            throw new ArgumentException(
+                "Mã xác minh email không hợp lệ.");
+        }
+
+        IsEmailVerified = false;
+        EmailVerificationCode = codeHash;
+        EmailVerificationCodeExpiresAt = expiresAt;
+        EmailVerificationFailedAttempts = 0;
+        EmailVerificationLockedUntil = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool HasActiveEmailVerificationCode(DateTime utcNow)
+    {
+        return !IsEmailVerified &&
+               !IsEmailVerificationLocked(utcNow) &&
+               !string.IsNullOrWhiteSpace(EmailVerificationCode) &&
+               EmailVerificationCodeExpiresAt.HasValue &&
+               EmailVerificationCodeExpiresAt.Value > utcNow;
+    }
+
+    public bool IsEmailVerificationLocked(DateTime utcNow)
+    {
+        return EmailVerificationLockedUntil.HasValue &&
+               EmailVerificationLockedUntil.Value > utcNow;
+    }
+
+    public void RegisterEmailVerificationFailure(DateTime utcNow)
+    {
+        if (IsEmailVerificationLocked(utcNow))
+            return;
+
+        EmailVerificationFailedAttempts++;
+
+        if (EmailVerificationFailedAttempts >= MaxVerificationFailures)
+        {
+            EmailVerificationLockedUntil =
+                utcNow.Add(VerificationLockDuration);
+
+            EmailVerificationCode = null;
+            EmailVerificationCodeExpiresAt = null;
+        }
+
+        UpdatedAt = utcNow;
+    }
+
+    public void MarkEmailVerified()
+    {
+        IsEmailVerified = true;
+        ClearEmailVerificationCode();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void MarkEmailUnverified()
+    {
+        IsEmailVerified = false;
+        ClearEmailVerificationCode();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ClearEmailVerificationCode()
+    {
+        EmailVerificationCode = null;
+        EmailVerificationCodeExpiresAt = null;
+        EmailVerificationFailedAttempts = 0;
+        EmailVerificationLockedUntil = null;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void EnableTwoFactor()
