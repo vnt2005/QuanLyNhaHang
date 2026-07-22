@@ -48,6 +48,83 @@ public sealed class AuthEndpointsTests
     }
 
     [Fact]
+    public async Task Login_AfterFiveWrongPasswords_LocksAccount()
+    {
+        const string email = "login-lockout@example.com";
+        const string password = "Password123!";
+
+        using var factory = new ApiWebApplicationFactory();
+        var userId = await factory.SeedUserAsync(email, password);
+        using var client = factory.CreateHttpsClient();
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            using var response = await client.PostAsJsonAsync(
+                "/api/auth/login",
+                new
+                {
+                    email,
+                    password = "WrongPassword123!"
+                });
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        var lockedUser = await factory.GetUserAsync(userId);
+        Assert.Equal(5, lockedUser.LoginFailedAttempts);
+        Assert.NotNull(lockedUser.LoginLockedUntil);
+        Assert.True(lockedUser.LoginLockedUntil > DateTime.UtcNow);
+
+        using var correctPasswordResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { email, password });
+
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            correctPasswordResponse.StatusCode);
+
+        using var json = await ReadJsonAsync(correctPasswordResponse);
+        Assert.Equal(
+            "Tài khoản đăng nhập đang tạm khóa. " +
+            "Vui lòng thử lại sau 15 phút.",
+            json.RootElement.GetProperty("message").GetString());
+    }
+
+    [Fact]
+    public async Task Login_AfterOneWrongPassword_SuccessClearsFailures()
+    {
+        const string email = "login-clears-failures@example.com";
+        const string password = "Password123!";
+
+        using var factory = new ApiWebApplicationFactory();
+        var userId = await factory.SeedUserAsync(email, password);
+        using var client = factory.CreateHttpsClient();
+
+        using var wrongPasswordResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new
+            {
+                email,
+                password = "WrongPassword123!"
+            });
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            wrongPasswordResponse.StatusCode);
+
+        var failedUser = await factory.GetUserAsync(userId);
+        Assert.Equal(1, failedUser.LoginFailedAttempts);
+
+        using var successResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { email, password });
+        Assert.Equal(HttpStatusCode.OK, successResponse.StatusCode);
+
+        var signedInUser = await factory.GetUserAsync(userId);
+        Assert.Equal(0, signedInUser.LoginFailedAttempts);
+        Assert.Null(signedInUser.LoginLockedUntil);
+    }
+
+    [Fact]
     public async Task Login_ThenEnableTwoFactor_UsesAuthenticatedUser()
     {
         const string email = "enable-2fa@example.com";
@@ -216,6 +293,23 @@ public sealed class AuthEndpointsTests
         var userId = await factory.SeedUserAsync(email, oldPassword);
         using var client = factory.CreateHttpsClient();
 
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            using var failedLoginResponse = await client.PostAsJsonAsync(
+                "/api/auth/login",
+                new
+                {
+                    email,
+                    password = "WrongPassword123!"
+                });
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
+                failedLoginResponse.StatusCode);
+        }
+
+        var lockedUser = await factory.GetUserAsync(userId);
+        Assert.NotNull(lockedUser.LoginLockedUntil);
+
         using var forgotResponse = await client.PostAsJsonAsync(
             "/api/auth/forgot-password",
             new { email });
@@ -239,6 +333,8 @@ public sealed class AuthEndpointsTests
         Assert.True(factory.VerifyHash(newPassword, user.PasswordHash));
         Assert.Null(user.PasswordResetCode);
         Assert.Null(user.PasswordResetCodeExpiresAt);
+        Assert.Equal(0, user.LoginFailedAttempts);
+        Assert.Null(user.LoginLockedUntil);
 
         using var loginResponse = await client.PostAsJsonAsync(
             "/api/auth/login",
