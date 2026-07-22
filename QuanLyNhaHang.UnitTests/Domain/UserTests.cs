@@ -26,6 +26,8 @@ public sealed class UserTests
         Assert.Equal("Admin", user.Role);
         Assert.True(user.IsActive);
         Assert.False(user.TwoFactorEnabled);
+        Assert.Equal(0, user.LoginFailedAttempts);
+        Assert.Null(user.LoginLockedUntil);
         Assert.InRange(user.CreatedAt, beforeCreation, DateTime.UtcNow);
     }
 
@@ -134,13 +136,76 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void LoginFailures_LockAccountAfterFiveAttempts()
+    {
+        var user = CreateUser();
+        var now = DateTime.UtcNow;
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            user.RegisterLoginFailure(now);
+        }
+
+        Assert.Equal(5, user.LoginFailedAttempts);
+        Assert.Equal(now.AddMinutes(15), user.LoginLockedUntil);
+        Assert.True(user.IsLoginLocked(now.AddMinutes(1)));
+
+        user.RegisterLoginFailure(now.AddMinutes(1));
+        Assert.Equal(5, user.LoginFailedAttempts);
+    }
+
+    [Fact]
+    public void LoginFailure_AfterLockExpires_StartsNewWindow()
+    {
+        var user = CreateUser();
+        var now = DateTime.UtcNow;
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            user.RegisterLoginFailure(now);
+        }
+
+        var afterLock = now.AddMinutes(16);
+        user.RegisterLoginFailure(afterLock);
+
+        Assert.Equal(1, user.LoginFailedAttempts);
+        Assert.Null(user.LoginLockedUntil);
+        Assert.False(user.IsLoginLocked(afterLock));
+    }
+
+    [Fact]
+    public void ClearLoginFailures_ResetsFailuresAndLock()
+    {
+        var user = CreateUser();
+        var now = DateTime.UtcNow;
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            user.RegisterLoginFailure(now);
+        }
+
+        user.ClearLoginFailures(now.AddMinutes(1));
+
+        Assert.Equal(0, user.LoginFailedAttempts);
+        Assert.Null(user.LoginLockedUntil);
+        Assert.False(user.IsLoginLocked(now.AddMinutes(1)));
+    }
+
+    [Fact]
     public void ChangePassword_ClearsPasswordResetState()
     {
         var user = CreateUser();
+        var now = DateTime.UtcNow;
+
         user.SetPasswordResetCode(
             "hashed-reset-code",
-            DateTime.UtcNow.AddMinutes(10));
-        user.RegisterPasswordResetFailure(DateTime.UtcNow);
+            now.AddMinutes(10));
+        user.RegisterPasswordResetFailure(now);
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            user.RegisterLoginFailure(now);
+        }
 
         user.ChangePassword("new-password-hash");
 
@@ -149,6 +214,8 @@ public sealed class UserTests
         Assert.Null(user.PasswordResetCodeExpiresAt);
         Assert.Equal(0, user.PasswordResetFailedAttempts);
         Assert.Null(user.PasswordResetLockedUntil);
+        Assert.Equal(0, user.LoginFailedAttempts);
+        Assert.Null(user.LoginLockedUntil);
     }
 
     [Fact]
