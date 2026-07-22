@@ -53,6 +53,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(x => x.UpdatedAt)
             .IsRequired(false);
+
+        builder.Property(x => x.LoginFailedAttempts)
+            .IsRequired();
+
+        builder.Property(x => x.LoginLockedUntil)
+            .IsRequired(false);
+
         builder.Property(x => x.TwoFactorCode)
     .HasMaxLength(500)
     .IsRequired(false);
