@@ -3,8 +3,12 @@
 public class User
 {
     private const int MaxVerificationFailures = 5;
+    private const int MaxLoginFailures = 5;
 
     private static readonly TimeSpan VerificationLockDuration =
+        TimeSpan.FromMinutes(15);
+
+    private static readonly TimeSpan LoginLockDuration =
         TimeSpan.FromMinutes(15);
     public Guid Id { get; private set; }
 
@@ -35,6 +39,10 @@ public class User
     public DateTime CreatedAt { get; private set; }
 
     public DateTime? UpdatedAt { get; private set; }
+
+    public int LoginFailedAttempts { get; private set; }
+
+    public DateTime? LoginLockedUntil { get; private set; }
 
     public int TwoFactorFailedAttempts { get; private set; }
 
@@ -67,6 +75,7 @@ public class User
         IsActive = true;
         TwoFactorEnabled = false;
         CreatedAt = DateTime.UtcNow;
+        LoginFailedAttempts = 0;
         TwoFactorFailedAttempts = 0;
         PasswordResetFailedAttempts = 0;
     }
@@ -89,11 +98,14 @@ public class User
 
     public void ChangePassword(string newPasswordHash)
     {
+        var now = DateTime.UtcNow;
+
         SetPasswordHash(newPasswordHash);
 
         ClearPasswordResetCode();
+        ClearLoginFailures(now);
 
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = now;
     }
 
     public void Activate()
@@ -106,6 +118,40 @@ public class User
     {
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool IsLoginLocked(DateTime utcNow)
+    {
+        return LoginLockedUntil.HasValue &&
+               LoginLockedUntil.Value > utcNow;
+    }
+
+    public void RegisterLoginFailure(DateTime utcNow)
+    {
+        if (IsLoginLocked(utcNow))
+            return;
+
+        if (LoginLockedUntil.HasValue)
+        {
+            LoginFailedAttempts = 0;
+            LoginLockedUntil = null;
+        }
+
+        LoginFailedAttempts++;
+
+        if (LoginFailedAttempts >= MaxLoginFailures)
+        {
+            LoginLockedUntil = utcNow.Add(LoginLockDuration);
+        }
+
+        UpdatedAt = utcNow;
+    }
+
+    public void ClearLoginFailures(DateTime utcNow)
+    {
+        LoginFailedAttempts = 0;
+        LoginLockedUntil = null;
+        UpdatedAt = utcNow;
     }
 
     public void EnableTwoFactor()
