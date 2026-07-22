@@ -38,6 +38,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
         LoginCommand request,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.Password))
+        {
+            throw new UnauthorizedAccessException(
+                "Email hoặc mật khẩu không đúng.");
+        }
+
         var email = request.Email.Trim().ToLower();
 
         var user = await _context.Users
@@ -55,22 +62,49 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
                 "Tài khoản đã bị khóa.");
         }
 
+        var now = DateTime.UtcNow;
+
+        if (user.IsLoginLocked(now))
+        {
+            throw new UnauthorizedAccessException(
+                "Tài khoản đăng nhập đang tạm khóa. " +
+                "Vui lòng thử lại sau 15 phút.");
+        }
+
         var passwordValid = _passwordHasher.VerifyPassword(
             request.Password,
             user.PasswordHash);
 
         if (!passwordValid)
         {
+            user.RegisterLoginFailure(now);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            if (user.IsLoginLocked(now))
+            {
+                throw new UnauthorizedAccessException(
+                    "Tài khoản đăng nhập đang tạm khóa. " +
+                    "Vui lòng thử lại sau 15 phút.");
+            }
+
             throw new UnauthorizedAccessException(
                 "Email hoặc mật khẩu không đúng.");
         }
 
+        var loginStateChanged =
+            user.LoginFailedAttempts != 0 ||
+            user.LoginLockedUntil.HasValue;
+
+        if (loginStateChanged)
+            user.ClearLoginFailures(now);
+
         if (user.TwoFactorEnabled)
         {
-            var now = DateTime.UtcNow;
-
             if (user.IsTwoFactorLocked(now))
             {
+                if (loginStateChanged)
+                    await _context.SaveChangesAsync(cancellationToken);
+
                 throw new UnauthorizedAccessException(
                     "Xác thực 2 yếu tố đang tạm khóa. " +
                     "Vui lòng thử lại sau 15 phút.");
@@ -108,6 +142,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
                 Message = "Vui lòng kiểm tra email để lấy mã xác thực."
             };
         }
+
+        if (loginStateChanged)
+            await _context.SaveChangesAsync(cancellationToken);
 
         var permissions = await _userPermissionService.GetPermissionsAsync(
             user.Role,
