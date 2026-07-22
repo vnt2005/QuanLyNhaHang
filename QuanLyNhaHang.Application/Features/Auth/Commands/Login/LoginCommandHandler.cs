@@ -64,12 +64,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
 
         var now = DateTime.UtcNow;
 
-        if (user.IsLoginLocked(now))
-        {
-            throw new UnauthorizedAccessException(
-                "Tài khoản đăng nhập đang tạm khóa. " +
-                "Vui lòng thử lại sau 15 phút.");
-        }
+        var loginWasLocked = user.IsLoginLocked(now);
 
         var passwordValid = _passwordHasher.VerifyPassword(
             request.Password,
@@ -77,18 +72,21 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
 
         if (!passwordValid)
         {
-            user.RegisterLoginFailure(now);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            if (user.IsLoginLocked(now))
+            if (!loginWasLocked)
             {
-                throw new UnauthorizedAccessException(
-                    "Tài khoản đăng nhập đang tạm khóa. " +
-                    "Vui lòng thử lại sau 15 phút.");
+                user.RegisterLoginFailure(now);
+                await _context.SaveChangesAsync(cancellationToken);
             }
 
             throw new UnauthorizedAccessException(
                 "Email hoặc mật khẩu không đúng.");
+        }
+
+        if (loginWasLocked)
+        {
+            throw new UnauthorizedAccessException(
+                "Tài khoản đăng nhập đang tạm khóa. " +
+                "Vui lòng thử lại sau 15 phút.");
         }
 
         var loginStateChanged =
