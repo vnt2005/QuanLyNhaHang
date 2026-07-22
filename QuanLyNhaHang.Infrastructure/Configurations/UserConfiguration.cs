@@ -48,6 +48,22 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.IsActive)
             .IsRequired();
 
+        builder.Property(x => x.IsEmailVerified)
+            .IsRequired();
+
+        builder.Property(x => x.EmailVerificationCode)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(x => x.EmailVerificationCodeExpiresAt)
+            .IsRequired(false);
+
+        builder.Property(x => x.EmailVerificationFailedAttempts)
+            .IsRequired();
+
+        builder.Property(x => x.EmailVerificationLockedUntil)
+            .IsRequired(false);
+
         builder.Property(x => x.CreatedAt)
             .IsRequired();
 
