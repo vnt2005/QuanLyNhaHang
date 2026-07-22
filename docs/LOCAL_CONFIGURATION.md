@@ -85,6 +85,8 @@ Trong Visual Studio:
 
 User Secrets chỉ dành cho phát triển local. File secrets nằm ngoài repository và không được Git theo dõi.
 
+Factory design-time của EF Core dùng cùng `UserSecretsId` với project `QuanLyNhaHang.Api`. Vì vậy `Update-Database` trong Package Manager Console sẽ đọc `ConnectionStrings:DefaultConnection` từ User Secrets này, kể cả khi **Default project** là `QuanLyNhaHang.Infrastructure`.
+
 Có thể cấu hình bằng CLI thay cho giao diện Visual Studio:
 
 ```powershell
