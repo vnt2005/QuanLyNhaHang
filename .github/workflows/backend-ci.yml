@@ -84,24 +84,20 @@ jobs:
       - name: Run integration tests
         shell: bash
         run: |
-          set +e
+          set -o pipefail
           dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj \
             --configuration Release \
-            --verbosity quiet \
-            > integration-tests.log 2>&1
-          status=$?
-          set -e
+            --verbosity minimal \
+            --logger "console;verbosity=normal" \
+            2>&1 | tee integration-tests.log
 
-          if [ "$status" -ne 0 ]; then
-            echo "::group::Integration test failure summary"
-            grep -E -A 12 -B 3 \
-              'Failed |Error Message:|Stack Trace:|Test Run Failed|Total tests:' \
-              integration-tests.log | tail -n 240 || true
-            echo "::endgroup::"
-            exit "$status"
-          fi
-
-          tail -n 20 integration-tests.log
+      - name: Upload integration test log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-log
+          path: integration-tests.log
+          if-no-files-found: ignore
 
       - name: Validate Docker Compose
         env:

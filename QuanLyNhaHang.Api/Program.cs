@@ -7,6 +7,40 @@ using QuanLyNhaHang.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
+const string frontendCorsPolicy = "Frontend";
+
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .GetChildren()
+    .Select(section => section.Value?.Trim().TrimEnd('/'))
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Select(origin => origin!)
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
+
+if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
+{
+    allowedOrigins =
+    [
+        "http://localhost:5173",
+        "https://localhost:5173"
+    ];
+}
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(frontendCorsPolicy, policy =>
+    {
+        if (allowedOrigins.Length == 0)
+            return;
+
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddApplication();
 
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -234,6 +268,8 @@ if (!app.Configuration.GetValue<bool>(
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseRouting();
+
+app.UseCors(frontendCorsPolicy);
 
 app.UseRateLimiter();
 
