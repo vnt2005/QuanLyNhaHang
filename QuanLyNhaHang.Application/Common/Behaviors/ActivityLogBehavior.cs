@@ -280,13 +280,28 @@ public class ActivityLogBehavior<TRequest, TResponse>
 
     private static bool IsSensitiveProperty(string propertyName)
     {
-        var name = propertyName.ToLower();
+        var name = propertyName.ToLowerInvariant();
 
-        return name.Contains("password") ||
-               name.Contains("passwordhash") ||
-               name.Contains("token") ||
-               name.Contains("secret") ||
-               name.Contains("otp") ||
-               name.Contains("twofactor");
+        if (name.Contains("password") ||
+            name.Contains("token") ||
+            name.Contains("secret") ||
+            name.Contains("otp") ||
+            name.Contains("twofactor"))
+        {
+            return true;
+        }
+
+        // Chỉ che mã dùng để xác thực; vẫn giữ mã nghiệp vụ như
+        // EmployeeCode, PromotionCode và TableQrCode cho mục đích kiểm toán.
+        return name is "code" or "codehash" ||
+               name.Contains("authcode") ||
+               name.Contains("authenticationcode") ||
+               name.Contains("authorizationcode") ||
+               name.Contains("verificationcode") ||
+               name.Contains("confirmationcode") ||
+               name.Contains("resetcode") ||
+               name.Contains("recoverycode") ||
+               name.Contains("securitycode") ||
+               name.Contains("challengecode");
     }
 }
