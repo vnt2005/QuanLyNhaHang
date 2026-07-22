@@ -1,9 +1,10 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Auth.DTOs;
 using QuanLyNhaHang.Domain.Entities;
+using System.Security.Cryptography;
 
 namespace QuanLyNhaHang.Application.Features.Auth.Commands.Register;
 
@@ -11,25 +12,16 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
 {
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IJwtTokenService _jwtTokenService;
-    private readonly IUserPermissionService _userPermissionService;
-    private readonly IAuthSessionService _authSessionService;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IEmailService _emailService;
 
     public RegisterCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher,
-        IJwtTokenService jwtTokenService,
-        IUserPermissionService userPermissionService,
-        IAuthSessionService authSessionService,
-        ICurrentUserService currentUserService)
+        IEmailService emailService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
-        _jwtTokenService = jwtTokenService;
-        _userPermissionService = userPermissionService;
-        _authSessionService = authSessionService;
-        _currentUserService = currentUserService;
+        _emailService = emailService;
     }
 
     public async Task<AuthResponseDto> Handle(
@@ -61,41 +53,38 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             passwordHash,
             SystemRoles.Customer);
 
+        var code = RandomNumberGenerator
+            .GetInt32(0, 1_000_000)
+            .ToString("D6");
+
+        user.SetEmailVerificationCode(
+            _passwordHasher.HashPassword(code),
+            DateTime.UtcNow.AddMinutes(10));
+
         _context.Users.Add(user);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var permissions = await _userPermissionService.GetPermissionsAsync(
-            user.Role,
-            cancellationToken);
-
-        var session = await _authSessionService.CreateAsync(
-            user.Id,
-            _currentUserService.IpAddress,
-            _currentUserService.UserAgent,
-            cancellationToken);
-
-        var token = _jwtTokenService.GenerateToken(
-            user,
-            session.SessionId,
-            permissions);
+        await _emailService.SendAsync(
+            user.Email,
+            "Xác minh địa chỉ email",
+            $"Mã xác minh email của bạn là: {code}. " +
+            "Mã này có hiệu lực trong 10 phút.");
 
         return new AuthResponseDto
         {
             UserId = user.Id,
-            SessionId = session.SessionId,
             Ho = user.Ho,
             Ten = user.Ten,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
             IsActive = user.IsActive,
+            IsEmailVerified = user.IsEmailVerified,
+            RequiresEmailVerification = true,
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
-            Token = token,
-            RefreshToken = session.RefreshToken,
-            RefreshTokenExpiresAt = session.ExpiresAt,
-            Permissions = permissions.ToList(),
-            Message = "Đăng ký thành công."
+            Message =
+                "Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản."
         };
     }
 }
