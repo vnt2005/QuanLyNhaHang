@@ -31,6 +31,7 @@ Sửa `.env` bằng các giá trị local thật. Không commit file này.
 ```dotenv
 API_PORT=8080
 SQLSERVER_PORT=1433
+FRONTEND_ORIGIN=http://localhost:5173
 MSSQL_SA_PASSWORD=<strong-local-password>
 JWT_SECRET_KEY=<long-random-secret-at-least-32-bytes>
 JWT_ISSUER=QuanLyNhaHang
@@ -73,6 +74,11 @@ Trong Visual Studio:
     "Audience": "QuanLyNhaHang.Client",
     "ExpiresInMinutes": "60"
   },
+  "Cors": {
+    "AllowedOrigins": [
+      "http://localhost:5173"
+    ]
+  },
   "Email": {
     "SmtpHost": "smtp.gmail.com",
     "SmtpPort": "587",
@@ -95,7 +101,10 @@ dotnet user-secrets set --project QuanLyNhaHang.Api "Jwt:SecretKey" "<long-rando
 dotnet user-secrets set --project QuanLyNhaHang.Api "Jwt:Issuer" "QuanLyNhaHang"
 dotnet user-secrets set --project QuanLyNhaHang.Api "Jwt:Audience" "QuanLyNhaHang.Client"
 dotnet user-secrets set --project QuanLyNhaHang.Api "Jwt:ExpiresInMinutes" "60"
+dotnet user-secrets set --project QuanLyNhaHang.Api "Cors:AllowedOrigins:0" "http://localhost:5173"
 ```
+
+Khi chạy môi trường `Development` mà chưa cấu hình mục `Cors`, API mặc định chỉ cho phép frontend tại `http://localhost:5173` và `https://localhost:5173`. Môi trường khác phải khai báo rõ từng origin; không sử dụng wildcard `*`.
 
 Không chụp màn hình hoặc chia sẻ kết quả `dotnet user-secrets list`, vì lệnh đó hiển thị giá trị bí mật.
 
