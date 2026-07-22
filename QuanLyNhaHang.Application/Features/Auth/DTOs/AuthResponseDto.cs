@@ -20,6 +20,10 @@ public class AuthResponseDto
 
     public bool IsActive { get; set; }
 
+    public bool IsEmailVerified { get; set; }
+
+    public bool RequiresEmailVerification { get; set; }
+
     public bool TwoFactorEnabled { get; set; }
 
     public bool RequiresTwoFactor { get; set; }
