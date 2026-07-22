@@ -72,15 +72,17 @@ builder.Services.AddAuthentication(options =>
             var dbContext = services.GetRequiredService<IApplicationDbContext>();
             var authSessionService = services.GetRequiredService<IAuthSessionService>();
 
-            var userIsActive = await dbContext.Users
+            var userCanAuthenticate = await dbContext.Users
                 .AsNoTracking()
                 .AnyAsync(
-                    user => user.Id == userId && user.IsActive,
+                    user => user.Id == userId &&
+                            user.IsActive &&
+                            user.IsEmailVerified,
                     cancellationToken);
 
-            if (!userIsActive)
+            if (!userCanAuthenticate)
             {
-                context.Fail("Tài khoản không còn hoạt động.");
+                context.Fail("Tài khoản không đủ điều kiện đăng nhập.");
                 return;
             }
 
