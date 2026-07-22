@@ -40,8 +40,12 @@ public class ForgotPasswordCommandHandler
                 x => x.Email == email,
                 cancellationToken);
 
-        if (user == null || !user.IsActive)
+        if (user == null ||
+            !user.IsActive ||
+            !user.IsEmailVerified)
+        {
             return GenericMessage;
+        }
 
         var now = DateTime.UtcNow;
 
