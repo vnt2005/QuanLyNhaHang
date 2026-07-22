@@ -11,13 +11,16 @@ public class UpdateEmployeeCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IAuthSessionService _authSessionService;
 
     public UpdateEmployeeCommandHandler(
         IApplicationDbContext context,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IAuthSessionService authSessionService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _authSessionService = authSessionService;
     }
 
     public async Task<bool> Handle(
@@ -52,6 +55,8 @@ public class UpdateEmployeeCommandHandler
         }
 
         var currentUserId = user?.Id ?? Guid.Empty;
+        var emailChanged = user != null &&
+            !string.Equals(user.Email, email, StringComparison.Ordinal);
 
         var employeeCodeExists = await _context.Employees
             .AnyAsync(
@@ -122,6 +127,9 @@ public class UpdateEmployeeCommandHandler
                 passwordHash,
                 role);
 
+            // Hồ sơ nhân viên cũ đã được quản trị viên xác nhận.
+            user.MarkEmailVerified();
+
             _context.Users.Add(user);
             employee.LinkUser(user.Id);
         }
@@ -171,6 +179,14 @@ public class UpdateEmployeeCommandHandler
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (emailChanged)
+        {
+            await _authSessionService.RevokeAllAsync(
+                user.Id,
+                "Email đăng nhập đã thay đổi.",
+                cancellationToken);
+        }
 
         return true;
     }

@@ -11,8 +11,10 @@ using QuanLyNhaHang.Application.Features.Auth.Commands.Logout;
 using QuanLyNhaHang.Application.Features.Auth.Commands.LogoutAll;
 using QuanLyNhaHang.Application.Features.Auth.Commands.RefreshToken;
 using QuanLyNhaHang.Application.Features.Auth.Commands.Register;
+using QuanLyNhaHang.Application.Features.Auth.Commands.ResendVerificationEmail;
 using QuanLyNhaHang.Application.Features.Auth.Commands.ResetPassword;
 using QuanLyNhaHang.Application.Features.Auth.Commands.RevokeSession;
+using QuanLyNhaHang.Application.Features.Auth.Commands.VerifyEmail;
 using QuanLyNhaHang.Application.Features.Auth.Commands.VerifyTwoFactor;
 using QuanLyNhaHang.Application.Features.Auth.Queries.GetAuthSessions;
 using QuanLyNhaHang.Application.Features.Auth.Queries.GetCurrentSession;
@@ -46,6 +48,38 @@ public class AuthController : ControllerBase
                 ? "Đăng ký thành công."
                 : result.Message,
             Data = result
+        });
+    }
+
+    // POST: api/auth/verify-email
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthSensitive")]
+    [HttpPost("verify-email")]
+    public async Task<IActionResult> VerifyEmail(
+        [FromBody] VerifyEmailCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(new
+        {
+            Message = result
+        });
+    }
+
+    // POST: api/auth/resend-verification-email
+    [AllowAnonymous]
+    [EnableRateLimiting("AuthSensitive")]
+    [HttpPost("resend-verification-email")]
+    public async Task<IActionResult> ResendVerificationEmail(
+        [FromBody] ResendVerificationEmailCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(new
+        {
+            Message = result
         });
     }
 

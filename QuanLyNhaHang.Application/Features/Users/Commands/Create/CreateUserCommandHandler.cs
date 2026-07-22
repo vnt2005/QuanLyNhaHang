@@ -45,6 +45,9 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
             request.PasswordHash,
             request.Role);
 
+        // Tài khoản do quản trị viên tạo được xem là đã xác minh.
+        user.MarkEmailVerified();
+
         _context.Users.Add(user);
 
         await _context.SaveChangesAsync(cancellationToken);

@@ -44,15 +44,17 @@ public sealed class RefreshTokenCommandHandler
                 x => x.Id == rotatedSession.UserId,
                 cancellationToken);
 
-        if (user == null || !user.IsActive)
+        if (user == null ||
+            !user.IsActive ||
+            !user.IsEmailVerified)
         {
             await _authSessionService.RevokeAllAsync(
                 rotatedSession.UserId,
-                "Tài khoản không còn hoạt động.",
+                "Tài khoản không đủ điều kiện đăng nhập.",
                 cancellationToken);
 
             throw new UnauthorizedAccessException(
-                "Tài khoản không còn hoạt động.");
+                "Tài khoản không đủ điều kiện đăng nhập.");
         }
 
         var permissions = await _userPermissionService.GetPermissionsAsync(
@@ -74,6 +76,8 @@ public sealed class RefreshTokenCommandHandler
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
             IsActive = user.IsActive,
+            IsEmailVerified = user.IsEmailVerified,
+            RequiresEmailVerification = false,
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = accessToken,

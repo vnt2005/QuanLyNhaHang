@@ -25,6 +25,7 @@ public sealed class UserTests
         Assert.Equal("0900000001", user.PhoneNumber);
         Assert.Equal("Admin", user.Role);
         Assert.True(user.IsActive);
+        Assert.False(user.IsEmailVerified);
         Assert.False(user.TwoFactorEnabled);
         Assert.Equal(0, user.LoginFailedAttempts);
         Assert.Null(user.LoginLockedUntil);
@@ -40,6 +41,76 @@ public sealed class UserTests
     public void Constructor_RejectsBlankRequiredFields(string field)
     {
         Assert.Throws<ArgumentException>(() => CreateUserWithBlank(field));
+    }
+
+    [Fact]
+    public void EmailVerificationCode_LocksAndIsClearedAfterFiveFailures()
+    {
+        var user = CreateUser();
+        var now = DateTime.UtcNow;
+        var expiresAt = now.AddMinutes(10);
+
+        user.SetEmailVerificationCode("hashed-code", expiresAt);
+
+        Assert.True(user.HasActiveEmailVerificationCode(now));
+        Assert.False(user.HasActiveEmailVerificationCode(expiresAt));
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            user.RegisterEmailVerificationFailure(now);
+        }
+
+        Assert.Equal(5, user.EmailVerificationFailedAttempts);
+        Assert.Equal(now.AddMinutes(15), user.EmailVerificationLockedUntil);
+        Assert.True(user.IsEmailVerificationLocked(now.AddMinutes(1)));
+        Assert.Null(user.EmailVerificationCode);
+        Assert.Null(user.EmailVerificationCodeExpiresAt);
+    }
+
+    [Fact]
+    public void MarkEmailVerified_ClearsOutstandingChallenge()
+    {
+        var user = CreateUser();
+        user.SetEmailVerificationCode(
+            "hashed-code",
+            DateTime.UtcNow.AddMinutes(10));
+        user.RegisterEmailVerificationFailure(DateTime.UtcNow);
+
+        user.MarkEmailVerified();
+
+        Assert.True(user.IsEmailVerified);
+        Assert.Null(user.EmailVerificationCode);
+        Assert.Null(user.EmailVerificationCodeExpiresAt);
+        Assert.Equal(0, user.EmailVerificationFailedAttempts);
+        Assert.Null(user.EmailVerificationLockedUntil);
+    }
+
+    [Fact]
+    public void UpdateInfo_WhenEmailChanges_RequiresVerificationAgain()
+    {
+        var user = CreateUser();
+        user.MarkEmailVerified();
+
+        user.UpdateInfo(
+            user.Ho,
+            user.Ten,
+            "new-address@example.com",
+            user.PhoneNumber,
+            user.Role);
+
+        Assert.Equal("new-address@example.com", user.Email);
+        Assert.False(user.IsEmailVerified);
+    }
+
+    [Fact]
+    public void EmailVerificationCode_RejectsBlankHash()
+    {
+        var user = CreateUser();
+
+        Assert.Throws<ArgumentException>(() =>
+            user.SetEmailVerificationCode(
+                " ",
+                DateTime.UtcNow.AddMinutes(10)));
     }
 
     [Fact]

@@ -47,6 +47,7 @@ public class VerifyTwoFactorCommandHandler
 
         if (user == null ||
             !user.IsActive ||
+            !user.IsEmailVerified ||
             !user.TwoFactorEnabled)
         {
             throw new UnauthorizedAccessException(
@@ -106,6 +107,8 @@ public class VerifyTwoFactorCommandHandler
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
             IsActive = user.IsActive,
+            IsEmailVerified = user.IsEmailVerified,
+            RequiresEmailVerification = false,
             TwoFactorEnabled = user.TwoFactorEnabled,
             RequiresTwoFactor = false,
             Token = token,

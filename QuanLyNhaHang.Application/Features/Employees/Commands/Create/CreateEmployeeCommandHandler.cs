@@ -93,6 +93,9 @@ public class CreateEmployeeCommandHandler
             passwordHash,
             role);
 
+        // Hồ sơ nhân viên được quản trị viên xác nhận khi tạo.
+        user.MarkEmailVerified();
+
         var employee = new Employee(
             user.Id,
             employeeCode,

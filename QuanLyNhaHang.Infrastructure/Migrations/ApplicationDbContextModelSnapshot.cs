@@ -1596,11 +1596,27 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<string>("EmailVerificationCode")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("EmailVerificationCodeExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EmailVerificationFailedAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EmailVerificationLockedUntil")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Ho")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEmailVerified")
                         .HasColumnType("bit");
 
                     b.Property<int>("LoginFailedAttempts")

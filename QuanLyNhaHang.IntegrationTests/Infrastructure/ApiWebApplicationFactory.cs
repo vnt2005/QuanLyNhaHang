@@ -96,6 +96,8 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
             passwordHasher.HashPassword(password),
             role);
 
+        user.MarkEmailVerified();
+
         if (enableTwoFactor)
         {
             user.EnableTwoFactor();

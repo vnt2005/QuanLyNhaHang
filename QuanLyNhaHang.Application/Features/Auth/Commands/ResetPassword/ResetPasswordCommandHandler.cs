@@ -42,8 +42,12 @@ public class ResetPasswordCommandHandler
                 x => x.Email == email,
                 cancellationToken);
 
-        if (user == null || !user.IsActive)
+        if (user == null ||
+            !user.IsActive ||
+            !user.IsEmailVerified)
+        {
             throw new ArgumentException(InvalidCodeMessage);
+        }
 
         var now = DateTime.UtcNow;
 
