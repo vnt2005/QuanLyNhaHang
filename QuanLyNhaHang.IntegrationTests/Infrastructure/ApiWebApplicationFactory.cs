@@ -37,7 +37,9 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
                     ["Jwt:Issuer"] = "QuanLyNhaHang.IntegrationTests",
                     ["Jwt:Audience"] = "QuanLyNhaHang.IntegrationTests",
                     ["Jwt:ExpiresInMinutes"] = "30",
-                    ["Auth:RefreshTokenDays"] = "30"
+                    ["Auth:RefreshTokenDays"] = "30",
+                    ["Cors:AllowedOrigins:0"] =
+                        "https://frontend.example.test"
                 });
         });
 
