@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Domain.Entities;
 using QuanLyNhaHang.Infrastructure.Persistence;
@@ -19,6 +20,21 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
     public FakeEmailService EmailService { get; } = new();
 
     public FakeAuthSessionService AuthSessionService { get; } = new();
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        builder.ConfigureHostConfiguration(configuration =>
+        {
+            configuration.AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["Cors:AllowedOrigins:0"] =
+                        "https://frontend.example.test"
+                });
+        });
+
+        return base.CreateHost(builder);
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -37,9 +53,7 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
                     ["Jwt:Issuer"] = "QuanLyNhaHang.IntegrationTests",
                     ["Jwt:Audience"] = "QuanLyNhaHang.IntegrationTests",
                     ["Jwt:ExpiresInMinutes"] = "30",
-                    ["Auth:RefreshTokenDays"] = "30",
-                    ["Cors:AllowedOrigins:0"] =
-                        "https://frontend.example.test"
+                    ["Auth:RefreshTokenDays"] = "30"
                 });
         });
 
@@ -97,7 +111,6 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
             $"09{Random.Shared.Next(10000000, 99999999)}",
             passwordHasher.HashPassword(password),
             role);
-
         user.MarkEmailVerified();
 
         if (enableTwoFactor)
