@@ -128,7 +128,7 @@ public sealed class RefreshTokenSessionTests
     }
 
     [Fact]
-    public async Task Register_ReturnsSessionBoundTokens()
+    public async Task Register_DoesNotReturnSessionBeforeEmailVerification()
     {
         using var factory = new ApiWebApplicationFactory();
         using var client = factory.CreateHttpsClient();
@@ -146,15 +146,15 @@ public sealed class RefreshTokenSessionTests
             });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var auth = await ReadAuthDataAsync(response);
-        Assert.NotEqual(Guid.Empty, auth.SessionId);
-        Assert.False(string.IsNullOrWhiteSpace(auth.AccessToken));
-        Assert.False(string.IsNullOrWhiteSpace(auth.RefreshToken));
+        using var json = await ReadJsonAsync(response);
+        var data = json.RootElement.GetProperty("data");
 
-        SetBearer(client, auth.AccessToken);
-        Assert.Equal(
-            HttpStatusCode.OK,
-            (await client.GetAsync("/api/auth/me")).StatusCode);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("sessionId").ValueKind);
+        Assert.Equal(string.Empty, data.GetProperty("token").GetString());
+        Assert.Equal(string.Empty, data.GetProperty("refreshToken").GetString());
+        Assert.False(data.GetProperty("isEmailVerified").GetBoolean());
+        Assert.True(data.GetProperty("requiresEmailVerification").GetBoolean());
+        Assert.Single(factory.EmailService.Messages);
     }
 
     private static async Task<TestCredentials> SeedCredentialsAsync(
