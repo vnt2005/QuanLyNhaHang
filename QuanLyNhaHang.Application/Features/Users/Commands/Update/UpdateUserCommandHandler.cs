@@ -7,10 +7,14 @@ namespace QuanLyNhaHang.Application.Features.Users.Commands.Update;
 public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IAuthSessionService _authSessionService;
 
-    public UpdateUserCommandHandler(IApplicationDbContext context)
+    public UpdateUserCommandHandler(
+        IApplicationDbContext context,
+        IAuthSessionService authSessionService)
     {
         _context = context;
+        _authSessionService = authSessionService;
     }
 
     public async Task<bool> Handle(
@@ -50,6 +54,11 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
             throw new Exception("Số điện thoại đã tồn tại.");
         }
 
+        var emailChanged = !string.Equals(
+            user.Email,
+            email,
+            StringComparison.Ordinal);
+
         user.UpdateInfo(
             request.Ho,
             request.Ten,
@@ -67,6 +76,14 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (emailChanged)
+        {
+            await _authSessionService.RevokeAllAsync(
+                user.Id,
+                "Email đăng nhập đã thay đổi.",
+                cancellationToken);
+        }
 
         return true;
     }
