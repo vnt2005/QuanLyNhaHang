@@ -39,7 +39,9 @@ public sealed class GetCurrentSessionQueryHandler
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == userId.Value, cancellationToken);
 
-        if (user == null || !user.IsActive)
+        if (user == null ||
+            !user.IsActive ||
+            !user.IsEmailVerified)
         {
             throw new UnauthorizedAccessException(
                 "Tài khoản không tồn tại hoặc đã bị vô hiệu hóa.");
@@ -58,6 +60,7 @@ public sealed class GetCurrentSessionQueryHandler
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
             IsActive = user.IsActive,
+            IsEmailVerified = user.IsEmailVerified,
             TwoFactorEnabled = user.TwoFactorEnabled,
             Permissions = permissions
                 .OrderBy(code => code, StringComparer.Ordinal)
