@@ -1603,6 +1603,12 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("LoginFailedAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LoginLockedUntil")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(500)
