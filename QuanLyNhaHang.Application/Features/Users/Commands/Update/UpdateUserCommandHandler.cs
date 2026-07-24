@@ -9,13 +9,16 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
 {
     private readonly IApplicationDbContext _context;
     private readonly IAuthSessionService _authSessionService;
+    private readonly ICurrentUserService _currentUserService;
 
     public UpdateUserCommandHandler(
         IApplicationDbContext context,
-        IAuthSessionService authSessionService)
+        IAuthSessionService authSessionService,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _authSessionService = authSessionService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<bool> Handle(
@@ -26,39 +29,39 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         if (user == null)
-        {
             throw new Exception("Không tìm thấy người dùng.");
-        }
 
         var email = request.Email.Trim().ToLower();
         var phoneNumber = request.PhoneNumber.Trim();
 
-        var emailExists = await _context.Users
-            .AnyAsync(x =>
-                x.Email == email &&
-                x.Id != request.Id,
-                cancellationToken);
+        var emailExists = await _context.Users.AnyAsync(
+            x => x.Email == email && x.Id != request.Id,
+            cancellationToken);
 
         if (emailExists)
-        {
             throw new Exception("Email đã tồn tại.");
-        }
 
-        var phoneExists = await _context.Users
-            .AnyAsync(x =>
-                x.PhoneNumber == phoneNumber &&
-                x.Id != request.Id,
-                cancellationToken);
+        var phoneExists = await _context.Users.AnyAsync(
+            x => x.PhoneNumber == phoneNumber && x.Id != request.Id,
+            cancellationToken);
 
         if (phoneExists)
-        {
             throw new Exception("Số điện thoại đã tồn tại.");
-        }
 
         var role = await UserRoleAssignmentRules.GetActiveRoleNameAsync(
             _context,
             request.Role,
             cancellationToken);
+
+        var emailChanged = !string.Equals(user.Email, email, StringComparison.Ordinal);
+        var roleChanged = !string.Equals(user.Role, role, StringComparison.OrdinalIgnoreCase);
+        var activeStateChanged = user.IsActive != request.IsActive;
+
+        if (_currentUserService.UserId == user.Id && (roleChanged || activeStateChanged))
+        {
+            throw new InvalidOperationException(
+                "Bạn không thể tự thay đổi vai trò hoặc tự khóa tài khoản đang đăng nhập.");
+        }
 
         await UserRoleAssignmentRules.EnsureAdminContinuityAsync(
             _context,
@@ -66,18 +69,6 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
             role,
             request.IsActive,
             cancellationToken);
-
-        var emailChanged = !string.Equals(
-            user.Email,
-            email,
-            StringComparison.Ordinal);
-
-        var roleChanged = !string.Equals(
-            user.Role,
-            role,
-            StringComparison.OrdinalIgnoreCase);
-
-        var activeStateChanged = user.IsActive != request.IsActive;
 
         user.UpdateInfo(
             request.Ho,
@@ -87,13 +78,9 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
             role);
 
         if (request.IsActive)
-        {
             user.Activate();
-        }
         else
-        {
             user.Deactivate();
-        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
