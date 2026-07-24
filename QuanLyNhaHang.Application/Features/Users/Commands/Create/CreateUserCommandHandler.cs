@@ -1,6 +1,7 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Features.Users.Common;
 using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Users.Commands.Create;
@@ -37,13 +38,18 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
             throw new Exception("Số điện thoại đã tồn tại.");
         }
 
+        var role = await UserRoleAssignmentRules.GetActiveRoleNameAsync(
+            _context,
+            request.Role,
+            cancellationToken);
+
         var user = new User(
             request.Ho,
             request.Ten,
             request.Email,
             request.PhoneNumber,
             request.PasswordHash,
-            request.Role);
+            role);
 
         // Tài khoản do quản trị viên tạo được xem là đã xác minh.
         user.MarkEmailVerified();
