@@ -1,6 +1,7 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Features.Users.Common;
 
 namespace QuanLyNhaHang.Application.Features.Users.Commands.Update;
 
@@ -54,17 +55,36 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
             throw new Exception("Số điện thoại đã tồn tại.");
         }
 
+        var role = await UserRoleAssignmentRules.GetActiveRoleNameAsync(
+            _context,
+            request.Role,
+            cancellationToken);
+
+        await UserRoleAssignmentRules.EnsureAdminContinuityAsync(
+            _context,
+            user,
+            role,
+            request.IsActive,
+            cancellationToken);
+
         var emailChanged = !string.Equals(
             user.Email,
             email,
             StringComparison.Ordinal);
+
+        var roleChanged = !string.Equals(
+            user.Role,
+            role,
+            StringComparison.OrdinalIgnoreCase);
+
+        var activeStateChanged = user.IsActive != request.IsActive;
 
         user.UpdateInfo(
             request.Ho,
             request.Ten,
             request.Email,
             request.PhoneNumber,
-            request.Role);
+            role);
 
         if (request.IsActive)
         {
@@ -77,11 +97,17 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, bool>
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        if (emailChanged)
+        if (emailChanged || roleChanged || activeStateChanged)
         {
+            var reason = roleChanged
+                ? "Vai trò tài khoản đã thay đổi."
+                : activeStateChanged
+                    ? "Trạng thái tài khoản đã thay đổi."
+                    : "Email đăng nhập đã thay đổi.";
+
             await _authSessionService.RevokeAllAsync(
                 user.Id,
-                "Email đăng nhập đã thay đổi.",
+                reason,
                 cancellationToken);
         }
 
