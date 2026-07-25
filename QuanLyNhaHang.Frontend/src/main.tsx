@@ -7,6 +7,7 @@ import './pages/areas-tables.css'
 import './pages/menu-management.css'
 import './pages/orders.css'
 import './pages/kitchen.css'
+import './pages/payments.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
