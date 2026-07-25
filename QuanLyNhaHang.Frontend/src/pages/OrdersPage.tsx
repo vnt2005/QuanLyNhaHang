@@ -36,6 +36,10 @@ export default function OrdersPage() {
   const [tableFilter, setTableFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [hasPreviousPage, setHasPreviousPage] = useState(false)
+  const [hasNextPage, setHasNextPage] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -51,8 +55,12 @@ export default function OrdersPage() {
     setLoading(true); setError('')
     try {
       const data = await getOrders(keyword, tableFilter, statusFilter, targetPage, 10)
-      setOrders(data ?? [])
-      setPage(targetPage)
+      setOrders(data.items ?? [])
+      setPage(data.pageNumber || targetPage)
+      setTotalPages(Math.max(data.totalPages || 1, 1))
+      setTotalCount(data.totalCount || 0)
+      setHasPreviousPage(Boolean(data.hasPreviousPage))
+      setHasNextPage(Boolean(data.hasNextPage))
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không tải được danh sách đơn hàng.')
     } finally { setLoading(false) }
@@ -81,12 +89,9 @@ export default function OrdersPage() {
 
   async function openDetail(order: Order) {
     setError(''); setMessage(''); setSaving(true)
-    try {
-      await refreshSelected(order.id)
-      setDetailOpen(true)
-    } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Không tải được chi tiết đơn hàng.')
-    } finally { setSaving(false) }
+    try { await refreshSelected(order.id); setDetailOpen(true) }
+    catch (exception) { setError(exception instanceof Error ? exception.message : 'Không tải được chi tiết đơn hàng.') }
+    finally { setSaving(false) }
   }
 
   function addCreateLine() {
@@ -94,14 +99,13 @@ export default function OrdersPage() {
   }
 
   function updateCreateLine(index: number, patch: Partial<CreateOrderLine>) {
-    setCreateForm(form => ({ ...form, items: form.items.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item) }))
+    setCreateForm(form => ({ ...form, items: form.items.map((item, i) => i === index ? { ...item, ...patch } : item) }))
   }
 
   async function submitCreate(event: FormEvent) {
     event.preventDefault()
-    if (createForm.items.length === 0 || createForm.items.some(item => !item.menuItemId || item.quantity <= 0)) {
-      setError('Đơn hàng phải có ít nhất một món hợp lệ.')
-      return
+    if (!createForm.restaurantTableId || createForm.items.length === 0 || createForm.items.some(x => !x.menuItemId || x.quantity <= 0)) {
+      setError('Đơn hàng phải có bàn và ít nhất một món hợp lệ.'); return
     }
     setSaving(true); setError(''); setMessage('')
     try {
@@ -119,8 +123,7 @@ export default function OrdersPage() {
     try {
       const result = await updateOrderNote(selectedOrder.id, noteDraft)
       setMessage(result.message ?? 'Cập nhật ghi chú thành công.')
-      await refreshSelected(selectedOrder.id)
-      await loadOrders(page)
+      await Promise.all([refreshSelected(selectedOrder.id), loadOrders(page)])
     } catch (exception) { setError(exception instanceof Error ? exception.message : 'Không cập nhật được ghi chú.') }
     finally { setSaving(false) }
   }
@@ -145,30 +148,27 @@ export default function OrdersPage() {
       const result = await addOrderItem(selectedOrder.id, newItem)
       setMessage(result.message ?? 'Đã thêm món vào đơn.')
       setNewItem({ menuItemId: '', quantity: 1, note: '' })
-      await refreshSelected(selectedOrder.id)
-      await loadOrders(page)
+      await Promise.all([refreshSelected(selectedOrder.id), loadOrders(page)])
     } catch (exception) { setError(exception instanceof Error ? exception.message : 'Không thêm được món.') }
     finally { setSaving(false) }
   }
 
   async function changeQuantity(orderItemId: string, quantity: number) {
     if (!selectedOrder || quantity <= 0) return
-    setSaving(true); setError(''); setMessage('')
+    setSaving(true); setError('')
     try {
       await updateOrderItemQuantity(selectedOrder.id, orderItemId, quantity)
-      await refreshSelected(selectedOrder.id)
-      await loadOrders(page)
+      await Promise.all([refreshSelected(selectedOrder.id), loadOrders(page)])
     } catch (exception) { setError(exception instanceof Error ? exception.message : 'Không cập nhật được số lượng.') }
     finally { setSaving(false) }
   }
 
   async function removeItem(orderItemId: string) {
     if (!selectedOrder || !confirm('Hủy món này khỏi đơn?')) return
-    setSaving(true); setError(''); setMessage('')
+    setSaving(true); setError('')
     try {
       await cancelOrderItem(selectedOrder.id, orderItemId)
-      await refreshSelected(selectedOrder.id)
-      await loadOrders(page)
+      await Promise.all([refreshSelected(selectedOrder.id), loadOrders(page)])
     } catch (exception) { setError(exception instanceof Error ? exception.message : 'Không hủy được món.') }
     finally { setSaving(false) }
   }
@@ -179,14 +179,14 @@ export default function OrdersPage() {
     try {
       const result = await deleteOrder(order.id)
       setMessage(result.message ?? 'Đã xóa đơn hàng.')
-      await Promise.all([loadOrders(page), loadLookups()])
+      const targetPage = orders.length === 1 && page > 1 ? page - 1 : page
+      await Promise.all([loadOrders(targetPage), loadLookups()])
     } catch (exception) { setError(exception instanceof Error ? exception.message : 'Không xóa được đơn hàng.') }
     finally { setSaving(false) }
   }
 
-  const availableTables = useMemo(() => tables.filter(table => table.isActive && table.status !== 'Occupied'), [tables])
+  const availableTables = useMemo(() => tables.filter(x => x.isActive && x.status !== 'Occupied'), [tables])
   const summary = useMemo(() => ({
-    total: orders.length,
     pending: orders.filter(x => x.status === 'Pending').length,
     cooking: orders.filter(x => x.status === 'Cooking').length,
     served: orders.filter(x => x.status === 'Served').length,
@@ -196,10 +196,10 @@ export default function OrdersPage() {
     <div className="page-toolbar"><div><h2>Quản lý đơn hàng</h2><p>Tạo đơn, theo dõi món và cập nhật tiến trình phục vụ.</p></div><button className="primary-button" onClick={() => { setCreateForm(emptyForm); setCreateOpen(true); setError(''); setMessage('') }}>+ Tạo đơn hàng</button></div>
 
     <div className="order-summary">
-      <article><span>Tổng trên trang</span><strong>{summary.total}</strong></article>
-      <article><span>Chờ xử lý</span><strong>{summary.pending}</strong></article>
-      <article><span>Đang nấu</span><strong>{summary.cooking}</strong></article>
-      <article><span>Đã phục vụ</span><strong>{summary.served}</strong></article>
+      <article><span>Tổng đơn phù hợp</span><strong>{totalCount}</strong></article>
+      <article><span>Chờ xử lý trên trang</span><strong>{summary.pending}</strong></article>
+      <article><span>Đang nấu trên trang</span><strong>{summary.cooking}</strong></article>
+      <article><span>Đã phục vụ trên trang</span><strong>{summary.served}</strong></article>
     </div>
 
     {message && <div className="inline-alert success">{message}</div>}
@@ -220,7 +220,7 @@ export default function OrdersPage() {
       </article>)}
     </div>
 
-    <div className="pagination"><span>Trang {page}</span><div><button disabled={page <= 1 || loading} onClick={() => void loadOrders(page - 1)}>Trước</button><button disabled={orders.length < 10 || loading} onClick={() => void loadOrders(page + 1)}>Sau</button></div></div>
+    <div className="pagination"><span>Trang {page}/{totalPages} • {totalCount} đơn</span><div><button disabled={!hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trước</button><button disabled={!hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Sau</button></div></div>
 
     {createOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setCreateOpen(false)}><div className="employee-modal order-modal" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><h2>Tạo đơn hàng</h2><p>Chọn bàn và ít nhất một món đang mở bán.</p></div><button onClick={() => setCreateOpen(false)}>×</button></div><form className="order-form" onSubmit={submitCreate}>
       <label>Bàn<select required value={createForm.restaurantTableId} onChange={event => setCreateForm({...createForm, restaurantTableId:event.target.value})}><option value="">Chọn bàn</option>{availableTables.map(table => <option key={table.id} value={table.id}>{table.name} • {table.areaName}</option>)}</select></label>
