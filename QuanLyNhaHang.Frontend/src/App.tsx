@@ -40,6 +40,7 @@ export default function App() {
       const loginResult = await login({email, password})
       if (loginResult.token) sessionStorage.setItem('accessToken', loginResult.token)
       if (loginResult.refreshToken) localStorage.setItem('refreshToken', loginResult.refreshToken)
+      setPassword('')
       setResult(loginResult)
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Đã xảy ra lỗi không xác định.')
@@ -53,7 +54,7 @@ export default function App() {
     setPassword('')
   }
 
-  if (!result || result.requiresTwoFactor) return <main className="app-shell"><section className="brand-panel"><span className="eyebrow">RESTAURANT OPERATIONS</span><h1>Quản lý nhà hàng rõ ràng, nhanh chóng và đồng bộ.</h1><p>Giao diện quản trị React kết nối trực tiếp với ASP.NET Core API hiện tại.</p><div className="status-card"><span className="status-dot"/> Backend sẵn sàng cho frontend tại cổng 5173</div></section><section className="login-panel"><form className="login-card" onSubmit={handleSubmit}><div><span className="eyebrow">ADMIN PORTAL</span><h2>Đăng nhập hệ thống</h2><p>Sử dụng tài khoản đã có trong backend.</p></div><label>Email<input type="email" value={email} onChange={event => setEmail(event.target.value)} required/></label><label>Mật khẩu<input type="password" value={password} onChange={event => setPassword(event.target.value)} required/></label>{error && <div className="alert error">{error}</div>}<button disabled={loading}>{loading ? 'Đang đăng nhập…' : 'Đăng nhập'}</button></form></section></main>
+  if (!result || result.requiresTwoFactor) return <main className="app-shell"><section className="brand-panel"><span className="eyebrow">RESTAURANT OPERATIONS</span><h1>Quản lý nhà hàng rõ ràng, nhanh chóng và đồng bộ.</h1><p>Giao diện quản trị React kết nối trực tiếp với ASP.NET Core API hiện tại.</p><div className="status-card"><span className="status-dot"/> Backend sẵn sàng cho frontend tại cổng 5173</div></section><section className="login-panel"><form className="login-card" onSubmit={handleSubmit}><div><span className="eyebrow">ADMIN PORTAL</span><h2>Đăng nhập hệ thống</h2><p>Sử dụng tài khoản đã có trong backend.</p></div><label>Email<input type="email" autoComplete="username" value={email} onChange={event => setEmail(event.target.value)} required/></label><label>Mật khẩu<input type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} required/></label>{error && <div className="alert error">{error}</div>}<button disabled={loading}>{loading ? 'Đang đăng nhập…' : 'Đăng nhập'}</button></form></section></main>
 
   const displayName = [result.ho, result.ten].filter(Boolean).join(' ') || result.email || 'Quản trị viên'
   const content = activeItem === 'Nhân viên'
