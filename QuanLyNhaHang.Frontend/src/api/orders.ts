@@ -31,6 +31,15 @@ export type Order = {
   items: OrderItem[]
 }
 
+export type PaginatedOrders = {
+  items: Order[]
+  pageNumber: number
+  totalPages: number
+  totalCount: number
+  hasPreviousPage: boolean
+  hasNextPage: boolean
+}
+
 export type CreateOrderLine = {
   menuItemId: string
   quantity: number
@@ -87,7 +96,7 @@ export function getOrders(
   if (keyword.trim()) params.set('keyword', keyword.trim())
   if (restaurantTableId) params.set('restaurantTableId', restaurantTableId)
   if (status) params.set('status', status)
-  return request<Order[]>(`/api/Orders/paginated?${params}`)
+  return request<PaginatedOrders>(`/api/Orders/paginated?${params}`)
 }
 
 export function getOrder(id: string) {
