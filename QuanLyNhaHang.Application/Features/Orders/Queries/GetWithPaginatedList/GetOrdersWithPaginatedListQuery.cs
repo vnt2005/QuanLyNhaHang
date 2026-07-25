@@ -1,9 +1,10 @@
 ﻿using MediatR;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.Orders.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Orders.Queries.GetWithPaginatedList;
 
-public class GetOrdersWithPaginatedListQuery : IRequest<List<OrderDto>>
+public class GetOrdersWithPaginatedListQuery : IRequest<PaginatedList<OrderDto>>
 {
     public string? Keyword { get; set; }
 

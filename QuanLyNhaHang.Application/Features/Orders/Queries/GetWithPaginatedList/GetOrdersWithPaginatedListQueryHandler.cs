@@ -1,12 +1,13 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.Orders.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Orders.Queries.GetWithPaginatedList;
 
 public class GetOrdersWithPaginatedListQueryHandler
-    : IRequestHandler<GetOrdersWithPaginatedListQuery, List<OrderDto>>
+    : IRequestHandler<GetOrdersWithPaginatedListQuery, PaginatedList<OrderDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -15,7 +16,7 @@ public class GetOrdersWithPaginatedListQueryHandler
         _context = context;
     }
 
-    public async Task<List<OrderDto>> Handle(
+    public async Task<PaginatedList<OrderDto>> Handle(
         GetOrdersWithPaginatedListQuery request,
         CancellationToken cancellationToken)
     {
@@ -49,7 +50,6 @@ public class GetOrdersWithPaginatedListQueryHandler
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             var status = request.Status.Trim();
-
             query = query.Where(x => x.Order.Status == status);
         }
 
@@ -60,6 +60,8 @@ public class GetOrdersWithPaginatedListQueryHandler
 
         var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
         var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
+
+        var totalCount = await query.CountAsync(cancellationToken);
 
         var orders = await query
             .OrderByDescending(x => x.Order.CreatedAt)
@@ -80,10 +82,11 @@ public class GetOrdersWithPaginatedListQueryHandler
             })
             .ToListAsync(cancellationToken);
 
-        foreach (var order in orders)
+        if (orders.Count > 0)
         {
-            order.Items = await _context.OrderItems
-                .Where(x => x.OrderId == order.Id)
+            var orderIds = orders.Select(x => x.Id).ToList();
+            var items = await _context.OrderItems
+                .Where(x => orderIds.Contains(x.OrderId))
                 .OrderBy(x => x.CreatedAt)
                 .Select(x => new OrderItemDto
                 {
@@ -100,8 +103,21 @@ public class GetOrdersWithPaginatedListQueryHandler
                     UpdatedAt = x.UpdatedAt
                 })
                 .ToListAsync(cancellationToken);
+
+            var itemsByOrder = items
+                .GroupBy(x => x.OrderId)
+                .ToDictionary(x => x.Key, x => x.ToList());
+
+            foreach (var order in orders)
+            {
+                order.Items = itemsByOrder.GetValueOrDefault(order.Id) ?? new List<OrderItemDto>();
+            }
         }
 
-        return orders;
+        return new PaginatedList<OrderDto>(
+            orders,
+            totalCount,
+            pageNumber,
+            pageSize);
     }
 }
