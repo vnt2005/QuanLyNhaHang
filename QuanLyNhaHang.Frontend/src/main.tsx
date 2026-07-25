@@ -6,6 +6,7 @@ import './pages/access-management.css'
 import './pages/areas-tables.css'
 import './pages/menu-management.css'
 import './pages/orders.css'
+import './pages/kitchen.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
