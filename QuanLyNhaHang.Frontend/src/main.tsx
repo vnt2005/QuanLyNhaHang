@@ -9,6 +9,7 @@ import './pages/orders.css'
 import './pages/kitchen.css'
 import './pages/payments.css'
 import './pages/invoices.css'
+import './pages/revenue-reports.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
