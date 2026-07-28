@@ -14,10 +14,11 @@ import PromotionsPage from './pages/PromotionsPage'
 import ReservationsPage from './pages/ReservationsPage'
 import RestaurantSettingsPage from './pages/RestaurantSettingsPage'
 import RevenueReportsPage from './pages/RevenueReportsPage'
+import ShiftsSchedulingPage from './pages/ShiftsSchedulingPage'
 import TableQrCodesPage from './pages/TableQrCodesPage'
 
 const navigation = [
-  ['Tổng quan', '⌂'], ['Nhân viên', '◉'], ['Tài khoản & phân quyền', '◆'],
+  ['Tổng quan', '⌂'], ['Nhân viên', '◉'], ['Ca làm việc & phân ca', '◷'], ['Tài khoản & phân quyền', '◆'],
   ['Khu vực & bàn', '▦'], ['Đặt bàn', '◫'], ['QR bàn', '▥'], ['Thực đơn', '☷'], ['Đơn hàng', '▣'],
   ['Bếp', '♨'], ['Thanh toán', '₫'], ['Hóa đơn', '▤'], ['Báo cáo doanh thu', '↗'],
   ['Khuyến mãi', '◇'], ['Kho nguyên liệu', '▧'], ['Nhật ký hoạt động', '◴'],
@@ -72,35 +73,37 @@ export default function App() {
   const displayName = [result.ho, result.ten].filter(Boolean).join(' ') || result.email || 'Quản trị viên'
   const content = activeItem === 'Nhân viên'
     ? <EmployeePage/>
-    : activeItem === 'Tài khoản & phân quyền'
-      ? <AccessManagementPage/>
-      : activeItem === 'Khu vực & bàn'
-        ? <AreasTablesPage/>
-        : activeItem === 'Đặt bàn'
-          ? <ReservationsPage/>
-          : activeItem === 'QR bàn'
-            ? <TableQrCodesPage/>
-            : activeItem === 'Thực đơn'
-              ? <MenuManagementPage/>
-              : activeItem === 'Đơn hàng'
-                ? <OrdersPage/>
-                : activeItem === 'Bếp'
-                  ? <KitchenPage/>
-                  : activeItem === 'Thanh toán'
-                    ? <PaymentsPage/>
-                    : activeItem === 'Hóa đơn'
-                      ? <InvoicesPage/>
-                      : activeItem === 'Báo cáo doanh thu'
-                        ? <RevenueReportsPage/>
-                        : activeItem === 'Cấu hình nhà hàng'
-                          ? <RestaurantSettingsPage/>
-                          : activeItem === 'Kho nguyên liệu'
-                            ? <InventoryPage/>
-                            : activeItem === 'Nhật ký hoạt động'
-                              ? <ActivityLogsPage role={result.role}/>
-                              : activeItem === 'Khuyến mãi'
-                                ? <PromotionsPage/>
-                                : <DashboardHome name={result.ten ?? 'Admin'}/>
+    : activeItem === 'Ca làm việc & phân ca'
+      ? <ShiftsSchedulingPage/>
+      : activeItem === 'Tài khoản & phân quyền'
+        ? <AccessManagementPage/>
+        : activeItem === 'Khu vực & bàn'
+          ? <AreasTablesPage/>
+          : activeItem === 'Đặt bàn'
+            ? <ReservationsPage/>
+            : activeItem === 'QR bàn'
+              ? <TableQrCodesPage/>
+              : activeItem === 'Thực đơn'
+                ? <MenuManagementPage/>
+                : activeItem === 'Đơn hàng'
+                  ? <OrdersPage/>
+                  : activeItem === 'Bếp'
+                    ? <KitchenPage/>
+                    : activeItem === 'Thanh toán'
+                      ? <PaymentsPage/>
+                      : activeItem === 'Hóa đơn'
+                        ? <InvoicesPage/>
+                        : activeItem === 'Báo cáo doanh thu'
+                          ? <RevenueReportsPage/>
+                          : activeItem === 'Cấu hình nhà hàng'
+                            ? <RestaurantSettingsPage/>
+                            : activeItem === 'Kho nguyên liệu'
+                              ? <InventoryPage/>
+                              : activeItem === 'Nhật ký hoạt động'
+                                ? <ActivityLogsPage role={result.role}/>
+                                : activeItem === 'Khuyến mãi'
+                                  ? <PromotionsPage/>
+                                  : <DashboardHome name={result.ten ?? 'Admin'}/>
 
   return <div className="admin-layout"><aside className="sidebar"><div className="logo"><span>QL</span><div><strong>Nhà Hàng</strong><small>Admin Console</small></div></div><nav>{navigation.map(([label, icon]) => <button key={label} className={activeItem === label ? 'active' : ''} onClick={() => setActiveItem(label)}><span>{icon}</span>{label}</button>)}</nav><div className="sidebar-footer"><div className="system-status"><span className="status-dot"/><div><strong>Hệ thống ổn định</strong><small>API đang kết nối</small></div></div></div></aside><main className="dashboard"><header className="topbar"><div><span className="eyebrow">TRUNG TÂM ĐIỀU HÀNH</span><h1>{activeItem}</h1></div><div className="topbar-actions"><div className="profile"><span>{displayName.charAt(0).toUpperCase()}</span><div><strong>{displayName}</strong><small>{result.role ?? 'Admin'}</small></div></div><button className="logout" onClick={logout}>Đăng xuất</button></div></header>{content}</main></div>
 }
