@@ -10,12 +10,14 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "qrcode": "latest",
     "vite": "latest",
     "typescript": "latest",
     "react": "latest",
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@types/qrcode": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest"
   }
