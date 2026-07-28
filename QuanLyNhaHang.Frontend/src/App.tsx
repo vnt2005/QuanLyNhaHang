@@ -8,6 +8,7 @@ import KitchenPage from './pages/KitchenPage'
 import MenuManagementPage from './pages/MenuManagementPage'
 import OrdersPage from './pages/OrdersPage'
 import PaymentsPage from './pages/PaymentsPage'
+import RestaurantSettingsPage from './pages/RestaurantSettingsPage'
 import RevenueReportsPage from './pages/RevenueReportsPage'
 import TableQrCodesPage from './pages/TableQrCodesPage'
 
@@ -15,6 +16,7 @@ const navigation = [
   ['Tổng quan', '⌂'], ['Nhân viên', '◉'], ['Tài khoản & phân quyền', '◆'],
   ['Khu vực & bàn', '▦'], ['QR bàn', '▥'], ['Thực đơn', '☷'], ['Đơn hàng', '▣'],
   ['Bếp', '♨'], ['Thanh toán', '₫'], ['Hóa đơn', '▤'], ['Báo cáo doanh thu', '↗'],
+  ['Cấu hình nhà hàng', '⚙'],
 ]
 
 const stats = [
@@ -83,7 +85,9 @@ export default function App() {
                     ? <InvoicesPage/>
                     : activeItem === 'Báo cáo doanh thu'
                       ? <RevenueReportsPage/>
-                      : <DashboardHome name={result.ten ?? 'Admin'}/>
+                      : activeItem === 'Cấu hình nhà hàng'
+                        ? <RestaurantSettingsPage/>
+                        : <DashboardHome name={result.ten ?? 'Admin'}/>
 
   return <div className="admin-layout"><aside className="sidebar"><div className="logo"><span>QL</span><div><strong>Nhà Hàng</strong><small>Admin Console</small></div></div><nav>{navigation.map(([label, icon]) => <button key={label} className={activeItem === label ? 'active' : ''} onClick={() => setActiveItem(label)}><span>{icon}</span>{label}</button>)}</nav><div className="sidebar-footer"><div className="system-status"><span className="status-dot"/><div><strong>Hệ thống ổn định</strong><small>API đang kết nối</small></div></div></div></aside><main className="dashboard"><header className="topbar"><div><span className="eyebrow">TRUNG TÂM ĐIỀU HÀNH</span><h1>{activeItem}</h1></div><div className="topbar-actions"><div className="profile"><span>{displayName.charAt(0).toUpperCase()}</span><div><strong>{displayName}</strong><small>{result.role ?? 'Admin'}</small></div></div><button className="logout" onClick={logout}>Đăng xuất</button></div></header>{content}</main></div>
 }
