@@ -12,6 +12,7 @@ import './pages/invoices.css'
 import './pages/revenue-reports.css'
 import './pages/table-qr-codes.css'
 import './pages/restaurant-settings.css'
+import './pages/promotions.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
