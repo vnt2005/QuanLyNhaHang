@@ -44,8 +44,16 @@ export type PaginatedReservations = {
 }
 
 type ApiEnvelope<T> = { success?: boolean; message?: string; data?: T }
-
 type ApiMessage = { success?: boolean; message?: string }
+
+const reservationStatuses: ReservationStatus[] = [
+  'Pending',
+  'Confirmed',
+  'CheckedIn',
+  'Completed',
+  'Cancelled',
+  'NoShow',
+]
 
 function getErrorMessage(body: unknown, status: number) {
   if (body && typeof body === 'object') {
@@ -74,17 +82,74 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export function getReservations(keyword = '', status = '', fromDate = '', toDate = '', pageNumber = 1, pageSize = 12) {
+function asString(value: unknown, fallback = '') {
+  return typeof value === 'string' ? value : fallback
+}
+
+function asNullableString(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value : null
+}
+
+function asNumber(value: unknown, fallback = 0) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : fallback
+}
+
+function normalizeStatus(value: unknown): ReservationStatus {
+  return typeof value === 'string' && reservationStatuses.includes(value as ReservationStatus)
+    ? value as ReservationStatus
+    : 'Pending'
+}
+
+function normalizeReservation(value: unknown): Reservation {
+  const item = value && typeof value === 'object' ? value as Record<string, unknown> : {}
+  return {
+    id: asString(item.id),
+    reservationCode: asString(item.reservationCode, 'Chưa có mã'),
+    restaurantTableId: asString(item.restaurantTableId),
+    restaurantTableName: asString(item.restaurantTableName, 'Không xác định'),
+    customerName: asString(item.customerName, 'Không xác định'),
+    phoneNumber: asString(item.phoneNumber, '—'),
+    email: asNullableString(item.email),
+    numberOfGuests: Math.max(0, asNumber(item.numberOfGuests)),
+    reservationTime: asString(item.reservationTime),
+    depositAmount: Math.max(0, asNumber(item.depositAmount)),
+    status: normalizeStatus(item.status),
+    note: asNullableString(item.note),
+    createdAt: asString(item.createdAt),
+    confirmedAt: asNullableString(item.confirmedAt),
+    checkedInAt: asNullableString(item.checkedInAt),
+    completedAt: asNullableString(item.completedAt),
+    cancelledAt: asNullableString(item.cancelledAt),
+    updatedAt: asNullableString(item.updatedAt),
+  }
+}
+
+export async function getReservations(keyword = '', status = '', fromDate = '', toDate = '', pageNumber = 1, pageSize = 12) {
   const params = new URLSearchParams({ pageNumber: String(pageNumber), pageSize: String(pageSize) })
   if (keyword.trim()) params.set('keyword', keyword.trim())
   if (status) params.set('status', status)
   if (fromDate) params.set('fromDate', fromDate)
   if (toDate) params.set('toDate', toDate)
-  return request<PaginatedReservations>(`/api/reservations/paginated?${params}`)
+
+  const result = await request<Partial<PaginatedReservations>>(`/api/reservations/paginated?${params}`)
+  const items = Array.isArray(result?.items) ? result.items.map(normalizeReservation) : []
+  const normalizedPageNumber = Math.max(1, asNumber(result?.pageNumber, pageNumber))
+  const normalizedTotalPages = Math.max(1, asNumber(result?.totalPages, 1))
+  const normalizedTotalCount = Math.max(0, asNumber(result?.totalCount, items.length))
+
+  return {
+    items,
+    pageNumber: normalizedPageNumber,
+    totalPages: normalizedTotalPages,
+    totalCount: normalizedTotalCount,
+    hasPreviousPage: Boolean(result?.hasPreviousPage),
+    hasNextPage: Boolean(result?.hasNextPage),
+  } satisfies PaginatedReservations
 }
 
-export function getReservation(id: string) {
-  return request<Reservation>(`/api/reservations/${id}`)
+export async function getReservation(id: string) {
+  return normalizeReservation(await request<unknown>(`/api/reservations/${id}`))
 }
 
 function normalizeInput(input: ReservationInput) {
