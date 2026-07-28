@@ -113,7 +113,7 @@ export function deleteArea(id: string) {
   return request<ApiMessage>(`/api/Areas/${id}`, { method: 'DELETE' })
 }
 
-export function getTables(
+export async function getTables(
   keyword = '',
   areaId = '',
   status = '',
@@ -124,7 +124,21 @@ export function getTables(
   if (keyword.trim()) params.set('keyword', keyword.trim())
   if (areaId) params.set('areaId', areaId)
   if (status) params.set('status', status)
-  return request<PaginatedTables>(`/api/RestaurantTables/paginated?${params}`)
+
+  const result = await request<Partial<PaginatedTables>>(`/api/RestaurantTables/paginated?${params}`)
+  const items = Array.isArray(result?.items) ? result.items : []
+  const totalPages = Number.isFinite(Number(result?.totalPages)) ? Math.max(1, Number(result?.totalPages)) : 1
+  const totalCount = Number.isFinite(Number(result?.totalCount)) ? Math.max(0, Number(result?.totalCount)) : items.length
+  const normalizedPageNumber = Number.isFinite(Number(result?.pageNumber)) ? Math.max(1, Number(result?.pageNumber)) : pageNumber
+
+  return {
+    items,
+    pageNumber: normalizedPageNumber,
+    totalPages,
+    totalCount,
+    hasPreviousPage: Boolean(result?.hasPreviousPage),
+    hasNextPage: Boolean(result?.hasNextPage),
+  } satisfies PaginatedTables
 }
 
 export function createTable(form: RestaurantTableForm) {
