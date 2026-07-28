@@ -13,6 +13,7 @@ import './pages/revenue-reports.css'
 import './pages/table-qr-codes.css'
 import './pages/restaurant-settings.css'
 import './pages/promotions.css'
+import './pages/inventory.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -4,6 +4,7 @@ import AccessManagementPage from './pages/AccessManagementPage'
 import AreasTablesPage from './pages/AreasTablesPage'
 import EmployeePage from './pages/EmployeePage'
 import InvoicesPage from './pages/InvoicesPage'
+import InventoryPage from './pages/InventoryPage'
 import KitchenPage from './pages/KitchenPage'
 import MenuManagementPage from './pages/MenuManagementPage'
 import OrdersPage from './pages/OrdersPage'
@@ -17,7 +18,7 @@ const navigation = [
   ['Tổng quan', '⌂'], ['Nhân viên', '◉'], ['Tài khoản & phân quyền', '◆'],
   ['Khu vực & bàn', '▦'], ['QR bàn', '▥'], ['Thực đơn', '☷'], ['Đơn hàng', '▣'],
   ['Bếp', '♨'], ['Thanh toán', '₫'], ['Hóa đơn', '▤'], ['Báo cáo doanh thu', '↗'],
-  ['Khuyến mãi', '◇'], ['Cấu hình nhà hàng', '⚙'],
+  ['Khuyến mãi', '◇'], ['Kho nguyên liệu', '▧'], ['Cấu hình nhà hàng', '⚙'],
 ]
 
 const stats = [
@@ -88,6 +89,8 @@ export default function App() {
                       ? <RevenueReportsPage/>
                     : activeItem === 'Cấu hình nhà hàng'
                       ? <RestaurantSettingsPage/>
+                      : activeItem === 'Kho nguyên liệu'
+                        ? <InventoryPage/>
                       : activeItem === 'Khuyến mãi'
                         ? <PromotionsPage/>
                         : <DashboardHome name={result.ten ?? 'Admin'}/>
