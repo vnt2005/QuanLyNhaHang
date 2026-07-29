@@ -1,5 +1,4 @@
 import {
-  FormEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -7,7 +6,6 @@ import {
 } from 'react'
 import {
   AuthApiError,
-  changePassword,
   getAuthSessions,
   getCurrentSession,
   logoutAllSessions,
@@ -80,9 +78,6 @@ export default function AccountSecurityPage({
   const [action, setAction] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
 
   const handleRequestError = useCallback((exception: unknown) => {
     if (exception instanceof AuthApiError && exception.status === 401) {
@@ -126,40 +121,6 @@ export default function AccountSecurityPage({
     current?.ten ?? auth.ten,
   ].filter(Boolean).join(' ') || auth.email || 'Người dùng'
 
-  async function submitPassword(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (newPassword.length < 8) {
-      setError('Mật khẩu mới phải có ít nhất 8 ký tự.')
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Xác nhận mật khẩu mới không khớp.')
-      return
-    }
-    if (newPassword === currentPassword) {
-      setError('Mật khẩu mới phải khác mật khẩu hiện tại.')
-      return
-    }
-    setAction('password')
-    setError('')
-    setMessage('')
-    try {
-      const resultMessage = await changePassword({
-        currentPassword,
-        newPassword,
-        confirmNewPassword: confirmPassword,
-      })
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-      onRequireLogin(resultMessage)
-    } catch (exception) {
-      handleRequestError(exception)
-    } finally {
-      setAction('')
-    }
-  }
-
   async function revokeSession(item: AuthSession) {
     if (!window.confirm(
       `Thu hồi phiên đăng nhập trên ${getDeviceName(item.userAgent)}?`,
@@ -202,7 +163,7 @@ export default function AccountSecurityPage({
           <span>BẢO MẬT CÁ NHÂN</span>
           <h2>Tài khoản & phiên đăng nhập</h2>
           <p>
-            Kiểm soát mật khẩu và các thiết bị đang đăng nhập.
+            Kiểm soát thông tin tài khoản và các thiết bị đang đăng nhập.
           </p>
         </div>
         <button
@@ -267,9 +228,9 @@ export default function AccountSecurityPage({
           <span className="account-security-score-icon">◈</span>
           <div>
             <span>TRẠNG THÁI BẢO MẬT</span>
-            <h3>Mật khẩu & phiên đăng nhập</h3>
+            <h3>Email & phiên đăng nhập</h3>
             <p>
-              Theo dõi thiết bị thường xuyên và sử dụng mật khẩu riêng cho tài khoản.
+              Theo dõi thiết bị thường xuyên và thu hồi phiên bạn không nhận ra.
             </p>
           </div>
           <strong className="safe">Đang hoạt động</strong>
@@ -295,61 +256,10 @@ export default function AccountSecurityPage({
         </article>
       </section>
 
-      <section className="account-security-settings">
-        <article className="account-security-card password-card">
-          <header>
-            <span>01</span>
-            <div>
-              <h3>Đổi mật khẩu</h3>
-              <p>
-                Đổi mật khẩu sẽ thu hồi toàn bộ phiên đăng nhập.
-              </p>
-            </div>
-          </header>
-          <form onSubmit={submitPassword}>
-            <label>
-              Mật khẩu hiện tại
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={currentPassword}
-                onChange={event => setCurrentPassword(event.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Mật khẩu mới
-              <input
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                value={newPassword}
-                onChange={event => setNewPassword(event.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Xác nhận mật khẩu mới
-              <input
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                value={confirmPassword}
-                onChange={event => setConfirmPassword(event.target.value)}
-                required
-              />
-            </label>
-            <button disabled={action === 'password'}>
-              {action === 'password' ? 'Đang đổi mật khẩu…' : 'Đổi mật khẩu'}
-            </button>
-          </form>
-        </article>
-      </section>
-
       <article className="account-sessions-card">
         <header>
           <div>
-            <span>02</span>
+            <span>01</span>
             <div>
               <h3>Thiết bị & phiên đăng nhập</h3>
               <p>
