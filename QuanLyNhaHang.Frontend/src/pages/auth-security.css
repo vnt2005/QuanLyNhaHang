@@ -798,7 +798,7 @@
 
 .account-security-settings {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 
@@ -844,24 +844,6 @@
   margin: 0;
   color: #84939e;
   font-size: 8px;
-}
-
-.account-security-card > header > strong {
-  margin-left: auto;
-  padding: 5px 8px;
-  border-radius: 14px;
-  font-size: 7px;
-  white-space: nowrap;
-}
-
-.account-security-card > header > strong.enabled {
-  color: #24795f;
-  background: #e9f6f1;
-}
-
-.account-security-card > header > strong.disabled {
-  color: #8a6b46;
-  background: #faf2e8;
 }
 
 .account-security-card form {
@@ -928,13 +910,6 @@
 .account-security-card form button:disabled {
   opacity: 0.58;
   cursor: wait;
-}
-
-.account-security-card > small {
-  display: block;
-  margin-top: 11px;
-  color: #8a98a3;
-  font-size: 7px;
 }
 
 .account-sessions-card {
@@ -1132,9 +1107,6 @@
     min-height: 640px;
   }
 
-  .account-security-settings {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 720px) {
@@ -1221,10 +1193,6 @@
 
   .account-security-card > header {
     flex-wrap: wrap;
-  }
-
-  .account-security-card > header > strong {
-    margin-left: 38px;
   }
 
   .account-session-list > div {
