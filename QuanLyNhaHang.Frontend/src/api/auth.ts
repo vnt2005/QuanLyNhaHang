@@ -5,6 +5,14 @@ export type LoginRequest = {
   password: string
 }
 
+export type RegisterInput = {
+  ho?: string
+  ten: string
+  email: string
+  phoneNumber: string
+  password: string
+}
+
 export type LoginResult = {
   userId?: string
   sessionId?: string | null
@@ -160,6 +168,22 @@ export async function login(payload: LoginRequest): Promise<LoginResult> {
     body: JSON.stringify({
       email: payload.email.trim().toLowerCase(),
       password: payload.password,
+    }),
+  })
+  return authResult(envelope)
+}
+
+export async function register(
+  input: RegisterInput,
+): Promise<LoginResult> {
+  const envelope = await request<LoginResult>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      ho: input.ho?.trim() || null,
+      ten: input.ten.trim(),
+      email: input.email.trim().toLowerCase(),
+      phoneNumber: input.phoneNumber.trim(),
+      password: input.password,
     }),
   })
   return authResult(envelope)
