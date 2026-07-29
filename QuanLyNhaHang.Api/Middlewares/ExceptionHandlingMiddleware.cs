@@ -1,5 +1,6 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
+using QuanLyNhaHang.Application.Common.Exceptions;
 
 namespace QuanLyNhaHang.Api.Middlewares;
 
@@ -38,10 +39,13 @@ public class ExceptionHandlingMiddleware
 
         context.Response.StatusCode = exception switch
         {
+            EmailDeliveryException =>
+                (int)HttpStatusCode.ServiceUnavailable,
             ArgumentException => (int)HttpStatusCode.BadRequest,
             InvalidOperationException => (int)HttpStatusCode.BadRequest,
             KeyNotFoundException => (int)HttpStatusCode.NotFound,
-            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+            UnauthorizedAccessException =>
+                (int)HttpStatusCode.Unauthorized,
             _ => (int)HttpStatusCode.BadRequest
         };
 
