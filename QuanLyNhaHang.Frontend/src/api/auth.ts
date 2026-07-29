@@ -114,8 +114,10 @@ async function request<T>(
   path: string,
   init?: RequestInit,
   authenticated = false,
+  accessTokenOverride?: string,
 ): Promise<ApiEnvelope<T>> {
-  const accessToken = sessionStorage.getItem('accessToken')
+  const accessToken =
+    accessTokenOverride ?? sessionStorage.getItem('accessToken')
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
@@ -254,7 +256,10 @@ export async function logoutAllSessions() {
   }
 }
 
-export async function changePassword(input: ChangePasswordInput) {
+export async function changePassword(
+  input: ChangePasswordInput,
+  accessToken: string,
+) {
   const envelope = await request<never>(
     '/api/auth/change-password',
     {
@@ -262,6 +267,7 @@ export async function changePassword(input: ChangePasswordInput) {
       body: JSON.stringify(input),
     },
     true,
+    accessToken,
   )
   return envelope.message ?? 'Đổi mật khẩu thành công.'
 }
