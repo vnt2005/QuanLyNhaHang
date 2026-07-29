@@ -368,6 +368,115 @@
   text-align: center;
 }
 
+.auth-register-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding-top: 3px;
+  color: #8797a2;
+  font-size: 8px;
+}
+
+.auth-register-prompt button {
+  padding: 0;
+  border: 0;
+  color: #247d96;
+  background: transparent;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.auth-register-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid #d9e7e8;
+  border-radius: 10px;
+  color: #426876;
+  background: #f3faf9;
+}
+
+.auth-register-note > span {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  color: #247b68;
+  background: #dff2ec;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.auth-register-note > div {
+  display: grid;
+  gap: 3px;
+}
+
+.auth-register-note strong {
+  font-size: 8px;
+}
+
+.auth-register-note small {
+  color: #7b929b;
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+.auth-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.auth-card form label > small {
+  color: #97a4ad;
+  font-size: 7px;
+  font-weight: 600;
+}
+
+.auth-registration-complete {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 10px 0 3px;
+  text-align: center;
+}
+
+.auth-registration-complete > span {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+  color: #fff;
+  background: linear-gradient(135deg, #38a98b, #237965);
+  box-shadow: 0 10px 22px rgba(35, 121, 101, 0.2);
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.auth-registration-complete > strong {
+  color: #31505e;
+  font-size: 12px;
+}
+
+.auth-registration-complete > p {
+  max-width: 340px;
+  margin: 0 0 5px;
+  color: #7a8e99;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.auth-registration-complete > button {
+  width: 100%;
+}
+
 .auth-card > footer {
   display: flex;
   align-items: center;
@@ -1100,6 +1209,10 @@
 
   .auth-brand-copy p {
     font-size: 12px;
+  }
+
+  .auth-form-grid {
+    grid-template-columns: 1fr;
   }
 
   .account-profile-card dl {
