@@ -8,8 +8,6 @@ import {
 import {
   AuthApiError,
   changePassword,
-  disableTwoFactor,
-  enableTwoFactor,
   getAuthSessions,
   getCurrentSession,
   logoutAllSessions,
@@ -21,7 +19,6 @@ import {
 
 type AccountSecurityPageProps = {
   auth: LoginResult
-  onUserUpdated: (changes: Partial<LoginResult>) => void
   onRequireLogin: (message: string) => void
 }
 
@@ -75,7 +72,6 @@ function sessionIcon(userAgent?: string | null) {
 
 export default function AccountSecurityPage({
   auth,
-  onUserUpdated,
   onRequireLogin,
 }: AccountSecurityPageProps) {
   const [current, setCurrent] = useState<CurrentSession | null>(null)
@@ -87,7 +83,6 @@ export default function AccountSecurityPage({
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [twoFactorPassword, setTwoFactorPassword] = useState('')
 
   const handleRequestError = useCallback((exception: unknown) => {
     if (exception instanceof AuthApiError && exception.status === 401) {
@@ -126,40 +121,10 @@ export default function AccountSecurityPage({
 
   const activeSessionCount = sessions.filter(item => item.isActive).length
   const permissions = current?.permissions ?? auth.permissions ?? []
-  const twoFactorEnabled = current?.twoFactorEnabled
-    ?? auth.twoFactorEnabled
-    ?? false
   const displayName = [
     current?.ho ?? auth.ho,
     current?.ten ?? auth.ten,
   ].filter(Boolean).join(' ') || auth.email || 'Người dùng'
-
-  async function submitTwoFactor(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!twoFactorPassword) {
-      setError('Vui lòng nhập mật khẩu để xác nhận thay đổi.')
-      return
-    }
-    setAction('two-factor')
-    setError('')
-    setMessage('')
-    try {
-      const resultMessage = twoFactorEnabled
-        ? await disableTwoFactor(twoFactorPassword)
-        : await enableTwoFactor(twoFactorPassword)
-      const nextValue = !twoFactorEnabled
-      setCurrent(value => value
-        ? { ...value, twoFactorEnabled: nextValue }
-        : value)
-      onUserUpdated({ twoFactorEnabled: nextValue })
-      setTwoFactorPassword('')
-      setMessage(resultMessage)
-    } catch (exception) {
-      handleRequestError(exception)
-    } finally {
-      setAction('')
-    }
-  }
 
   async function submitPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -237,7 +202,7 @@ export default function AccountSecurityPage({
           <span>BẢO MẬT CÁ NHÂN</span>
           <h2>Tài khoản & phiên đăng nhập</h2>
           <p>
-            Kiểm soát mật khẩu, xác thực hai yếu tố và các thiết bị đang đăng nhập.
+            Kiểm soát mật khẩu và các thiết bị đang đăng nhập.
           </p>
         </div>
         <button
@@ -302,16 +267,12 @@ export default function AccountSecurityPage({
           <span className="account-security-score-icon">◈</span>
           <div>
             <span>TRẠNG THÁI BẢO MẬT</span>
-            <h3>{twoFactorEnabled ? 'Bảo vệ nâng cao' : 'Bảo vệ tiêu chuẩn'}</h3>
+            <h3>Mật khẩu & phiên đăng nhập</h3>
             <p>
-              {twoFactorEnabled
-                ? 'Mỗi lần đăng nhập cần thêm mã xác thực gửi qua email.'
-                : 'Bật xác thực hai yếu tố để giảm nguy cơ mất tài khoản.'}
+              Theo dõi thiết bị thường xuyên và sử dụng mật khẩu riêng cho tài khoản.
             </p>
           </div>
-          <strong className={twoFactorEnabled ? 'safe' : 'warning'}>
-            {twoFactorEnabled ? '2FA đang bật' : 'Nên bật 2FA'}
-          </strong>
+          <strong className="safe">Đang hoạt động</strong>
         </article>
 
         <article className="account-session-summary">
@@ -335,50 +296,9 @@ export default function AccountSecurityPage({
       </section>
 
       <section className="account-security-settings">
-        <article className="account-security-card">
-          <header>
-            <span>01</span>
-            <div>
-              <h3>Xác thực hai yếu tố</h3>
-              <p>
-                Yêu cầu mã dùng một lần từ email khi đăng nhập.
-              </p>
-            </div>
-            <strong className={twoFactorEnabled ? 'enabled' : 'disabled'}>
-              {twoFactorEnabled ? 'Đang bật' : 'Đang tắt'}
-            </strong>
-          </header>
-          <form onSubmit={submitTwoFactor}>
-            <label>
-              Mật khẩu hiện tại để xác nhận
-              <input
-                type="password"
-                autoComplete="current-password"
-                placeholder="Nhập mật khẩu"
-                value={twoFactorPassword}
-                onChange={event => setTwoFactorPassword(event.target.value)}
-                required
-              />
-            </label>
-            <button
-              className={twoFactorEnabled ? 'danger' : ''}
-              disabled={action === 'two-factor'}
-            >
-              {action === 'two-factor'
-                ? 'Đang cập nhật…'
-                : twoFactorEnabled
-                  ? 'Tắt xác thực 2 yếu tố'
-                  : 'Bật xác thực 2 yếu tố'}
-            </button>
-          </form>
-          <small>
-            Mã 2FA có 6 chữ số, chỉ dùng một lần và hết hạn sau 5 phút.
-          </small>
-        </article>
-
         <article className="account-security-card password-card">
           <header>
-            <span>02</span>
+            <span>01</span>
             <div>
               <h3>Đổi mật khẩu</h3>
               <p>
@@ -429,7 +349,7 @@ export default function AccountSecurityPage({
       <article className="account-sessions-card">
         <header>
           <div>
-            <span>03</span>
+            <span>02</span>
             <div>
               <h3>Thiết bị & phiên đăng nhập</h3>
               <p>
