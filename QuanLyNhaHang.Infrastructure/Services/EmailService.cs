@@ -6,7 +6,7 @@ using QuanLyNhaHang.Application.Common.Exceptions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Infrastructure.Services;
-
+        
 public class EmailService : IEmailService
 {
     private const string DeliveryErrorMessage =
