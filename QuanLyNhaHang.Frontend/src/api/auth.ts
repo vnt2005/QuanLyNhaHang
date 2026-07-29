@@ -24,8 +24,6 @@ export type LoginResult = {
   isActive?: boolean
   isEmailVerified?: boolean
   requiresEmailVerification?: boolean
-  twoFactorEnabled?: boolean
-  requiresTwoFactor?: boolean
   token?: string
   refreshToken?: string
   refreshTokenExpiresAt?: string | null
@@ -43,7 +41,6 @@ export type CurrentSession = {
   role: string
   isActive: boolean
   isEmailVerified: boolean
-  twoFactorEnabled: boolean
   permissions: string[]
 }
 
@@ -189,20 +186,6 @@ export async function register(
   return authResult(envelope)
 }
 
-export async function verifyTwoFactor(
-  email: string,
-  code: string,
-): Promise<LoginResult> {
-  const envelope = await request<LoginResult>('/api/auth/verify-2fa', {
-    method: 'POST',
-    body: JSON.stringify({
-      email: email.trim().toLowerCase(),
-      code: code.trim(),
-    }),
-  })
-  return authResult(envelope)
-}
-
 export function refreshSession(refreshToken: string): Promise<LoginResult> {
   const existing = refreshRequests.get(refreshToken)
   if (existing) return existing
@@ -281,30 +264,6 @@ export async function changePassword(input: ChangePasswordInput) {
     true,
   )
   return envelope.message ?? 'Đổi mật khẩu thành công.'
-}
-
-export async function enableTwoFactor(password: string) {
-  const envelope = await request<never>(
-    '/api/auth/enable-2fa',
-    {
-      method: 'POST',
-      body: JSON.stringify({ password }),
-    },
-    true,
-  )
-  return envelope.message ?? 'Đã bật xác thực 2 yếu tố.'
-}
-
-export async function disableTwoFactor(password: string) {
-  const envelope = await request<never>(
-    '/api/auth/disable-2fa',
-    {
-      method: 'POST',
-      body: JSON.stringify({ password }),
-    },
-    true,
-  )
-  return envelope.message ?? 'Đã tắt xác thực 2 yếu tố.'
 }
 
 export async function forgotPassword(email: string) {
