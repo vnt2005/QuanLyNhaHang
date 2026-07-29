@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Models;
@@ -38,6 +38,8 @@ public class GetReservationsWithPaginatedListQueryHandler
                 x.Reservation.ReservationCode.Contains(keyword) ||
                 x.Reservation.CustomerName.Contains(keyword) ||
                 x.Reservation.PhoneNumber.Contains(keyword) ||
+                (x.Reservation.Email != null &&
+                    x.Reservation.Email.Contains(keyword)) ||
                 x.TableName.Contains(keyword));
         }
 
@@ -48,7 +50,8 @@ public class GetReservationsWithPaginatedListQueryHandler
 
         if (request.FromDate.HasValue)
         {
-            query = query.Where(x => x.Reservation.ReservationTime >= request.FromDate.Value.Date);
+            query = query.Where(
+                x => x.Reservation.ReservationTime >= request.FromDate.Value.Date);
         }
 
         if (request.ToDate.HasValue)

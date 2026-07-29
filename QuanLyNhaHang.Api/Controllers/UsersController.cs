@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Common.Constants;
@@ -38,6 +38,9 @@ public class UsersController : ControllerBase
     [HasPermission(PermissionCodes.UsersView)]
     public async Task<IActionResult> GetWithPaginatedList(
         [FromQuery] string? keyword,
+        [FromQuery] string? role,
+        [FromQuery] bool? isActive,
+        [FromQuery] bool? isEmailVerified,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
@@ -45,6 +48,9 @@ public class UsersController : ControllerBase
         var query = new GetUsersWithPaginatedListQuery
         {
             Keyword = keyword,
+            Role = role,
+            IsActive = isActive,
+            IsEmailVerified = isEmailVerified,
             PageNumber = pageNumber,
             PageSize = pageSize
         };
