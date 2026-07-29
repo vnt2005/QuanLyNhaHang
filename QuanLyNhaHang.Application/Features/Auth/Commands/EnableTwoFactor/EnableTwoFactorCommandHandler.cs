@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
@@ -10,15 +10,18 @@ public class EnableTwoFactorCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IEmailService _emailService;
 
     public EnableTwoFactorCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IEmailService emailService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _passwordHasher = passwordHasher;
+        _emailService = emailService;
     }
 
     public async Task<string> Handle(
@@ -53,10 +56,18 @@ public class EnableTwoFactorCommandHandler
         if (user.TwoFactorEnabled)
             return "Tài khoản đã bật xác thực 2 yếu tố.";
 
+        await _emailService.SendAsync(
+            user.Email,
+            "Xác thực 2 yếu tố đã được bật",
+            "Kênh email bảo mật đã được kiểm tra thành công. " +
+            "Từ lần đăng nhập tiếp theo, hệ thống sẽ gửi mã xác thực " +
+            "dùng một lần tới địa chỉ email này.");
+
         user.EnableTwoFactor();
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return "Đã bật xác thực 2 yếu tố.";
+        return
+            "Đã bật xác thực 2 yếu tố và gửi email xác nhận.";
     }
 }

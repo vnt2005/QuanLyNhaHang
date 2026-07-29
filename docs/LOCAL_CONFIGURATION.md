@@ -1,10 +1,11 @@
 # Cấu hình local an toàn
 
-Tài liệu này chuẩn hóa cách chạy dự án với một SQL Server Docker dùng chung cho:
+Tài liệu này chuẩn hóa cách chạy dự án với SQL Server và Mailpit dùng chung cho:
 
 - API chạy trong Visual Studio;
 - API chạy bằng Docker Compose;
-- SQL Server Management Studio (SSMS).
+- SQL Server Management Studio (SSMS);
+- các luồng email xác minh, 2FA và đặt lại mật khẩu.
 
 Không lưu mật khẩu, JWT secret hoặc SMTP credential trong repository.
 
@@ -14,9 +15,15 @@ Không lưu mật khẩu, JWT secret hoặc SMTP credential trong repository.
 Visual Studio API  -- localhost,1433 --> SQL Server Docker
 Docker API         -- database,1433  --> SQL Server Docker
 SSMS               -- localhost,1433 --> SQL Server Docker
+
+Visual Studio API  -- localhost:1025 --> Mailpit Docker
+Docker API         -- mailpit:1025   --> Mailpit Docker
+Browser            -- localhost:8025 --> Hộp thư Mailpit
 ```
 
-`localhost,1433` và `database,1433` là hai địa chỉ truy cập khác nhau nhưng cùng trỏ tới service `database` trong Docker Compose.
+`localhost,1433` và `database,1433` là hai địa chỉ truy cập khác nhau nhưng cùng
+trỏ tới service `database`. Tương tự, `localhost:1025` và `mailpit:1025` cùng
+trỏ tới SMTP local của Mailpit.
 
 ## 1. Cấu hình Docker Compose bằng `.env`
 
@@ -31,27 +38,36 @@ Sửa `.env` bằng các giá trị local thật. Không commit file này.
 ```dotenv
 API_PORT=8080
 SQLSERVER_PORT=1433
+MAILPIT_WEB_PORT=8025
+MAILPIT_SMTP_PORT=1025
 FRONTEND_ORIGIN=http://localhost:5173
 MSSQL_SA_PASSWORD=<strong-local-password>
 JWT_SECRET_KEY=<long-random-secret-at-least-32-bytes>
 JWT_ISSUER=QuanLyNhaHang
 JWT_AUDIENCE=QuanLyNhaHang.Client
 JWT_EXPIRES_IN_MINUTES=60
-EMAIL_SMTP_HOST=smtp.gmail.com
-EMAIL_SMTP_PORT=587
-EMAIL_USERNAME=<smtp-account>
-EMAIL_PASSWORD=<smtp-app-password>
-EMAIL_FROM=<sender-address>
+EMAIL_SMTP_HOST=mailpit
+EMAIL_SMTP_PORT=1025
+EMAIL_ENABLE_SSL=false
+EMAIL_USE_AUTHENTICATION=false
+EMAIL_USERNAME=
+EMAIL_PASSWORD=
+EMAIL_FROM=noreply@quanlynhahang.local
 ```
 
-Khởi động riêng SQL Server Docker khi phát triển bằng Visual Studio:
+Khởi động SQL Server và hộp thư local khi phát triển bằng Visual Studio:
 
 ```powershell
-docker compose up -d database
+docker compose up -d database mailpit
 docker compose ps
 ```
 
-Không dùng `docker compose down -v` nếu cần giữ dữ liệu, vì tùy chọn `-v` xóa volume SQL Server.
+Mở `http://localhost:8025` để xem tất cả email xác minh, mã 2FA và mã đặt lại
+mật khẩu. Mailpit chỉ giữ email trong môi trường local và không gửi email thật
+ra Internet.
+
+Không dùng `docker compose down -v` nếu cần giữ dữ liệu, vì tùy chọn `-v` xóa
+cả volume SQL Server và hộp thư Mailpit.
 
 ## 2. Cấu hình Visual Studio bằng User Secrets
 
@@ -61,7 +77,7 @@ Trong Visual Studio:
 
 1. Nhấp chuột phải `QuanLyNhaHang.Api`.
 2. Chọn **Manage User Secrets**.
-3. Thay nội dung bằng mẫu sau và điền giá trị local thật.
+3. Giữ lại cấu hình database/JWT hiện có và đặt mục `Email` như sau.
 
 ```json
 {
@@ -80,37 +96,67 @@ Trong Visual Studio:
     ]
   },
   "Email": {
-    "SmtpHost": "smtp.gmail.com",
-    "SmtpPort": "587",
-    "Username": "<smtp-account>",
-    "Password": "<smtp-app-password>",
-    "From": "<sender-address>"
+    "SmtpHost": "localhost",
+    "SmtpPort": "1025",
+    "EnableSsl": "false",
+    "UseAuthentication": "false",
+    "From": "noreply@quanlynhahang.local"
   }
 }
 ```
 
-User Secrets chỉ dành cho phát triển local. File secrets nằm ngoài repository và không được Git theo dõi.
+Với Mailpit, không khai báo `Email:Username` hoặc `Email:Password`. User Secrets
+chỉ dành cho phát triển local, nằm ngoài repository và không được Git theo dõi.
 
-Factory design-time của EF Core dùng cùng `UserSecretsId` với project `QuanLyNhaHang.Api`. Vì vậy `Update-Database` trong Package Manager Console sẽ đọc `ConnectionStrings:DefaultConnection` từ User Secrets này, kể cả khi **Default project** là `QuanLyNhaHang.Infrastructure`.
+Factory design-time của EF Core dùng cùng `UserSecretsId` với project
+`QuanLyNhaHang.Api`. Vì vậy `Update-Database` trong Package Manager Console sẽ
+đọc `ConnectionStrings:DefaultConnection` từ User Secrets này, kể cả khi
+**Default project** là `QuanLyNhaHang.Infrastructure`.
 
-Có thể cấu hình bằng CLI thay cho giao diện Visual Studio:
+Khi chạy môi trường `Development` mà chưa cấu hình mục `Cors`, API mặc định chỉ
+cho phép frontend tại `http://localhost:5173` và `https://localhost:5173`.
+Môi trường khác phải khai báo rõ từng origin; không sử dụng wildcard `*`.
 
-```powershell
-dotnet user-secrets set --project QuanLyNhaHang.Api "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=QuanLyNhaHang;User Id=sa;Password=<strong-local-password>;Encrypt=True;TrustServerCertificate=True"
-dotnet user-secrets set --project QuanLyNhaHang.Api "Jwt:SecretKey" "<long-random-secret-at-least-32-bytes>"
-dotnet user-secrets set --project QuanLyNhaHang.Api "Jwt:Issuer" "QuanLyNhaHang"
-dotnet user-secrets set --project QuanLyNhaHang.Api "Jwt:Audience" "QuanLyNhaHang.Client"
-dotnet user-secrets set --project QuanLyNhaHang.Api "Jwt:ExpiresInMinutes" "60"
-dotnet user-secrets set --project QuanLyNhaHang.Api "Cors:AllowedOrigins:0" "http://localhost:5173"
+Không chụp màn hình hoặc chia sẻ kết quả `dotnet user-secrets list`, vì lệnh đó
+hiển thị giá trị bí mật.
+
+## 3. Kiểm thử Auth bằng Mailpit
+
+1. Chạy `docker compose up -d database mailpit`.
+2. Khởi động `QuanLyNhaHang.Api` bằng Visual Studio.
+3. Mở frontend tại `http://localhost:5173`.
+4. Mở hộp thư tại `http://localhost:8025`.
+5. Đăng nhập tài khoản bật 2FA.
+6. Mở email mới trong Mailpit và nhập mã 6 chữ số vào frontend.
+
+Khi bật 2FA, backend gửi email kiểm tra trước. Chỉ khi gửi thành công backend
+mới lưu `TwoFactorEnabled = true`. Vì vậy cấu hình SMTP lỗi sẽ không khóa tài
+khoản ở lần đăng nhập tiếp theo.
+
+Nếu SMTP không dùng được, API trả `503 Service Unavailable` cùng thông báo an
+toàn; chi tiết kỹ thuật chỉ nằm trong log backend và mã OTP không bị ghi ra log.
+
+## 4. Dùng SMTP thật ngoài môi trường local
+
+Mailpit chỉ phục vụ phát triển. Khi triển khai thật, dùng SMTP provider và cấu
+hình qua secret của môi trường:
+
+```dotenv
+EMAIL_SMTP_HOST=smtp.gmail.com
+EMAIL_SMTP_PORT=587
+EMAIL_ENABLE_SSL=true
+EMAIL_USE_AUTHENTICATION=true
+EMAIL_USERNAME=<smtp-account>
+EMAIL_PASSWORD=<smtp-app-password>
+EMAIL_FROM=<sender-address>
 ```
 
-Khi chạy môi trường `Development` mà chưa cấu hình mục `Cors`, API mặc định chỉ cho phép frontend tại `http://localhost:5173` và `https://localhost:5173`. Môi trường khác phải khai báo rõ từng origin; không sử dụng wildcard `*`.
+Không đặt SMTP credential trong `appsettings*.json`, source code hoặc Git.
 
-Không chụp màn hình hoặc chia sẻ kết quả `dotnet user-secrets list`, vì lệnh đó hiển thị giá trị bí mật.
+## 5. Dọn `appsettings.Development.json` local
 
-## 3. Dọn `appsettings.Development.json` local
-
-Các file `appsettings*.json` được Git bỏ qua, vì vậy pull code không tự sửa file local đang chứa bí mật.
+Các file `appsettings*.json` được Git bỏ qua, vì vậy pull code không tự sửa file
+local đang chứa bí mật.
 
 Xóa khỏi `appsettings.Development.json` các mục:
 
@@ -132,9 +178,10 @@ Có thể giữ lại các cài đặt không bí mật, ví dụ:
 }
 ```
 
-Khi chạy Visual Studio, dùng `Update-Database` để áp dụng migration vào SQL Server Docker tại `localhost,1433`.
+Khi chạy Visual Studio, dùng `Update-Database` để áp dụng migration vào SQL
+Server Docker tại `localhost,1433`.
 
-## 4. Chạy toàn bộ bằng Docker Compose
+## 6. Chạy toàn bộ bằng Docker Compose
 
 Dừng API Visual Studio trước, sau đó chạy:
 
@@ -142,11 +189,14 @@ Dừng API Visual Studio trước, sau đó chạy:
 docker compose up --build -d
 ```
 
-Docker API dùng `Server=database,1433`; Visual Studio và SSMS dùng `Server=localhost,1433`. Cả hai đều truy cập cùng database `QuanLyNhaHang`.
+Docker API dùng `Server=database,1433`; Visual Studio và SSMS dùng
+`Server=localhost,1433`. Cả hai đều truy cập cùng database `QuanLyNhaHang`.
+Docker API dùng `mailpit:1025`, còn Visual Studio API dùng `localhost:1025`.
 
-Docker Compose đang bật tự động migration cho API container. EF Core chỉ áp dụng migration chưa có trong `__EFMigrationsHistory`.
+Docker Compose đang bật tự động migration cho API container. EF Core chỉ áp
+dụng migration chưa có trong `__EFMigrationsHistory`.
 
-## 5. Kiểm tra đúng database
+## 7. Kiểm tra đúng database
 
 Trong SSMS, kết nối:
 
@@ -174,13 +224,15 @@ FROM dbo.AuthSessions
 ORDER BY CreatedAt DESC;
 ```
 
-## 6. Xoay bí mật đã từng hiển thị
+## 8. Xoay bí mật đã từng hiển thị
 
-Nếu một bí mật đã xuất hiện trong ảnh, video, log hoặc tin nhắn, coi bí mật đó là đã lộ và tạo giá trị mới:
+Nếu một bí mật đã xuất hiện trong ảnh, video, log hoặc tin nhắn, coi bí mật đó
+là đã lộ và tạo giá trị mới:
 
 - Gmail App Password;
 - JWT secret;
 - mật khẩu tài khoản `sa`;
 - API key khác nếu có.
 
-Sau khi xoay, cập nhật đồng thời `.env` và User Secrets. Không đưa giá trị mới vào `appsettings*.json` hoặc commit Git.
+Sau khi xoay, cập nhật đồng thời `.env` và User Secrets. Không đưa giá trị mới
+vào `appsettings*.json` hoặc commit Git.
