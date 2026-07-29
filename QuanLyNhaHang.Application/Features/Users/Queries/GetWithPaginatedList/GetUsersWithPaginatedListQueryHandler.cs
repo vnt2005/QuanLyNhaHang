@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Models;
@@ -34,6 +34,23 @@ public class GetUsersWithPaginatedListQueryHandler
                 ((x.Ho ?? "") + " " + x.Ten).Contains(keyword) ||
                 x.Email.Contains(keyword) ||
                 x.PhoneNumber.Contains(keyword));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Role))
+        {
+            var role = request.Role.Trim();
+            query = query.Where(x => x.Role == role);
+        }
+
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(x => x.IsActive == request.IsActive.Value);
+        }
+
+        if (request.IsEmailVerified.HasValue)
+        {
+            query = query.Where(
+                x => x.IsEmailVerified == request.IsEmailVerified.Value);
         }
 
         var result = query
