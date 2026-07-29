@@ -11,7 +11,6 @@ import {
   resendVerificationEmail,
   resetPassword,
   verifyEmail,
-  verifyTwoFactor,
   type LoginResult,
 } from '../api/auth'
 
@@ -19,7 +18,6 @@ type AuthMode =
   | 'login'
   | 'register'
   | 'registration-complete'
-  | 'two-factor'
   | 'verify-email'
   | 'forgot-password'
   | 'reset-password'
@@ -50,11 +48,6 @@ const modeContent: Record<AuthMode, {
     eyebrow: 'ĐĂNG KÝ HOÀN TẤT',
     title: 'Email đã được xác minh',
     description: 'Tài khoản khách hàng của bạn đã sẵn sàng sử dụng.',
-  },
-  'two-factor': {
-    eyebrow: 'XÁC THỰC 2 BƯỚC',
-    title: 'Nhập mã đăng nhập',
-    description: 'Mã gồm 6 chữ số đã được gửi tới email của bạn.',
   },
   'verify-email': {
     eyebrow: 'XÁC MINH EMAIL',
@@ -137,14 +130,6 @@ export default function AuthPage({
     setMessage('')
     try {
       const result = await login({ email, password })
-      if (result.requiresTwoFactor) {
-        setMode('two-factor')
-        setMessage(
-          result.message
-            ?? 'Vui lòng kiểm tra email để lấy mã xác thực.',
-        )
-        return
-      }
       await completeAuthentication(result)
     } catch (exception) {
       const errorMessage = getErrorMessage(exception)
@@ -202,45 +187,6 @@ export default function AuthPage({
         result.message
           ?? 'Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.',
       )
-    } catch (exception) {
-      setError(getErrorMessage(exception))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function submitTwoFactor(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (code.trim().length !== 6) {
-      setError('Mã xác thực phải gồm 6 chữ số.')
-      return
-    }
-    setLoading(true)
-    setError('')
-    try {
-      const result = await verifyTwoFactor(email, code)
-      await completeAuthentication(result)
-    } catch (exception) {
-      setError(getErrorMessage(exception))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function resendTwoFactorCode() {
-    if (!email.trim() || !password) {
-      setError('Vui lòng quay lại đăng nhập để yêu cầu mã mới.')
-      return
-    }
-    setLoading(true)
-    setError('')
-    try {
-      const result = await login({ email, password })
-      setMessage(
-        result.message
-          ?? 'Mã xác thực mới đã được gửi tới email của bạn.',
-      )
-      setCode('')
     } catch (exception) {
       setError(getErrorMessage(exception))
     } finally {
@@ -365,8 +311,8 @@ export default function AuthPage({
           <article>
             <span>✓</span>
             <div>
-              <strong>Xác thực hai yếu tố</strong>
-              <small>Mã đăng nhập một lần được gửi qua email.</small>
+              <strong>Khôi phục tài khoản</strong>
+              <small>Đặt lại mật khẩu an toàn qua email đã xác minh.</small>
             </div>
           </article>
           <article>
@@ -556,49 +502,6 @@ export default function AuthPage({
                 Quay lại đăng nhập nhân viên
               </button>
             </div>
-          )}
-
-          {mode === 'two-factor' && (
-            <form onSubmit={submitTwoFactor}>
-              <div className="auth-email-chip">
-                <span>@</span>
-                <div>
-                  <small>Mã được gửi tới</small>
-                  <strong>{email}</strong>
-                </div>
-              </div>
-              <label>
-                Mã xác thực 6 chữ số
-                <input
-                  className="auth-code-input"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  pattern="[0-9]{6}"
-                  placeholder="000000"
-                  value={code}
-                  onChange={event => setCode(
-                    event.target.value.replace(/\D/g, '').slice(0, 6),
-                  )}
-                  required
-                  autoFocus
-                />
-              </label>
-              <button className="auth-submit" disabled={loading}>
-                {loading ? 'Đang xác thực…' : 'Xác thực và đăng nhập'}
-              </button>
-              <button
-                className="auth-secondary"
-                type="button"
-                onClick={() => void resendTwoFactorCode()}
-                disabled={loading}
-              >
-                Gửi mã mới
-              </button>
-              <small className="auth-hint">
-                Mã có hiệu lực trong 5 phút. Không chia sẻ mã này với người khác.
-              </small>
-            </form>
           )}
 
           {mode === 'verify-email' && (
