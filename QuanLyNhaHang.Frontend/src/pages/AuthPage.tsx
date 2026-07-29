@@ -5,8 +5,10 @@ import {
   useState,
 } from 'react'
 import {
+  changePassword,
   forgotPassword,
   login,
+  logoutSession,
   register,
   resendVerificationEmail,
   resetPassword,
@@ -19,6 +21,7 @@ type AuthMode =
   | 'register'
   | 'registration-complete'
   | 'verify-email'
+  | 'change-password'
   | 'forgot-password'
   | 'reset-password'
 
@@ -54,6 +57,11 @@ const modeContent: Record<AuthMode, {
     title: 'Xác minh tài khoản',
     description: 'Nhập mã xác minh trong email để kích hoạt đăng nhập.',
   },
+  'change-password': {
+    eyebrow: 'BẢO MẬT TÀI KHOẢN',
+    title: 'Đổi mật khẩu',
+    description: 'Xác nhận mật khẩu hiện tại trước khi tạo mật khẩu mới.',
+  },
   'forgot-password': {
     eyebrow: 'KHÔI PHỤC TÀI KHOẢN',
     title: 'Quên mật khẩu',
@@ -87,6 +95,7 @@ export default function AuthPage({
   const [ho, setHo] = useState('')
   const [ten, setTen] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [code, setCode] = useState('')
@@ -106,6 +115,7 @@ export default function AuthPage({
     setError('')
     setMessage('')
     setCode('')
+    setCurrentPassword('')
     setPassword('')
     setConfirmPassword('')
     if (nextMode !== 'verify-email') {
@@ -255,6 +265,80 @@ export default function AuthPage({
     }
   }
 
+  async function submitChangePassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!email.trim() || !currentPassword) {
+      setError('Vui lòng nhập email và mật khẩu hiện tại.')
+      return
+    }
+    if (password.length < 8) {
+      setError('Mật khẩu mới phải có ít nhất 8 ký tự.')
+      return
+    }
+    if (password !== confirmPassword) {
+      setError('Xác nhận mật khẩu mới không khớp.')
+      return
+    }
+    if (password === currentPassword) {
+      setError('Mật khẩu mới phải khác mật khẩu hiện tại.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    setMessage('')
+    let temporaryRefreshToken = ''
+
+    try {
+      const authentication = await login({
+        email,
+        password: currentPassword,
+      })
+      if (!authentication.token) {
+        throw new Error('Backend không trả về phiên xác thực hợp lệ.')
+      }
+
+      temporaryRefreshToken = authentication.refreshToken ?? ''
+      const resultMessage = await changePassword(
+        {
+          currentPassword,
+          newPassword: password,
+          confirmNewPassword: confirmPassword,
+        },
+        authentication.token,
+      )
+
+      setMode('login')
+      setCurrentPassword('')
+      setPassword('')
+      setConfirmPassword('')
+      setMessage(`${resultMessage} Vui lòng đăng nhập bằng mật khẩu mới.`)
+    } catch (exception) {
+      const errorMessage = getErrorMessage(exception)
+      if (isUnverifiedEmailMessage(errorMessage)) {
+        setMode('verify-email')
+        setVerificationFromRegistration(false)
+        setCurrentPassword('')
+        setPassword('')
+        setConfirmPassword('')
+        setMessage(
+          'Email chưa được xác minh. Hãy xác minh email trước khi đổi mật khẩu.',
+        )
+      } else {
+        setError(errorMessage)
+      }
+    } finally {
+      if (temporaryRefreshToken) {
+        try {
+          await logoutSession(temporaryRefreshToken)
+        } catch {
+          // Changing the password may already revoke this temporary session.
+        }
+      }
+      setLoading(false)
+    }
+  }
+
   async function submitResetPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (code.trim().length !== 6) {
@@ -379,9 +463,22 @@ export default function AuthPage({
                   required
                 />
               </label>
-              <button className="auth-link" type="button" onClick={() => changeMode('forgot-password')}>
-                Quên mật khẩu?
-              </button>
+              <div className="auth-login-links">
+                <button
+                  className="auth-link"
+                  type="button"
+                  onClick={() => changeMode('change-password')}
+                >
+                  Đổi mật khẩu
+                </button>
+                <button
+                  className="auth-link"
+                  type="button"
+                  onClick={() => changeMode('forgot-password')}
+                >
+                  Quên mật khẩu?
+                </button>
+              </div>
               <button className="auth-submit" disabled={loading}>
                 {loading ? 'Đang đăng nhập…' : 'Đăng nhập'}
               </button>
@@ -394,6 +491,63 @@ export default function AuthPage({
                   Tạo tài khoản khách hàng
                 </button>
               </div>
+            </form>
+          )}
+
+          {mode === 'change-password' && (
+            <form onSubmit={submitChangePassword}>
+              <label>
+                Email tài khoản
+                <input
+                  type="email"
+                  autoComplete="username"
+                  placeholder="admin@nhahang.vn"
+                  value={email}
+                  onChange={event => setEmail(event.target.value)}
+                  required
+                  autoFocus
+                />
+              </label>
+              <label>
+                Mật khẩu hiện tại
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={event => setCurrentPassword(event.target.value)}
+                  required
+                />
+              </label>
+              <div className="auth-form-grid">
+                <label>
+                  Mật khẩu mới
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    value={password}
+                    onChange={event => setPassword(event.target.value)}
+                    required
+                  />
+                </label>
+                <label>
+                  Xác nhận mật khẩu mới
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={event => setConfirmPassword(event.target.value)}
+                    required
+                  />
+                </label>
+              </div>
+              <button className="auth-submit" disabled={loading}>
+                {loading ? 'Đang đổi mật khẩu…' : 'Đổi mật khẩu'}
+              </button>
+              <small className="auth-hint">
+                Sau khi đổi thành công, mọi phiên đăng nhập hiện có sẽ bị thu hồi.
+              </small>
             </form>
           )}
 
