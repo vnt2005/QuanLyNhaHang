@@ -23,6 +23,12 @@ export type UserForm = {
   isActive: boolean
 }
 
+export type UserFilters = {
+  role?: string
+  isActive?: boolean
+  isEmailVerified?: boolean
+}
+
 export type Role = {
   id: string
   name: string
@@ -70,7 +76,11 @@ type ApiEnvelope<T> = { success?: boolean; message?: string; data?: T }
 
 function getErrorMessage(body: unknown): string {
   if (!body || typeof body !== 'object') return 'Yêu cầu không thành công.'
-  const value = body as { message?: string; title?: string; errors?: Record<string, string[]> }
+  const value = body as {
+    message?: string
+    title?: string
+    errors?: Record<string, string[]>
+  }
   if (value.message) return value.message
   if (value.errors) {
     const first = Object.values(value.errors).flat().find(Boolean)
@@ -94,9 +104,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export function getUsers(keyword = '', pageNumber = 1, pageSize = 10) {
-  const params = new URLSearchParams({ pageNumber: String(pageNumber), pageSize: String(pageSize) })
+export function getUsers(
+  keyword = '',
+  pageNumber = 1,
+  pageSize = 10,
+  filters: UserFilters = {},
+) {
+  const params = new URLSearchParams({
+    pageNumber: String(pageNumber),
+    pageSize: String(pageSize),
+  })
   if (keyword.trim()) params.set('keyword', keyword.trim())
+  if (filters.role?.trim()) params.set('role', filters.role.trim())
+  if (typeof filters.isActive === 'boolean') {
+    params.set('isActive', String(filters.isActive))
+  }
+  if (typeof filters.isEmailVerified === 'boolean') {
+    params.set('isEmailVerified', String(filters.isEmailVerified))
+  }
   return request<PaginatedUsers>(`/api/Users/paginated?${params}`)
 }
 
@@ -115,7 +140,11 @@ export function getRoles(isActive?: boolean) {
 export function createRole(form: RoleForm) {
   return request<ApiEnvelope<Role>>('/api/roles', {
     method: 'POST',
-    body: JSON.stringify({ name: form.name, displayName: form.displayName, description: form.description || null }),
+    body: JSON.stringify({
+      name: form.name,
+      displayName: form.displayName,
+      description: form.description || null,
+    }),
   })
 }
 
@@ -123,25 +152,45 @@ export function updateRole(form: RoleForm) {
   if (!form.id) throw new Error('Thiếu mã vai trò cần cập nhật.')
   return request<ApiEnvelope<Role>>(`/api/roles/${form.id}`, {
     method: 'PUT',
-    body: JSON.stringify({ displayName: form.displayName, description: form.description || null, isActive: form.isActive }),
+    body: JSON.stringify({
+      displayName: form.displayName,
+      description: form.description || null,
+      isActive: form.isActive,
+    }),
   })
 }
 
 export function deactivateRole(id: string) {
-  return request<ApiEnvelope<never>>(`/api/roles/${id}`, { method: 'DELETE' })
+  return request<ApiEnvelope<never>>(`/api/roles/${id}`, {
+    method: 'DELETE',
+  })
 }
 
 export function syncSystemRoles() {
-  return request<ApiEnvelope<unknown>>('/api/roles/sync-system', { method: 'POST' })
+  return request<ApiEnvelope<unknown>>('/api/roles/sync-system', {
+    method: 'POST',
+  })
 }
 
 export function getRolePermissionSelection(roleId: string) {
-  return request<RolePermissionSelection>(`/api/role-permissions/roles/${roleId}/selection`)
+  return request<RolePermissionSelection>(
+    `/api/role-permissions/roles/${roleId}/selection`,
+  )
 }
 
-export function updateRolePermissions(roleId: string, permissionIds: string[]) {
-  return request<ApiEnvelope<unknown>>(`/api/role-permissions/roles/${roleId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ roleId, permissionIds, confirmRemoveAll: permissionIds.length === 0 }),
-  })
+export function updateRolePermissions(
+  roleId: string,
+  permissionIds: string[],
+) {
+  return request<ApiEnvelope<unknown>>(
+    `/api/role-permissions/roles/${roleId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({
+        roleId,
+        permissionIds,
+        confirmRemoveAll: permissionIds.length === 0,
+      }),
+    },
+  )
 }
