@@ -77,9 +77,6 @@ export default function App() {
   const acceptAuthentication = useCallback(async (
     nextResult: LoginResult,
   ): Promise<string | void> => {
-    if (nextResult.requiresTwoFactor) {
-      return 'Vui lòng hoàn tất xác thực hai yếu tố để tiếp tục.'
-    }
     if (!nextResult.token || !nextResult.refreshToken) {
       clearStoredAuth()
       return 'Backend không trả về phiên đăng nhập hợp lệ.'
@@ -238,9 +235,6 @@ export default function App() {
         return (
           <AccountSecurityPage
             auth={authenticatedResult}
-            onUserUpdated={changes => {
-              setResult(current => current ? { ...current, ...changes } : current)
-            }}
             onRequireLogin={clearSession}
           />
         )
