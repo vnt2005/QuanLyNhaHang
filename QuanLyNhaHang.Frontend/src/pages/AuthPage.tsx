@@ -7,6 +7,7 @@ import {
 import {
   forgotPassword,
   login,
+  register,
   resendVerificationEmail,
   resetPassword,
   verifyEmail,
@@ -16,6 +17,8 @@ import {
 
 type AuthMode =
   | 'login'
+  | 'register'
+  | 'registration-complete'
   | 'two-factor'
   | 'verify-email'
   | 'forgot-password'
@@ -37,6 +40,16 @@ const modeContent: Record<AuthMode, {
     eyebrow: 'ADMIN PORTAL',
     title: 'Đăng nhập hệ thống',
     description: 'Sử dụng tài khoản nhân viên đã được cấp để tiếp tục.',
+  },
+  register: {
+    eyebrow: 'CUSTOMER ACCOUNT',
+    title: 'Đăng ký tài khoản',
+    description: 'Tạo tài khoản Customer để sử dụng dịch vụ dành cho khách hàng.',
+  },
+  'registration-complete': {
+    eyebrow: 'ĐĂNG KÝ HOÀN TẤT',
+    title: 'Email đã được xác minh',
+    description: 'Tài khoản khách hàng của bạn đã sẵn sàng sử dụng.',
   },
   'two-factor': {
     eyebrow: 'XÁC THỰC 2 BƯỚC',
@@ -78,12 +91,17 @@ export default function AuthPage({
 }: AuthPageProps) {
   const [mode, setMode] = useState<AuthMode>('login')
   const [email, setEmail] = useState('')
+  const [ho, setHo] = useState('')
+  const [ten, setTen] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState(initialMessage)
+  const [verificationFromRegistration, setVerificationFromRegistration] =
+    useState(false)
   const content = useMemo(() => modeContent[mode], [mode])
 
   useEffect(() => {
@@ -95,7 +113,11 @@ export default function AuthPage({
     setError('')
     setMessage('')
     setCode('')
+    setPassword('')
     setConfirmPassword('')
+    if (nextMode !== 'verify-email') {
+      setVerificationFromRegistration(false)
+    }
   }
 
   async function completeAuthentication(result: LoginResult) {
@@ -128,12 +150,60 @@ export default function AuthPage({
       const errorMessage = getErrorMessage(exception)
       if (isUnverifiedEmailMessage(errorMessage)) {
         setMode('verify-email')
+        setVerificationFromRegistration(false)
         setMessage(
           'Email chưa được xác minh. Nhập mã đã nhận hoặc yêu cầu gửi mã mới.',
         )
       } else {
         setError(errorMessage)
       }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function submitRegistration(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!ten.trim()) {
+      setError('Vui lòng nhập tên khách hàng.')
+      return
+    }
+    if (!phoneNumber.trim()) {
+      setError('Vui lòng nhập số điện thoại.')
+      return
+    }
+    if (password.length < 8) {
+      setError('Mật khẩu phải có ít nhất 8 ký tự.')
+      return
+    }
+    if (password !== confirmPassword) {
+      setError('Xác nhận mật khẩu không khớp.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    setMessage('')
+    try {
+      const result = await register({
+        ho,
+        ten,
+        email,
+        phoneNumber,
+        password,
+      })
+      setEmail(result.email ?? email.trim().toLowerCase())
+      setPassword('')
+      setConfirmPassword('')
+      setCode('')
+      setVerificationFromRegistration(true)
+      setMode('verify-email')
+      setMessage(
+        result.message
+          ?? 'Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.',
+      )
+    } catch (exception) {
+      setError(getErrorMessage(exception))
     } finally {
       setLoading(false)
     }
@@ -188,9 +258,14 @@ export default function AuthPage({
     setError('')
     try {
       const resultMessage = await verifyEmail(email, code)
-      setMode('login')
       setCode('')
-      setMessage(`${resultMessage} Bạn có thể đăng nhập ngay.`)
+      if (verificationFromRegistration) {
+        setMode('registration-complete')
+        setMessage(resultMessage)
+      } else {
+        setMode('login')
+        setMessage(`${resultMessage} Bạn có thể đăng nhập ngay.`)
+      }
     } catch (exception) {
       setError(getErrorMessage(exception))
     } finally {
@@ -313,7 +388,7 @@ export default function AuthPage({
 
       <section className="auth-form-panel">
         <div className="auth-card">
-          {mode !== 'login' && (
+          {mode !== 'login' && mode !== 'registration-complete' && (
             <button
               type="button"
               className="auth-back-button"
@@ -364,7 +439,123 @@ export default function AuthPage({
               <button className="auth-submit" disabled={loading}>
                 {loading ? 'Đang đăng nhập…' : 'Đăng nhập'}
               </button>
+              <div className="auth-register-prompt">
+                <span>Bạn là khách hàng mới?</span>
+                <button
+                  type="button"
+                  onClick={() => changeMode('register')}
+                >
+                  Tạo tài khoản khách hàng
+                </button>
+              </div>
             </form>
+          )}
+
+          {mode === 'register' && (
+            <form onSubmit={submitRegistration}>
+              <div className="auth-register-note">
+                <span>i</span>
+                <div>
+                  <strong>Đăng ký dành riêng cho khách hàng</strong>
+                  <small>
+                    Tài khoản nhân viên do Admin tạo và không đăng ký tại đây.
+                  </small>
+                </div>
+              </div>
+              <div className="auth-form-grid">
+                <label>
+                  Họ <small>(không bắt buộc)</small>
+                  <input
+                    type="text"
+                    autoComplete="family-name"
+                    value={ho}
+                    onChange={event => setHo(event.target.value)}
+                    autoFocus
+                  />
+                </label>
+                <label>
+                  Tên
+                  <input
+                    type="text"
+                    autoComplete="given-name"
+                    value={ten}
+                    onChange={event => setTen(event.target.value)}
+                    required
+                  />
+                </label>
+              </div>
+              <label>
+                Email
+                <input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="khachhang@example.com"
+                  value={email}
+                  onChange={event => setEmail(event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Số điện thoại
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="Nhập số điện thoại"
+                  value={phoneNumber}
+                  onChange={event => setPhoneNumber(event.target.value)}
+                  required
+                />
+              </label>
+              <div className="auth-form-grid">
+                <label>
+                  Mật khẩu
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    value={password}
+                    onChange={event => setPassword(event.target.value)}
+                    required
+                  />
+                </label>
+                <label>
+                  Xác nhận mật khẩu
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={event => setConfirmPassword(event.target.value)}
+                    required
+                  />
+                </label>
+              </div>
+              <button className="auth-submit" disabled={loading}>
+                {loading ? 'Đang tạo tài khoản…' : 'Đăng ký và nhận mã'}
+              </button>
+              <small className="auth-hint">
+                Hệ thống không tạo phiên đăng nhập cho tới khi email được xác minh.
+              </small>
+            </form>
+          )}
+
+          {mode === 'registration-complete' && (
+            <div className="auth-registration-complete">
+              <span>✓</span>
+              <strong>Tài khoản Customer đã được kích hoạt</strong>
+              <p>
+                {email} đã xác minh thành công. Tài khoản này dùng cho dịch vụ
+                khách hàng và không có quyền truy cập Admin Portal.
+              </p>
+              <button
+                type="button"
+                className="auth-secondary"
+                onClick={() => changeMode('login')}
+              >
+                Quay lại đăng nhập nhân viên
+              </button>
+            </div>
           )}
 
           {mode === 'two-factor' && (
@@ -450,6 +641,10 @@ export default function AuthPage({
               >
                 Gửi lại mã xác minh
               </button>
+              <small className="auth-hint">
+                Mã có hiệu lực trong 10 phút. Sau 5 lần nhập sai, yêu cầu xác
+                minh sẽ bị khóa 15 phút.
+              </small>
             </form>
           )}
 
