@@ -12,6 +12,7 @@ import AccountSecurityPage from './pages/AccountSecurityPage'
 import ActivityLogsPage from './pages/ActivityLogsPage'
 import AreasTablesPage from './pages/AreasTablesPage'
 import AuthPage from './pages/AuthPage'
+import CustomerManagementPage from './pages/CustomerManagementPage'
 import DashboardPage from './pages/DashboardPage'
 import EmployeePage from './pages/EmployeePage'
 import InvoicesPage from './pages/InvoicesPage'
@@ -28,11 +29,14 @@ import ShiftsSchedulingPage from './pages/ShiftsSchedulingPage'
 import TableQrCodesPage from './pages/TableQrCodesPage'
 
 const navigation = [
-  ['Tổng quan', '⌂'], ['Nhân viên', '◉'], ['Ca làm việc & phân ca', '◷'], ['Tài khoản & phân quyền', '◆'],
-  ['Khu vực & bàn', '▦'], ['Đặt bàn', '◫'], ['QR bàn', '▥'], ['Thực đơn', '☷'], ['Đơn hàng', '▣'],
-  ['Bếp', '♨'], ['Thanh toán', '₫'], ['Hóa đơn', '▤'], ['Báo cáo doanh thu', '↗'],
-  ['Khuyến mãi', '◇'], ['Kho nguyên liệu', '▧'], ['Nhật ký hoạt động', '◴'],
-  ['Bảo mật tài khoản', '◈'], ['Cấu hình nhà hàng', '⚙'],
+  ['Tổng quan', '⌂'], ['Nhân viên', '◉'], ['Khách hàng', '♙'],
+  ['Ca làm việc & phân ca', '◷'], ['Tài khoản & phân quyền', '◆'],
+  ['Khu vực & bàn', '▦'], ['Đặt bàn', '◫'], ['QR bàn', '▥'],
+  ['Thực đơn', '☷'], ['Đơn hàng', '▣'], ['Bếp', '♨'],
+  ['Thanh toán', '₫'], ['Hóa đơn', '▤'], ['Báo cáo doanh thu', '↗'],
+  ['Khuyến mãi', '◇'], ['Kho nguyên liệu', '▧'],
+  ['Nhật ký hoạt động', '◴'], ['Bảo mật tài khoản', '◈'],
+  ['Cấu hình nhà hàng', '⚙'],
 ]
 
 const ADMIN_ROLES = new Set([
@@ -203,6 +207,8 @@ export default function App() {
     switch (activeItem) {
       case 'Nhân viên':
         return <EmployeePage/>
+      case 'Khách hàng':
+        return <CustomerManagementPage/>
       case 'Ca làm việc & phân ca':
         return <ShiftsSchedulingPage/>
       case 'Tài khoản & phân quyền':
@@ -291,11 +297,15 @@ export default function App() {
           <div className="topbar-actions">
             <button
               type="button"
-              className={`profile profile-button${activeItem === 'Bảo mật tài khoản' ? ' active' : ''}`}
+              className={`profile profile-button${
+                activeItem === 'Bảo mật tài khoản' ? ' active' : ''
+              }`}
               onClick={() => setActiveItem('Bảo mật tài khoản')}
               aria-label="Mở bảo mật tài khoản"
             >
-              <span>{displayName.charAt(0).toLocaleUpperCase('vi')}</span>
+              <span>
+                {displayName.charAt(0).toLocaleUpperCase('vi')}
+              </span>
               <div>
                 <strong>{displayName}</strong>
                 <small>{authenticatedResult.role ?? 'Admin'}</small>
