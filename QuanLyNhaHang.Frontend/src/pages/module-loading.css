@@ -1,0 +1,1 @@
+.module-loading{display:grid;min-height:260px;place-items:center;gap:12px;margin-top:28px;padding:40px;border:1px solid #e1e8ef;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(25,45,72,.05);text-align:center}.module-loading>div{display:grid;gap:6px}.module-loading strong{color:#31465a;font-size:14px}.module-loading small{color:#7f8fa1;font-size:11px;line-height:1.5}

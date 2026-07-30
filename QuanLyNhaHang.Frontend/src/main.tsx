@@ -21,6 +21,7 @@ import './pages/restaurant-settings.css'
 import './pages/promotions.css'
 import './pages/inventory.css'
 import './pages/auth-security.css'
+import './pages/module-loading.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 import {
   clearStoredAuth,
   getStoredRefreshToken,
@@ -7,82 +13,176 @@ import {
   storeAuthResult,
   type LoginResult,
 } from './api/auth'
-import AccessManagementPage from './pages/AccessManagementPage'
-import AccountSecurityPage from './pages/AccountSecurityPage'
-import ActivityLogsPage from './pages/ActivityLogsPage'
-import AreasTablesPage from './pages/AreasTablesPage'
 import AuthPage from './pages/AuthPage'
-import CustomerManagementPage from './pages/CustomerManagementPage'
-import DashboardPage from './pages/DashboardPage'
-import EmployeePage from './pages/EmployeePage'
-import InvoicesPage from './pages/InvoicesPage'
-import InventoryPage from './pages/InventoryPage'
-import KitchenPage from './pages/KitchenPage'
-import MenuManagementPage from './pages/MenuManagementPage'
-import OrdersPage from './pages/OrdersPage'
-import PaymentsPage from './pages/PaymentsPage'
-import PromotionsPage from './pages/PromotionsPage'
-import ReservationsPage from './pages/ReservationsPage'
-import RestaurantSettingsPage from './pages/RestaurantSettingsPage'
-import RevenueReportsPage from './pages/RevenueReportsPage'
-import ShiftsSchedulingPage from './pages/ShiftsSchedulingPage'
-import TableOperationsPage from './pages/TableOperationsPage'
-import TableQrCodesPage from './pages/TableQrCodesPage'
+
+const loadAccessManagementPage = () => import('./pages/AccessManagementPage')
+const loadAccountSecurityPage = () => import('./pages/AccountSecurityPage')
+const loadActivityLogsPage = () => import('./pages/ActivityLogsPage')
+const loadAreasTablesPage = () => import('./pages/AreasTablesPage')
+const loadCustomerManagementPage = () => import('./pages/CustomerManagementPage')
+const loadDashboardPage = () => import('./pages/DashboardPage')
+const loadEmployeePage = () => import('./pages/EmployeePage')
+const loadInvoicesPage = () => import('./pages/InvoicesPage')
+const loadInventoryPage = () => import('./pages/InventoryPage')
+const loadKitchenPage = () => import('./pages/KitchenPage')
+const loadMenuManagementPage = () => import('./pages/MenuManagementPage')
+const loadOrdersPage = () => import('./pages/OrdersPage')
+const loadPaymentsPage = () => import('./pages/PaymentsPage')
+const loadPromotionsPage = () => import('./pages/PromotionsPage')
+const loadReservationsPage = () => import('./pages/ReservationsPage')
+const loadRestaurantSettingsPage = () => import('./pages/RestaurantSettingsPage')
+const loadRevenueReportsPage = () => import('./pages/RevenueReportsPage')
+const loadShiftsSchedulingPage = () => import('./pages/ShiftsSchedulingPage')
+const loadTableOperationsPage = () => import('./pages/TableOperationsPage')
+const loadTableQrCodesPage = () => import('./pages/TableQrCodesPage')
+
+const AccessManagementPage = lazy(loadAccessManagementPage)
+const AccountSecurityPage = lazy(loadAccountSecurityPage)
+const ActivityLogsPage = lazy(loadActivityLogsPage)
+const AreasTablesPage = lazy(loadAreasTablesPage)
+const CustomerManagementPage = lazy(loadCustomerManagementPage)
+const DashboardPage = lazy(loadDashboardPage)
+const EmployeePage = lazy(loadEmployeePage)
+const InvoicesPage = lazy(loadInvoicesPage)
+const InventoryPage = lazy(loadInventoryPage)
+const KitchenPage = lazy(loadKitchenPage)
+const MenuManagementPage = lazy(loadMenuManagementPage)
+const OrdersPage = lazy(loadOrdersPage)
+const PaymentsPage = lazy(loadPaymentsPage)
+const PromotionsPage = lazy(loadPromotionsPage)
+const ReservationsPage = lazy(loadReservationsPage)
+const RestaurantSettingsPage = lazy(loadRestaurantSettingsPage)
+const RevenueReportsPage = lazy(loadRevenueReportsPage)
+const ShiftsSchedulingPage = lazy(loadShiftsSchedulingPage)
+const TableOperationsPage = lazy(loadTableOperationsPage)
+const TableQrCodesPage = lazy(loadTableQrCodesPage)
 
 type NavigationItem = {
   label: string
   icon: string
   permissions?: string[]
+  preload?: () => Promise<unknown>
 }
 
 const navigation: NavigationItem[] = [
-  { label: 'Tổng quan', icon: '⌂', permissions: ['Dashboard.View'] },
-  { label: 'Nhân viên', icon: '◉', permissions: ['Employees.View'] },
-  { label: 'Khách hàng', icon: '♙', permissions: ['Users.View'] },
+  {
+    label: 'Tổng quan',
+    icon: '⌂',
+    permissions: ['Dashboard.View'],
+    preload: loadDashboardPage,
+  },
+  {
+    label: 'Nhân viên',
+    icon: '◉',
+    permissions: ['Employees.View'],
+    preload: loadEmployeePage,
+  },
+  {
+    label: 'Khách hàng',
+    icon: '♙',
+    permissions: ['Users.View'],
+    preload: loadCustomerManagementPage,
+  },
   {
     label: 'Ca làm việc & phân ca',
     icon: '◷',
     permissions: ['Shifts.View', 'EmployeeShifts.View'],
+    preload: loadShiftsSchedulingPage,
   },
   {
     label: 'Tài khoản & phân quyền',
     icon: '◆',
     permissions: ['Users.View', 'Roles.View', 'Permissions.View', 'RolePermissions.View'],
+    preload: loadAccessManagementPage,
   },
-  { label: 'Khu vực & bàn', icon: '▦', permissions: ['Tables.View'] },
+  {
+    label: 'Khu vực & bàn',
+    icon: '▦',
+    permissions: ['Tables.View'],
+    preload: loadAreasTablesPage,
+  },
   {
     label: 'Chuyển / gộp / tách bàn',
     icon: '⇄',
     permissions: ['TableOperations.View'],
+    preload: loadTableOperationsPage,
   },
-  { label: 'Đặt bàn', icon: '◫', permissions: ['Reservations.View'] },
-  { label: 'QR bàn', icon: '▥', permissions: ['Tables.View'] },
-  { label: 'Thực đơn', icon: '☷', permissions: ['Menu.View'] },
-  { label: 'Đơn hàng', icon: '▣', permissions: ['Orders.View'] },
-  { label: 'Bếp', icon: '♨', permissions: ['Kitchen.View'] },
-  { label: 'Thanh toán', icon: '₫', permissions: ['Payments.View'] },
-  { label: 'Hóa đơn', icon: '▤', permissions: ['Invoices.View'] },
+  {
+    label: 'Đặt bàn',
+    icon: '◫',
+    permissions: ['Reservations.View'],
+    preload: loadReservationsPage,
+  },
+  {
+    label: 'QR bàn',
+    icon: '▥',
+    permissions: ['Tables.View'],
+    preload: loadTableQrCodesPage,
+  },
+  {
+    label: 'Thực đơn',
+    icon: '☷',
+    permissions: ['Menu.View'],
+    preload: loadMenuManagementPage,
+  },
+  {
+    label: 'Đơn hàng',
+    icon: '▣',
+    permissions: ['Orders.View'],
+    preload: loadOrdersPage,
+  },
+  {
+    label: 'Bếp',
+    icon: '♨',
+    permissions: ['Kitchen.View'],
+    preload: loadKitchenPage,
+  },
+  {
+    label: 'Thanh toán',
+    icon: '₫',
+    permissions: ['Payments.View'],
+    preload: loadPaymentsPage,
+  },
+  {
+    label: 'Hóa đơn',
+    icon: '▤',
+    permissions: ['Invoices.View'],
+    preload: loadInvoicesPage,
+  },
   {
     label: 'Báo cáo doanh thu',
     icon: '↗',
     permissions: ['RevenueReports.View'],
+    preload: loadRevenueReportsPage,
   },
   {
     label: 'Khuyến mãi',
     icon: '◇',
     permissions: ['Promotions.View', 'PromotionUsages.View'],
+    preload: loadPromotionsPage,
   },
-  { label: 'Kho nguyên liệu', icon: '▧', permissions: ['Inventory.View'] },
+  {
+    label: 'Kho nguyên liệu',
+    icon: '▧',
+    permissions: ['Inventory.View'],
+    preload: loadInventoryPage,
+  },
   {
     label: 'Nhật ký hoạt động',
     icon: '◴',
     permissions: ['ActivityLogs.View'],
+    preload: loadActivityLogsPage,
   },
-  { label: 'Bảo mật tài khoản', icon: '◈' },
+  {
+    label: 'Bảo mật tài khoản',
+    icon: '◈',
+    preload: loadAccountSecurityPage,
+  },
   {
     label: 'Cấu hình nhà hàng',
     icon: '⚙',
     permissions: ['RestaurantSettings.View'],
+    preload: loadRestaurantSettingsPage,
   },
 ]
 
@@ -109,6 +209,18 @@ function getRefreshDelay(token: string) {
   } catch {
     return fallbackDelay
   }
+}
+
+function ModuleLoading({ label }: { label: string }) {
+  return (
+    <section className="module-loading" role="status" aria-live="polite">
+      <span className="account-security-spinner"/>
+      <div>
+        <strong>Đang tải {label}…</strong>
+        <small>Hệ thống chỉ tải module bạn đang mở để khởi động nhanh hơn.</small>
+      </div>
+    </section>
+  )
 }
 
 export default function App() {
@@ -263,7 +375,10 @@ export default function App() {
     || 'Quản trị viên'
 
   function navigateTo(label: string) {
-    if (visibleLabels.has(label)) setActiveItem(label)
+    const target = visibleNavigation.find((item) => item.label === label)
+    if (!target) return
+    void target.preload?.()
+    setActiveItem(label)
   }
 
   function renderContent() {
@@ -337,11 +452,13 @@ export default function App() {
           </div>
         </div>
         <nav>
-          {visibleNavigation.map(({ label, icon }) => (
+          {visibleNavigation.map(({ label, icon, preload }) => (
             <button
               key={label}
               className={currentItem === label ? 'active' : ''}
-              onClick={() => setActiveItem(label)}
+              onMouseEnter={() => void preload?.()}
+              onFocus={() => void preload?.()}
+              onClick={() => navigateTo(label)}
             >
               <span>{icon}</span>
               {label}
@@ -370,7 +487,9 @@ export default function App() {
               className={`profile profile-button${
                 currentItem === 'Bảo mật tài khoản' ? ' active' : ''
               }`}
-              onClick={() => setActiveItem('Bảo mật tài khoản')}
+              onMouseEnter={() => void loadAccountSecurityPage()}
+              onFocus={() => void loadAccountSecurityPage()}
+              onClick={() => navigateTo('Bảo mật tài khoản')}
               aria-label="Mở bảo mật tài khoản"
             >
               <span>
@@ -390,7 +509,9 @@ export default function App() {
             </button>
           </div>
         </header>
-        {renderContent()}
+        <Suspense fallback={<ModuleLoading label={currentItem}/> }>
+          {renderContent()}
+        </Suspense>
       </main>
     </div>
   )
