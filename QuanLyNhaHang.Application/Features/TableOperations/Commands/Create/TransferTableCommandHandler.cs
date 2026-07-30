@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.TableOperations.DTOs;
@@ -44,8 +44,17 @@ public class TransferTableCommandHandler
         if (sourceTable.Id == targetTable.Id)
             throw new Exception("Bàn nguồn và bàn đích không được trùng nhau.");
 
-        if (targetTable.Status == "Occupied")
-            throw new Exception("Bàn đích đang có khách, không thể chuyển bàn.");
+        if (!targetTable.IsActive || targetTable.Status != "Available")
+            throw new Exception("Bàn đích phải đang hoạt động và ở trạng thái trống.");
+
+        var targetHasOpenOrder = await _context.Orders.AnyAsync(
+            x => x.RestaurantTableId == targetTable.Id &&
+                 x.Status != "Completed" &&
+                 x.Status != "Cancelled",
+            cancellationToken);
+
+        if (targetHasOpenOrder)
+            throw new Exception("Bàn đích đang có order chưa hoàn tất.");
 
         var oldTableId = sourceTable.Id;
 
