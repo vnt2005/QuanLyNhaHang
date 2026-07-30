@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   clearStoredAuth,
   getStoredRefreshToken,
@@ -237,22 +237,14 @@ export default function App() {
   }
 
   const authenticatedResult = result
-  const permissionSet = useMemo(
-    () => new Set(authenticatedResult.permissions ?? []),
-    [authenticatedResult.permissions],
-  )
-  const visibleNavigation = useMemo(() => {
-    if (authenticatedResult.role === 'Admin') return navigation
-
-    return navigation.filter((item) => (
+  const permissionSet = new Set(authenticatedResult.permissions ?? [])
+  const visibleNavigation = authenticatedResult.role === 'Admin'
+    ? navigation
+    : navigation.filter((item) => (
       !item.permissions
       || item.permissions.some((permission) => permissionSet.has(permission))
     ))
-  }, [authenticatedResult.role, permissionSet])
-  const visibleLabels = useMemo(
-    () => new Set(visibleNavigation.map((item) => item.label)),
-    [visibleNavigation],
-  )
+  const visibleLabels = new Set(visibleNavigation.map((item) => item.label))
   const currentItem = visibleLabels.has(activeItem)
     ? activeItem
     : visibleNavigation[0]?.label ?? 'Bảo mật tài khoản'
