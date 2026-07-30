@@ -174,19 +174,35 @@ export async function getTables(
   if (areaId) params.set('areaId', areaId)
   if (status) params.set('status', status)
 
-  const result = await request<Partial<PaginatedTables>>(`/api/RestaurantTables/paginated?${params}`)
-  const items = Array.isArray(result?.items) ? result.items : []
-  const totalPages = Number.isFinite(Number(result?.totalPages)) ? Math.max(1, Number(result?.totalPages)) : 1
-  const totalCount = Number.isFinite(Number(result?.totalCount)) ? Math.max(0, Number(result?.totalCount)) : items.length
-  const normalizedPageNumber = Number.isFinite(Number(result?.pageNumber)) ? Math.max(1, Number(result?.pageNumber)) : pageNumber
+  const response = await request<unknown>(`/api/RestaurantTables/paginated?${params}`)
+  const payload = unwrapData(response)
+
+  // Compatibility with the old backend contract that returned RestaurantTable[] directly.
+  if (Array.isArray(payload)) {
+    return {
+      items: payload as RestaurantTable[],
+      pageNumber,
+      totalPages: 1,
+      totalCount: payload.length,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    } satisfies PaginatedTables
+  }
+
+  const result = asRecord(payload)
+  const itemsValue = result.items ?? result.Items
+  const items = Array.isArray(itemsValue) ? itemsValue as RestaurantTable[] : []
+  const normalizedPageNumber = finiteNumber(result.pageNumber ?? result.PageNumber, pageNumber, 1)
+  const totalPages = finiteNumber(result.totalPages ?? result.TotalPages, 1, 1)
+  const totalCount = finiteNumber(result.totalCount ?? result.TotalCount, items.length, 0)
 
   return {
     items,
     pageNumber: normalizedPageNumber,
     totalPages,
     totalCount,
-    hasPreviousPage: Boolean(result?.hasPreviousPage),
-    hasNextPage: Boolean(result?.hasNextPage),
+    hasPreviousPage: Boolean(result.hasPreviousPage ?? result.HasPreviousPage),
+    hasNextPage: Boolean(result.hasNextPage ?? result.HasNextPage),
   } satisfies PaginatedTables
 }
 
