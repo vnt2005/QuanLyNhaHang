@@ -1,12 +1,13 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.MenuItems.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.MenuItems.Queries.GetWithPaginatedList;
 
 public class GetMenuItemsWithPaginatedListQueryHandler
-    : IRequestHandler<GetMenuItemsWithPaginatedListQuery, List<MenuItemDto>>
+    : IRequestHandler<GetMenuItemsWithPaginatedListQuery, PaginatedList<MenuItemDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -15,13 +16,13 @@ public class GetMenuItemsWithPaginatedListQueryHandler
         _context = context;
     }
 
-    public async Task<List<MenuItemDto>> Handle(
+    public async Task<PaginatedList<MenuItemDto>> Handle(
         GetMenuItemsWithPaginatedListQuery request,
         CancellationToken cancellationToken)
     {
         var query =
-            from item in _context.MenuItems
-            join category in _context.MenuCategories
+            from item in _context.MenuItems.AsNoTracking()
+            join category in _context.MenuCategories.AsNoTracking()
                 on item.MenuCategoryId equals category.Id
             select new
             {
@@ -61,10 +62,8 @@ public class GetMenuItemsWithPaginatedListQueryHandler
         var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
         var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
-        return await query
+        var projectedQuery = query
             .OrderByDescending(x => x.Item.CreatedAt)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
             .Select(x => new MenuItemDto
             {
                 Id = x.Item.Id,
@@ -78,7 +77,12 @@ public class GetMenuItemsWithPaginatedListQueryHandler
                 IsActive = x.Item.IsActive,
                 CreatedAt = x.Item.CreatedAt,
                 UpdatedAt = x.Item.UpdatedAt
-            })
-            .ToListAsync(cancellationToken);
+            });
+
+        return await PaginatedList<MenuItemDto>.CreateAsync(
+            projectedQuery,
+            pageNumber,
+            pageSize,
+            cancellationToken);
     }
 }
