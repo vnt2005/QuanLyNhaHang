@@ -57,6 +57,7 @@ export type PaginatedTables = {
 }
 
 type ApiMessage = { id?: string; message?: string }
+type UnknownRecord = Record<string, unknown>
 
 function getErrorMessage(body: unknown): string {
   if (!body || typeof body !== 'object') return 'Yêu cầu không thành công.'
@@ -84,14 +85,62 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export function getAreaList() {
-  return request<Area[]>('/api/Areas')
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as UnknownRecord
+    : {}
 }
 
-export function getAreas(keyword = '', pageNumber = 1, pageSize = 12) {
+function unwrapData(value: unknown): unknown {
+  const record = asRecord(value)
+  return record.data ?? record.Data ?? value
+}
+
+function finiteNumber(value: unknown, fallback: number, minimum: number): number {
+  const number = Number(value)
+  return Number.isFinite(number) ? Math.max(minimum, number) : fallback
+}
+
+export async function getAreaList() {
+  const response = await request<unknown>('/api/Areas')
+  const payload = unwrapData(response)
+  return Array.isArray(payload) ? payload as Area[] : []
+}
+
+export async function getAreas(keyword = '', pageNumber = 1, pageSize = 12) {
   const params = new URLSearchParams({ pageNumber: String(pageNumber), pageSize: String(pageSize) })
   if (keyword.trim()) params.set('keyword', keyword.trim())
-  return request<PaginatedAreas>(`/api/Areas/paginated?${params}`)
+
+  const response = await request<unknown>(`/api/Areas/paginated?${params}`)
+  const payload = unwrapData(response)
+
+  // Compatibility with the old backend contract that returned Area[] directly.
+  if (Array.isArray(payload)) {
+    return {
+      items: payload as Area[],
+      pageNumber,
+      totalPages: 1,
+      totalCount: payload.length,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    } satisfies PaginatedAreas
+  }
+
+  const result = asRecord(payload)
+  const itemsValue = result.items ?? result.Items
+  const items = Array.isArray(itemsValue) ? itemsValue as Area[] : []
+  const normalizedPageNumber = finiteNumber(result.pageNumber ?? result.PageNumber, pageNumber, 1)
+  const totalPages = finiteNumber(result.totalPages ?? result.TotalPages, 1, 1)
+  const totalCount = finiteNumber(result.totalCount ?? result.TotalCount, items.length, 0)
+
+  return {
+    items,
+    pageNumber: normalizedPageNumber,
+    totalPages,
+    totalCount,
+    hasPreviousPage: Boolean(result.hasPreviousPage ?? result.HasPreviousPage),
+    hasNextPage: Boolean(result.hasNextPage ?? result.HasNextPage),
+  } satisfies PaginatedAreas
 }
 
 export function createArea(form: AreaForm) {
