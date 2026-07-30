@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Models;
@@ -52,7 +52,17 @@ public class GetTableOperationsWithPaginatedListQueryHandler
                 OperationCode = x.OperationCode,
                 OperationType = x.OperationType,
                 SourceTableId = x.SourceTableId,
+                SourceTableName = _context.RestaurantTables
+                    .Where(table => table.Id == x.SourceTableId)
+                    .Select(table => table.Name)
+                    .FirstOrDefault() ?? string.Empty,
                 TargetTableId = x.TargetTableId,
+                TargetTableName = x.TargetTableId.HasValue
+                    ? _context.RestaurantTables
+                        .Where(table => table.Id == x.TargetTableId.Value)
+                        .Select(table => table.Name)
+                        .FirstOrDefault()
+                    : null,
                 SourceOrderId = x.SourceOrderId,
                 TargetOrderId = x.TargetOrderId,
                 Status = x.Status,
