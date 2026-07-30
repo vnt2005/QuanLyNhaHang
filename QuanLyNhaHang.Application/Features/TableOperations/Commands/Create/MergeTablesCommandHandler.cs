@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.TableOperations.DTOs;
@@ -53,6 +53,9 @@ public class MergeTablesCommandHandler
         if (targetTable == null)
             throw new Exception("Không tìm thấy bàn đích.");
 
+        if (sourceTable.Id == targetTable.Id)
+            throw new Exception("Hai order phải thuộc hai bàn khác nhau để thực hiện gộp bàn.");
+
         var sourceItems = await _context.OrderItems
             .Where(x =>
                 x.OrderId == sourceOrder.Id &&
@@ -61,6 +64,12 @@ public class MergeTablesCommandHandler
 
         if (!sourceItems.Any())
             throw new Exception("Order nguồn không có món để gộp.");
+
+        var targetItemsBeforeMerge = await _context.OrderItems
+            .Where(x =>
+                x.OrderId == targetOrder.Id &&
+                x.Status != "Cancelled")
+            .ToListAsync(cancellationToken);
 
         var operation = new TableOperation(
             "Merge",
@@ -93,16 +102,10 @@ public class MergeTablesCommandHandler
 
         await _context.TableOperationDetails.AddRangeAsync(details, cancellationToken);
 
-        var targetItemsAfterMerge = await _context.OrderItems
-            .Where(x =>
-                x.OrderId == targetOrder.Id &&
-                x.Status != "Cancelled")
-            .ToListAsync(cancellationToken);
-
-        var totalTargetAmount = targetItemsAfterMerge.Sum(x => x.TotalPrice) + sourceItems.Sum(x => x.TotalPrice);
+        var totalTargetAmount = targetItemsBeforeMerge.Sum(x => x.TotalPrice)
+            + sourceItems.Sum(x => x.TotalPrice);
 
         targetOrder.UpdateTotalAmount(totalTargetAmount);
-
         sourceOrder.UpdateTotalAmount(0);
         sourceOrder.Cancel();
 
