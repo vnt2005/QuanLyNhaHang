@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   clearStoredAuth,
   getStoredRefreshToken,
@@ -28,15 +28,56 @@ import RevenueReportsPage from './pages/RevenueReportsPage'
 import ShiftsSchedulingPage from './pages/ShiftsSchedulingPage'
 import TableQrCodesPage from './pages/TableQrCodesPage'
 
-const navigation = [
-  ['Tổng quan', '⌂'], ['Nhân viên', '◉'], ['Khách hàng', '♙'],
-  ['Ca làm việc & phân ca', '◷'], ['Tài khoản & phân quyền', '◆'],
-  ['Khu vực & bàn', '▦'], ['Đặt bàn', '◫'], ['QR bàn', '▥'],
-  ['Thực đơn', '☷'], ['Đơn hàng', '▣'], ['Bếp', '♨'],
-  ['Thanh toán', '₫'], ['Hóa đơn', '▤'], ['Báo cáo doanh thu', '↗'],
-  ['Khuyến mãi', '◇'], ['Kho nguyên liệu', '▧'],
-  ['Nhật ký hoạt động', '◴'], ['Bảo mật tài khoản', '◈'],
-  ['Cấu hình nhà hàng', '⚙'],
+type NavigationItem = {
+  label: string
+  icon: string
+  permissions?: string[]
+}
+
+const navigation: NavigationItem[] = [
+  { label: 'Tổng quan', icon: '⌂', permissions: ['Dashboard.View'] },
+  { label: 'Nhân viên', icon: '◉', permissions: ['Employees.View'] },
+  { label: 'Khách hàng', icon: '♙', permissions: ['Users.View'] },
+  {
+    label: 'Ca làm việc & phân ca',
+    icon: '◷',
+    permissions: ['Shifts.View', 'EmployeeShifts.View'],
+  },
+  {
+    label: 'Tài khoản & phân quyền',
+    icon: '◆',
+    permissions: ['Users.View', 'Roles.View', 'Permissions.View', 'RolePermissions.View'],
+  },
+  { label: 'Khu vực & bàn', icon: '▦', permissions: ['Tables.View'] },
+  { label: 'Đặt bàn', icon: '◫', permissions: ['Reservations.View'] },
+  { label: 'QR bàn', icon: '▥', permissions: ['Tables.View'] },
+  { label: 'Thực đơn', icon: '☷', permissions: ['Menu.View'] },
+  { label: 'Đơn hàng', icon: '▣', permissions: ['Orders.View'] },
+  { label: 'Bếp', icon: '♨', permissions: ['Kitchen.View'] },
+  { label: 'Thanh toán', icon: '₫', permissions: ['Payments.View'] },
+  { label: 'Hóa đơn', icon: '▤', permissions: ['Invoices.View'] },
+  {
+    label: 'Báo cáo doanh thu',
+    icon: '↗',
+    permissions: ['RevenueReports.View'],
+  },
+  {
+    label: 'Khuyến mãi',
+    icon: '◇',
+    permissions: ['Promotions.View', 'PromotionUsages.View'],
+  },
+  { label: 'Kho nguyên liệu', icon: '▧', permissions: ['Inventory.View'] },
+  {
+    label: 'Nhật ký hoạt động',
+    icon: '◴',
+    permissions: ['ActivityLogs.View'],
+  },
+  { label: 'Bảo mật tài khoản', icon: '◈' },
+  {
+    label: 'Cấu hình nhà hàng',
+    icon: '⚙',
+    permissions: ['RestaurantSettings.View'],
+  },
 ]
 
 const ADMIN_ROLES = new Set([
@@ -196,6 +237,26 @@ export default function App() {
   }
 
   const authenticatedResult = result
+  const permissionSet = useMemo(
+    () => new Set(authenticatedResult.permissions ?? []),
+    [authenticatedResult.permissions],
+  )
+  const visibleNavigation = useMemo(() => {
+    if (authenticatedResult.role === 'Admin') return navigation
+
+    return navigation.filter((item) => (
+      !item.permissions
+      || item.permissions.some((permission) => permissionSet.has(permission))
+    ))
+  }, [authenticatedResult.role, permissionSet])
+  const visibleLabels = useMemo(
+    () => new Set(visibleNavigation.map((item) => item.label)),
+    [visibleNavigation],
+  )
+  const currentItem = visibleLabels.has(activeItem)
+    ? activeItem
+    : visibleNavigation[0]?.label ?? 'Bảo mật tài khoản'
+
   const displayName = [
     authenticatedResult.ho,
     authenticatedResult.ten,
@@ -203,8 +264,12 @@ export default function App() {
     || authenticatedResult.email
     || 'Quản trị viên'
 
+  function navigateTo(label: string) {
+    if (visibleLabels.has(label)) setActiveItem(label)
+  }
+
   function renderContent() {
-    switch (activeItem) {
+    switch (currentItem) {
       case 'Nhân viên':
         return <EmployeePage/>
       case 'Khách hàng':
@@ -250,7 +315,7 @@ export default function App() {
         return (
           <DashboardPage
             name={authenticatedResult.ten ?? 'Admin'}
-            onNavigate={setActiveItem}
+            onNavigate={navigateTo}
           />
         )
     }
@@ -267,10 +332,10 @@ export default function App() {
           </div>
         </div>
         <nav>
-          {navigation.map(([label, icon]) => (
+          {visibleNavigation.map(({ label, icon }) => (
             <button
               key={label}
-              className={activeItem === label ? 'active' : ''}
+              className={currentItem === label ? 'active' : ''}
               onClick={() => setActiveItem(label)}
             >
               <span>{icon}</span>
@@ -292,13 +357,13 @@ export default function App() {
         <header className="topbar">
           <div>
             <span className="eyebrow">TRUNG TÂM ĐIỀU HÀNH</span>
-            <h1>{activeItem}</h1>
+            <h1>{currentItem}</h1>
           </div>
           <div className="topbar-actions">
             <button
               type="button"
               className={`profile profile-button${
-                activeItem === 'Bảo mật tài khoản' ? ' active' : ''
+                currentItem === 'Bảo mật tài khoản' ? ' active' : ''
               }`}
               onClick={() => setActiveItem('Bảo mật tài khoản')}
               aria-label="Mở bảo mật tài khoản"
