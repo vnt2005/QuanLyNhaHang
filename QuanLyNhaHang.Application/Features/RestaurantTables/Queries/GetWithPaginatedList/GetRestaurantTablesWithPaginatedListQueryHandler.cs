@@ -1,12 +1,13 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.RestaurantTables.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetWithPaginatedList;
 
 public class GetRestaurantTablesWithPaginatedListQueryHandler
-    : IRequestHandler<GetRestaurantTablesWithPaginatedListQuery, List<RestaurantTableDto>>
+    : IRequestHandler<GetRestaurantTablesWithPaginatedListQuery, PaginatedList<RestaurantTableDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -15,13 +16,13 @@ public class GetRestaurantTablesWithPaginatedListQueryHandler
         _context = context;
     }
 
-    public async Task<List<RestaurantTableDto>> Handle(
+    public async Task<PaginatedList<RestaurantTableDto>> Handle(
         GetRestaurantTablesWithPaginatedListQuery request,
         CancellationToken cancellationToken)
     {
         var query =
-            from table in _context.RestaurantTables
-            join area in _context.Areas on table.AreaId equals area.Id
+            from table in _context.RestaurantTables.AsNoTracking()
+            join area in _context.Areas.AsNoTracking() on table.AreaId equals area.Id
             select new
             {
                 Table = table,
@@ -47,17 +48,14 @@ public class GetRestaurantTablesWithPaginatedListQueryHandler
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             var status = request.Status.Trim();
-
             query = query.Where(x => x.Table.Status == status);
         }
 
         var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
         var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
-        return await query
+        var projectedQuery = query
             .OrderByDescending(x => x.Table.CreatedAt)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
             .Select(x => new RestaurantTableDto
             {
                 Id = x.Table.Id,
@@ -70,7 +68,12 @@ public class GetRestaurantTablesWithPaginatedListQueryHandler
                 IsActive = x.Table.IsActive,
                 CreatedAt = x.Table.CreatedAt,
                 UpdatedAt = x.Table.UpdatedAt
-            })
-            .ToListAsync(cancellationToken);
+            });
+
+        return await PaginatedList<RestaurantTableDto>.CreateAsync(
+            projectedQuery,
+            pageNumber,
+            pageSize,
+            cancellationToken);
     }
 }

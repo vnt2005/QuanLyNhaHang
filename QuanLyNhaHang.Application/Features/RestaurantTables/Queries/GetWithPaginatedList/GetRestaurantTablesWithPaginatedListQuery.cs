@@ -1,9 +1,11 @@
-﻿using MediatR;
+using MediatR;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.RestaurantTables.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetWithPaginatedList;
 
-public class GetRestaurantTablesWithPaginatedListQuery : IRequest<List<RestaurantTableDto>>
+public class GetRestaurantTablesWithPaginatedListQuery
+    : IRequest<PaginatedList<RestaurantTableDto>>
 {
     public string? Keyword { get; set; }
 
