@@ -1,12 +1,13 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.MenuCategories.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.MenuCategories.Queries.GetWithPaginatedList;
 
 public class GetMenuCategoriesWithPaginatedListQueryHandler
-    : IRequestHandler<GetMenuCategoriesWithPaginatedListQuery, List<MenuCategoryDto>>
+    : IRequestHandler<GetMenuCategoriesWithPaginatedListQuery, PaginatedList<MenuCategoryDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -15,11 +16,11 @@ public class GetMenuCategoriesWithPaginatedListQueryHandler
         _context = context;
     }
 
-    public async Task<List<MenuCategoryDto>> Handle(
+    public async Task<PaginatedList<MenuCategoryDto>> Handle(
         GetMenuCategoriesWithPaginatedListQuery request,
         CancellationToken cancellationToken)
     {
-        var query = _context.MenuCategories.AsQueryable();
+        var query = _context.MenuCategories.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
@@ -39,11 +40,9 @@ public class GetMenuCategoriesWithPaginatedListQueryHandler
         var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
         var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
-        return await query
+        var projectedQuery = query
             .OrderBy(x => x.DisplayOrder)
             .ThenByDescending(x => x.CreatedAt)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
             .Select(x => new MenuCategoryDto
             {
                 Id = x.Id,
@@ -53,7 +52,12 @@ public class GetMenuCategoriesWithPaginatedListQueryHandler
                 IsActive = x.IsActive,
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt
-            })
-            .ToListAsync(cancellationToken);
+            });
+
+        return await PaginatedList<MenuCategoryDto>.CreateAsync(
+            projectedQuery,
+            pageNumber,
+            pageSize,
+            cancellationToken);
     }
 }

@@ -1,9 +1,10 @@
 ﻿using MediatR;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.MenuItems.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.MenuItems.Queries.GetWithPaginatedList;
 
-public class GetMenuItemsWithPaginatedListQuery : IRequest<List<MenuItemDto>>
+public class GetMenuItemsWithPaginatedListQuery : IRequest<PaginatedList<MenuItemDto>>
 {
     public string? Keyword { get; set; }
 
