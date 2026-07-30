@@ -26,6 +26,7 @@ import ReservationsPage from './pages/ReservationsPage'
 import RestaurantSettingsPage from './pages/RestaurantSettingsPage'
 import RevenueReportsPage from './pages/RevenueReportsPage'
 import ShiftsSchedulingPage from './pages/ShiftsSchedulingPage'
+import TableOperationsPage from './pages/TableOperationsPage'
 import TableQrCodesPage from './pages/TableQrCodesPage'
 
 type NavigationItem = {
@@ -49,6 +50,11 @@ const navigation: NavigationItem[] = [
     permissions: ['Users.View', 'Roles.View', 'Permissions.View', 'RolePermissions.View'],
   },
   { label: 'Khu vực & bàn', icon: '▦', permissions: ['Tables.View'] },
+  {
+    label: 'Chuyển / gộp / tách bàn',
+    icon: '⇄',
+    permissions: ['TableOperations.View'],
+  },
   { label: 'Đặt bàn', icon: '◫', permissions: ['Reservations.View'] },
   { label: 'QR bàn', icon: '▥', permissions: ['Tables.View'] },
   { label: 'Thực đơn', icon: '☷', permissions: ['Menu.View'] },
@@ -272,6 +278,13 @@ export default function App() {
         return <AccessManagementPage/>
       case 'Khu vực & bàn':
         return <AreasTablesPage/>
+      case 'Chuyển / gộp / tách bàn':
+        return (
+          <TableOperationsPage
+            role={authenticatedResult.role}
+            permissions={authenticatedResult.permissions}
+          />
+        )
       case 'Đặt bàn':
         return <ReservationsPage/>
       case 'QR bàn':
