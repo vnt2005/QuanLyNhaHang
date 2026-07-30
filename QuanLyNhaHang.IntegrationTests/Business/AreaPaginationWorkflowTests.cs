@@ -46,6 +46,71 @@ public sealed class AreaPaginationWorkflowTests
         Assert.True(area.GetProperty("isActive").GetBoolean());
         Assert.False(string.IsNullOrWhiteSpace(area.GetProperty("id").GetString()));
 
+        AssertPaginationMetadata(root);
+    }
+
+    [Fact]
+    public async Task CreateTable_ThenPaginatedList_ReturnsCreatedTableInsideItems()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var areaName = $"Khu vực bàn test {suffix}";
+        var tableName = $"Bàn test {suffix}";
+
+        using var createAreaResponse = await client.PostAsJsonAsync(
+            "/api/Areas",
+            new
+            {
+                name = areaName,
+                description = "Khu vực dùng kiểm tra phân trang bàn"
+            });
+
+        Assert.Equal(HttpStatusCode.Created, createAreaResponse.StatusCode);
+
+        using var createAreaJson = await ReadJsonAsync(createAreaResponse);
+        var areaId = createAreaJson.RootElement.GetProperty("id").GetGuid();
+
+        using var createTableResponse = await client.PostAsJsonAsync(
+            "/api/RestaurantTables",
+            new
+            {
+                areaId,
+                name = tableName,
+                capacity = 4,
+                note = "Kiểm tra bàn vừa tạo hiển thị trong danh sách"
+            });
+
+        Assert.Equal(HttpStatusCode.Created, createTableResponse.StatusCode);
+
+        using var listResponse = await client.GetAsync(
+            $"/api/RestaurantTables/paginated?keyword={Uri.EscapeDataString(tableName)}&pageNumber=1&pageSize=12");
+
+        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+
+        using var json = await ReadJsonAsync(listResponse);
+        var root = json.RootElement;
+        var items = root.GetProperty("items");
+
+        Assert.Equal(JsonValueKind.Array, items.ValueKind);
+        Assert.Single(items.EnumerateArray());
+
+        var table = items[0];
+        Assert.Equal(tableName, table.GetProperty("name").GetString());
+        Assert.Equal(areaId, table.GetProperty("areaId").GetGuid());
+        Assert.Equal(areaName, table.GetProperty("areaName").GetString());
+        Assert.Equal(4, table.GetProperty("capacity").GetInt32());
+        Assert.Equal("Available", table.GetProperty("status").GetString());
+        Assert.True(table.GetProperty("isActive").GetBoolean());
+        Assert.False(string.IsNullOrWhiteSpace(table.GetProperty("id").GetString()));
+
+        AssertPaginationMetadata(root);
+    }
+
+    private static void AssertPaginationMetadata(JsonElement root)
+    {
         Assert.Equal(1, root.GetProperty("pageNumber").GetInt32());
         Assert.Equal(1, root.GetProperty("totalPages").GetInt32());
         Assert.Equal(1, root.GetProperty("totalCount").GetInt32());
