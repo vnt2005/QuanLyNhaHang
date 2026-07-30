@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.TableOperations.DTOs;
@@ -44,8 +44,17 @@ public class SplitTableCommandHandler
         if (sourceTable.Id == targetTable.Id)
             throw new Exception("Bàn nguồn và bàn đích không được trùng nhau.");
 
-        if (targetTable.Status == "Occupied")
-            throw new Exception("Bàn đích đang có khách, không thể tách sang.");
+        if (!targetTable.IsActive || targetTable.Status != "Available")
+            throw new Exception("Bàn đích phải đang hoạt động và ở trạng thái trống.");
+
+        var targetHasOpenOrder = await _context.Orders.AnyAsync(
+            x => x.RestaurantTableId == targetTable.Id &&
+                 x.Status != "Completed" &&
+                 x.Status != "Cancelled",
+            cancellationToken);
+
+        if (targetHasOpenOrder)
+            throw new Exception("Bàn đích đang có order chưa hoàn tất.");
 
         if (request.Items == null || !request.Items.Any())
             throw new Exception("Phải chọn ít nhất một món để tách bàn.");
@@ -59,20 +68,35 @@ public class SplitTableCommandHandler
                 throw new Exception("Số lượng tách phải lớn hơn 0.");
         }
 
-        var splitItemIds = request.Items
-            .Select(x => x.OrderItemId)
-            .Distinct()
-            .ToList();
+        var duplicateItem = request.Items
+            .GroupBy(x => x.OrderItemId)
+            .FirstOrDefault(x => x.Count() > 1);
 
-        var sourceOrderItems = await _context.OrderItems
+        if (duplicateItem != null)
+            throw new Exception("Mỗi món chỉ được chọn một lần khi tách bàn.");
+
+        var activeSourceItems = await _context.OrderItems
             .Where(x =>
                 x.OrderId == sourceOrder.Id &&
-                splitItemIds.Contains(x.Id) &&
                 x.Status != "Cancelled")
             .ToListAsync(cancellationToken);
 
-        if (sourceOrderItems.Count != splitItemIds.Count)
-            throw new Exception("Có món không thuộc order nguồn hoặc đã bị hủy.");
+        var sourceItemsById = activeSourceItems.ToDictionary(x => x.Id);
+
+        foreach (var splitItem in request.Items)
+        {
+            if (!sourceItemsById.TryGetValue(splitItem.OrderItemId, out var sourceItem))
+                throw new Exception("Có món không thuộc order nguồn hoặc đã bị hủy.");
+
+            if (splitItem.Quantity > sourceItem.Quantity)
+                throw new Exception($"Số lượng tách của món {sourceItem.MenuItemName} không hợp lệ.");
+
+            if (splitItem.Quantity < sourceItem.Quantity && sourceItem.Status != "Pending")
+            {
+                throw new Exception(
+                    $"Món {sourceItem.MenuItemName} đã bắt đầu xử lý; chỉ có thể chuyển toàn bộ số lượng.");
+            }
+        }
 
         var targetOrder = new Order(
             targetTable.Id,
@@ -96,10 +120,8 @@ public class SplitTableCommandHandler
 
         foreach (var splitItem in request.Items)
         {
-            var sourceItem = sourceOrderItems.First(x => x.Id == splitItem.OrderItemId);
-
-            if (splitItem.Quantity > sourceItem.Quantity)
-                throw new Exception($"Số lượng tách của món {sourceItem.MenuItemName} không hợp lệ.");
+            var sourceItem = sourceItemsById[splitItem.OrderItemId];
+            var originalQuantity = sourceItem.Quantity;
 
             details.Add(new TableOperationDetail(
                 operation.Id,
@@ -113,7 +135,7 @@ public class SplitTableCommandHandler
                 sourceItem.UnitPrice * splitItem.Quantity,
                 sourceItem.Note));
 
-            if (splitItem.Quantity == sourceItem.Quantity)
+            if (splitItem.Quantity == originalQuantity)
             {
                 sourceItem.ChangeOrder(targetOrder.Id);
             }
@@ -140,30 +162,14 @@ public class SplitTableCommandHandler
 
         await _context.TableOperationDetails.AddRangeAsync(details, cancellationToken);
 
-        var sourceRemainingItems = await _context.OrderItems
-            .Where(x =>
-                x.OrderId == sourceOrder.Id &&
-                x.Status != "Cancelled")
-            .ToListAsync(cancellationToken);
-
-        var movedFullItemIds = request.Items
-            .Where(x =>
-            {
-                var sourceItem = sourceOrderItems.First(i => i.Id == x.OrderItemId);
-                return x.Quantity == sourceItem.Quantity;
-            })
-            .Select(x => x.OrderItemId)
-            .ToList();
-
-        var sourceTotal = sourceRemainingItems
-            .Where(x => !movedFullItemIds.Contains(x.Id))
+        var sourceTotal = activeSourceItems
+            .Where(x => x.OrderId == sourceOrder.Id)
             .Sum(x => x.TotalPrice);
 
-        var targetTotal =
-            newTargetItems.Sum(x => x.TotalPrice) +
-            sourceOrderItems
-                .Where(x => movedFullItemIds.Contains(x.Id))
-                .Sum(x => x.TotalPrice);
+        var targetTotal = activeSourceItems
+            .Where(x => x.OrderId == targetOrder.Id)
+            .Sum(x => x.TotalPrice)
+            + newTargetItems.Sum(x => x.TotalPrice);
 
         sourceOrder.UpdateTotalAmount(sourceTotal);
         targetOrder.UpdateTotalAmount(targetTotal);
