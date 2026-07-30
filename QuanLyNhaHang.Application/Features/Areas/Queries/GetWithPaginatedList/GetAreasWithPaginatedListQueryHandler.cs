@@ -1,12 +1,13 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.Areas.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Areas.Queries.GetWithPaginatedList;
 
 public class GetAreasWithPaginatedListQueryHandler
-    : IRequestHandler<GetAreasWithPaginatedListQuery, List<AreaDto>>
+    : IRequestHandler<GetAreasWithPaginatedListQuery, PaginatedList<AreaDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -15,11 +16,13 @@ public class GetAreasWithPaginatedListQueryHandler
         _context = context;
     }
 
-    public async Task<List<AreaDto>> Handle(
+    public async Task<PaginatedList<AreaDto>> Handle(
         GetAreasWithPaginatedListQuery request,
         CancellationToken cancellationToken)
     {
-        var query = _context.Areas.AsQueryable();
+        var query = _context.Areas
+            .AsNoTracking()
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
@@ -34,10 +37,8 @@ public class GetAreasWithPaginatedListQueryHandler
         var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
         var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
-        return await query
+        var projectedQuery = query
             .OrderByDescending(x => x.CreatedAt)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
             .Select(x => new AreaDto
             {
                 Id = x.Id,
@@ -46,7 +47,12 @@ public class GetAreasWithPaginatedListQueryHandler
                 IsActive = x.IsActive,
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt
-            })
-            .ToListAsync(cancellationToken);
+            });
+
+        return await PaginatedList<AreaDto>.CreateAsync(
+            projectedQuery,
+            pageNumber,
+            pageSize,
+            cancellationToken);
     }
 }
