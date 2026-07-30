@@ -1,9 +1,10 @@
-﻿using MediatR;
+using MediatR;
+using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.Areas.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Areas.Queries.GetWithPaginatedList;
 
-public class GetAreasWithPaginatedListQuery : IRequest<List<AreaDto>>
+public class GetAreasWithPaginatedListQuery : IRequest<PaginatedList<AreaDto>>
 {
     public string? Keyword { get; set; }
 
