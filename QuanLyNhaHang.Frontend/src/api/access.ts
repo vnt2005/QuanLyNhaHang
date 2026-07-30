@@ -73,6 +73,7 @@ export type PaginatedUsers = {
 
 type ApiMessage = { message?: string }
 type ApiEnvelope<T> = { success?: boolean; message?: string; data?: T }
+type UnknownRecord = Record<string, unknown>
 
 function getErrorMessage(body: unknown): string {
   if (!body || typeof body !== 'object') return 'Yêu cầu không thành công.'
@@ -104,6 +105,67 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as UnknownRecord
+    : {}
+}
+
+function firstString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+  return ''
+}
+
+function firstBoolean(...values: unknown[]): boolean {
+  for (const value of values) {
+    if (typeof value === 'boolean') return value
+  }
+  return false
+}
+
+function normalizePermission(
+  value: unknown,
+  index: number,
+): PermissionSelection | null {
+  const item = asRecord(value)
+  const permissionId = firstString(
+    item.permissionId,
+    item.PermissionId,
+    item.id,
+    item.Id,
+  )
+  if (!permissionId) return null
+
+  const permissionCode = firstString(
+    item.permissionCode,
+    item.PermissionCode,
+    item.code,
+    item.Code,
+  ) || `Permission-${index + 1}`
+  const permissionName = firstString(
+    item.permissionName,
+    item.PermissionName,
+    item.name,
+    item.Name,
+  ) || permissionCode
+  const permissionGroupName = firstString(
+    item.permissionGroupName,
+    item.PermissionGroupName,
+    item.groupName,
+    item.GroupName,
+  ) || 'Quyền khác'
+
+  return {
+    permissionId,
+    permissionCode,
+    permissionName,
+    permissionGroupName,
+    isSelected: firstBoolean(item.isSelected, item.IsSelected),
+  }
+}
+
 export function getUsers(
   keyword = '',
   pageNumber = 1,
@@ -129,6 +191,12 @@ export function updateUser(form: UserForm) {
   return request<ApiMessage>(`/api/Users/${form.id}`, {
     method: 'PUT',
     body: JSON.stringify(form),
+  })
+}
+
+export function deleteUser(id: string) {
+  return request<ApiMessage>(`/api/Users/${id}`, {
+    method: 'DELETE',
   })
 }
 
@@ -172,10 +240,32 @@ export function syncSystemRoles() {
   })
 }
 
-export function getRolePermissionSelection(roleId: string) {
-  return request<RolePermissionSelection>(
+export async function getRolePermissionSelection(
+  roleId: string,
+): Promise<RolePermissionSelection> {
+  const response = await request<unknown>(
     `/api/role-permissions/roles/${roleId}/selection`,
   )
+  const envelope = asRecord(response)
+  const nestedData = asRecord(envelope.data ?? envelope.Data)
+  const payload = Object.keys(nestedData).length > 0 ? nestedData : envelope
+  const permissionValues = Array.isArray(payload.permissions)
+    ? payload.permissions
+    : Array.isArray(payload.Permissions)
+      ? payload.Permissions
+      : []
+
+  return {
+    roleId: firstString(payload.roleId, payload.RoleId) || roleId,
+    roleName: firstString(payload.roleName, payload.RoleName),
+    roleDisplayName: firstString(
+      payload.roleDisplayName,
+      payload.RoleDisplayName,
+    ),
+    permissions: permissionValues
+      .map(normalizePermission)
+      .filter((item): item is PermissionSelection => item !== null),
+  }
 }
 
 export function updateRolePermissions(
