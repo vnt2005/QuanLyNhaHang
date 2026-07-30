@@ -59,6 +59,7 @@ export type PaginatedMenuItems = {
 }
 
 type ApiMessage = { id?: string; message?: string }
+type UnknownRecord = Record<string, unknown>
 
 function getErrorMessage(body: unknown): string {
   if (!body || typeof body !== 'object') return 'Yêu cầu không thành công.'
@@ -87,11 +88,58 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export function getMenuCategoryList() {
-  return request<MenuCategory[]>('/api/MenuCategories')
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as UnknownRecord
+    : {}
 }
 
-export function getMenuCategories(
+function unwrapData(value: unknown): unknown {
+  const record = asRecord(value)
+  return record.data ?? record.Data ?? value
+}
+
+function finiteNumber(value: unknown, fallback: number, minimum: number): number {
+  const number = Number(value)
+  return Number.isFinite(number) ? Math.max(minimum, number) : fallback
+}
+
+function normalizePaginated<T>(response: unknown, pageNumber: number) {
+  const payload = unwrapData(response)
+
+  // Compatibility with the old backend contract that returned T[] directly.
+  if (Array.isArray(payload)) {
+    return {
+      items: payload as T[],
+      pageNumber,
+      totalPages: 1,
+      totalCount: payload.length,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    }
+  }
+
+  const result = asRecord(payload)
+  const itemsValue = result.items ?? result.Items
+  const items = Array.isArray(itemsValue) ? itemsValue as T[] : []
+
+  return {
+    items,
+    pageNumber: finiteNumber(result.pageNumber ?? result.PageNumber, pageNumber, 1),
+    totalPages: finiteNumber(result.totalPages ?? result.TotalPages, 1, 1),
+    totalCount: finiteNumber(result.totalCount ?? result.TotalCount, items.length, 0),
+    hasPreviousPage: Boolean(result.hasPreviousPage ?? result.HasPreviousPage),
+    hasNextPage: Boolean(result.hasNextPage ?? result.HasNextPage),
+  }
+}
+
+export async function getMenuCategoryList() {
+  const response = await request<unknown>('/api/MenuCategories')
+  const payload = unwrapData(response)
+  return Array.isArray(payload) ? payload as MenuCategory[] : []
+}
+
+export async function getMenuCategories(
   keyword = '',
   isActive?: boolean,
   pageNumber = 1,
@@ -100,7 +148,9 @@ export function getMenuCategories(
   const params = new URLSearchParams({ pageNumber: String(pageNumber), pageSize: String(pageSize) })
   if (keyword.trim()) params.set('keyword', keyword.trim())
   if (typeof isActive === 'boolean') params.set('isActive', String(isActive))
-  return request<PaginatedMenuCategories>(`/api/MenuCategories/paginated?${params}`)
+
+  const response = await request<unknown>(`/api/MenuCategories/paginated?${params}`)
+  return normalizePaginated<MenuCategory>(response, pageNumber) satisfies PaginatedMenuCategories
 }
 
 export function createMenuCategory(form: MenuCategoryForm) {
@@ -131,7 +181,7 @@ export function deleteMenuCategory(id: string) {
   return request<ApiMessage>(`/api/MenuCategories/${id}`, { method: 'DELETE' })
 }
 
-export function getMenuItems(
+export async function getMenuItems(
   keyword = '',
   menuCategoryId = '',
   isAvailable?: boolean,
@@ -144,7 +194,9 @@ export function getMenuItems(
   if (menuCategoryId) params.set('menuCategoryId', menuCategoryId)
   if (typeof isAvailable === 'boolean') params.set('isAvailable', String(isAvailable))
   if (typeof isActive === 'boolean') params.set('isActive', String(isActive))
-  return request<PaginatedMenuItems>(`/api/MenuItems/paginated?${params}`)
+
+  const response = await request<unknown>(`/api/MenuItems/paginated?${params}`)
+  return normalizePaginated<MenuItem>(response, pageNumber) satisfies PaginatedMenuItems
 }
 
 export function createMenuItem(form: MenuItemForm) {
