@@ -17,9 +17,9 @@ async function selectOptionValue(
   value: string,
   label: string,
 ) {
-  await expect(select.locator(`option[value="${value}"]`), `Không tìm thấy ${label}.`)
-    .toBeAttached()
+  await expect(select, `Không tìm thấy ${label}.`).toBeVisible()
   await select.selectOption(value)
+  await expect(select).toHaveValue(value)
 }
 
 test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch sử', async ({ page, request }) => {
