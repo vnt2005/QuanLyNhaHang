@@ -63,15 +63,11 @@ test('Đặt bàn: tạo, xem chi tiết, sửa và đi hết vòng đời trạ
   await expect(row).toContainText('Chờ xác nhận')
 
   await row.locator('.reservation-name').click()
-  const detail = page.locator('.reservation-detail-modal, .reservations-detail-modal')
-  if (await detail.count()) {
-    await expect(detail).toContainText(customerName)
-    await expect(detail).toContainText(tableName)
-    const close = detail.getByRole('button', { name: /Đóng|×/ }).first()
-    await close.click()
-  } else {
-    await page.keyboard.press('Escape')
-  }
+  await expect(page.getByText('CHI TIẾT ĐẶT BÀN', { exact: true })).toBeVisible()
+  await expect(page.getByText(customerName, { exact: true }).last()).toBeVisible()
+  await expect(page.getByText(tableName, { exact: true }).last()).toBeVisible()
+  await page.getByRole('button', { name: 'Đóng', exact: true }).last().click()
+  await expect(page.getByText('CHI TIẾT ĐẶT BÀN', { exact: true })).toHaveCount(0)
 
   row = page.locator('.reservations-table tbody tr').filter({ hasText: customerName })
   await row.getByRole('button', { name: 'Sửa', exact: true }).click()
