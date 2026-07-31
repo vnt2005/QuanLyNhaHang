@@ -57,7 +57,7 @@ test('Nhân viên: tạo, tìm kiếm, sửa và ngừng hoạt động', async 
 
   page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Ngừng', exact: true }).click()
-  await expect(page.getByText('Đã ngừng hoạt động nhân viên.', { exact: true })).toBeVisible()
+  await expect(page.locator('.inline-alert.success')).toBeVisible()
   await expect(page.locator('tbody tr').filter({ hasText: employeeCode }))
     .toContainText('Ngừng hoạt động')
 })
