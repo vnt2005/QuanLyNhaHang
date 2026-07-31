@@ -39,10 +39,12 @@ export async function loginAsAdmin(page: Page) {
 }
 
 export async function openAdminModule(page: Page, moduleName: string) {
-  await page
-    .locator('.sidebar nav')
-    .getByRole('button', { name: moduleName, exact: true })
-    .click()
+  const navigationButton = page
+    .locator('.sidebar nav button')
+    .filter({ hasText: moduleName })
+
+  await expect(navigationButton).toHaveCount(1)
+  await navigationButton.click()
 
   await expect(
     page.locator('.topbar').getByRole('heading', {
