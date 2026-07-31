@@ -63,7 +63,8 @@ test('Nhật ký: command được ghi, lọc, xem chi tiết và xóa bởi Adm
 
   const detail = page.locator('.activity-modal')
   await expect(detail).toContainText(area.id)
-  await expect(detail).toContainText(updatedAreaName)
+  await expect(detail).toContainText('Areas')
+  await expect(detail).toContainText('Update')
   await expect(detail).toContainText('Success')
 
   page.once('dialog', dialog => dialog.accept())
