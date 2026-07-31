@@ -24,7 +24,7 @@ test('Khuyến mãi: tạo, lọc, xem chi tiết, sửa, vô hiệu và kích h
   let modal = page.locator('.promotion-form-modal')
   await modal.getByLabel(/Mã khuyến mãi/).fill(code)
   await modal.getByLabel(/Tên chương trình/).fill(name)
-  await modal.getByLabel('Mô tả', { exact: true }).fill('Chương trình tạo bởi Playwright E2E.')
+  await modal.locator('textarea').fill('Chương trình tạo bởi Playwright E2E.')
   await modal.getByLabel('Loại giảm', { exact: true }).selectOption('Percent')
   await modal.getByLabel(/Phần trăm giảm/).fill('15')
   await modal.getByLabel(/Đơn tối thiểu/).fill('100000')
