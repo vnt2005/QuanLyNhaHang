@@ -30,7 +30,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await page.getByRole('button', { name: '+ Danh mục', exact: true }).click()
   let modal = page.locator('.category-form-modal')
   await modal.getByLabel(/Tên danh mục/).fill(categoryName)
-  await modal.getByLabel('Mô tả', { exact: true }).fill('Danh mục kho tạo bằng Playwright.')
+  await modal.locator('textarea').fill('Danh mục kho tạo bằng Playwright.')
   await modal.getByRole('button', { name: 'Thêm danh mục', exact: true }).click()
 
   let categoryRow = page.locator('.category-table tbody tr').filter({ hasText: categoryName })
@@ -38,7 +38,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await categoryRow.getByRole('button', { name: `Chỉnh sửa ${categoryName}`, exact: true }).click()
   modal = page.locator('.category-form-modal')
   await modal.getByLabel(/Tên danh mục/).fill(categoryUpdated)
-  await modal.getByLabel('Mô tả', { exact: true }).fill('Danh mục kho đã cập nhật.')
+  await modal.locator('textarea').fill('Danh mục kho đã cập nhật.')
   await modal.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
   categoryRow = page.locator('.category-table tbody tr').filter({ hasText: categoryUpdated })
   await expect(categoryRow).toContainText('Danh mục kho đã cập nhật.')
