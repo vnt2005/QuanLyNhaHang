@@ -50,12 +50,13 @@ env:
   E2E_BASE_URL: 'http://127.0.0.1:5173'
   E2E_ADMIN_EMAIL: 'playwright-admin@example.com'
   E2E_ADMIN_PASSWORD: 'Playwright-Admin-2026!Aa1'
+  E2E_ALLOW_SETTINGS_MUTATION: 'true'
 
 jobs:
   e2e:
     name: Chromium full-stack workflows
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout source
