@@ -5,28 +5,47 @@ import {
   openAdminModule,
 } from './helpers'
 
-test('Admin đăng nhập và mở các module trọng yếu không phát sinh lỗi', async ({ page }) => {
+const adminModules = [
+  'Tổng quan',
+  'Nhân viên',
+  'Khách hàng',
+  'Ca làm việc & phân ca',
+  'Tài khoản & phân quyền',
+  'Khu vực & bàn',
+  'Chuyển / gộp / tách bàn',
+  'Đặt bàn',
+  'QR bàn',
+  'Thực đơn',
+  'Đơn hàng',
+  'Bếp',
+  'Thanh toán',
+  'Hóa đơn',
+  'Báo cáo doanh thu',
+  'Khuyến mãi',
+  'Kho nguyên liệu',
+  'Nhật ký hoạt động',
+  'Bảo mật tài khoản',
+  'Cấu hình nhà hàng',
+] as const
+
+test('Admin mở toàn bộ module không phát sinh lỗi giao diện, JavaScript hoặc API', async ({ page }) => {
   await loginAsAdmin(page)
 
-  await expect(
-    page.locator('.topbar').getByRole('heading', { name: 'Tổng quan' }),
-  ).toBeVisible()
-  await expectNoHorizontalOverflow(page)
+  for (const moduleName of adminModules) {
+    await test.step(moduleName, async () => {
+      if (moduleName !== 'Tổng quan') {
+        await openAdminModule(page, moduleName)
+      } else {
+        await expect(
+          page.locator('.topbar').getByRole('heading', {
+            name: moduleName,
+            exact: true,
+          }),
+        ).toBeVisible()
+      }
 
-  await openAdminModule(page, 'Tài khoản & phân quyền')
-  await expect(
-    page.locator('.access-page').getByRole('heading', {
-      name: 'Tài khoản & phân quyền',
-      exact: true,
-    }),
-  ).toBeVisible()
-  await expectNoHorizontalOverflow(page)
-
-  await openAdminModule(page, 'Khu vực & bàn')
-  await expect(page.getByRole('heading', { name: 'Không gian phục vụ' })).toBeVisible()
-  await expectNoHorizontalOverflow(page)
-
-  await openAdminModule(page, 'Thực đơn')
-  await expect(page.getByRole('heading', { name: 'Quản lý thực đơn' })).toBeVisible()
-  await expectNoHorizontalOverflow(page)
+      await expect(page.locator('.module-loading')).toHaveCount(0)
+      await expectNoHorizontalOverflow(page)
+    })
+  }
 })
