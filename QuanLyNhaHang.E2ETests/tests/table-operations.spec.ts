@@ -39,7 +39,7 @@ async function waitForOperationHistory(
 
   await expect.poll(async () => {
     const response = await request.get(
-      `${apiURL}/api/table-operations/paginated?keyword=${encodeURIComponent(note)}&pageNumber=1&pageSize=10`,
+      `${apiURL}/api/table-operations/paginated?pageNumber=1&pageSize=100`,
       { headers },
     )
     if (!response.ok()) return false
