@@ -32,7 +32,7 @@ test('Nhân viên: tạo, tìm kiếm, sửa và ngừng hoạt động', async 
   await modal.getByLabel('Lương cơ bản', { exact: true }).fill('7000000')
   await modal.getByRole('button', { name: 'Lưu nhân viên', exact: true }).click()
 
-  await expect(page.getByText('Tạo nhân viên thành công.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Tạo nhân viên và tài khoản đăng nhập thành công.', { exact: true })).toBeVisible()
   const search = page.getByPlaceholder('Tìm mã, tên, email, số điện thoại, vị trí...')
   await search.fill(employeeCode)
   await page.getByRole('button', { name: 'Tìm kiếm', exact: true }).click()
