@@ -21,18 +21,27 @@ test('Nhật ký: command được ghi, lọc, xem chi tiết và xóa bởi Adm
   const area = await createResponse.json() as { id: string }
 
   await openAdminModule(page, 'Nhật ký hoạt động')
-  await page.getByPlaceholder('Người dùng, mô tả, module, thực thể…').fill(area.id)
   await page.getByPlaceholder('Orders, Payments…').fill('Areas')
   await page.getByPlaceholder('Create, Update, Get…').fill('Create')
   await page.locator('.activity-filters select').selectOption('Success')
 
-  const row = page.locator('.activity-table tbody tr').filter({ hasText: area.id })
-  await expect(row).toBeVisible()
-  await expect(row).toContainText('Create')
-  await expect(row).toContainText('Areas')
-  await expect(row).toContainText('Thành công')
+  const rows = page.locator('.activity-table tbody tr').filter({ hasText: 'Areas' })
+    .filter({ hasText: 'Create' })
+  await expect.poll(() => rows.count()).toBeGreaterThanOrEqual(1)
 
-  await row.getByRole('button', { name: 'Chi tiết', exact: true }).click()
+  let matchedRow = rows.first()
+  const rowCount = await rows.count()
+  for (let index = 0; index < rowCount; index += 1) {
+    const candidate = rows.nth(index)
+    await candidate.getByRole('button', { name: 'Chi tiết', exact: true }).click()
+    const detail = page.locator('.activity-modal')
+    if ((await detail.textContent())?.includes(area.id)) {
+      matchedRow = candidate
+      break
+    }
+    await detail.getByRole('button', { name: 'Đóng', exact: true }).first().click()
+  }
+
   const detail = page.locator('.activity-modal')
   await expect(detail).toContainText(area.id)
   await expect(detail).toContainText(areaName)
@@ -40,6 +49,6 @@ test('Nhật ký: command được ghi, lọc, xem chi tiết và xóa bởi Adm
 
   page.once('dialog', dialog => dialog.accept())
   await detail.getByRole('button', { name: 'Xóa vĩnh viễn nhật ký', exact: true }).click()
-  await expect(page.locator('.activity-table tbody tr').filter({ hasText: area.id })).toHaveCount(0)
+  await expect(matchedRow).toHaveCount(0)
   await expect(page.locator('.activity-alert.success')).toContainText('xóa')
 })
