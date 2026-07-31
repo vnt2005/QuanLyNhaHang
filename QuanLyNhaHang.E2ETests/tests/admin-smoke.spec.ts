@@ -14,7 +14,9 @@ test('Admin đăng nhập và mở các module trọng yếu không phát sinh l
   await expectNoHorizontalOverflow(page)
 
   await openAdminModule(page, 'Tài khoản & phân quyền')
-  await expect(page.getByRole('heading', { name: 'Quản lý truy cập' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Tài khoản & phân quyền', exact: true }),
+  ).toBeVisible()
   await expectNoHorizontalOverflow(page)
 
   await openAdminModule(page, 'Khu vực & bàn')
