@@ -106,16 +106,8 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   const form = page.locator('.operation-form-card')
 
   await page.getByRole('button', { name: /Chuyển bàn$/ }).click()
-  await selectOptionValue(
-    form.getByLabel('Order nguồn', { exact: true }),
-    sourceOrder.id,
-    'order nguồn cần chuyển',
-  )
-  await selectOptionValue(
-    form.getByLabel('Bàn đích', { exact: true }),
-    transferTargetTable.id,
-    'bàn đích cần chuyển',
-  )
+  await selectOptionValue(form.locator('select').nth(0), sourceOrder.id, 'order nguồn cần chuyển')
+  await selectOptionValue(form.locator('select').nth(1), transferTargetTable.id, 'bàn đích cần chuyển')
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(transferNote)
   await form.getByRole('button', { name: 'Xác nhận chuyển bàn', exact: true }).click()
   await expect(page.getByText(/Chuyển bàn.*thành công/i)).toBeVisible()
@@ -135,16 +127,8 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   })
 
   await page.getByRole('button', { name: /Tách bàn$/ }).click()
-  await selectOptionValue(
-    form.getByLabel('Order nguồn', { exact: true }),
-    sourceOrder.id,
-    'order nguồn cần tách',
-  )
-  await selectOptionValue(
-    form.getByLabel('Bàn đích', { exact: true }),
-    splitTargetTable.id,
-    'bàn đích cần tách',
-  )
+  await selectOptionValue(form.locator('select').nth(0), sourceOrder.id, 'order nguồn cần tách')
+  await selectOptionValue(form.locator('select').nth(1), splitTargetTable.id, 'bàn đích cần tách')
   const splitItem = form.locator('.split-item-row').filter({ hasText: menuItemName })
   await expect(splitItem).toBeVisible()
   await splitItem.getByLabel('Số lượng', { exact: true }).selectOption('2')
@@ -180,16 +164,8 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   }).not.toBe('')
 
   await page.getByRole('button', { name: /Gộp bàn$/ }).click()
-  await selectOptionValue(
-    form.getByLabel('Order nguồn', { exact: true }),
-    splitOrderId,
-    'order nguồn cần gộp',
-  )
-  await selectOptionValue(
-    form.getByLabel('Order đích giữ lại sau khi gộp', { exact: true }),
-    targetOrder.id,
-    'order đích giữ lại',
-  )
+  await selectOptionValue(form.locator('select').nth(0), splitOrderId, 'order nguồn cần gộp')
+  await selectOptionValue(form.locator('select').nth(1), targetOrder.id, 'order đích giữ lại')
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(mergeNote)
   await form.getByRole('button', { name: 'Xác nhận gộp bàn', exact: true }).click()
   await expect(page.getByText(/Gộp bàn.*thành công/i)).toBeVisible()
