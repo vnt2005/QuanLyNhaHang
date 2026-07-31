@@ -26,6 +26,7 @@ test('Nhật ký: command được ghi, lọc, xem chi tiết và xóa bởi Adm
   const area = await createResponse.json() as { id: string }
   const activityQueryUrl = `${apiURL}/api/activity-logs/paginated?entityId=${encodeURIComponent(area.id)}&moduleName=Areas&action=Create&status=Success&pageNumber=1&pageSize=10`
 
+  // Activity logging completes after the command response, so poll for the exact entity.
   let activityLogId = ''
   await expect.poll(async () => {
     const response = await request.get(activityQueryUrl, { headers })
