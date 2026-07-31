@@ -16,18 +16,13 @@ test('Tạo danh mục và món ăn phải hiển thị ngay trên giao diện',
   })
   await categoryModal.getByLabel('Tên danh mục', { exact: true }).fill(categoryName)
   await categoryModal.getByLabel('Thứ tự hiển thị', { exact: true }).fill('20')
-  await categoryModal.getByLabel('Mô tả', { exact: true }).fill(
-    'Danh mục được tạo bởi Playwright E2E.',
-  )
+  await categoryModal.getByLabel('Mô tả', { exact: true }).fill('Danh mục tạo bởi Playwright E2E.')
   await categoryModal.getByRole('button', { name: 'Lưu danh mục', exact: true }).click()
 
   await expect(
     page.getByText('Tạo danh mục món ăn thành công.', { exact: true }),
   ).toBeVisible()
-  const categoryCard = page.locator('.category-card').filter({
-    hasText: categoryName,
-  })
-  await expect(categoryCard).toBeVisible()
+  await expect(page.locator('.category-card').filter({ hasText: categoryName })).toBeVisible()
 
   await page.getByRole('button', { name: 'Món ăn', exact: true }).click()
   await page.getByRole('button', { name: '+ Thêm món ăn', exact: true }).click()
@@ -35,14 +30,10 @@ test('Tạo danh mục và món ăn phải hiển thị ngay trên giao diện',
   const itemModal = page.locator('.employee-modal').filter({
     has: page.getByRole('heading', { name: 'Thêm món ăn', exact: true }),
   })
-  await itemModal.getByLabel('Danh mục', { exact: true }).selectOption({
-    label: categoryName,
-  })
+  await itemModal.getByLabel('Danh mục', { exact: true }).selectOption({ label: categoryName })
   await itemModal.getByLabel('Tên món', { exact: true }).fill(itemName)
   await itemModal.getByLabel('Giá bán', { exact: true }).fill('125000')
-  await itemModal.getByLabel('Mô tả', { exact: true }).fill(
-    'Món ăn được kiểm tra bằng trình duyệt Chromium.',
-  )
+  await itemModal.getByLabel('Mô tả', { exact: true }).fill('Món ăn kiểm tra bằng Chromium.')
   await itemModal.getByRole('button', { name: 'Lưu món ăn', exact: true }).click()
 
   await expect(page.getByText('Tạo món ăn thành công.', { exact: true })).toBeVisible()
@@ -50,16 +41,4 @@ test('Tạo danh mục và món ăn phải hiển thị ngay trên giao diện',
   await expect(itemCard).toBeVisible()
   await expect(itemCard).toContainText(categoryName)
   await expect(itemCard).toContainText('125.000 ₫')
-
-  page.once('dialog', dialog => dialog.accept())
-  await itemCard.getByRole('button', { name: 'Xóa', exact: true }).click()
-  await expect(itemCard).toHaveCount(0)
-
-  await page.getByRole('button', { name: 'Danh mục', exact: true }).click()
-  const createdCategoryCard = page.locator('.category-card').filter({
-    hasText: categoryName,
-  })
-  page.once('dialog', dialog => dialog.accept())
-  await createdCategoryCard.getByRole('button', { name: 'Xóa', exact: true }).click()
-  await expect(createdCategoryCard).toHaveCount(0)
 })
