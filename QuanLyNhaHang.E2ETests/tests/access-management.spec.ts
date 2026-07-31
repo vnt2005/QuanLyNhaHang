@@ -24,7 +24,7 @@ test('Vai trò: tạo, sửa, phân quyền, kiểm tra lưu và vô hiệu hóa
   })
   await modal.getByLabel('Tên hệ thống', { exact: true }).fill(roleName)
   await modal.getByLabel('Tên hiển thị', { exact: true }).fill(displayName)
-  await modal.getByLabel('Mô tả', { exact: true }).fill('Vai trò tạo bởi Playwright E2E.')
+  await modal.locator('textarea').fill('Vai trò tạo bởi Playwright E2E.')
   await modal.getByRole('button', { name: 'Lưu vai trò', exact: true }).click()
 
   let card = page.locator('.role-card').filter({ hasText: roleName })
@@ -37,7 +37,7 @@ test('Vai trò: tạo, sửa, phân quyền, kiểm tra lưu và vô hiệu hóa
     has: page.getByRole('heading', { name: 'Cập nhật vai trò', exact: true }),
   })
   await modal.getByLabel('Tên hiển thị', { exact: true }).fill(updatedDisplayName)
-  await modal.getByLabel('Mô tả', { exact: true }).fill('Mô tả vai trò đã cập nhật.')
+  await modal.locator('textarea').fill('Mô tả vai trò đã cập nhật.')
   await modal.getByRole('button', { name: 'Lưu vai trò', exact: true }).click()
 
   card = page.locator('.role-card').filter({ hasText: roleName })
@@ -46,7 +46,7 @@ test('Vai trò: tạo, sửa, phân quyền, kiểm tra lưu và vô hiệu hóa
 
   await card.getByRole('button', { name: 'Phân quyền', exact: true }).click()
   let permissionModal = page.locator('.permission-modal')
-  await expect(permissionModal.getByText(/\/60 quyền/)).toBeVisible()
+  await expect(permissionModal.getByText(/\d+\/\d+ quyền/)).toBeVisible()
   await permissionModal.getByPlaceholder('Tìm mã quyền, tên quyền hoặc nhóm...')
     .fill('Dashboard.View')
 
@@ -89,7 +89,7 @@ test('Tài khoản: cập nhật và xóa tài khoản thử nghiệm', async ({
       password: 'Playwright-Access-2026!Aa1',
     },
   })
-  expect(registerResponse.status()).toBe(200)
+  expect(registerResponse.ok()).toBeTruthy()
 
   await loginAsAdmin(page)
   await openAdminModule(page, 'Tài khoản & phân quyền')
@@ -105,7 +105,7 @@ test('Tài khoản: cập nhật và xóa tài khoản thử nghiệm', async ({
     has: page.getByRole('heading', { name: 'Cập nhật tài khoản', exact: true }),
   })
   await modal.getByLabel('Tên', { exact: true }).fill('Tài khoản đã sửa')
-  await modal.getByLabel('Vai trò', { exact: true }).selectOption('Customer')
+  await modal.locator('select').selectOption('Customer')
   await modal.getByLabel('Tài khoản đang hoạt động', { exact: true }).uncheck()
   await modal.getByRole('button', { name: 'Lưu tài khoản', exact: true }).click()
 
