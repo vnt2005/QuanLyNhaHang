@@ -16,11 +16,11 @@ async function selectOptionContaining(
   select: ReturnType<import('@playwright/test').Page['locator']>,
   text: string,
 ) {
-  const option = select.locator('option').filter({ hasText: text }).first()
-  await expect(option).toBeAttached()
-  const value = await option.getAttribute('value')
-  expect(value, `Không tìm thấy option chứa “${text}”.`).toBeTruthy()
-  await select.selectOption(value ?? '')
+  const value = await select.locator('option').evaluateAll((options, expected) => (
+    options.find(option => option.textContent?.includes(expected as string)) as HTMLOptionElement | undefined
+  )?.value ?? '', text)
+  expect(value, `Không tìm thấy option chứa “${text}”.`).not.toBe('')
+  await select.selectOption(value)
 }
 
 test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh thu', async ({ page, request }) => {
@@ -127,6 +127,20 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   orderCard = page.locator('.order-card').filter({ hasText: orderCode })
   await expect(orderCard).toContainText('Đã phục vụ')
 
+  const servedResponse = await request.get(
+    `${apiURL}/api/Orders/paginated?keyword=${encodeURIComponent(orderCode)}&status=Served&isActive=true&pageNumber=1&pageSize=10`,
+    { headers },
+  )
+  expect(servedResponse.ok()).toBeTruthy()
+  const servedOrders = await servedResponse.json() as {
+    items: Array<{ orderCode: string; status: string }>
+  }
+  expect(servedOrders.items).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ orderCode, status: 'Served' }),
+    ]),
+  )
+
   await openAdminModule(page, 'Thanh toán')
   await page.getByRole('button', { name: '+ Thanh toán mới', exact: true }).click()
   const paymentModal = page.locator('.payment-modal')
@@ -159,7 +173,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(invoiceRow).toContainText('Đã phát hành')
 
   await invoiceRow.getByRole('button', { name: 'Chi tiết', exact: true }).click()
-  let invoiceDetail = page.locator('.invoice-detail-modal')
+  const invoiceDetail = page.locator('.invoice-detail-modal')
   await expect(invoiceDetail).toContainText(menuItemName)
   await expect(invoiceDetail).toContainText('2')
   await expect(invoiceDetail).toContainText('235.000')
