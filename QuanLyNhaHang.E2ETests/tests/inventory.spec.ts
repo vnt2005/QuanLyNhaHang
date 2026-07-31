@@ -9,11 +9,11 @@ async function selectOptionContaining(
   select: ReturnType<import('@playwright/test').Page['locator']>,
   text: string,
 ) {
-  const value = await select.locator('option').evaluateAll((options, expected) => (
-    options.find(option => option.textContent?.includes(expected as string)) as HTMLOptionElement | undefined
-  )?.value ?? '', text)
-  expect(value, `Không tìm thấy giá trị option chứa “${text}”.`).not.toBe('')
-  await select.selectOption(value)
+  const option = select.locator('option').filter({ hasText: text }).first()
+  await expect(option).toBeAttached()
+  const value = await option.getAttribute('value')
+  expect(value, `Không tìm thấy giá trị option chứa “${text}”.`).toBeTruthy()
+  await select.selectOption(value ?? '')
 }
 
 test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn tác và vô hiệu', async ({ page }) => {
@@ -43,7 +43,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   categoryRow = page.locator('.category-table tbody tr').filter({ hasText: categoryUpdated })
   await expect(categoryRow).toContainText('Danh mục kho đã cập nhật.')
 
-  await page.getByRole('button', { name: /Nguyên liệu/ }).first().click()
+  await page.locator('.inventory-tabs').getByRole('button', { name: /Nguyên liệu/ }).click()
   await page.getByRole('button', { name: '+ Thêm nguyên liệu', exact: true }).click()
   modal = page.locator('.inventory-form-modal')
   await modal.getByLabel(/Mã nguyên liệu/).fill(ingredientCode)
@@ -85,10 +85,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await page.getByRole('button', { name: '⇄ Giao dịch kho', exact: true }).click()
   transactionModal = page.locator('.transaction-form-modal')
   await transactionModal.getByRole('button', { name: /Xuất kho$/ }).click()
-  await selectOptionContaining(
-    transactionModal.getByLabel(/Nguyên liệu/),
-    ingredientCode,
-  )
+  await selectOptionContaining(transactionModal.getByLabel(/Nguyên liệu/), ingredientCode)
   await transactionModal.getByLabel(/Số lượng/).fill('3')
   await transactionModal.locator('textarea').fill('Xuất kho Playwright.')
   await transactionModal.getByRole('button', { name: 'Xác nhận xuất kho', exact: true }).click()
@@ -98,10 +95,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await page.getByRole('button', { name: '⇄ Giao dịch kho', exact: true }).click()
   transactionModal = page.locator('.transaction-form-modal')
   await transactionModal.getByRole('button', { name: /Điều chỉnh$/ }).click()
-  await selectOptionContaining(
-    transactionModal.getByLabel(/Nguyên liệu/),
-    ingredientCode,
-  )
+  await selectOptionContaining(transactionModal.getByLabel(/Nguyên liệu/), ingredientCode)
   await transactionModal.getByLabel(/Tồn kho mới/).fill('20')
   await transactionModal.getByLabel(/Đơn giá điều chỉnh/).fill('12000')
   await transactionModal.locator('textarea').fill('Điều chỉnh Playwright.')
@@ -109,7 +103,9 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toContainText('20')
 
-  await page.getByRole('button', { name: /Giao dịch kho/ }).first().click()
+  await page.locator('.inventory-tabs').getByRole('button', { name: /Giao dịch kho/ }).click()
+  const transactionKeyword = page.locator('.transaction-filters input').first()
+  await transactionKeyword.fill(ingredientCode)
   const transactionRows = page.locator('.transaction-table tbody tr').filter({ hasText: ingredientCode })
   await expect(transactionRows).toHaveCount(3)
   const adjustmentRow = transactionRows.filter({ hasText: 'Điều chỉnh' })
@@ -119,14 +115,14 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await adjustmentRow.getByRole('button', { name: /Hủy / }).click()
   await expect(adjustmentRow).toContainText('Đã hủy')
 
-  await page.getByRole('button', { name: /Nguyên liệu/ }).first().click()
+  await page.locator('.inventory-tabs').getByRole('button', { name: /Nguyên liệu/ }).click()
   ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toContainText('12')
   page.once('dialog', dialog => dialog.accept())
   await ingredientRow.getByRole('button', { name: `Vô hiệu hóa ${ingredientUpdated}`, exact: true }).click()
   await expect(page.locator('tbody tr').filter({ hasText: ingredientCode })).toContainText('Đã vô hiệu')
 
-  await page.getByRole('button', { name: /Danh mục/ }).first().click()
+  await page.locator('.inventory-tabs').getByRole('button', { name: /Danh mục/ }).click()
   categoryRow = page.locator('.category-table tbody tr').filter({ hasText: categoryUpdated })
   page.once('dialog', dialog => dialog.accept())
   await categoryRow.getByRole('button', { name: `Vô hiệu hóa ${categoryUpdated}`, exact: true }).click()
