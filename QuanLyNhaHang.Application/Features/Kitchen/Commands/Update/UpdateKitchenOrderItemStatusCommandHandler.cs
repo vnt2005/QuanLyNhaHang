@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Kitchen.Commands.Update;
 
@@ -70,8 +71,8 @@ public class UpdateKitchenOrderItemStatusCommandHandler
     }
 
     private static void SynchronizeOrderStatus(
-        Domain.Entities.Order order,
-        IReadOnlyCollection<Domain.Entities.OrderItem> orderItems)
+        Order order,
+        IReadOnlyCollection<OrderItem> orderItems)
     {
         var activeItems = orderItems
             .Where(x => x.Status != "Cancelled")
