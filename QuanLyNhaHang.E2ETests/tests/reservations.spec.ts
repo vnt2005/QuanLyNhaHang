@@ -52,7 +52,7 @@ test('Đặt bàn: tạo, xem chi tiết, sửa và đi hết vòng đời trạ
   await modal.getByLabel('Email', { exact: true }).fill(`reservation-${id}@example.com`)
   await modal.getByLabel('Số khách', { exact: true }).fill('4')
   await modal.getByLabel('Tiền cọc', { exact: true }).fill('200000')
-  await modal.getByLabel('Ghi chú', { exact: true }).fill('Đặt bàn bằng Playwright.')
+  await modal.locator('textarea').fill('Đặt bàn bằng Playwright.')
   await modal.getByRole('button', { name: /Tạo đặt bàn|Lưu đặt bàn|Đang lưu/ }).click()
 
   let row = page.locator('.reservations-table tbody tr').filter({ hasText: customerName })
@@ -75,7 +75,7 @@ test('Đặt bàn: tạo, xem chi tiết, sửa và đi hết vòng đời trạ
   await modal.getByLabel('Tên khách', { exact: true }).fill(updatedCustomerName)
   await modal.getByLabel('Số khách', { exact: true }).fill('5')
   await modal.getByLabel('Tiền cọc', { exact: true }).fill('300000')
-  await modal.getByLabel('Ghi chú', { exact: true }).fill('Đặt bàn E2E đã sửa.')
+  await modal.locator('textarea').fill('Đặt bàn E2E đã sửa.')
   await modal.getByRole('button', { name: /Cập nhật|Lưu/ }).last().click()
 
   row = page.locator('.reservations-table tbody tr').filter({ hasText: updatedCustomerName })
