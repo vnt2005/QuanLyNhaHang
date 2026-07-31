@@ -12,6 +12,11 @@ function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
 }
 
+function inputDate(date: Date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+  return local.toISOString().slice(0, 10)
+}
+
 async function selectOptionContaining(
   select: ReturnType<import('@playwright/test').Page['locator']>,
   text: string,
@@ -33,6 +38,9 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   const paymentNote = `Thanh toán Playwright ${id}`
   const reportNote = `Báo cáo Playwright ${id}`
   const itemPrice = 120000
+  const now = new Date()
+  const reportFrom = inputDate(new Date(now.getTime() - 24 * 60 * 60 * 1000))
+  const reportTo = inputDate(new Date(now.getTime() + 24 * 60 * 60 * 1000))
 
   const session = await loginAsAdmin(page)
   const headers = bearerHeaders(session)
@@ -191,10 +199,17 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(refreshedInvoiceDetail).toHaveCount(0)
 
   await openAdminModule(page, 'Báo cáo doanh thu')
+  const periodForm = page.locator('.revenue-period-card')
+  await periodForm.locator('input[type="date"]').nth(0).fill(reportFrom)
+  await periodForm.locator('input[type="date"]').nth(1).fill(reportTo)
+  await periodForm.getByRole('button', { name: 'Xem báo cáo', exact: true }).click()
   await expect(page.locator('.revenue-summary-grid')).toContainText('1')
   await expect(page.locator('.revenue-insights-grid')).toContainText(menuItemName)
+
   await page.getByRole('button', { name: '+ Tạo báo cáo', exact: true }).click()
   const reportModal = page.locator('.revenue-form-modal')
+  await reportModal.locator('input[type="date"]').nth(0).fill(reportFrom)
+  await reportModal.locator('input[type="date"]').nth(1).fill(reportTo)
   await reportModal.locator('textarea').fill(reportNote)
   await reportModal.getByRole('button', { name: 'Tạo báo cáo', exact: true }).click()
 
