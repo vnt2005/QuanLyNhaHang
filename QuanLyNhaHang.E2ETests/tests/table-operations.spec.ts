@@ -16,11 +16,11 @@ async function selectOptionContaining(
   select: ReturnType<import('@playwright/test').Page['locator']>,
   text: string,
 ) {
-  const value = await select.locator('option').evaluateAll((options, expected) => (
-    options.find(option => option.textContent?.includes(expected as string)) as HTMLOptionElement | undefined
-  )?.value ?? '', text)
-  expect(value, `Không tìm thấy option chứa “${text}”.`).not.toBe('')
-  await select.selectOption(value)
+  const option = select.locator('option').filter({ hasText: text }).first()
+  await expect(option).toBeAttached()
+  const value = await option.getAttribute('value')
+  expect(value, `Không tìm thấy option chứa “${text}”.`).toBeTruthy()
+  await select.selectOption(value ?? '')
 }
 
 test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch sử', async ({ page, request }) => {
