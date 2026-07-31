@@ -1,33 +1,62 @@
 import { expect, test } from './fixtures'
-import { loginAsAdmin, openAdminModule } from './helpers'
+import { bearerHeaders, loginAsAdmin, openAdminModule } from './helpers'
+
+const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
+  .replace(/\/$/, '')
 
 function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
 }
 
-test('Cấu hình nhà hàng: tạo, xem, sửa, vô hiệu và kích hoạt', async ({ page }) => {
+test('Cấu hình nhà hàng: xử lý cấu hình đang hoạt động, tạo, xem, sửa, vô hiệu và kích hoạt', async ({ page, request }) => {
   test.skip(
     process.env.E2E_ALLOW_SETTINGS_MUTATION !== 'true',
     'Chỉ chạy khi cho phép thay đổi cấu hình nhà hàng trên database kiểm thử.',
   )
 
   const id = suffix()
+  const existingName = `Nhà hàng có sẵn ${id}`
   const name = `Nhà hàng Playwright ${id}`
   const updatedName = `${name} đã sửa`
 
-  await loginAsAdmin(page)
+  const session = await loginAsAdmin(page)
+  const existingResponse = await request.post(`${apiURL}/api/restaurant-settings`, {
+    headers: bearerHeaders(session),
+    data: {
+      restaurantName: existingName,
+      address: 'Địa chỉ cấu hình có sẵn',
+      phoneNumber: `02${id.slice(-8).padStart(8, '0')}`,
+      email: `existing-${id}@example.com`,
+      taxCode: `OLD${id}`,
+      websiteUrl: 'https://example.com/existing',
+      logoUrl: null,
+      defaultVatPercent: 5,
+      serviceChargePercent: 2,
+      currency: 'VND',
+      openingTime: '08:00',
+      closingTime: '22:00',
+      invoiceFooter: 'Cấu hình cũ.',
+      qrOrderWelcomeMessage: 'Chào từ cấu hình cũ.',
+    },
+  })
+  expect(existingResponse.ok()).toBeTruthy()
+
   await openAdminModule(page, 'Cấu hình nhà hàng')
 
   const createButton = page.getByRole('button', { name: '+ Tạo cấu hình', exact: true })
-  if (await createButton.isDisabled()) {
-    const activeRow = page.locator('.restaurant-settings-table tbody tr')
-      .filter({ hasText: 'Đang hoạt động' })
-      .first()
-    await expect(activeRow).toBeVisible()
-    page.once('dialog', dialog => dialog.accept())
-    await activeRow.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
-    await expect(createButton).toBeEnabled()
-  }
+  await expect(page.locator('.active-setting-card')).toContainText(existingName)
+  await expect(createButton).toBeDisabled()
+
+  const activeRow = page.locator('.restaurant-settings-table tbody tr')
+    .filter({ hasText: existingName })
+  await expect(activeRow).toBeVisible()
+  await expect(activeRow).toContainText('Đang hoạt động')
+  page.once('dialog', dialog => dialog.accept())
+  await activeRow.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
+  await expect(activeRow).toContainText('Đã vô hiệu')
+  await expect(createButton).toBeEnabled()
+  await expect(page.locator('.active-setting-card')).not.toContainText(existingName)
+
   await createButton.click()
 
   let modal = page.locator('.restaurant-settings-modal.form-modal')
@@ -72,6 +101,7 @@ test('Cấu hình nhà hàng: tạo, xem, sửa, vô hiệu và kích hoạt', a
   row = page.locator('.restaurant-settings-table tbody tr').filter({ hasText: updatedName })
   await expect(row).toContainText('VAT 10%')
   await expect(row).toContainText('Phục vụ 7,5%')
+  await expect(page.locator('.active-setting-card')).toContainText(updatedName)
 
   page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
