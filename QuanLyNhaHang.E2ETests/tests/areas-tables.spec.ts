@@ -11,9 +11,8 @@ test('Tạo khu vực và bàn phải hiển thị ngay trên giao diện', asyn
   await page.getByRole('button', { name: 'Khu vực', exact: true }).click()
   await page.getByRole('button', { name: '+ Thêm khu vực', exact: true }).click()
 
-  const areaModal = page.locator('.employee-modal').filter({
-    has: page.getByRole('heading', { name: 'Thêm khu vực', exact: true }),
-  })
+  const areaModal = page.locator('.modal-backdrop .employee-modal')
+  await expect(areaModal.getByRole('heading', { name: 'Thêm khu vực', exact: true })).toBeVisible()
   await areaModal.getByLabel('Tên khu vực', { exact: true }).fill(areaName)
   await areaModal.getByLabel('Mô tả', { exact: true }).fill('Dữ liệu tạo bởi Playwright E2E.')
   await areaModal.getByRole('button', { name: 'Lưu khu vực', exact: true }).click()
@@ -24,9 +23,8 @@ test('Tạo khu vực và bàn phải hiển thị ngay trên giao diện', asyn
   await page.getByRole('button', { name: 'Bàn', exact: true }).click()
   await page.getByRole('button', { name: '+ Thêm bàn', exact: true }).click()
 
-  const tableModal = page.locator('.employee-modal').filter({
-    has: page.getByRole('heading', { name: 'Thêm bàn', exact: true }),
-  })
+  const tableModal = page.locator('.modal-backdrop .employee-modal')
+  await expect(tableModal.getByRole('heading', { name: 'Thêm bàn', exact: true })).toBeVisible()
   await tableModal.getByLabel('Khu vực', { exact: true }).selectOption({ label: areaName })
   await tableModal.getByLabel('Tên bàn', { exact: true }).fill(tableName)
   await tableModal.getByLabel('Sức chứa', { exact: true }).fill('4')
