@@ -12,15 +12,14 @@ function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
 }
 
-async function selectOptionContaining(
+async function selectOptionValue(
   select: ReturnType<import('@playwright/test').Page['locator']>,
-  text: string,
+  value: string,
+  label: string,
 ) {
-  const option = select.locator('option').filter({ hasText: text }).first()
-  await expect(option).toBeAttached()
-  const value = await option.getAttribute('value')
-  expect(value, `Không tìm thấy option chứa “${text}”.`).toBeTruthy()
-  await select.selectOption(value ?? '')
+  await expect(select.locator(`option[value="${value}"]`), `Không tìm thấy ${label}.`)
+    .toBeAttached()
+  await select.selectOption(value)
 }
 
 test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch sử', async ({ page, request }) => {
@@ -32,6 +31,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   const tableD = `Bàn trống chuyển E2E ${id}`
   const menuItemName = `Món điều phối E2E ${id}`
   const transferNote = `Chuyển bàn Playwright ${id}`
+  const splitOrderNote = `Order tách ${id}`
   const splitNote = `Tách bàn Playwright ${id}`
   const mergeNote = `Gộp bàn Playwright ${id}`
 
@@ -54,7 +54,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     return await response.json() as { id: string }
   }
 
-  const [sourceTable, mergeTable] = await Promise.all([
+  const [sourceTable, mergeTable, splitTargetTable, transferTargetTable] = await Promise.all([
     createTable(tableA),
     createTable(tableB),
     createTable(tableC),
@@ -89,6 +89,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     },
   })
   expect(sourceOrderResponse.ok()).toBeTruthy()
+  const sourceOrder = await sourceOrderResponse.json() as { id: string }
 
   const targetOrderResponse = await request.post(`${apiURL}/api/Orders`, {
     headers,
@@ -99,13 +100,22 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     },
   })
   expect(targetOrderResponse.ok()).toBeTruthy()
+  const targetOrder = await targetOrderResponse.json() as { id: string }
 
   await openAdminModule(page, 'Chuyển / gộp / tách bàn')
   const form = page.locator('.operation-form-card')
 
   await page.getByRole('button', { name: /Chuyển bàn$/ }).click()
-  await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableA)
-  await selectOptionContaining(form.getByLabel('Bàn đích', { exact: true }), tableD)
+  await selectOptionValue(
+    form.getByLabel('Order nguồn', { exact: true }),
+    sourceOrder.id,
+    'order nguồn cần chuyển',
+  )
+  await selectOptionValue(
+    form.getByLabel('Bàn đích', { exact: true }),
+    transferTargetTable.id,
+    'bàn đích cần chuyển',
+  )
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(transferNote)
   await form.getByRole('button', { name: 'Xác nhận chuyển bàn', exact: true }).click()
   await expect(page.getByText(/Chuyển bàn.*thành công/i)).toBeVisible()
@@ -125,12 +135,20 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   })
 
   await page.getByRole('button', { name: /Tách bàn$/ }).click()
-  await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableD)
-  await selectOptionContaining(form.getByLabel('Bàn đích', { exact: true }), tableC)
+  await selectOptionValue(
+    form.getByLabel('Order nguồn', { exact: true }),
+    sourceOrder.id,
+    'order nguồn cần tách',
+  )
+  await selectOptionValue(
+    form.getByLabel('Bàn đích', { exact: true }),
+    splitTargetTable.id,
+    'bàn đích cần tách',
+  )
   const splitItem = form.locator('.split-item-row').filter({ hasText: menuItemName })
   await expect(splitItem).toBeVisible()
   await splitItem.getByLabel('Số lượng', { exact: true }).selectOption('2')
-  await form.getByLabel('Ghi chú cho order mới', { exact: true }).fill(`Order tách ${id}`)
+  await form.getByLabel('Ghi chú cho order mới', { exact: true }).fill(splitOrderNote)
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(splitNote)
   await form.getByRole('button', { name: 'Xác nhận tách bàn', exact: true }).click()
   await expect(page.getByText(/Tách bàn.*thành công/i)).toBeVisible()
@@ -149,11 +167,28 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     expect.arrayContaining([expect.objectContaining({ menuItemName, quantity: 2 })]),
   )
 
+  let splitOrderId = ''
+  await expect.poll(async () => {
+    const response = await request.get(
+      `${apiURL}/api/Orders/paginated?keyword=${encodeURIComponent(splitOrderNote)}&isActive=true&pageNumber=1&pageSize=10`,
+      { headers },
+    )
+    if (!response.ok()) return ''
+    const body = await response.json() as { items: Array<{ id: string; note?: string | null }> }
+    splitOrderId = body.items.find(order => order.note === splitOrderNote)?.id ?? ''
+    return splitOrderId
+  }).not.toBe('')
+
   await page.getByRole('button', { name: /Gộp bàn$/ }).click()
-  await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableC)
-  await selectOptionContaining(
+  await selectOptionValue(
+    form.getByLabel('Order nguồn', { exact: true }),
+    splitOrderId,
+    'order nguồn cần gộp',
+  )
+  await selectOptionValue(
     form.getByLabel('Order đích giữ lại sau khi gộp', { exact: true }),
-    tableB,
+    targetOrder.id,
+    'order đích giữ lại',
   )
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(mergeNote)
   await form.getByRole('button', { name: 'Xác nhận gộp bàn', exact: true }).click()
@@ -173,7 +208,6 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     note: mergeNote,
   })
 
-  const sourceOrder = await sourceOrderResponse.json() as { id: string }
   const sourceOrderAfter = await request.get(`${apiURL}/api/Orders/${sourceOrder.id}`, { headers })
   expect(sourceOrderAfter.ok()).toBeTruthy()
   const sourceOrderBody = await sourceOrderAfter.json() as { restaurantTableName: string; items: Array<{ quantity: number; status: string }> }
