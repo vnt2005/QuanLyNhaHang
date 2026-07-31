@@ -174,7 +174,11 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   )
   const splitItem = form.locator('.split-item-row').filter({ hasText: menuItemName })
   await expect(splitItem).toBeVisible()
-  await splitItem.getByLabel('Số lượng', { exact: true }).selectOption('2')
+  await selectOptionValue(
+    splitItem.locator('select'),
+    '2',
+    'ô chọn số lượng món cần tách',
+  )
   await form.getByLabel('Ghi chú cho order mới', { exact: true }).fill(splitOrderNote)
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(splitNote)
   await form.getByRole('button', { name: 'Xác nhận tách bàn', exact: true }).click()
