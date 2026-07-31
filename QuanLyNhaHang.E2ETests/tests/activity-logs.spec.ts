@@ -70,7 +70,7 @@ test('Nhật ký: command được ghi, lọc, xem chi tiết và xóa bởi Adm
   page.once('dialog', dialog => dialog.accept())
   await detail.getByRole('button', { name: 'Xóa vĩnh viễn nhật ký', exact: true }).click()
   await expect(detail).toHaveCount(0)
-  await expect(page.locator('.activity-alert.success')).toContainText('xóa')
+  await expect(page.locator('.activity-alert.success')).toContainText(/xóa/i)
 
   const afterDeleteResponse = await request.get(activityQueryUrl, { headers })
   expect(afterDeleteResponse.ok()).toBeTruthy()
