@@ -1,11 +1,35 @@
 import { expect, type Page } from '@playwright/test'
 
+export type E2EAuthSession = {
+  token: string
+  refreshToken?: string
+  userId?: string
+  role?: string
+  permissions: string[]
+}
+
+type LoginEnvelope = {
+  data?: Partial<E2EAuthSession>
+  token?: string
+  refreshToken?: string
+  userId?: string
+  role?: string
+  permissions?: string[]
+}
+
 export function uniqueName(prefix: string) {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
   return `${prefix} ${suffix}`
 }
 
-export async function loginAsAdmin(page: Page) {
+export function bearerHeaders(session: E2EAuthSession) {
+  return {
+    Authorization: `Bearer ${session.token}`,
+    'Content-Type': 'application/json',
+  }
+}
+
+export async function loginAsAdmin(page: Page): Promise<E2EAuthSession> {
   const email = process.env.E2E_ADMIN_EMAIL
   const password = process.env.E2E_ADMIN_PASSWORD
 
@@ -32,10 +56,23 @@ export async function loginAsAdmin(page: Page) {
   const loginResponse = await loginResponsePromise
 
   expect(loginResponse.status()).toBe(200)
+  const envelope = await loginResponse.json() as LoginEnvelope
+  const payload = envelope.data ?? envelope
+  const token = payload.token ?? ''
+  expect(token, 'Backend phải trả access token sau khi đăng nhập.').not.toBe('')
+
   await expect(
     page.getByRole('button', { name: 'Đăng xuất', exact: true }),
   ).toBeVisible()
   await expect(page.locator('.admin-layout')).toBeVisible()
+
+  return {
+    token,
+    refreshToken: payload.refreshToken,
+    userId: payload.userId,
+    role: payload.role,
+    permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+  }
 }
 
 export async function openAdminModule(page: Page, moduleName: string) {
