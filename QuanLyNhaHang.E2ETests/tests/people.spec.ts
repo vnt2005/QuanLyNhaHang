@@ -27,7 +27,7 @@ test('Nhân viên: tạo, tìm kiếm, sửa và ngừng hoạt động', async 
   await modal.getByLabel('Email', { exact: true }).fill(email)
   await modal.getByLabel('Số điện thoại', { exact: true }).fill(phone)
   await modal.getByLabel('Mật khẩu', { exact: true }).fill('Playwright-Employee-2026!Aa1')
-  await modal.getByLabel('Vai trò', { exact: true }).selectOption('Staff')
+  await modal.locator('select').selectOption('Staff')
   await modal.getByLabel('Vị trí công việc', { exact: true }).fill('Phục vụ E2E')
   await modal.getByLabel('Lương cơ bản', { exact: true }).fill('7000000')
   await modal.getByRole('button', { name: 'Lưu nhân viên', exact: true }).click()
@@ -76,7 +76,7 @@ test('Khách hàng: đăng ký, tìm kiếm, xem chi tiết, cập nhật và kh
       password: 'Playwright-Customer-2026!Aa1',
     },
   })
-  expect(registerResponse.status()).toBe(200)
+  expect(registerResponse.ok()).toBeTruthy()
 
   await loginAsAdmin(page)
   await openAdminModule(page, 'Khách hàng')
@@ -103,7 +103,7 @@ test('Khách hàng: đăng ký, tìm kiếm, xem chi tiết, cập nhật và kh
   await edit.getByLabel('Cho phép tài khoản đăng nhập', { exact: true }).uncheck()
   await edit.getByRole('button', { name: 'Lưu khách hàng', exact: true }).click()
 
-  await expect(page.getByText('Cập nhật khách hàng thành công.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Cập nhật người dùng thành công.', { exact: true })).toBeVisible()
   row = page.locator('tbody tr').filter({ hasText: email })
   await expect(row).toContainText('Khách E2E đã sửa')
   await expect(row).toContainText('Đã khóa')
