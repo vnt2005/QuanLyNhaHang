@@ -47,7 +47,7 @@ test('Ca làm việc: tạo, sửa, phân ca và xóa', async ({ page, request }
   await modal.getByLabel('Tên ca', { exact: true }).fill(shiftName)
   await modal.getByLabel('Giờ bắt đầu', { exact: true }).fill('06:00')
   await modal.getByLabel('Giờ kết thúc', { exact: true }).fill('14:00')
-  await modal.getByLabel('Mô tả', { exact: true }).fill('Ca được tạo bằng Playwright.')
+  await modal.locator('textarea').fill('Ca được tạo bằng Playwright.')
   await modal.getByRole('button', { name: 'Lưu ca', exact: true }).click()
 
   let shiftRow = page.locator('tbody tr').filter({ hasText: shiftCode })
@@ -57,7 +57,7 @@ test('Ca làm việc: tạo, sửa, phân ca và xóa', async ({ page, request }
   await shiftRow.getByRole('button', { name: 'Sửa', exact: true }).click()
   modal = page.locator('.scheduling-modal')
   await modal.getByLabel('Giờ kết thúc', { exact: true }).fill('15:00')
-  await modal.getByLabel('Mô tả', { exact: true }).fill('Ca Playwright đã cập nhật.')
+  await modal.locator('textarea').fill('Ca Playwright đã cập nhật.')
   await modal.getByRole('button', { name: 'Lưu ca', exact: true }).click()
 
   shiftRow = page.locator('tbody tr').filter({ hasText: shiftCode })
@@ -68,12 +68,12 @@ test('Ca làm việc: tạo, sửa, phân ca và xóa', async ({ page, request }
   await page.getByRole('button', { name: '+ Phân ca', exact: true }).click()
 
   modal = page.locator('.scheduling-modal')
-  await modal.getByLabel('Nhân viên', { exact: true })
+  await modal.locator('select').nth(0)
     .selectOption({ label: `${employeeCode} - Playwright Phân ca` })
-  await modal.getByLabel('Ca làm việc', { exact: true })
+  await modal.locator('select').nth(1)
     .selectOption({ label: `${shiftCode} - ${shiftName} (06:00–15:00)` })
   await modal.getByLabel('Ngày làm', { exact: true }).fill(today)
-  await modal.getByLabel('Ghi chú', { exact: true }).fill('Phân ca E2E.')
+  await modal.locator('textarea').fill('Phân ca E2E.')
   await modal.getByRole('button', { name: 'Lưu phân công', exact: true }).click()
 
   let assignmentRow = page.locator('tbody tr').filter({ hasText: employeeCode })
@@ -83,7 +83,7 @@ test('Ca làm việc: tạo, sửa, phân ca và xóa', async ({ page, request }
 
   await assignmentRow.getByRole('button', { name: 'Sửa', exact: true }).click()
   modal = page.locator('.scheduling-modal')
-  await modal.getByLabel('Ghi chú', { exact: true }).fill('Phân ca E2E đã sửa.')
+  await modal.locator('textarea').fill('Phân ca E2E đã sửa.')
   await modal.getByRole('button', { name: 'Lưu phân công', exact: true }).click()
   assignmentRow = page.locator('tbody tr').filter({ hasText: employeeCode })
   await expect(assignmentRow).toContainText('Phân ca E2E đã sửa.')
