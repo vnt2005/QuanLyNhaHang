@@ -17,6 +17,18 @@ type LoginEnvelope = {
   permissions?: string[]
 }
 
+const minimumLoginIntervalMs = 6_500
+let lastLoginAttemptAt = 0
+
+async function waitForLoginSlot(page: Page) {
+  const elapsed = Date.now() - lastLoginAttemptAt
+  const remaining = minimumLoginIntervalMs - elapsed
+  if (remaining > 0) {
+    await page.waitForTimeout(remaining)
+  }
+  lastLoginAttemptAt = Date.now()
+}
+
 export function uniqueName(prefix: string) {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
   return `${prefix} ${suffix}`
@@ -39,6 +51,7 @@ export async function loginAsAdmin(page: Page): Promise<E2EAuthSession> {
     )
   }
 
+  await waitForLoginSlot(page)
   await page.goto('/')
   await expect(
     page.getByRole('heading', { name: 'Đăng nhập hệ thống' }),
