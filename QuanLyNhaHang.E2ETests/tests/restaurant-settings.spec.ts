@@ -31,8 +31,8 @@ test('Cấu hình nhà hàng: tạo, xem, sửa, vô hiệu và kích hoạt', a
   await modal.getByLabel(/Đơn vị tiền tệ/).fill('VND')
   await modal.getByLabel('VAT mặc định (%)', { exact: true }).fill('8')
   await modal.getByLabel('Phí phục vụ (%)', { exact: true }).fill('5')
-  await modal.getByLabel('Lời cuối hóa đơn', { exact: true }).fill('Cảm ơn từ Playwright.')
-  await modal.getByLabel('Lời chào khi gọi món QR', { exact: true }).fill('Chào mừng khách E2E.')
+  await modal.getByLabel(/Lời cuối hóa đơn/).fill('Cảm ơn từ Playwright.')
+  await modal.getByLabel(/Lời chào khi gọi món QR/).fill('Chào mừng khách E2E.')
   await modal.getByRole('button', { name: 'Tạo và kích hoạt', exact: true }).click()
 
   let row = page.locator('.restaurant-settings-table tbody tr').filter({ hasText: name })
@@ -55,7 +55,7 @@ test('Cấu hình nhà hàng: tạo, xem, sửa, vô hiệu và kích hoạt', a
   await modal.getByLabel(/Tên nhà hàng/).fill(updatedName)
   await modal.getByLabel('VAT mặc định (%)', { exact: true }).fill('10')
   await modal.getByLabel('Phí phục vụ (%)', { exact: true }).fill('7.5')
-  await modal.getByLabel('Lời cuối hóa đơn', { exact: true }).fill('Nội dung hóa đơn đã sửa.')
+  await modal.getByLabel(/Lời cuối hóa đơn/).fill('Nội dung hóa đơn đã sửa.')
   await modal.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
 
   row = page.locator('.restaurant-settings-table tbody tr').filter({ hasText: updatedName })
