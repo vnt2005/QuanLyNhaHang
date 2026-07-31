@@ -27,7 +27,16 @@ type OperationHistoryItem = {
   sourceTableName: string
   targetTableName: string
   note: string
-  details?: Array<{ menuItemName: string; quantity: number }>
+}
+
+type SplitOperationResponse = {
+  success: boolean
+  data: {
+    operationType: string
+    sourceTableName: string
+    targetTableName: string
+    details: Array<{ menuItemName: string; quantity: number }>
+  }
 }
 
 async function waitForOperationHistory(
@@ -181,16 +190,33 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   )
   await form.getByLabel('Ghi chú cho order mới', { exact: true }).fill(splitOrderNote)
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(splitNote)
+
+  const splitResponsePromise = page.waitForResponse(response => (
+    response.request().method() === 'POST'
+    && response.url().endsWith('/api/table-operations/split')
+  ))
   await form.getByRole('button', { name: 'Xác nhận tách bàn', exact: true }).click()
+  const splitResponse = await splitResponsePromise
+  expect(splitResponse.ok()).toBeTruthy()
+  const splitResult = await splitResponse.json() as SplitOperationResponse
+  expect(splitResult.success).toBeTruthy()
+  expect(splitResult.data).toMatchObject({
+    operationType: 'Split',
+    sourceTableName: tableD,
+    targetTableName: tableC,
+  })
+  expect(splitResult.data.details).toEqual(
+    expect.arrayContaining([expect.objectContaining({ menuItemName, quantity: 2 })]),
+  )
   await expect(page.getByText(/Tách bàn.*thành công/i)).toBeVisible()
 
   const splitHistory = await waitForOperationHistory(request, headers, splitNote)
-  expect(splitHistory.operationType).toBe('Split')
-  expect(splitHistory.sourceTableName).toBe(tableD)
-  expect(splitHistory.targetTableName).toBe(tableC)
-  expect(splitHistory.details).toEqual(
-    expect.arrayContaining([expect.objectContaining({ menuItemName, quantity: 2 })]),
-  )
+  expect(splitHistory).toMatchObject({
+    operationType: 'Split',
+    sourceTableName: tableD,
+    targetTableName: tableC,
+    note: splitNote,
+  })
 
   let splitOrderId = ''
   await expect.poll(async () => {
