@@ -17,7 +17,18 @@ test('Cấu hình nhà hàng: tạo, xem, sửa, vô hiệu và kích hoạt', a
 
   await loginAsAdmin(page)
   await openAdminModule(page, 'Cấu hình nhà hàng')
-  await page.getByRole('button', { name: '+ Tạo cấu hình', exact: true }).click()
+
+  const createButton = page.getByRole('button', { name: '+ Tạo cấu hình', exact: true })
+  if (await createButton.isDisabled()) {
+    const activeRow = page.locator('.restaurant-settings-table tbody tr')
+      .filter({ hasText: 'Đang hoạt động' })
+      .first()
+    await expect(activeRow).toBeVisible()
+    page.once('dialog', dialog => dialog.accept())
+    await activeRow.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
+    await expect(createButton).toBeEnabled()
+  }
+  await createButton.click()
 
   let modal = page.locator('.restaurant-settings-modal.form-modal')
   await modal.getByLabel(/Tên nhà hàng/).fill(name)
@@ -47,7 +58,7 @@ test('Cấu hình nhà hàng: tạo, xem, sửa, vô hiệu và kích hoạt', a
   await expect(detail).toContainText(name)
   await expect(detail).toContainText('Cảm ơn từ Playwright.')
   await expect(detail).toContainText('Chào mừng khách E2E.')
-  await detail.getByRole('button', { name: 'Đóng', exact: true }).click()
+  await detail.getByRole('button', { name: 'Đóng', exact: true }).last().click()
 
   row = page.locator('.restaurant-settings-table tbody tr').filter({ hasText: name })
   await row.getByRole('button', { name: 'Sửa', exact: true }).click()
@@ -66,7 +77,7 @@ test('Cấu hình nhà hàng: tạo, xem, sửa, vô hiệu và kích hoạt', a
   await row.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
   row = page.locator('.restaurant-settings-table tbody tr').filter({ hasText: updatedName })
   await expect(row).toContainText('Đã vô hiệu')
-  await expect(page.getByRole('button', { name: '+ Tạo cấu hình', exact: true })).toBeEnabled()
+  await expect(createButton).toBeEnabled()
 
   page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Kích hoạt', exact: true }).click()
@@ -78,5 +89,5 @@ test('Cấu hình nhà hàng: tạo, xem, sửa, vô hiệu và kích hoạt', a
     .getByRole('button', { name: 'Chi tiết', exact: true }).click()
   detail = page.locator('.restaurant-settings-modal.detail-modal')
   await expect(detail).toContainText('Nội dung hóa đơn đã sửa.')
-  await detail.getByRole('button', { name: 'Đóng', exact: true }).click()
+  await detail.getByRole('button', { name: 'Đóng', exact: true }).last().click()
 })
