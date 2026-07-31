@@ -25,7 +25,7 @@ test('Tạo khu vực và bàn phải hiển thị ngay trên giao diện', asyn
 
   const tableModal = page.locator('.modal-backdrop .employee-modal')
   await expect(tableModal.getByRole('heading', { name: 'Thêm bàn', exact: true })).toBeVisible()
-  await tableModal.getByLabel('Khu vực', { exact: true }).selectOption({ label: areaName })
+  await page.getByRole('combobox', { name: 'Khu vực', exact: true }).selectOption({ label: areaName })
   await tableModal.getByLabel('Tên bàn', { exact: true }).fill(tableName)
   await tableModal.getByLabel('Sức chứa', { exact: true }).fill('4')
   await tableModal.getByLabel('Ghi chú', { exact: true }).fill('Bàn kiểm thử hiển thị sau khi tạo.')
