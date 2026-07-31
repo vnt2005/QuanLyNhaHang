@@ -28,7 +28,7 @@ test('Tạo danh mục và món ăn phải hiển thị ngay trên giao diện',
 
   const itemModal = page.locator('.modal-backdrop .employee-modal')
   await expect(itemModal.getByRole('heading', { name: 'Thêm món ăn', exact: true })).toBeVisible()
-  await itemModal.getByLabel('Danh mục', { exact: true }).selectOption({ label: categoryName })
+  await page.getByRole('combobox', { name: 'Danh mục', exact: true }).selectOption({ label: categoryName })
   await itemModal.getByLabel('Tên món', { exact: true }).fill(itemName)
   await itemModal.getByLabel('Giá bán', { exact: true }).fill('125000')
   await itemModal.getByLabel('Mô tả', { exact: true }).fill('Món ăn kiểm tra bằng Chromium.')
