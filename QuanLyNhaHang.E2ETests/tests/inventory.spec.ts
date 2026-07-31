@@ -5,6 +5,17 @@ function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
 }
 
+async function selectOptionContaining(
+  select: ReturnType<import('@playwright/test').Page['locator']>,
+  text: string,
+) {
+  const option = select.locator('option').filter({ hasText: text }).first()
+  await expect(option).toBeAttached()
+  const value = await option.getAttribute('value')
+  expect(value, `Không tìm thấy giá trị option chứa “${text}”.`).toBeTruthy()
+  await select.selectOption(value ?? '')
+}
+
 test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn tác và vô hiệu', async ({ page }) => {
   const id = suffix()
   const categoryName = `Danh mục kho E2E ${id}`
@@ -74,7 +85,10 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await page.getByRole('button', { name: '⇄ Giao dịch kho', exact: true }).click()
   transactionModal = page.locator('.transaction-form-modal')
   await transactionModal.getByRole('button', { name: 'Xuất kho', exact: true }).click()
-  await transactionModal.getByLabel(/Nguyên liệu/).selectOption({ label: new RegExp(ingredientCode) })
+  await selectOptionContaining(
+    transactionModal.getByLabel(/Nguyên liệu/),
+    ingredientCode,
+  )
   await transactionModal.getByLabel(/Số lượng/).fill('3')
   await transactionModal.getByLabel('Ghi chú', { exact: true }).fill('Xuất kho Playwright.')
   await transactionModal.getByRole('button', { name: 'Xác nhận xuất kho', exact: true }).click()
@@ -84,7 +98,10 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await page.getByRole('button', { name: '⇄ Giao dịch kho', exact: true }).click()
   transactionModal = page.locator('.transaction-form-modal')
   await transactionModal.getByRole('button', { name: 'Điều chỉnh', exact: true }).click()
-  await transactionModal.getByLabel(/Nguyên liệu/).selectOption({ label: new RegExp(ingredientCode) })
+  await selectOptionContaining(
+    transactionModal.getByLabel(/Nguyên liệu/),
+    ingredientCode,
+  )
   await transactionModal.getByLabel(/Tồn kho mới/).fill('20')
   await transactionModal.getByLabel(/Đơn giá điều chỉnh/).fill('12000')
   await transactionModal.getByLabel('Ghi chú', { exact: true }).fill('Điều chỉnh Playwright.')
