@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Kitchen.Commands.Update;
 
@@ -23,6 +24,16 @@ public class UpdateKitchenOrderItemStatusCommandHandler
 
         if (orderItem == null)
             throw new Exception("Không tìm thấy món trong đơn hàng.");
+
+        var order = await _context.Orders
+            .FirstOrDefaultAsync(x => x.Id == orderItem.OrderId, cancellationToken);
+
+        if (order == null)
+            throw new Exception("Không tìm thấy đơn hàng của món.");
+
+        var orderItems = await _context.OrderItems
+            .Where(x => x.OrderId == orderItem.OrderId)
+            .ToListAsync(cancellationToken);
 
         orderItem.UpdateNote(request.Note);
 
@@ -52,8 +63,39 @@ public class UpdateKitchenOrderItemStatusCommandHandler
                 throw new Exception("Trạng thái món không hợp lệ.");
         }
 
+        SynchronizeOrderStatus(order, orderItems);
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
+    }
+
+    private static void SynchronizeOrderStatus(
+        Order order,
+        IReadOnlyCollection<OrderItem> orderItems)
+    {
+        var activeItems = orderItems
+            .Where(x => x.Status != "Cancelled")
+            .ToList();
+
+        if (activeItems.Count == 0)
+        {
+            order.Cancel();
+            return;
+        }
+
+        if (activeItems.All(x => x.Status == "Served"))
+        {
+            order.MarkServed();
+            return;
+        }
+
+        if (activeItems.Any(x => x.Status is "Cooking" or "Ready" or "Served"))
+        {
+            order.MarkCooking();
+            return;
+        }
+
+        order.MarkPending();
     }
 }
