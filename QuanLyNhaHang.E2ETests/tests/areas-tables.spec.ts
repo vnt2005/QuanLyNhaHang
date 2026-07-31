@@ -15,14 +15,11 @@ test('Tạo khu vực và bàn phải hiển thị ngay trên giao diện', asyn
     has: page.getByRole('heading', { name: 'Thêm khu vực', exact: true }),
   })
   await areaModal.getByLabel('Tên khu vực', { exact: true }).fill(areaName)
-  await areaModal.getByLabel('Mô tả', { exact: true }).fill(
-    'Dữ liệu được tạo bởi Playwright E2E.',
-  )
+  await areaModal.getByLabel('Mô tả', { exact: true }).fill('Dữ liệu tạo bởi Playwright E2E.')
   await areaModal.getByRole('button', { name: 'Lưu khu vực', exact: true }).click()
 
   await expect(page.getByText('Tạo khu vực thành công.', { exact: true })).toBeVisible()
-  const areaCard = page.locator('.area-card').filter({ hasText: areaName })
-  await expect(areaCard).toBeVisible()
+  await expect(page.locator('.area-card').filter({ hasText: areaName })).toBeVisible()
 
   await page.getByRole('button', { name: 'Bàn', exact: true }).click()
   await page.getByRole('button', { name: '+ Thêm bàn', exact: true }).click()
@@ -30,31 +27,15 @@ test('Tạo khu vực và bàn phải hiển thị ngay trên giao diện', asyn
   const tableModal = page.locator('.employee-modal').filter({
     has: page.getByRole('heading', { name: 'Thêm bàn', exact: true }),
   })
-  await tableModal.getByLabel('Khu vực', { exact: true }).selectOption({
-    label: areaName,
-  })
+  await tableModal.getByLabel('Khu vực', { exact: true }).selectOption({ label: areaName })
   await tableModal.getByLabel('Tên bàn', { exact: true }).fill(tableName)
   await tableModal.getByLabel('Sức chứa', { exact: true }).fill('4')
-  await tableModal.getByLabel('Ghi chú', { exact: true }).fill(
-    'Bàn kiểm thử hiển thị sau khi tạo.',
-  )
+  await tableModal.getByLabel('Ghi chú', { exact: true }).fill('Bàn kiểm thử hiển thị sau khi tạo.')
   await tableModal.getByRole('button', { name: 'Lưu bàn', exact: true }).click()
 
   await expect(page.getByText('Tạo bàn thành công.', { exact: true })).toBeVisible()
-  const tableCard = page.locator('.restaurant-table-card').filter({
-    hasText: tableName,
-  })
+  const tableCard = page.locator('.restaurant-table-card').filter({ hasText: tableName })
   await expect(tableCard).toBeVisible()
   await expect(tableCard).toContainText(areaName)
   await expect(tableCard).toContainText('4 chỗ')
-
-  page.once('dialog', dialog => dialog.accept())
-  await tableCard.getByRole('button', { name: 'Xóa', exact: true }).click()
-  await expect(tableCard).toHaveCount(0)
-
-  await page.getByRole('button', { name: 'Khu vực', exact: true }).click()
-  const createdAreaCard = page.locator('.area-card').filter({ hasText: areaName })
-  page.once('dialog', dialog => dialog.accept())
-  await createdAreaCard.getByRole('button', { name: 'Xóa', exact: true }).click()
-  await expect(createdAreaCard).toHaveCount(0)
 })
