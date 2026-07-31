@@ -1,0 +1,28 @@
+.restaurant-settings-modal.form-modal {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.restaurant-settings-modal.form-modal > form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.restaurant-settings-modal.form-modal .modal-alert {
+  flex: 0 0 auto;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-settings-form-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.restaurant-settings-modal.form-modal form > footer {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  box-shadow: 0 -8px 20px rgba(31, 53, 68, 0.06);
+}
