@@ -15,7 +15,10 @@ test('Admin đăng nhập và mở các module trọng yếu không phát sinh l
 
   await openAdminModule(page, 'Tài khoản & phân quyền')
   await expect(
-    page.getByRole('heading', { name: 'Tài khoản & phân quyền', exact: true }),
+    page.locator('.access-page').getByRole('heading', {
+      name: 'Tài khoản & phân quyền',
+      exact: true,
+    }),
   ).toBeVisible()
   await expectNoHorizontalOverflow(page)
 
