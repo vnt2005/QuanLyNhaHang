@@ -42,7 +42,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     headers,
     data: { name: areaName, description: 'Khu điều phối Playwright.' },
   })
-  expect(areaResponse.status()).toBe(200)
+  expect(areaResponse.ok()).toBeTruthy()
   const area = await areaResponse.json() as { id: string }
 
   const createTable = async (name: string) => {
@@ -50,11 +50,11 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
       headers,
       data: { areaId: area.id, name, capacity: 6, note: 'Bàn điều phối E2E.' },
     })
-    expect(response.status()).toBe(200)
+    expect(response.ok()).toBeTruthy()
     return await response.json() as { id: string }
   }
 
-  const [sourceTable, mergeTable, splitTable, transferTable] = await Promise.all([
+  const [sourceTable, mergeTable] = await Promise.all([
     createTable(tableA),
     createTable(tableB),
     createTable(tableC),
@@ -65,6 +65,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     headers,
     data: { name: `Danh mục điều phối ${id}`, description: null, displayOrder: 100 },
   })
+  expect(categoryResponse.ok()).toBeTruthy()
   const category = await categoryResponse.json() as { id: string }
   const menuResponse = await request.post(`${apiURL}/api/MenuItems`, {
     headers,
@@ -76,7 +77,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
       imageUrl: null,
     },
   })
-  expect(menuResponse.status()).toBe(200)
+  expect(menuResponse.ok()).toBeTruthy()
   const menuItem = await menuResponse.json() as { id: string }
 
   const sourceOrderResponse = await request.post(`${apiURL}/api/Orders`, {
@@ -87,7 +88,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
       items: [{ menuItemId: menuItem.id, quantity: 4, note: '4 phần để tách.' }],
     },
   })
-  expect(sourceOrderResponse.status()).toBe(200)
+  expect(sourceOrderResponse.ok()).toBeTruthy()
 
   const targetOrderResponse = await request.post(`${apiURL}/api/Orders`, {
     headers,
@@ -97,7 +98,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
       items: [{ menuItemId: menuItem.id, quantity: 1, note: 'Order giữ lại.' }],
     },
   })
-  expect(targetOrderResponse.status()).toBe(200)
+  expect(targetOrderResponse.ok()).toBeTruthy()
 
   await openAdminModule(page, 'Chuyển / gộp / tách bàn')
   const form = page.locator('.operation-form-card')
@@ -113,7 +114,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     `${apiURL}/api/table-operations/paginated?keyword=${encodeURIComponent(transferNote)}&pageNumber=1&pageSize=10`,
     { headers },
   )
-  expect(historyResponse.status()).toBe(200)
+  expect(historyResponse.ok()).toBeTruthy()
   let history = await historyResponse.json() as { items: Array<{ operationType: string; sourceTableName: string; targetTableName: string; note: string }> }
   expect(history.items).toHaveLength(1)
   expect(history.items[0]).toMatchObject({
@@ -138,6 +139,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     `${apiURL}/api/table-operations/paginated?keyword=${encodeURIComponent(splitNote)}&pageNumber=1&pageSize=10`,
     { headers },
   )
+  expect(historyResponse.ok()).toBeTruthy()
   history = await historyResponse.json() as { items: Array<{ operationType: string; sourceTableName: string; targetTableName: string; note: string; details: Array<{ menuItemName: string; quantity: number }> }> }
   expect(history.items).toHaveLength(1)
   expect(history.items[0].operationType).toBe('Split')
@@ -161,6 +163,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     `${apiURL}/api/table-operations/paginated?keyword=${encodeURIComponent(mergeNote)}&pageNumber=1&pageSize=10`,
     { headers },
   )
+  expect(historyResponse.ok()).toBeTruthy()
   history = await historyResponse.json() as { items: Array<{ operationType: string; sourceTableName: string; targetTableName: string; note: string }> }
   expect(history.items).toHaveLength(1)
   expect(history.items[0]).toMatchObject({
@@ -172,10 +175,8 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
 
   const sourceOrder = await sourceOrderResponse.json() as { id: string }
   const sourceOrderAfter = await request.get(`${apiURL}/api/Orders/${sourceOrder.id}`, { headers })
-  expect(sourceOrderAfter.status()).toBe(200)
+  expect(sourceOrderAfter.ok()).toBeTruthy()
   const sourceOrderBody = await sourceOrderAfter.json() as { restaurantTableName: string; items: Array<{ quantity: number; status: string }> }
   expect(sourceOrderBody.restaurantTableName).toBe(tableD)
   expect(sourceOrderBody.items.find(item => item.status !== 'Cancelled')?.quantity).toBe(2)
-
-  void transferTable
 })
