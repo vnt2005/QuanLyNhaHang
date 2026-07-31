@@ -11,9 +11,8 @@ test('Tạo danh mục và món ăn phải hiển thị ngay trên giao diện',
   await page.getByRole('button', { name: 'Danh mục', exact: true }).click()
   await page.getByRole('button', { name: '+ Thêm danh mục', exact: true }).click()
 
-  const categoryModal = page.locator('.employee-modal').filter({
-    has: page.getByRole('heading', { name: 'Thêm danh mục', exact: true }),
-  })
+  const categoryModal = page.locator('.modal-backdrop .employee-modal')
+  await expect(categoryModal.getByRole('heading', { name: 'Thêm danh mục', exact: true })).toBeVisible()
   await categoryModal.getByLabel('Tên danh mục', { exact: true }).fill(categoryName)
   await categoryModal.getByLabel('Thứ tự hiển thị', { exact: true }).fill('20')
   await categoryModal.getByLabel('Mô tả', { exact: true }).fill('Danh mục tạo bởi Playwright E2E.')
@@ -27,9 +26,8 @@ test('Tạo danh mục và món ăn phải hiển thị ngay trên giao diện',
   await page.getByRole('button', { name: 'Món ăn', exact: true }).click()
   await page.getByRole('button', { name: '+ Thêm món ăn', exact: true }).click()
 
-  const itemModal = page.locator('.employee-modal').filter({
-    has: page.getByRole('heading', { name: 'Thêm món ăn', exact: true }),
-  })
+  const itemModal = page.locator('.modal-backdrop .employee-modal')
+  await expect(itemModal.getByRole('heading', { name: 'Thêm món ăn', exact: true })).toBeVisible()
   await itemModal.getByLabel('Danh mục', { exact: true }).selectOption({ label: categoryName })
   await itemModal.getByLabel('Tên món', { exact: true }).fill(itemName)
   await itemModal.getByLabel('Giá bán', { exact: true }).fill('125000')
