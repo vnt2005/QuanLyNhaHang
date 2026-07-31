@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 
-const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:5173'
-const apiURL = process.env.E2E_API_URL ?? 'http://127.0.0.1:8080'
+const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:5173'
+const apiURL = process.env.E2E_API_URL ?? 'http://localhost:8080'
 const frontendDirectory = fileURLToPath(
   new URL('../QuanLyNhaHang.Frontend/', import.meta.url),
 )
