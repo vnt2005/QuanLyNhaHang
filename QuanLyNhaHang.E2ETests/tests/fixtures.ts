@@ -26,6 +26,11 @@ function responseProblem(response: Response) {
   return `[api:${response.status()}] ${response.request().method()} ${response.url()}`
 }
 
+function isIntentionalCancellation(request: Request) {
+  const errorText = request.failure()?.errorText ?? ''
+  return errorText.includes('ERR_ABORTED') || errorText.includes('NS_BINDING_ABORTED')
+}
+
 export const test = base.extend<DiagnosticFixtures>({
   diagnostics: [async ({ page }, use, testInfo) => {
     const problems: string[] = []
@@ -41,7 +46,10 @@ export const test = base.extend<DiagnosticFixtures>({
     })
 
     page.on('requestfailed', request => {
-      if (request.url().startsWith(apiURL)) {
+      if (
+        request.url().startsWith(apiURL)
+        && !isIntentionalCancellation(request)
+      ) {
         problems.push(requestProblem(request))
       }
     })
