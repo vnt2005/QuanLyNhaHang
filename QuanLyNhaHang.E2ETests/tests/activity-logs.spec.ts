@@ -39,7 +39,8 @@ test('Nhật ký: command được ghi, lọc, xem chi tiết và xóa bởi Adm
       matchedRow = candidate
       break
     }
-    await detail.getByRole('button', { name: 'Đóng', exact: true }).first().click()
+    await detail.locator('header button').click()
+    await expect(detail).toHaveCount(0)
   }
 
   const detail = page.locator('.activity-modal')
