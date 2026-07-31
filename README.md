@@ -2,6 +2,11 @@
 
 Backend quản lý nhà hàng xây dựng bằng ASP.NET Core, Clean Architecture, CQRS, MediatR, Entity Framework Core và SQL Server.
 
+## Tài liệu
+
+- [Kiến trúc hệ thống](docs/ARCHITECTURE.md)
+- [Cấu hình local an toàn](docs/LOCAL_CONFIGURATION.md)
+
 ## Chạy local
 
 Dự án hỗ trợ một SQL Server Docker dùng chung cho Visual Studio, Docker API và SSMS.
