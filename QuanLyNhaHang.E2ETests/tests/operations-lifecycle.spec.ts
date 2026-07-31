@@ -21,11 +21,20 @@ async function selectOptionContaining(
   select: ReturnType<import('@playwright/test').Page['locator']>,
   text: string,
 ) {
-  const value = await select.locator('option').evaluateAll((options, expected) => (
-    options.find(option => option.textContent?.includes(expected as string)) as HTMLOptionElement | undefined
-  )?.value ?? '', text)
-  expect(value, `Không tìm thấy option chứa “${text}”.`).not.toBe('')
+  let value = ''
+
+  await expect.poll(async () => {
+    value = await select.locator('option').evaluateAll((options, expected) => (
+      options.find(option => option.textContent?.includes(expected as string)) as HTMLOptionElement | undefined
+    )?.value ?? '', text)
+    return value
+  }, {
+    message: `Không tìm thấy option chứa “${text}”.`,
+    timeout: 20_000,
+  }).not.toBe('')
+
   await select.selectOption(value)
+  await expect(select).toHaveValue(value)
 }
 
 test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh thu', async ({ page, request }) => {
