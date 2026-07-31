@@ -9,11 +9,11 @@ async function selectOptionContaining(
   select: ReturnType<import('@playwright/test').Page['locator']>,
   text: string,
 ) {
-  const option = select.locator('option').filter({ hasText: text }).first()
-  await expect(option).toBeAttached()
-  const value = await option.getAttribute('value')
-  expect(value, `Không tìm thấy giá trị option chứa “${text}”.`).toBeTruthy()
-  await select.selectOption(value ?? '')
+  const value = await select.locator('option').evaluateAll((options, expected) => (
+    options.find(option => option.textContent?.includes(expected as string)) as HTMLOptionElement | undefined
+  )?.value ?? '', text)
+  expect(value, `Không tìm thấy giá trị option chứa “${text}”.`).not.toBe('')
+  await select.selectOption(value)
 }
 
 test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn tác và vô hiệu', async ({ page }) => {
@@ -84,7 +84,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
 
   await page.getByRole('button', { name: '⇄ Giao dịch kho', exact: true }).click()
   transactionModal = page.locator('.transaction-form-modal')
-  await transactionModal.getByRole('button', { name: 'Xuất kho', exact: true }).click()
+  await transactionModal.getByRole('button', { name: /Xuất kho$/ }).click()
   await selectOptionContaining(
     transactionModal.getByLabel(/Nguyên liệu/),
     ingredientCode,
@@ -97,7 +97,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
 
   await page.getByRole('button', { name: '⇄ Giao dịch kho', exact: true }).click()
   transactionModal = page.locator('.transaction-form-modal')
-  await transactionModal.getByRole('button', { name: 'Điều chỉnh', exact: true }).click()
+  await transactionModal.getByRole('button', { name: /Điều chỉnh$/ }).click()
   await selectOptionContaining(
     transactionModal.getByLabel(/Nguyên liệu/),
     ingredientCode,
