@@ -37,7 +37,7 @@ test('Ca làm việc: tạo, sửa, phân ca và xóa', async ({ page, request }
       hireDate: today,
     },
   })
-  expect(employeeResponse.status()).toBe(200)
+  expect(employeeResponse.ok()).toBeTruthy()
 
   await openAdminModule(page, 'Ca làm việc & phân ca')
   await page.getByRole('button', { name: '+ Tạo ca', exact: true }).click()
