@@ -38,17 +38,19 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
     headers,
     data: { name: areaName, description: 'Khu QR Playwright.' },
   })
+  expect(areaResponse.ok()).toBeTruthy()
   const area = await areaResponse.json() as { id: string }
   const tableResponse = await request.post(`${apiURL}/api/RestaurantTables`, {
     headers,
     data: { areaId: area.id, name: tableName, capacity: 4, note: 'Bàn QR.' },
   })
-  expect(tableResponse.status()).toBe(200)
+  expect(tableResponse.ok()).toBeTruthy()
 
   const categoryResponse = await request.post(`${apiURL}/api/MenuCategories`, {
     headers,
     data: { name: `Danh mục QR ${id}`, description: null, displayOrder: 101 },
   })
+  expect(categoryResponse.ok()).toBeTruthy()
   const category = await categoryResponse.json() as { id: string }
   const menuResponse = await request.post(`${apiURL}/api/MenuItems`, {
     headers,
@@ -60,7 +62,7 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
       imageUrl: null,
     },
   })
-  expect(menuResponse.status()).toBe(200)
+  expect(menuResponse.ok()).toBeTruthy()
 
   await openAdminModule(page, 'QR bàn')
   const clientUrl = page.getByPlaceholder('https://order.example.com')
