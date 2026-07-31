@@ -9,6 +9,8 @@ import {
 const apiURL = (process.env.E2E_API_URL ?? 'http://127.0.0.1:8080')
   .replace(/\/$/, '')
 
+const loginWindowSpacingMs = 7_000
+
 type DiagnosticFixtures = {
   diagnostics: void
 }
@@ -64,6 +66,11 @@ export const test = base.extend<DiagnosticFixtures>({
     })
 
     await use()
+
+    // The API permits 10 login attempts per minute. Every E2E test logs in
+    // independently, so keep a deterministic gap between test starts without
+    // weakening the application's production rate limiter.
+    await page.waitForTimeout(loginWindowSpacingMs)
 
     if (problems.length > 0) {
       await testInfo.attach('browser-diagnostics.txt', {
