@@ -115,7 +115,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   page.once('dialog', dialog => dialog.accept())
   await ticket.getByRole('button', { name: 'Hoàn thành', exact: true }).click()
   ticket = page.locator('.kitchen-ticket').filter({ hasText: orderCode })
-  await expect(ticket).toContainText('Hoàn thành')
+  await expect(ticket).toContainText('Xong')
 
   page.once('dialog', dialog => dialog.accept())
   await ticket.getByRole('button', { name: 'Đã giao món', exact: true }).click()
