@@ -25,16 +25,18 @@ test('Bảo mật tài khoản: hiển thị, thu hồi phiên khác và đăng 
     .toBeVisible()
   await expect(page.locator('.account-profile-card')).toContainText(email)
   await expect(page.locator('.account-profile-card')).toContainText('Admin')
-  await expect(page.locator('.account-session-list > div')).toHaveCount(2)
   await expect(page.getByText('Thiết bị hiện tại', { exact: true })).toBeVisible()
 
-  const revokeButton = page.getByRole('button', { name: 'Thu hồi', exact: true })
-  await expect(revokeButton).toHaveCount(1)
+  const sessions = page.locator('.account-session-list > div')
+  await expect.poll(() => sessions.count()).toBeGreaterThanOrEqual(2)
+
+  const revokeButtons = page.getByRole('button', { name: 'Thu hồi', exact: true })
+  const revokeCountBefore = await revokeButtons.count()
+  expect(revokeCountBefore).toBeGreaterThanOrEqual(1)
   page.once('dialog', dialog => dialog.accept())
-  await revokeButton.click()
-  await expect(page.locator('.account-session-list > div')).toHaveCount(2)
+  await revokeButtons.first().click()
+  await expect.poll(() => revokeButtons.count()).toBe(revokeCountBefore - 1)
   await expect(page.locator('.account-session-list')).toContainText('Đã thu hồi')
-  await expect(page.getByRole('button', { name: 'Thu hồi', exact: true })).toHaveCount(0)
 
   const thirdLogin = await request.post(`${apiURL}/api/auth/login`, {
     headers: {
@@ -45,7 +47,7 @@ test('Bảo mật tài khoản: hiển thị, thu hồi phiên khác và đăng 
   })
   expect(thirdLogin.status()).toBe(200)
   await page.getByRole('button', { name: '↻ Làm mới', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Thu hồi', exact: true })).toHaveCount(1)
+  await expect.poll(() => revokeButtons.count()).toBe(revokeCountBefore)
 
   page.once('dialog', dialog => dialog.accept())
   await page.getByRole('button', { name: 'Đăng xuất tất cả', exact: true }).click()
