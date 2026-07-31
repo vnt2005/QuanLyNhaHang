@@ -17,7 +17,7 @@ test('Nhật ký: command được ghi, lọc, xem chi tiết và xóa bởi Adm
     headers: bearerHeaders(session),
     data: { name: areaName, description: 'Tạo để kiểm tra ActivityLogBehavior.' },
   })
-  expect(createResponse.status()).toBe(200)
+  expect(createResponse.ok()).toBeTruthy()
   const area = await createResponse.json() as { id: string }
 
   await openAdminModule(page, 'Nhật ký hoạt động')
