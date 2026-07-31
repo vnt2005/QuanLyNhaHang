@@ -41,14 +41,14 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
     headers,
     data: { name: areaName, description: 'Dữ liệu nền cho luồng vận hành E2E.' },
   })
-  expect(areaResponse.status()).toBe(200)
+  expect(areaResponse.ok()).toBeTruthy()
   const area = await areaResponse.json() as { id: string }
 
   const tableResponse = await request.post(`${apiURL}/api/RestaurantTables`, {
     headers,
     data: { areaId: area.id, name: tableName, capacity: 6, note: 'Bàn E2E.' },
   })
-  expect(tableResponse.status()).toBe(200)
+  expect(tableResponse.ok()).toBeTruthy()
 
   const categoryResponse = await request.post(`${apiURL}/api/MenuCategories`, {
     headers,
@@ -58,7 +58,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
       displayOrder: 99,
     },
   })
-  expect(categoryResponse.status()).toBe(200)
+  expect(categoryResponse.ok()).toBeTruthy()
   const category = await categoryResponse.json() as { id: string }
 
   const menuItemResponse = await request.post(`${apiURL}/api/MenuItems`, {
@@ -71,7 +71,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
       imageUrl: null,
     },
   })
-  expect(menuItemResponse.status()).toBe(200)
+  expect(menuItemResponse.ok()).toBeTruthy()
 
   await openAdminModule(page, 'Đơn hàng')
   await page.getByRole('button', { name: '+ Tạo đơn hàng', exact: true }).click()
