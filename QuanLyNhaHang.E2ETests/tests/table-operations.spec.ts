@@ -103,7 +103,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   await openAdminModule(page, 'Chuyển / gộp / tách bàn')
   const form = page.locator('.operation-form-card')
 
-  await page.getByRole('button', { name: 'Chuyển bàn', exact: true }).click()
+  await page.getByRole('button', { name: /Chuyển bàn$/ }).click()
   await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableA)
   await selectOptionContaining(form.getByLabel('Bàn đích', { exact: true }), tableD)
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(transferNote)
@@ -124,7 +124,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     note: transferNote,
   })
 
-  await page.getByRole('button', { name: 'Tách bàn', exact: true }).click()
+  await page.getByRole('button', { name: /Tách bàn$/ }).click()
   await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableD)
   await selectOptionContaining(form.getByLabel('Bàn đích', { exact: true }), tableC)
   const splitItem = form.locator('.split-item-row').filter({ hasText: menuItemName })
@@ -149,7 +149,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     expect.arrayContaining([expect.objectContaining({ menuItemName, quantity: 2 })]),
   )
 
-  await page.getByRole('button', { name: 'Gộp bàn', exact: true }).click()
+  await page.getByRole('button', { name: /Gộp bàn$/ }).click()
   await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableC)
   await selectOptionContaining(
     form.getByLabel('Order đích giữ lại sau khi gộp', { exact: true }),
