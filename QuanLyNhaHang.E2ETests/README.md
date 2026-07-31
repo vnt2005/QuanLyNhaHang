@@ -23,16 +23,24 @@ Bộ kiểm thử này mở Chromium và thao tác trực tiếp trên React fro
 docker compose up -d --build
 ```
 
-2. Cung cấp tài khoản Admin đang hoạt động và đã xác minh email:
+2. Xác nhận API hoạt động:
+
+```powershell
+Invoke-WebRequest http://localhost:8080/health
+```
+
+3. Cung cấp tài khoản Admin đang hoạt động và đã xác minh email:
 
 ```powershell
 $env:E2E_ADMIN_EMAIL="admin@example.com"
 $env:E2E_ADMIN_PASSWORD="MatKhauAdmin"
-$env:E2E_API_URL="http://127.0.0.1:8080"
-$env:VITE_API_BASE_URL="http://127.0.0.1:8080"
+$env:E2E_API_URL="http://localhost:8080"
+$env:E2E_BASE_URL="http://localhost:5173"
 ```
 
-3. Cài và chạy Playwright:
+Dùng thống nhất `localhost` để khớp với CORS mặc định của Docker. Không trộn `localhost:5173` và `127.0.0.1:5173` khi chạy trên máy nếu chưa đặt lại `FRONTEND_ORIGIN` cho API.
+
+4. Cài và chạy Playwright:
 
 ```powershell
 cd QuanLyNhaHang.E2ETests
@@ -41,7 +49,7 @@ npx playwright install chromium
 npm test
 ```
 
-Playwright tự khởi động Vite tại `http://127.0.0.1:5173`. Nếu frontend đã chạy sẵn, Playwright sẽ dùng lại server hiện tại.
+Playwright tự khởi động Vite tại `http://localhost:5173`. Nếu frontend đã chạy sẵn đúng địa chỉ này, Playwright sẽ dùng lại server hiện tại.
 
 ## Chế độ quan sát trực tiếp
 
