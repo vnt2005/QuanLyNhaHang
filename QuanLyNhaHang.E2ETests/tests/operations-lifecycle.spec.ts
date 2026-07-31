@@ -76,8 +76,8 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await openAdminModule(page, 'Đơn hàng')
   await page.getByRole('button', { name: '+ Tạo đơn hàng', exact: true }).click()
   const orderModal = page.locator('.order-modal')
-  await selectOptionContaining(orderModal.getByLabel('Bàn', { exact: true }), tableName)
-  await orderModal.getByLabel('Ghi chú', { exact: true }).fill(orderNote)
+  await selectOptionContaining(orderModal.locator('select').first(), tableName)
+  await orderModal.locator('textarea').first().fill(orderNote)
   await orderModal.getByRole('button', { name: '+ Thêm món', exact: true }).click()
   const orderLine = orderModal.locator('.order-line').first()
   await selectOptionContaining(orderLine.locator('select'), menuItemName)
@@ -130,15 +130,12 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await openAdminModule(page, 'Thanh toán')
   await page.getByRole('button', { name: '+ Thanh toán mới', exact: true }).click()
   const paymentModal = page.locator('.payment-modal')
-  await selectOptionContaining(
-    paymentModal.getByLabel('Đơn hàng', { exact: true }),
-    orderCode,
-  )
+  await selectOptionContaining(paymentModal.locator('select').first(), orderCode)
   await paymentModal.getByLabel('Giảm giá', { exact: true }).fill('10000')
   await paymentModal.getByLabel('VAT', { exact: true }).fill('5000')
   await paymentModal.getByLabel('Khách đưa', { exact: true }).fill('300000')
-  await paymentModal.getByLabel('Phương thức', { exact: true }).selectOption('Cash')
-  await paymentModal.getByLabel('Ghi chú', { exact: true }).fill(paymentNote)
+  await paymentModal.locator('select').nth(1).selectOption('Cash')
+  await paymentModal.locator('textarea').fill(paymentNote)
   await paymentModal.getByLabel('Tự động xuất hóa đơn sau thanh toán', { exact: true }).check()
   await expect(paymentModal.locator('.payment-preview')).toContainText('235.000')
   await paymentModal.getByRole('button', { name: 'Xác nhận thanh toán', exact: true }).click()
@@ -179,7 +176,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(page.locator('.revenue-insights-grid')).toContainText(menuItemName)
   await page.getByRole('button', { name: '+ Tạo báo cáo', exact: true }).click()
   const reportModal = page.locator('.revenue-form-modal')
-  await reportModal.getByLabel('Ghi chú', { exact: true }).fill(reportNote)
+  await reportModal.locator('textarea').fill(reportNote)
   await reportModal.getByRole('button', { name: 'Tạo báo cáo', exact: true }).click()
 
   const reportDetail = page.locator('.revenue-detail-modal, .revenue-report-detail-modal')
