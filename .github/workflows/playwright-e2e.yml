@@ -48,7 +48,7 @@ env:
   VITE_API_BASE_URL: 'http://127.0.0.1:8080'
   E2E_API_URL: 'http://127.0.0.1:8080'
   E2E_BASE_URL: 'http://127.0.0.1:5173'
-  E2E_ADMIN_EMAIL: 'playwright-admin@quanlynhahang.local'
+  E2E_ADMIN_EMAIL: 'playwright-admin@example.com'
   E2E_ADMIN_PASSWORD: 'Playwright-Admin-2026!Aa1'
 
 jobs:
