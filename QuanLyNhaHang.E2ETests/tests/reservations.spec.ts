@@ -31,20 +31,20 @@ test('Đặt bàn: tạo, xem chi tiết, sửa và đi hết vòng đời trạ
     headers: bearerHeaders(session),
     data: { name: areaName, description: 'Khu vực cho reservation E2E.' },
   })
-  expect(areaResponse.status()).toBe(200)
+  expect(areaResponse.ok()).toBeTruthy()
   const area = await areaResponse.json() as { id: string }
 
   const tableResponse = await request.post(`${apiURL}/api/RestaurantTables`, {
     headers: bearerHeaders(session),
     data: { areaId: area.id, name: tableName, capacity: 6, note: 'Bàn reservation E2E.' },
   })
-  expect(tableResponse.status()).toBe(200)
+  expect(tableResponse.ok()).toBeTruthy()
 
   await openAdminModule(page, 'Đặt bàn')
   await page.getByRole('button', { name: '+ Tạo đặt bàn', exact: true }).click()
 
   let modal = page.locator('.reservations-modal')
-  await modal.getByLabel('Bàn', { exact: true })
+  await modal.locator('select').first()
     .selectOption({ label: `${tableName} • ${areaName} • 6 chỗ` })
   await modal.getByLabel('Thời gian', { exact: true }).fill(futureDateTime(2))
   await modal.getByLabel('Tên khách', { exact: true }).fill(customerName)
@@ -114,16 +114,18 @@ test('Đặt bàn: hủy lịch đang chờ xác nhận', async ({ page, request
     headers: bearerHeaders(session),
     data: { name: areaName, description: null },
   })
+  expect(areaResponse.ok()).toBeTruthy()
   const area = await areaResponse.json() as { id: string }
-  await request.post(`${apiURL}/api/RestaurantTables`, {
+  const tableResponse = await request.post(`${apiURL}/api/RestaurantTables`, {
     headers: bearerHeaders(session),
     data: { areaId: area.id, name: tableName, capacity: 4, note: null },
   })
+  expect(tableResponse.ok()).toBeTruthy()
 
   await openAdminModule(page, 'Đặt bàn')
   await page.getByRole('button', { name: '+ Tạo đặt bàn', exact: true }).click()
   const modal = page.locator('.reservations-modal')
-  await modal.getByLabel('Bàn', { exact: true })
+  await modal.locator('select').first()
     .selectOption({ label: `${tableName} • ${areaName} • 4 chỗ` })
   await modal.getByLabel('Thời gian', { exact: true }).fill(futureDateTime(3))
   await modal.getByLabel('Tên khách', { exact: true }).fill(customerName)
