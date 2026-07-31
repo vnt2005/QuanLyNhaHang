@@ -123,8 +123,10 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   page.once('dialog', dialog => dialog.accept())
   await detail.getByRole('button', { name: 'Tạo lại mã', exact: true }).click()
   detail = page.locator('.table-qr-detail-modal')
-  const regeneratedToken = (await detail.locator('code').first().textContent())?.trim() ?? ''
-  expect(regeneratedToken).not.toBe(originalToken)
+  const regeneratedCode = detail.locator('code').first()
+  await expect(regeneratedCode).not.toHaveText(originalToken)
+  const regeneratedToken = (await regeneratedCode.textContent())?.trim() ?? ''
+  expect(regeneratedToken).not.toBe('')
   await expect(detail.locator('img')).toHaveAttribute('src', /^data:image\/png;base64,/)
 
   page.once('dialog', dialog => dialog.accept())
