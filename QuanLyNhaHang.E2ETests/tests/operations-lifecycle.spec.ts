@@ -185,6 +185,11 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(page.locator('.invoice-table tbody tr').filter({ hasText: paymentCode }))
     .toContainText('Đã in')
 
+  const refreshedInvoiceDetail = page.locator('.invoice-detail-modal')
+  await expect(refreshedInvoiceDetail).toBeVisible()
+  await refreshedInvoiceDetail.getByRole('button', { name: 'Đóng', exact: true }).click()
+  await expect(refreshedInvoiceDetail).toHaveCount(0)
+
   await openAdminModule(page, 'Báo cáo doanh thu')
   await expect(page.locator('.revenue-summary-grid')).toContainText('1')
   await expect(page.locator('.revenue-insights-grid')).toContainText(menuItemName)
