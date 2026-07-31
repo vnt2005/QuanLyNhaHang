@@ -50,7 +50,7 @@ test('Nhân viên: tạo, tìm kiếm, sửa và ngừng hoạt động', async 
   await editModal.getByLabel('Lương cơ bản', { exact: true }).fill('8500000')
   await editModal.getByRole('button', { name: 'Lưu nhân viên', exact: true }).click()
 
-  await expect(page.getByText('Cập nhật thành công.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Cập nhật nhân viên thành công.', { exact: true })).toBeVisible()
   row = page.locator('tbody tr').filter({ hasText: employeeCode })
   await expect(row).toContainText('Thu ngân E2E')
   await expect(row).toContainText('8.500.000 ₫')
