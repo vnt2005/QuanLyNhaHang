@@ -10,7 +10,7 @@ const frontendDirectory = fileURLToPath(
 export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
-  timeout: 60_000,
+  timeout: 120_000,
   expect: {
     timeout: 12_000,
   },

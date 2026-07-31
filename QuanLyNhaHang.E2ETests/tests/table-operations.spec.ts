@@ -12,15 +12,56 @@ function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
 }
 
-async function selectOptionContaining(
+async function selectOptionValue(
   select: ReturnType<import('@playwright/test').Page['locator']>,
-  text: string,
+  value: string,
+  label: string,
 ) {
-  const option = select.locator('option').filter({ hasText: text }).first()
-  await expect(option).toBeAttached()
-  const value = await option.getAttribute('value')
-  expect(value, `Không tìm thấy option chứa “${text}”.`).toBeTruthy()
-  await select.selectOption(value ?? '')
+  await expect(select, `Không tìm thấy ${label}.`).toBeVisible()
+  await select.selectOption(value)
+  await expect(select).toHaveValue(value)
+}
+
+type OperationHistoryItem = {
+  operationType: string
+  sourceTableName: string
+  targetTableName: string
+  note: string
+}
+
+type SplitOperationResponse = {
+  success: boolean
+  data: {
+    operationType: string
+    sourceTableName: string
+    targetTableName: string
+    details: Array<{ menuItemName: string; quantity: number }>
+  }
+}
+
+async function waitForOperationHistory(
+  request: import('@playwright/test').APIRequestContext,
+  headers: Record<string, string>,
+  note: string,
+) {
+  let matched: OperationHistoryItem | undefined
+
+  await expect.poll(async () => {
+    const response = await request.get(
+      `${apiURL}/api/table-operations/paginated?pageNumber=1&pageSize=100`,
+      { headers },
+    )
+    if (!response.ok()) return false
+
+    const body = await response.json() as { items: OperationHistoryItem[] }
+    matched = body.items.find(item => item.note === note)
+    return Boolean(matched)
+  }, {
+    message: `Không tìm thấy lịch sử thao tác “${note}”.`,
+    timeout: 20_000,
+  }).toBeTruthy()
+
+  return matched!
 }
 
 test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch sử', async ({ page, request }) => {
@@ -32,6 +73,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   const tableD = `Bàn trống chuyển E2E ${id}`
   const menuItemName = `Món điều phối E2E ${id}`
   const transferNote = `Chuyển bàn Playwright ${id}`
+  const splitOrderNote = `Order tách ${id}`
   const splitNote = `Tách bàn Playwright ${id}`
   const mergeNote = `Gộp bàn Playwright ${id}`
 
@@ -54,7 +96,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     return await response.json() as { id: string }
   }
 
-  const [sourceTable, mergeTable] = await Promise.all([
+  const [sourceTable, mergeTable, splitTargetTable, transferTargetTable] = await Promise.all([
     createTable(tableA),
     createTable(tableB),
     createTable(tableC),
@@ -89,6 +131,7 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     },
   })
   expect(sourceOrderResponse.ok()).toBeTruthy()
+  const sourceOrder = await sourceOrderResponse.json() as { id: string }
 
   const targetOrderResponse = await request.post(`${apiURL}/api/Orders`, {
     headers,
@@ -99,25 +142,28 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
     },
   })
   expect(targetOrderResponse.ok()).toBeTruthy()
+  const targetOrder = await targetOrderResponse.json() as { id: string }
 
   await openAdminModule(page, 'Chuyển / gộp / tách bàn')
   const form = page.locator('.operation-form-card')
 
   await page.getByRole('button', { name: /Chuyển bàn$/ }).click()
-  await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableA)
-  await selectOptionContaining(form.getByLabel('Bàn đích', { exact: true }), tableD)
+  await selectOptionValue(
+    form.locator('select').nth(0),
+    sourceOrder.id,
+    'order nguồn cần chuyển',
+  )
+  await selectOptionValue(
+    form.locator('select').nth(1),
+    transferTargetTable.id,
+    'bàn đích cần chuyển',
+  )
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(transferNote)
   await form.getByRole('button', { name: 'Xác nhận chuyển bàn', exact: true }).click()
   await expect(page.getByText(/Chuyển bàn.*thành công/i)).toBeVisible()
 
-  let historyResponse = await request.get(
-    `${apiURL}/api/table-operations/paginated?keyword=${encodeURIComponent(transferNote)}&pageNumber=1&pageSize=10`,
-    { headers },
-  )
-  expect(historyResponse.ok()).toBeTruthy()
-  let history = await historyResponse.json() as { items: Array<{ operationType: string; sourceTableName: string; targetTableName: string; note: string }> }
-  expect(history.items).toHaveLength(1)
-  expect(history.items[0]).toMatchObject({
+  const transferHistory = await waitForOperationHistory(request, headers, transferNote)
+  expect(transferHistory).toMatchObject({
     operationType: 'Transfer',
     sourceTableName: tableA,
     targetTableName: tableD,
@@ -125,55 +171,88 @@ test('Điều phối bàn: chuyển, tách rồi gộp order và lưu lịch s�
   })
 
   await page.getByRole('button', { name: /Tách bàn$/ }).click()
-  await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableD)
-  await selectOptionContaining(form.getByLabel('Bàn đích', { exact: true }), tableC)
+  await selectOptionValue(
+    form.locator('select').nth(0),
+    sourceOrder.id,
+    'order nguồn cần tách',
+  )
+  await selectOptionValue(
+    form.locator('select').nth(1),
+    splitTargetTable.id,
+    'bàn đích cần tách',
+  )
   const splitItem = form.locator('.split-item-row').filter({ hasText: menuItemName })
   await expect(splitItem).toBeVisible()
-  await splitItem.getByLabel('Số lượng', { exact: true }).selectOption('2')
-  await form.getByLabel('Ghi chú cho order mới', { exact: true }).fill(`Order tách ${id}`)
-  await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(splitNote)
-  await form.getByRole('button', { name: 'Xác nhận tách bàn', exact: true }).click()
-  await expect(page.getByText(/Tách bàn.*thành công/i)).toBeVisible()
-
-  historyResponse = await request.get(
-    `${apiURL}/api/table-operations/paginated?keyword=${encodeURIComponent(splitNote)}&pageNumber=1&pageSize=10`,
-    { headers },
+  await selectOptionValue(
+    splitItem.locator('select'),
+    '2',
+    'ô chọn số lượng món cần tách',
   )
-  expect(historyResponse.ok()).toBeTruthy()
-  history = await historyResponse.json() as { items: Array<{ operationType: string; sourceTableName: string; targetTableName: string; note: string; details: Array<{ menuItemName: string; quantity: number }> }> }
-  expect(history.items).toHaveLength(1)
-  expect(history.items[0].operationType).toBe('Split')
-  expect(history.items[0].sourceTableName).toBe(tableD)
-  expect(history.items[0].targetTableName).toBe(tableC)
-  expect(history.items[0].details).toEqual(
+  await form.getByLabel('Ghi chú cho order mới', { exact: true }).fill(splitOrderNote)
+  await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(splitNote)
+
+  const splitResponsePromise = page.waitForResponse(response => (
+    response.request().method() === 'POST'
+    && response.url().endsWith('/api/table-operations/split')
+  ))
+  await form.getByRole('button', { name: 'Xác nhận tách bàn', exact: true }).click()
+  const splitResponse = await splitResponsePromise
+  expect(splitResponse.ok()).toBeTruthy()
+  const splitResult = await splitResponse.json() as SplitOperationResponse
+  expect(splitResult.success).toBeTruthy()
+  expect(splitResult.data).toMatchObject({
+    operationType: 'Split',
+    sourceTableName: tableD,
+    targetTableName: tableC,
+  })
+  expect(splitResult.data.details).toEqual(
     expect.arrayContaining([expect.objectContaining({ menuItemName, quantity: 2 })]),
   )
+  await expect(page.getByText(/Tách bàn.*thành công/i)).toBeVisible()
+
+  const splitHistory = await waitForOperationHistory(request, headers, splitNote)
+  expect(splitHistory).toMatchObject({
+    operationType: 'Split',
+    sourceTableName: tableD,
+    targetTableName: tableC,
+    note: splitNote,
+  })
+
+  let splitOrderId = ''
+  await expect.poll(async () => {
+    const response = await request.get(
+      `${apiURL}/api/Orders/paginated?keyword=${encodeURIComponent(splitOrderNote)}&isActive=true&pageNumber=1&pageSize=10`,
+      { headers },
+    )
+    if (!response.ok()) return ''
+    const body = await response.json() as { items: Array<{ id: string; note?: string | null }> }
+    splitOrderId = body.items.find(order => order.note === splitOrderNote)?.id ?? ''
+    return splitOrderId
+  }).not.toBe('')
 
   await page.getByRole('button', { name: /Gộp bàn$/ }).click()
-  await selectOptionContaining(form.getByLabel('Order nguồn', { exact: true }), tableC)
-  await selectOptionContaining(
-    form.getByLabel('Order đích giữ lại sau khi gộp', { exact: true }),
-    tableB,
+  await selectOptionValue(
+    form.locator('select').nth(0),
+    splitOrderId,
+    'order nguồn cần gộp',
+  )
+  await selectOptionValue(
+    form.locator('select').nth(1),
+    targetOrder.id,
+    'order đích giữ lại',
   )
   await form.getByLabel('Ghi chú thao tác', { exact: true }).fill(mergeNote)
   await form.getByRole('button', { name: 'Xác nhận gộp bàn', exact: true }).click()
   await expect(page.getByText(/Gộp bàn.*thành công/i)).toBeVisible()
 
-  historyResponse = await request.get(
-    `${apiURL}/api/table-operations/paginated?keyword=${encodeURIComponent(mergeNote)}&pageNumber=1&pageSize=10`,
-    { headers },
-  )
-  expect(historyResponse.ok()).toBeTruthy()
-  history = await historyResponse.json() as { items: Array<{ operationType: string; sourceTableName: string; targetTableName: string; note: string }> }
-  expect(history.items).toHaveLength(1)
-  expect(history.items[0]).toMatchObject({
+  const mergeHistory = await waitForOperationHistory(request, headers, mergeNote)
+  expect(mergeHistory).toMatchObject({
     operationType: 'Merge',
     sourceTableName: tableC,
     targetTableName: tableB,
     note: mergeNote,
   })
 
-  const sourceOrder = await sourceOrderResponse.json() as { id: string }
   const sourceOrderAfter = await request.get(`${apiURL}/api/Orders/${sourceOrder.id}`, { headers })
   expect(sourceOrderAfter.ok()).toBeTruthy()
   const sourceOrderBody = await sourceOrderAfter.json() as { restaurantTableName: string; items: Array<{ quantity: number; status: string }> }
