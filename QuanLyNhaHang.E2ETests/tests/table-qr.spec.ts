@@ -75,7 +75,7 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   await createButton.click()
   let modal = page.locator('.table-qr-form-modal')
   await selectOptionContaining(modal.getByLabel(/Bàn/), tableName)
-  await modal.getByLabel('Ghi chú', { exact: true }).fill(note)
+  await modal.locator('textarea').fill(note)
   await modal.getByRole('button', { name: 'Tạo mã QR', exact: true }).click()
 
   let detail = page.locator('.table-qr-detail-modal')
@@ -103,7 +103,7 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   detail = page.locator('.table-qr-detail-modal')
   await detail.getByRole('button', { name: 'Sửa ghi chú', exact: true }).click()
   modal = page.locator('.table-qr-form-modal')
-  await modal.getByLabel('Ghi chú', { exact: true }).fill(updatedNote)
+  await modal.locator('textarea').fill(updatedNote)
   await modal.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
 
   let card = page.locator('.table-qr-card').filter({ hasText: tableName })
