@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures'
 import {
+  acceptConfirmDialog,
   bearerHeaders,
   loginAsAdmin,
   openAdminModule,
@@ -111,8 +112,8 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   await card.getByRole('button', { name: 'Chi tiết', exact: true }).click()
   detail = page.locator('.table-qr-detail-modal')
 
-  page.once('dialog', dialog => dialog.accept())
   await detail.getByRole('button', { name: 'Khóa mã', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('.table-qr-detail-modal')).toContainText('Đã khóa')
 
   detail = page.locator('.table-qr-detail-modal')
@@ -120,8 +121,8 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   await expect(page.locator('.table-qr-detail-modal')).toContainText('Đang hoạt động')
 
   detail = page.locator('.table-qr-detail-modal')
-  page.once('dialog', dialog => dialog.accept())
   await detail.getByRole('button', { name: 'Tạo lại mã', exact: true }).click()
+  await acceptConfirmDialog(page)
   detail = page.locator('.table-qr-detail-modal')
   const regeneratedCode = detail.locator('code').first()
   await expect(regeneratedCode).not.toHaveText(originalToken)
@@ -129,8 +130,8 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   expect(regeneratedToken).not.toBe('')
   await expect(detail.locator('img')).toHaveAttribute('src', /^data:image\/png;base64,/)
 
-  page.once('dialog', dialog => dialog.accept())
   await detail.getByRole('button', { name: 'Vô hiệu hóa', exact: true }).click()
+  await acceptConfirmDialog(page)
   card = page.locator('.table-qr-card').filter({ hasText: tableName })
   await expect(card).toContainText('Đã vô hiệu')
 })
