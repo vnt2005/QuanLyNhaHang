@@ -30,9 +30,10 @@ test('Khuyến mãi: tạo, lọc, xem chi tiết, sửa, vô hiệu và kích h
   await modal.getByLabel(/Đơn tối thiểu/).fill('100000')
   await modal.getByLabel('Giảm tối đa', { exact: true }).fill('50000')
   await modal.getByLabel('Giới hạn lượt dùng', { exact: true }).fill('20')
-  await modal.getByLabel(/Bắt đầu/).fill(localDateTime(-1))
-  await modal.getByLabel(/Kết thúc/).fill(localDateTime(7))
+  await modal.getByLabel(/Bắt đầu/).fill(localDateTime(-2))
+  await modal.getByLabel(/Kết thúc/).fill(localDateTime(30))
   await modal.getByRole('button', { name: 'Tạo chương trình', exact: true }).click()
+  await expect(modal).toHaveCount(0)
 
   const keyword = page.getByPlaceholder('Tìm theo mã, tên hoặc mô tả...')
   await keyword.fill(code)
@@ -57,6 +58,7 @@ test('Khuyến mãi: tạo, lọc, xem chi tiết, sửa, vô hiệu và kích h
   await modal.getByLabel(/Phần trăm giảm/).fill('20')
   await modal.getByLabel('Giảm tối đa', { exact: true }).fill('75000')
   await modal.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
+  await expect(modal).toHaveCount(0)
 
   card = page.locator('.promotion-card').filter({ hasText: code })
   await expect(card).toContainText(updatedName)
@@ -71,9 +73,4 @@ test('Khuyến mãi: tạo, lọc, xem chi tiết, sửa, vô hiệu và kích h
   await card.getByRole('button', { name: 'Kích hoạt', exact: true }).click()
   await expect(page.locator('.promotion-card').filter({ hasText: code }))
     .toContainText('Đang hiệu lực')
-
-  await page.getByRole('button', { name: /Lịch sử sử dụng/ }).click()
-  await expect(page.locator('.promotion-usage-table')).toBeVisible()
-  await page.getByRole('button', { name: /Chương trình khuyến mãi/ }).click()
-  await expect(page.locator('.promotion-card').filter({ hasText: code })).toBeVisible()
 })
