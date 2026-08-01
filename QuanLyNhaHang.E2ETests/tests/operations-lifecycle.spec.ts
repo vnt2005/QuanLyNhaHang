@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures'
 import {
+  acceptConfirmDialog,
   bearerHeaders,
   loginAsAdmin,
   openAdminModule,
@@ -142,7 +143,6 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expectModalLayout(page, orderModal)
   await selectOptionContaining(orderModal.locator('select').first(), tableName)
   await orderModal.locator('textarea').first().fill(orderNote)
-  await orderModal.getByRole('button', { name: '+ Thêm món', exact: true }).click()
   const orderLine = orderModal.locator('.order-line').first()
   await selectOptionContaining(orderLine.locator('select'), menuItemName)
   await orderLine.locator('input[type="number"]').fill('2')
@@ -173,18 +173,18 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(ticket).toBeVisible()
   await expect(ticket).toContainText('2 ×')
 
-  page.once('dialog', dialog => dialog.accept())
   await ticket.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click()
+  await acceptConfirmDialog(page)
   ticket = page.locator('.kitchen-ticket').filter({ hasText: orderCode })
   await expect(ticket).toContainText('Đang nấu')
 
-  page.once('dialog', dialog => dialog.accept())
   await ticket.getByRole('button', { name: 'Hoàn thành', exact: true }).click()
+  await acceptConfirmDialog(page)
   ticket = page.locator('.kitchen-ticket').filter({ hasText: orderCode })
   await expect(ticket).toContainText('Xong')
 
-  page.once('dialog', dialog => dialog.accept())
   await ticket.getByRole('button', { name: 'Đã giao món', exact: true }).click()
+  await acceptConfirmDialog(page)
   await page.getByRole('button', { name: 'Lịch sử', exact: true }).click()
   await expect(page.locator('.history-order').filter({ hasText: orderCode }))
     .toContainText('Đã phục vụ')
@@ -250,8 +250,8 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await invoiceDetail.getByRole('button', { name: 'Đóng', exact: true }).click()
 
   invoiceRow = page.locator('.invoice-table tbody tr').filter({ hasText: paymentCode })
-  page.once('dialog', dialog => dialog.accept())
   await invoiceRow.getByRole('button', { name: 'Đã in', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('.invoice-table tbody tr').filter({ hasText: paymentCode }))
     .toContainText('Đã in')
 
