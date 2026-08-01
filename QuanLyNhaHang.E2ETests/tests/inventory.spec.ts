@@ -33,6 +33,8 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await modal.locator('textarea').fill('Danh mục kho tạo bằng Playwright.')
   await modal.getByRole('button', { name: 'Thêm danh mục', exact: true }).click()
 
+  const categoryKeyword = page.getByPlaceholder('Tìm tên hoặc mô tả danh mục…')
+  await categoryKeyword.fill(categoryName)
   let categoryRow = page.locator('.category-table tbody tr').filter({ hasText: categoryName })
   await expect(categoryRow).toBeVisible()
   await categoryRow.getByRole('button', { name: `Chỉnh sửa ${categoryName}`, exact: true }).click()
@@ -40,6 +42,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await modal.getByLabel(/Tên danh mục/).fill(categoryUpdated)
   await modal.locator('textarea').fill('Danh mục kho đã cập nhật.')
   await modal.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
+  await categoryKeyword.fill(categoryUpdated)
   categoryRow = page.locator('.category-table tbody tr').filter({ hasText: categoryUpdated })
   await expect(categoryRow).toContainText('Danh mục kho đã cập nhật.')
 
@@ -56,7 +59,9 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await modal.locator('textarea').fill('Nguyên liệu kiểm thử kho.')
   await modal.getByRole('button', { name: 'Thêm nguyên liệu', exact: true }).click()
 
-  let ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
+  const ingredientKeyword = page.getByPlaceholder('Mã, tên, đơn vị hoặc ghi chú…')
+  await ingredientKeyword.fill(ingredientCode)
+  let ingredientRow = page.locator('.ingredient-table tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toBeVisible()
   await expect(ingredientRow).toContainText(ingredientName)
   await expect(ingredientRow).toContainText('10')
@@ -69,7 +74,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await modal.locator('textarea').fill('Nguyên liệu kho đã sửa.')
   await modal.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
 
-  ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
+  ingredientRow = page.locator('.ingredient-table tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toContainText(ingredientUpdated)
   await expect(ingredientRow).toContainText('12.000')
 
@@ -79,7 +84,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await transactionModal.getByLabel(/Đơn giá nhập/).fill('12000')
   await transactionModal.locator('textarea').fill('Nhập kho Playwright.')
   await transactionModal.getByRole('button', { name: 'Xác nhận nhập kho', exact: true }).click()
-  ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
+  ingredientRow = page.locator('.ingredient-table tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toContainText('15')
 
   await page.getByRole('button', { name: '⇄ Giao dịch kho', exact: true }).click()
@@ -89,7 +94,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await transactionModal.getByLabel(/Số lượng/).fill('3')
   await transactionModal.locator('textarea').fill('Xuất kho Playwright.')
   await transactionModal.getByRole('button', { name: 'Xác nhận xuất kho', exact: true }).click()
-  ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
+  ingredientRow = page.locator('.ingredient-table tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toContainText('12')
 
   await page.getByRole('button', { name: '⇄ Giao dịch kho', exact: true }).click()
@@ -100,7 +105,7 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await transactionModal.getByLabel(/Đơn giá điều chỉnh/).fill('12000')
   await transactionModal.locator('textarea').fill('Điều chỉnh Playwright.')
   await transactionModal.getByRole('button', { name: 'Xác nhận điều chỉnh', exact: true }).click()
-  ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
+  ingredientRow = page.locator('.ingredient-table tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toContainText('20')
 
   await page.locator('.inventory-tabs').getByRole('button', { name: /Giao dịch kho/ }).click()
@@ -116,13 +121,16 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   await expect(adjustmentRow).toContainText('Đã hủy')
 
   await page.locator('.inventory-tabs').getByRole('button', { name: /Nguyên liệu/ }).click()
-  ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
+  await ingredientKeyword.fill(ingredientCode)
+  ingredientRow = page.locator('.ingredient-table tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toContainText('12')
   await ingredientRow.getByRole('button', { name: `Vô hiệu hóa ${ingredientUpdated}`, exact: true }).click()
   await acceptConfirmDialog(page)
-  await expect(page.locator('tbody tr').filter({ hasText: ingredientCode })).toContainText('Đã vô hiệu')
+  await expect(page.locator('.ingredient-table tbody tr').filter({ hasText: ingredientCode }))
+    .toContainText('Đã vô hiệu')
 
   await page.locator('.inventory-tabs').getByRole('button', { name: /Danh mục/ }).click()
+  await categoryKeyword.fill(categoryUpdated)
   categoryRow = page.locator('.category-table tbody tr').filter({ hasText: categoryUpdated })
   await categoryRow.getByRole('button', { name: `Vô hiệu hóa ${categoryUpdated}`, exact: true }).click()
   await acceptConfirmDialog(page)
