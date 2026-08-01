@@ -1,10 +1,4 @@
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import {
   clearStoredAuth,
   getStoredRefreshToken,
@@ -19,7 +13,8 @@ const loadAccessManagementPage = () => import('./pages/AccessManagementPage')
 const loadAccountSecurityPage = () => import('./pages/AccountSecurityPage')
 const loadActivityLogsPage = () => import('./pages/ActivityLogsPage')
 const loadAreasTablesPage = () => import('./pages/AreasTablesPage')
-const loadCustomerManagementPage = () => import('./pages/CustomerManagementPage')
+const loadCustomerManagementPage = () =>
+  import('./pages/CustomerManagementPage')
 const loadDashboardPage = () => import('./pages/DashboardPage')
 const loadEmployeePage = () => import('./pages/EmployeePage')
 const loadInvoicesPage = () => import('./pages/InvoicesPage')
@@ -30,7 +25,8 @@ const loadOrdersPage = () => import('./pages/OrdersPage')
 const loadPaymentsPage = () => import('./pages/PaymentsPage')
 const loadPromotionsPage = () => import('./pages/PromotionsPage')
 const loadReservationsPage = () => import('./pages/ReservationsPage')
-const loadRestaurantSettingsPage = () => import('./pages/RestaurantSettingsPage')
+const loadRestaurantSettingsPage = () =>
+  import('./pages/RestaurantSettingsPage')
 const loadRevenueReportsPage = () => import('./pages/RevenueReportsPage')
 const loadShiftsSchedulingPage = () => import('./pages/ShiftsSchedulingPage')
 const loadTableOperationsPage = () => import('./pages/TableOperationsPage')
@@ -59,6 +55,7 @@ const TableQrCodesPage = lazy(loadTableQrCodesPage)
 
 type NavigationItem = {
   label: string
+  section: string
   icon: string
   permissions?: string[]
   preload?: () => Promise<unknown>
@@ -67,132 +64,151 @@ type NavigationItem = {
 const navigation: NavigationItem[] = [
   {
     label: 'Tổng quan',
+    section: 'Tổng quan',
     icon: '⌂',
     permissions: ['Dashboard.View'],
     preload: loadDashboardPage,
   },
   {
     label: 'Nhân viên',
+    section: 'Khách hàng & đội ngũ',
     icon: '◉',
     permissions: ['Employees.View'],
     preload: loadEmployeePage,
   },
   {
     label: 'Khách hàng',
+    section: 'Khách hàng & đội ngũ',
     icon: '♙',
     permissions: ['Users.View'],
     preload: loadCustomerManagementPage,
   },
   {
     label: 'Ca làm việc & phân ca',
+    section: 'Khách hàng & đội ngũ',
     icon: '◷',
     permissions: ['Shifts.View', 'EmployeeShifts.View'],
     preload: loadShiftsSchedulingPage,
   },
   {
     label: 'Tài khoản & phân quyền',
+    section: 'Kiểm soát',
     icon: '◆',
-    permissions: ['Users.View', 'Roles.View', 'Permissions.View', 'RolePermissions.View'],
+    permissions: [
+      'Users.View',
+      'Roles.View',
+      'Permissions.View',
+      'RolePermissions.View',
+    ],
     preload: loadAccessManagementPage,
   },
   {
     label: 'Khu vực & bàn',
+    section: 'Vận hành',
     icon: '▦',
     permissions: ['Tables.View'],
     preload: loadAreasTablesPage,
   },
   {
     label: 'Chuyển / gộp / tách bàn',
+    section: 'Vận hành',
     icon: '⇄',
     permissions: ['TableOperations.View'],
     preload: loadTableOperationsPage,
   },
   {
     label: 'Đặt bàn',
+    section: 'Vận hành',
     icon: '◫',
     permissions: ['Reservations.View'],
     preload: loadReservationsPage,
   },
   {
     label: 'QR bàn',
+    section: 'Vận hành',
     icon: '▥',
     permissions: ['Tables.View'],
     preload: loadTableQrCodesPage,
   },
   {
     label: 'Thực đơn',
+    section: 'Sản phẩm',
     icon: '☷',
     permissions: ['Menu.View'],
     preload: loadMenuManagementPage,
   },
   {
     label: 'Đơn hàng',
+    section: 'Vận hành',
     icon: '▣',
     permissions: ['Orders.View'],
     preload: loadOrdersPage,
   },
   {
     label: 'Bếp',
+    section: 'Vận hành',
     icon: '♨',
     permissions: ['Kitchen.View'],
     preload: loadKitchenPage,
   },
   {
     label: 'Thanh toán',
+    section: 'Vận hành',
     icon: '₫',
     permissions: ['Payments.View'],
     preload: loadPaymentsPage,
   },
   {
     label: 'Hóa đơn',
+    section: 'Kiểm soát',
     icon: '▤',
     permissions: ['Invoices.View'],
     preload: loadInvoicesPage,
   },
   {
     label: 'Báo cáo doanh thu',
+    section: 'Kiểm soát',
     icon: '↗',
     permissions: ['RevenueReports.View'],
     preload: loadRevenueReportsPage,
   },
   {
     label: 'Khuyến mãi',
+    section: 'Sản phẩm',
     icon: '◇',
     permissions: ['Promotions.View', 'PromotionUsages.View'],
     preload: loadPromotionsPage,
   },
   {
     label: 'Kho nguyên liệu',
+    section: 'Sản phẩm',
     icon: '▧',
     permissions: ['Inventory.View'],
     preload: loadInventoryPage,
   },
   {
     label: 'Nhật ký hoạt động',
+    section: 'Kiểm soát',
     icon: '◴',
     permissions: ['ActivityLogs.View'],
     preload: loadActivityLogsPage,
   },
   {
     label: 'Bảo mật tài khoản',
+    section: 'Hệ thống',
     icon: '◈',
     preload: loadAccountSecurityPage,
   },
   {
     label: 'Cấu hình nhà hàng',
+    section: 'Hệ thống',
     icon: '⚙',
     permissions: ['RestaurantSettings.View'],
     preload: loadRestaurantSettingsPage,
   },
 ]
 
-const ADMIN_ROLES = new Set([
-  'Admin',
-  'Manager',
-  'Cashier',
-  'Kitchen',
-  'Staff',
-])
+const ADMIN_ROLES = new Set(['Admin', 'Manager', 'Cashier', 'Kitchen', 'Staff'])
 
 function getRefreshDelay(token: string) {
   const fallbackDelay = 10 * 60 * 1000
@@ -214,10 +230,12 @@ function getRefreshDelay(token: string) {
 function ModuleLoading({ label }: { label: string }) {
   return (
     <section className="module-loading" role="status" aria-live="polite">
-      <span className="account-security-spinner"/>
+      <span className="account-security-spinner" />
       <div>
         <strong>Đang tải {label}…</strong>
-        <small>Hệ thống chỉ tải module bạn đang mở để khởi động nhanh hơn.</small>
+        <small>
+          Hệ thống chỉ tải module bạn đang mở để khởi động nhanh hơn.
+        </small>
       </div>
     </section>
   )
@@ -237,27 +255,28 @@ export default function App() {
     setAuthMessage(message)
   }, [])
 
-  const acceptAuthentication = useCallback(async (
-    nextResult: LoginResult,
-  ): Promise<string | void> => {
-    if (!nextResult.token || !nextResult.refreshToken) {
-      clearStoredAuth()
-      return 'Backend không trả về phiên đăng nhập hợp lệ.'
-    }
-    if (!nextResult.role || !ADMIN_ROLES.has(nextResult.role)) {
-      try {
-        await logoutSession(nextResult.refreshToken)
-      } catch {
-        // The local session is still cleared when the server is unavailable.
+  const acceptAuthentication = useCallback(
+    async (nextResult: LoginResult): Promise<string | void> => {
+      if (!nextResult.token || !nextResult.refreshToken) {
+        clearStoredAuth()
+        return 'Backend không trả về phiên đăng nhập hợp lệ.'
       }
-      clearStoredAuth()
-      return 'Tài khoản khách hàng không thể truy cập cổng quản trị.'
-    }
+      if (!nextResult.role || !ADMIN_ROLES.has(nextResult.role)) {
+        try {
+          await logoutSession(nextResult.refreshToken)
+        } catch {
+          // The local session is still cleared when the server is unavailable.
+        }
+        clearStoredAuth()
+        return 'Tài khoản khách hàng không thể truy cập cổng quản trị.'
+      }
 
-    storeAuthResult(nextResult)
-    setResult(nextResult)
-    setAuthMessage('')
-  }, [])
+      storeAuthResult(nextResult)
+      setResult(nextResult)
+      setAuthMessage('')
+    },
+    [],
+  )
 
   useEffect(() => {
     let disposed = false
@@ -313,12 +332,7 @@ export default function App() {
       disposed = true
       window.clearTimeout(timer)
     }
-  }, [
-    acceptAuthentication,
-    clearSession,
-    result?.refreshToken,
-    result?.token,
-  ])
+  }, [acceptAuthentication, clearSession, result?.refreshToken, result?.token])
 
   async function handleLogout() {
     const refreshToken = result?.refreshToken ?? getStoredRefreshToken()
@@ -337,7 +351,7 @@ export default function App() {
     return (
       <main className="auth-restoring">
         <div>
-          <span className="auth-restoring-spinner"/>
+          <span className="auth-restoring-spinner" />
           <strong>Đang khôi phục phiên đăng nhập…</strong>
           <small>Hệ thống đang xác minh phiên bảo mật của bạn.</small>
         </div>
@@ -356,23 +370,33 @@ export default function App() {
 
   const authenticatedResult = result
   const permissionSet = new Set(authenticatedResult.permissions ?? [])
-  const visibleNavigation = authenticatedResult.role === 'Admin'
-    ? navigation
-    : navigation.filter((item) => (
-      !item.permissions
-      || item.permissions.some((permission) => permissionSet.has(permission))
-    ))
+  const visibleNavigation =
+    authenticatedResult.role === 'Admin'
+      ? navigation
+      : navigation.filter(
+          (item) =>
+            !item.permissions ||
+            item.permissions.some((permission) =>
+              permissionSet.has(permission),
+            ),
+        )
+  const visibleNavigationGroups = Array.from(
+    new Set(visibleNavigation.map((item) => item.section)),
+  ).map((section) => ({
+    section,
+    items: visibleNavigation.filter((item) => item.section === section),
+  }))
   const visibleLabels = new Set(visibleNavigation.map((item) => item.label))
   const currentItem = visibleLabels.has(activeItem)
     ? activeItem
-    : visibleNavigation[0]?.label ?? 'Bảo mật tài khoản'
+    : (visibleNavigation[0]?.label ?? 'Bảo mật tài khoản')
 
-  const displayName = [
-    authenticatedResult.ho,
-    authenticatedResult.ten,
-  ].filter(Boolean).join(' ')
-    || authenticatedResult.email
-    || 'Quản trị viên'
+  const displayName =
+    [authenticatedResult.ho, authenticatedResult.ten]
+      .filter(Boolean)
+      .join(' ') ||
+    authenticatedResult.email ||
+    'Quản trị viên'
 
   function navigateTo(label: string) {
     const target = visibleNavigation.find((item) => item.label === label)
@@ -384,15 +408,15 @@ export default function App() {
   function renderContent() {
     switch (currentItem) {
       case 'Nhân viên':
-        return <EmployeePage/>
+        return <EmployeePage />
       case 'Khách hàng':
-        return <CustomerManagementPage/>
+        return <CustomerManagementPage />
       case 'Ca làm việc & phân ca':
-        return <ShiftsSchedulingPage/>
+        return <ShiftsSchedulingPage />
       case 'Tài khoản & phân quyền':
-        return <AccessManagementPage/>
+        return <AccessManagementPage />
       case 'Khu vực & bàn':
-        return <AreasTablesPage/>
+        return <AreasTablesPage />
       case 'Chuyển / gộp / tách bàn':
         return (
           <TableOperationsPage
@@ -401,27 +425,27 @@ export default function App() {
           />
         )
       case 'Đặt bàn':
-        return <ReservationsPage/>
+        return <ReservationsPage />
       case 'QR bàn':
-        return <TableQrCodesPage/>
+        return <TableQrCodesPage />
       case 'Thực đơn':
-        return <MenuManagementPage/>
+        return <MenuManagementPage />
       case 'Đơn hàng':
-        return <OrdersPage/>
+        return <OrdersPage />
       case 'Bếp':
-        return <KitchenPage/>
+        return <KitchenPage />
       case 'Thanh toán':
-        return <PaymentsPage/>
+        return <PaymentsPage />
       case 'Hóa đơn':
-        return <InvoicesPage/>
+        return <InvoicesPage />
       case 'Báo cáo doanh thu':
-        return <RevenueReportsPage/>
+        return <RevenueReportsPage />
       case 'Khuyến mãi':
-        return <PromotionsPage/>
+        return <PromotionsPage />
       case 'Kho nguyên liệu':
-        return <InventoryPage/>
+        return <InventoryPage />
       case 'Nhật ký hoạt động':
-        return <ActivityLogsPage role={authenticatedResult.role}/>
+        return <ActivityLogsPage role={authenticatedResult.role} />
       case 'Bảo mật tài khoản':
         return (
           <AccountSecurityPage
@@ -430,7 +454,7 @@ export default function App() {
           />
         )
       case 'Cấu hình nhà hàng':
-        return <RestaurantSettingsPage/>
+        return <RestaurantSettingsPage />
       default:
         return (
           <DashboardPage
@@ -451,23 +475,30 @@ export default function App() {
             <small>Admin Console</small>
           </div>
         </div>
-        <nav>
-          {visibleNavigation.map(({ label, icon, preload }) => (
-            <button
-              key={label}
-              className={currentItem === label ? 'active' : ''}
-              onMouseEnter={() => void preload?.()}
-              onFocus={() => void preload?.()}
-              onClick={() => navigateTo(label)}
-            >
-              <span>{icon}</span>
-              {label}
-            </button>
+        <nav aria-label="Điều hướng quản trị">
+          {visibleNavigationGroups.map(({ section, items }) => (
+            <div className="nav-section" key={section}>
+              <span className="nav-section-label">{section}</span>
+              {items.map(({ label, icon, preload }) => (
+                <button
+                  type="button"
+                  key={label}
+                  className={currentItem === label ? 'active' : ''}
+                  aria-current={currentItem === label ? 'page' : undefined}
+                  onMouseEnter={() => void preload?.()}
+                  onFocus={() => void preload?.()}
+                  onClick={() => navigateTo(label)}
+                >
+                  <span aria-hidden="true">{icon}</span>
+                  {label}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="sidebar-footer">
           <div className="system-status">
-            <span className="status-dot"/>
+            <span className="status-dot" />
             <div>
               <strong>Hệ thống ổn định</strong>
               <small>API đang kết nối</small>
@@ -492,15 +523,14 @@ export default function App() {
               onClick={() => navigateTo('Bảo mật tài khoản')}
               aria-label="Mở bảo mật tài khoản"
             >
-              <span>
-                {displayName.charAt(0).toLocaleUpperCase('vi')}
-              </span>
+              <span>{displayName.charAt(0).toLocaleUpperCase('vi')}</span>
               <div>
                 <strong>{displayName}</strong>
                 <small>{authenticatedResult.role ?? 'Admin'}</small>
               </div>
             </button>
             <button
+              type="button"
               className="logout"
               onClick={() => void handleLogout()}
               disabled={loggingOut}
@@ -509,7 +539,7 @@ export default function App() {
             </button>
           </div>
         </header>
-        <Suspense fallback={<ModuleLoading label={currentItem}/> }>
+        <Suspense fallback={<ModuleLoading label={currentItem} />}>
           {renderContent()}
         </Suspense>
       </main>
