@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$FrontendTunnelUrl = 'https://5ct6t80f-5173.asse.devtunnels.ms',
-    [string]$BackendTunnelUrl = 'https://5ct6t80f-7134.asse.devtunnels.ms'
+    [string]$BackendTunnelUrl = 'https://5ct6t80f-5240.asse.devtunnels.ms'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -38,7 +38,7 @@ if (-not (Test-Path -LiteralPath $apiProject)) {
     throw "Không tìm thấy API project: $apiProject"
 }
 
-$occupiedPorts = @(5173, 7134) | Where-Object {
+$occupiedPorts = @(5173, 5240) | Where-Object {
     Get-NetTCPConnection -LocalPort $_ -State Listen -ErrorAction SilentlyContinue
 }
 
@@ -61,21 +61,24 @@ $escapedBackendTunnelUrl = Escape-SingleQuotedPowerShellString $BackendTunnelUrl
 
 $apiCommand = @"
 `$host.UI.RawUI.WindowTitle = 'QuanLyNhaHang API - Dev Tunnel'
+`$env:ASPNETCORE_ENVIRONMENT = 'Development'
+`$env:ASPNETCORE_URLS = 'http://0.0.0.0:5240'
+`$env:Hosting__DisableHttpsRedirection = 'true'
 `$env:Cors__AllowedOrigins__0 = 'http://localhost:5173'
 `$env:Cors__AllowedOrigins__1 = 'https://localhost:5173'
 `$env:Cors__AllowedOrigins__2 = '$escapedFrontendTunnelUrl'
 Set-Location -LiteralPath '$escapedRepoRoot'
-dotnet run --project '$escapedApiProject' --launch-profile https
+dotnet run --project '$escapedApiProject' --no-launch-profile
 "@
 
 $frontendCommand = @"
 `$host.UI.RawUI.WindowTitle = 'QuanLyNhaHang Frontend - Dev Tunnel'
 `$env:VITE_API_BASE_URL = '$escapedBackendTunnelUrl'
 Set-Location -LiteralPath '$escapedFrontendDirectory'
-npm run dev -- --host 0.0.0.0
+npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
 "@
 
-Write-Host 'Đang mở API với CORS cho frontend tunnel...' -ForegroundColor Cyan
+Write-Host 'Đang mở API HTTP với CORS cho frontend tunnel...' -ForegroundColor Cyan
 Start-Process $shell -ArgumentList @('-NoExit', '-Command', $apiCommand)
 
 Start-Sleep -Seconds 3
@@ -88,5 +91,6 @@ Write-Host 'Đã khởi động cấu hình Dev Tunnel.' -ForegroundColor Green
 Write-Host "Frontend: $FrontendTunnelUrl"
 Write-Host "Backend health: $BackendTunnelUrl/health"
 Write-Host ''
-Write-Host 'Trong VS Code > PORTS, hãy đặt cả cổng 5173 và 7134 thành Public.' -ForegroundColor Yellow
+Write-Host 'Trong VS Code > PORTS, hãy đặt cả cổng 5173 và 5240 thành Public.' -ForegroundColor Yellow
+Write-Host 'Không forward cổng HTTPS 7134 khi dùng script này.' -ForegroundColor Yellow
 Write-Host 'Giữ hai cửa sổ Terminal vừa mở trong suốt thời gian dùng ứng dụng.' -ForegroundColor Yellow
