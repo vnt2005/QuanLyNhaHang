@@ -8,6 +8,11 @@ function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
 }
 
+type RestaurantSetting = {
+  id: string
+  isActive: boolean
+}
+
 test('Cấu hình nhà hàng: xử lý cấu hình đang hoạt động, tạo, xem, sửa, vô hiệu và kích hoạt', async ({ page, request }) => {
   test.skip(
     process.env.E2E_ALLOW_SETTINGS_MUTATION !== 'true',
@@ -20,8 +25,24 @@ test('Cấu hình nhà hàng: xử lý cấu hình đang hoạt động, tạo, 
   const updatedName = `${name} đã sửa`
 
   const session = await loginAsAdmin(page)
+  const headers = bearerHeaders(session)
+
+  const activeResponse = await request.get(
+    `${apiURL}/api/restaurant-settings?isActive=true`,
+    { headers },
+  )
+  expect(activeResponse.ok()).toBeTruthy()
+  const activeSettings = await activeResponse.json() as RestaurantSetting[]
+  for (const setting of activeSettings.filter(item => item.isActive)) {
+    const deactivateResponse = await request.delete(
+      `${apiURL}/api/restaurant-settings/${setting.id}`,
+      { headers },
+    )
+    expect(deactivateResponse.ok()).toBeTruthy()
+  }
+
   const existingResponse = await request.post(`${apiURL}/api/restaurant-settings`, {
-    headers: bearerHeaders(session),
+    headers,
     data: {
       restaurantName: existingName,
       address: 'Địa chỉ cấu hình có sẵn',
@@ -46,6 +67,10 @@ test('Cấu hình nhà hàng: xử lý cấu hình đang hoạt động, tạo, 
   const createButton = page.getByRole('button', { name: '+ Tạo cấu hình', exact: true })
   await expect(page.locator('.active-setting-card')).toContainText(existingName)
   await expect(createButton).toBeDisabled()
+
+  const keyword = page.getByPlaceholder('Tên, địa chỉ, điện thoại, email hoặc mã số thuế...')
+  await keyword.fill(existingName)
+  await page.getByRole('button', { name: 'Lọc dữ liệu', exact: true }).click()
 
   const activeRow = page.locator('.restaurant-settings-table tbody tr')
     .filter({ hasText: existingName })
@@ -74,7 +99,10 @@ test('Cấu hình nhà hàng: xử lý cấu hình đang hoạt động, tạo, 
   await modal.getByLabel(/Lời cuối hóa đơn/).fill('Cảm ơn từ Playwright.')
   await modal.getByLabel(/Lời chào khi gọi món QR/).fill('Chào mừng khách E2E.')
   await modal.getByRole('button', { name: 'Tạo và kích hoạt', exact: true }).click()
+  await expect(modal).toHaveCount(0)
 
+  await keyword.fill(name)
+  await page.getByRole('button', { name: 'Lọc dữ liệu', exact: true }).click()
   let row = page.locator('.restaurant-settings-table tbody tr').filter({ hasText: name })
   await expect(row).toBeVisible()
   await expect(row).toContainText('07:00 – 23:00')
@@ -97,7 +125,10 @@ test('Cấu hình nhà hàng: xử lý cấu hình đang hoạt động, tạo, 
   await modal.getByLabel('Phí phục vụ (%)', { exact: true }).fill('7.5')
   await modal.getByLabel(/Lời cuối hóa đơn/).fill('Nội dung hóa đơn đã sửa.')
   await modal.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
+  await expect(modal).toHaveCount(0)
 
+  await keyword.fill(updatedName)
+  await page.getByRole('button', { name: 'Lọc dữ liệu', exact: true }).click()
   row = page.locator('.restaurant-settings-table tbody tr').filter({ hasText: updatedName })
   await expect(row).toContainText('VAT 10%')
   await expect(row).toContainText('Phục vụ 7,5%')

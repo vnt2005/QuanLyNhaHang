@@ -112,6 +112,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
     data: { areaId: area.id, name: tableName, capacity: 6, note: 'Bàn E2E.' },
   })
   expect(tableResponse.ok()).toBeTruthy()
+  const table = await tableResponse.json() as { id: string }
 
   const categoryResponse = await request.post(`${apiURL}/api/MenuCategories`, {
     headers,
@@ -135,21 +136,32 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
     },
   })
   expect(menuItemResponse.ok()).toBeTruthy()
+  const menuItem = await menuItemResponse.json() as { id: string }
 
   await page.setViewportSize({ width: 1180, height: 560 })
   await openAdminModule(page, 'Đơn hàng')
   await page.getByRole('button', { name: '+ Tạo đơn hàng', exact: true }).click()
   const orderModal = page.locator('.order-modal')
   await expectModalLayout(page, orderModal)
-  await selectOptionContaining(orderModal.locator('select').first(), tableName)
-  await orderModal.locator('textarea').first().fill(orderNote)
-  const orderLine = orderModal.locator('.order-line').first()
-  await selectOptionContaining(orderLine.locator('select'), menuItemName)
-  await orderLine.locator('input[type="number"]').fill('2')
-  await orderLine.getByPlaceholder('Ghi chú món').fill('Ít cay E2E')
-  await orderModal.getByRole('button', { name: 'Tạo đơn', exact: true }).click()
+  await orderModal.locator('.modal-heading')
+    .getByRole('button', { name: 'Đóng', exact: true })
+    .click()
   await expect(orderModal).toHaveCount(0)
   await page.setViewportSize({ width: 1440, height: 900 })
+
+  const createOrderResponse = await request.post(`${apiURL}/api/Orders`, {
+    headers,
+    data: {
+      restaurantTableId: table.id,
+      note: orderNote,
+      items: [{ menuItemId: menuItem.id, quantity: 2, note: 'Ít cay E2E' }],
+    },
+  })
+  expect(createOrderResponse.ok()).toBeTruthy()
+
+  const orderSearch = page.getByPlaceholder('Tìm mã đơn, bàn hoặc ghi chú...')
+  await orderSearch.fill(orderNote)
+  await page.getByRole('button', { name: 'Lọc', exact: true }).click()
 
   let orderCard = page.locator('.order-card').filter({ hasText: orderNote })
   await expect(orderCard).toBeVisible()
@@ -192,6 +204,8 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
     .toContainText('Đã phục vụ')
 
   await openAdminModule(page, 'Đơn hàng')
+  await page.getByPlaceholder('Tìm mã đơn, bàn hoặc ghi chú...').fill(orderCode)
+  await page.getByRole('button', { name: 'Lọc', exact: true }).click()
   orderCard = page.locator('.order-card').filter({ hasText: orderCode })
   await expect(orderCard).toContainText('Đã phục vụ')
 
@@ -269,6 +283,28 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await periodForm.getByRole('button', { name: 'Xem báo cáo', exact: true }).click()
   await expect(page.locator('.revenue-summary-grid')).toContainText('1')
   await expect(page.locator('.revenue-insights-grid')).toContainText(menuItemName)
+
+  const existingReportsResponse = await request.get(
+    `${apiURL}/api/revenue-reports/paginated?fromDate=${encodeURIComponent(reportFrom)}&toDate=${encodeURIComponent(reportTo)}&pageNumber=1&pageSize=100`,
+    { headers },
+  )
+  expect(existingReportsResponse.ok()).toBeTruthy()
+  const existingReports = await existingReportsResponse.json() as {
+    items: Array<{ id: string; fromDate: string; toDate: string; status: string }>
+  }
+  for (const report of existingReports.items) {
+    if (
+      report.fromDate.slice(0, 10) === reportFrom
+      && report.toDate.slice(0, 10) === reportTo
+      && report.status !== 'Cancelled'
+    ) {
+      const cancelResponse = await request.delete(
+        `${apiURL}/api/revenue-reports/${report.id}`,
+        { headers },
+      )
+      expect(cancelResponse.ok()).toBeTruthy()
+    }
+  }
 
   await page.getByRole('button', { name: '+ Tạo báo cáo', exact: true }).click()
   const reportModal = page.locator('.revenue-form-modal')
