@@ -410,6 +410,92 @@
   text-transform: uppercase;
 }
 
+/* Readability floor for meaningful Admin copy. Feature CSS predates the
+   system and several modules used 7–10px text; these roles now start at
+   12px while component rules below can deliberately opt into a larger size. */
+.dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .live-dashboard-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-operations-page,
+    .table-qr-page
+  )
+  :is(p, small, em, dt) {
+  font-size: var(--ds-font-size-xs);
+  line-height: var(--ds-line-height-normal);
+}
+
+.dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .live-dashboard-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-operations-page,
+    .table-qr-page
+  )
+  :is(strong, b, dd, button, input, select, textarea, label, td) {
+  font-size: var(--ds-font-size-sm);
+  line-height: var(--ds-line-height-normal);
+}
+
+.dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .live-dashboard-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-operations-page,
+    .table-qr-page
+  )
+  th {
+  font-size: var(--ds-font-size-xs);
+}
+
 /* Controls and action hierarchy ----------------------------------------- */
 .primary-button,
 .inventory-primary,
@@ -1574,6 +1660,12 @@
   padding: var(--ds-space-3) var(--ds-space-4);
   border-radius: var(--ds-radius-md);
   font-size: var(--ds-font-size-sm);
+}
+
+.live-dashboard-alert button,
+.live-dashboard-empty strong,
+.live-dashboard-ranking > div > span {
+  font-size: var(--ds-font-size-xs);
 }
 
 .live-dashboard-kpis {
