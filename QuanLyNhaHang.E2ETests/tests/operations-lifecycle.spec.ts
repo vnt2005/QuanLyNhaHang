@@ -37,6 +37,51 @@ async function selectOptionContaining(
   await expect(select).toHaveValue(value)
 }
 
+async function expectModalLayout(
+  page: import('@playwright/test').Page,
+  modal: ReturnType<import('@playwright/test').Page['locator']>,
+) {
+  await expect(modal).toBeVisible()
+
+  const viewport = page.viewportSize()
+  if (!viewport) {
+    throw new Error('Playwright chưa cấu hình viewport để kiểm tra modal.')
+  }
+
+  const layout = await modal.evaluate(element => {
+    const modalRect = element.getBoundingClientRect()
+    const form = element.querySelector('form')
+    const actions = element.querySelector('.modal-actions')
+    const formStyle = form ? window.getComputedStyle(form) : null
+    const actionsRect = actions?.getBoundingClientRect()
+
+    return {
+      left: modalRect.left,
+      top: modalRect.top,
+      right: modalRect.right,
+      bottom: modalRect.bottom,
+      paddingLeft: Number.parseFloat(formStyle?.paddingLeft ?? '0'),
+      paddingRight: Number.parseFloat(formStyle?.paddingRight ?? '0'),
+      actionsTop: actionsRect?.top ?? null,
+      actionsBottom: actionsRect?.bottom ?? null,
+    }
+  })
+
+  expect(layout.left).toBeGreaterThanOrEqual(0)
+  expect(layout.top).toBeGreaterThanOrEqual(0)
+  expect(layout.right).toBeLessThanOrEqual(viewport.width + 1)
+  expect(layout.bottom).toBeLessThanOrEqual(viewport.height + 1)
+  expect(layout.paddingLeft).toBeGreaterThanOrEqual(16)
+  expect(layout.paddingRight).toBeGreaterThanOrEqual(16)
+
+  if (layout.actionsTop === null || layout.actionsBottom === null) {
+    throw new Error('Không tìm thấy vùng nút thao tác trong modal.')
+  }
+
+  expect(layout.actionsTop).toBeGreaterThanOrEqual(layout.top)
+  expect(layout.actionsBottom).toBeLessThanOrEqual(layout.bottom + 1)
+}
+
 test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh thu', async ({ page, request }) => {
   const id = suffix()
   const areaName = `Khu vận hành E2E ${id}`
@@ -90,9 +135,11 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   })
   expect(menuItemResponse.ok()).toBeTruthy()
 
+  await page.setViewportSize({ width: 1180, height: 560 })
   await openAdminModule(page, 'Đơn hàng')
   await page.getByRole('button', { name: '+ Tạo đơn hàng', exact: true }).click()
   const orderModal = page.locator('.order-modal')
+  await expectModalLayout(page, orderModal)
   await selectOptionContaining(orderModal.locator('select').first(), tableName)
   await orderModal.locator('textarea').first().fill(orderNote)
   await orderModal.getByRole('button', { name: '+ Thêm món', exact: true }).click()
@@ -101,6 +148,8 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await orderLine.locator('input[type="number"]').fill('2')
   await orderLine.getByPlaceholder('Ghi chú món').fill('Ít cay E2E')
   await orderModal.getByRole('button', { name: 'Tạo đơn', exact: true }).click()
+  await expect(orderModal).toHaveCount(0)
+  await page.setViewportSize({ width: 1440, height: 900 })
 
   let orderCard = page.locator('.order-card').filter({ hasText: orderNote })
   await expect(orderCard).toBeVisible()
@@ -158,9 +207,11 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
     ]),
   )
 
+  await page.setViewportSize({ width: 960, height: 822 })
   await openAdminModule(page, 'Thanh toán')
   await page.getByRole('button', { name: '+ Thanh toán mới', exact: true }).click()
   const paymentModal = page.locator('.payment-modal')
+  await expectModalLayout(page, paymentModal)
   await selectOptionContaining(paymentModal.locator('select').first(), orderCode)
   await paymentModal.getByLabel('Giảm giá', { exact: true }).fill('10000')
   await paymentModal.getByLabel('VAT', { exact: true }).fill('5000')
@@ -170,6 +221,8 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await paymentModal.getByLabel('Tự động xuất hóa đơn sau thanh toán', { exact: true }).check()
   await expect(paymentModal.locator('.payment-preview')).toContainText('235.000')
   await paymentModal.getByRole('button', { name: 'Xác nhận thanh toán', exact: true }).click()
+  await expect(paymentModal).toHaveCount(0)
+  await page.setViewportSize({ width: 1440, height: 900 })
 
   const paymentRow = page.locator('.payment-table tbody tr').filter({ hasText: paymentNote })
   await expect(paymentRow).toBeVisible()
