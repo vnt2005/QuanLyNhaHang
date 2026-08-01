@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures'
 import {
+  acceptConfirmDialog,
   bearerHeaders,
   loginAsAdmin,
   openAdminModule,
@@ -88,13 +89,13 @@ test('Ca làm việc: tạo, sửa, phân ca và xóa', async ({ page, request }
   assignmentRow = page.locator('tbody tr').filter({ hasText: employeeCode })
   await expect(assignmentRow).toContainText('Phân ca E2E đã sửa.')
 
-  page.once('dialog', dialog => dialog.accept())
   await assignmentRow.getByRole('button', { name: 'Xóa', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('tbody tr').filter({ hasText: employeeCode })).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Ca làm việc', exact: true }).click()
   shiftRow = page.locator('tbody tr').filter({ hasText: shiftCode })
-  page.once('dialog', dialog => dialog.accept())
   await shiftRow.getByRole('button', { name: 'Xóa', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('tbody tr').filter({ hasText: shiftCode })).toHaveCount(0)
 })
