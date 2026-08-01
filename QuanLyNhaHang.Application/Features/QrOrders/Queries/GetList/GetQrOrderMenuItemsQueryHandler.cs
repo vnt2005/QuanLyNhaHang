@@ -31,15 +31,23 @@ public class GetQrOrderMenuItemsQueryHandler
         if (!qrCode.IsActive || qrCode.Status != "Active")
             throw new Exception("Mã QR đã bị vô hiệu hóa.");
 
-        var menuItems = await _context.MenuItems
-            .AsNoTracking()
-            .Where(x => x.IsActive && x.IsAvailable)
-            .OrderBy(x => x.Name)
-            .Select(x => new QrOrderMenuItemDto
+        var menuItems = await (
+            from menuItem in _context.MenuItems.AsNoTracking()
+            join category in _context.MenuCategories.AsNoTracking()
+                on menuItem.MenuCategoryId equals category.Id
+            where menuItem.IsActive &&
+                  menuItem.IsAvailable &&
+                  category.IsActive
+            orderby category.DisplayOrder, category.Name, menuItem.Name
+            select new QrOrderMenuItemDto
             {
-                Id = x.Id,
-                Name = x.Name,
-                Price = x.Price
+                Id = menuItem.Id,
+                MenuCategoryId = category.Id,
+                MenuCategoryName = category.Name,
+                Name = menuItem.Name,
+                Description = menuItem.Description,
+                Price = menuItem.Price,
+                ImageUrl = menuItem.ImageUrl
             })
             .ToListAsync(cancellationToken);
 
