@@ -127,7 +127,10 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
   })).toBeVisible()
   await expect(liveFrame.getByText(tableName, { exact: true }).first()).toBeVisible()
   await expect(liveFrame.getByText(menuItemName, { exact: true })).toBeVisible()
-  await livePreview.getByRole('button', { name: 'Đóng', exact: true }).click()
+  await livePreview
+    .locator('.table-qr-live-actions')
+    .getByRole('button', { name: 'Đóng', exact: true })
+    .click()
   await expect(livePreview).toHaveCount(0)
 
   detail = page.locator('.table-qr-detail-modal')
