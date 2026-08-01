@@ -284,6 +284,28 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(page.locator('.revenue-summary-grid')).toContainText('1')
   await expect(page.locator('.revenue-insights-grid')).toContainText(menuItemName)
 
+  const existingReportsResponse = await request.get(
+    `${apiURL}/api/revenue-reports/paginated?fromDate=${encodeURIComponent(reportFrom)}&toDate=${encodeURIComponent(reportTo)}&pageNumber=1&pageSize=100`,
+    { headers },
+  )
+  expect(existingReportsResponse.ok()).toBeTruthy()
+  const existingReports = await existingReportsResponse.json() as {
+    items: Array<{ id: string; fromDate: string; toDate: string; status: string }>
+  }
+  for (const report of existingReports.items) {
+    if (
+      report.fromDate.slice(0, 10) === reportFrom
+      && report.toDate.slice(0, 10) === reportTo
+      && report.status !== 'Cancelled'
+    ) {
+      const cancelResponse = await request.delete(
+        `${apiURL}/api/revenue-reports/${report.id}`,
+        { headers },
+      )
+      expect(cancelResponse.ok()).toBeTruthy()
+    }
+  }
+
   await page.getByRole('button', { name: '+ Tạo báo cáo', exact: true }).click()
   const reportModal = page.locator('.revenue-form-modal')
   await reportModal.locator('input[type="date"]').nth(0).fill(reportFrom)
