@@ -13,15 +13,10 @@ function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
 }
 
-async function selectOptionContaining(
-  select: ReturnType<import('@playwright/test').Page['locator']>,
-  text: string,
-) {
-  const option = select.locator('option').filter({ hasText: text }).first()
-  await expect(option).toBeAttached()
-  const value = await option.getAttribute('value')
-  expect(value).toBeTruthy()
-  await select.selectOption(value ?? '')
+type TableQrResponse = {
+  data: {
+    token: string
+  }
 }
 
 test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại và vô hiệu', async ({ page, request }) => {
@@ -46,6 +41,7 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
     data: { areaId: area.id, name: tableName, capacity: 4, note: 'Bàn QR.' },
   })
   expect(tableResponse.ok()).toBeTruthy()
+  const table = await tableResponse.json() as { id: string }
 
   const categoryResponse = await request.post(`${apiURL}/api/MenuCategories`, {
     headers,
@@ -65,6 +61,19 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   })
   expect(menuResponse.ok()).toBeTruthy()
 
+  const qrResponse = await request.post(`${apiURL}/api/table-qr-codes`, {
+    headers,
+    data: {
+      restaurantTableId: table.id,
+      clientBaseUrl: 'http://localhost:5173',
+      note,
+    },
+  })
+  expect(qrResponse.ok()).toBeTruthy()
+  const createdQr = await qrResponse.json() as TableQrResponse
+  const originalToken = createdQr.data.token
+  expect(originalToken).not.toBe('')
+
   await openAdminModule(page, 'QR bàn')
   const clientUrl = page.getByPlaceholder('https://order.example.com')
   await clientUrl.fill('http://localhost:5173')
@@ -72,20 +81,21 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   await expect(page.getByText('Đã lưu địa chỉ ứng dụng gọi món trên trình duyệt này.', { exact: true }))
     .toBeVisible()
 
-  const createButton = page.getByRole('button', { name: /Tạo mã QR/ }).first()
-  await createButton.click()
-  let modal = page.locator('.table-qr-form-modal')
-  await selectOptionContaining(modal.getByLabel(/Bàn/), tableName)
-  await modal.locator('textarea').fill(note)
-  await modal.getByRole('button', { name: 'Tạo mã QR', exact: true }).click()
+  const keyword = page.getByPlaceholder('Tìm theo bàn, token hoặc liên kết…')
+  await keyword.fill(tableName)
+  await page.getByRole('button', { name: 'Lọc', exact: true }).click()
+
+  let card = page.locator('.table-qr-card').filter({ hasText: tableName })
+  await expect(card).toBeVisible()
+  await expect(card).toContainText(note)
+  await card.getByRole('button', { name: 'Chi tiết', exact: true }).click()
 
   let detail = page.locator('.table-qr-detail-modal')
   await expect(detail).toBeVisible()
   await expect(detail).toContainText(tableName)
   await expect(detail).toContainText(note)
   await expect(detail.locator('img')).toHaveAttribute('src', /^data:image\/png;base64,/)
-  const originalToken = (await detail.locator('code').first().textContent())?.trim() ?? ''
-  expect(originalToken).not.toBe('')
+  await expect(detail.locator('code').first()).toHaveText(originalToken)
 
   const downloadPromise = page.waitForEvent('download')
   await detail.getByRole('button', { name: 'Tải ảnh PNG', exact: true }).click()
@@ -103,11 +113,11 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
 
   detail = page.locator('.table-qr-detail-modal')
   await detail.getByRole('button', { name: 'Sửa ghi chú', exact: true }).click()
-  modal = page.locator('.table-qr-form-modal')
+  const modal = page.locator('.table-qr-form-modal')
   await modal.locator('textarea').fill(updatedNote)
   await modal.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
 
-  let card = page.locator('.table-qr-card').filter({ hasText: tableName })
+  card = page.locator('.table-qr-card').filter({ hasText: tableName })
   await expect(card).toContainText(updatedNote)
   await card.getByRole('button', { name: 'Chi tiết', exact: true }).click()
   detail = page.locator('.table-qr-detail-modal')
