@@ -1288,6 +1288,90 @@
     .promotions-alert,
     .restaurant-settings-alert,
     .table-qr-alert,
+    .account-security-alert
+  ).success {
+  position: fixed;
+  top: calc(var(--ds-topbar-height) + var(--ds-space-4));
+  right: var(--ds-space-6);
+  z-index: var(--ds-z-toast);
+  display: flex;
+  align-items: center;
+  width: min(25rem, calc(100vw - 2rem));
+  min-height: 3.5rem;
+  margin: 0;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-color: var(--ds-color-success-border);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-md);
+  animation: ds-toast-enter 220ms ease-out;
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .scheduling-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .restaurant-settings-alert,
+    .table-qr-alert,
+    .account-security-alert
+  ).success::before {
+  display: grid;
+  place-items: center;
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: var(--ds-space-3);
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-white);
+  background: var(--ds-color-success);
+  content: '✓';
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .scheduling-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .restaurant-settings-alert,
+    .table-qr-alert,
+    .account-security-alert
+  ).success
+  :is(p, span) {
+  margin: 0;
+  color: var(--ds-color-text);
+}
+
+@keyframes ds-toast-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -0.75rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .scheduling-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .restaurant-settings-alert,
+    .table-qr-alert,
     .account-security-alert,
     .modal-alert
   ).error {
@@ -1340,7 +1424,7 @@
   place-items: center;
   padding: var(--ds-space-5);
   background: var(--ds-color-overlay);
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(2px);
 }
 
 .dashboard
@@ -1368,7 +1452,7 @@
     .table-qr-scan-modal
   ) {
   width: min(52rem, 100%);
-  max-height: min(90vh, 58rem);
+  max-height: min(90dvh, 58rem);
   border: 1px solid rgb(255 255 255 / 55%);
   border-radius: var(--ds-radius-lg);
   background: var(--ds-color-surface);
@@ -1377,8 +1461,7 @@
 }
 
 .modal-heading {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 2;
   display: flex;
   align-items: flex-start;
@@ -1388,6 +1471,15 @@
   border-bottom: 1px solid var(--ds-color-border-subtle);
   background: rgb(255 255 255 / 96%);
   backdrop-filter: blur(10px);
+}
+
+.modal-kicker {
+  display: block;
+  margin-bottom: var(--ds-space-1);
+  color: var(--ds-color-brand);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.11em;
 }
 
 .modal-heading h2 {
@@ -1429,7 +1521,6 @@
 .revenue-form,
 .inventory-form-body,
 .promotion-form-layout,
-.restaurant-settings-form-layout,
 .table-qr-form-modal form {
   padding: var(--ds-space-5) var(--ds-space-6) var(--ds-space-6);
 }
@@ -1492,6 +1583,370 @@
   background: var(--ds-color-surface);
   font-size: var(--ds-font-size-sm);
   font-weight: var(--ds-font-weight-semibold);
+}
+
+/* Transactional modal shell: header and footer never overlap the body. */
+.dashboard :is(.order-modal, .order-detail-modal, .payment-modal) {
+  display: flex;
+  flex-direction: column;
+  max-height: min(88dvh, 52rem);
+  overflow: hidden;
+}
+
+.dashboard .order-modal {
+  width: min(56rem, calc(100vw - 3rem));
+}
+
+.dashboard .payment-modal {
+  width: min(48rem, calc(100vw - 3rem));
+}
+
+.dashboard :is(.order-form, .payment-form, .order-detail-content) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.dashboard :is(.order-form, .payment-form) {
+  padding: var(--ds-space-5) var(--ds-space-6);
+}
+
+.dashboard .modal-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 4.5rem;
+  gap: var(--ds-space-3);
+  margin: 0;
+  padding: var(--ds-space-3) var(--ds-space-6);
+  border-top: 1px solid var(--ds-color-border-subtle);
+  background: var(--ds-color-surface);
+  box-shadow: 0 -6px 18px rgb(15 23 42 / 4%);
+}
+
+.dashboard .restaurant-settings-modal.form-modal {
+  width: min(68rem, calc(100vw - 2rem));
+  overflow: hidden;
+}
+
+/* Detail views ----------------------------------------------------------- */
+.dashboard
+  :is(
+    .customer-detail-modal,
+    .activity-modal,
+    .reservations-modal.detail,
+    .order-detail-modal,
+    .invoice-detail-modal,
+    .revenue-detail-modal,
+    .promotion-detail-modal,
+    .usage-detail-modal,
+    .inventory-detail-modal,
+    .transaction-detail-modal,
+    .restaurant-settings-modal.detail-modal,
+    .table-qr-detail-modal
+  ) {
+  width: min(60rem, calc(100vw - 3rem));
+  max-height: min(88dvh, 54rem);
+  border: 1px solid rgb(255 255 255 / 58%);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-lg);
+}
+
+.dashboard
+  :is(
+    .customer-detail-modal,
+    .activity-modal,
+    .reservations-modal.detail,
+    .invoice-detail-modal,
+    .revenue-detail-modal,
+    .promotion-detail-modal,
+    .usage-detail-modal,
+    .inventory-detail-modal,
+    .transaction-detail-modal,
+    .restaurant-settings-modal.detail-modal,
+    .table-qr-detail-modal
+  )
+  > header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: var(--ds-space-5) var(--ds-space-6);
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+  background: rgb(255 255 255 / 96%);
+  backdrop-filter: blur(10px);
+}
+
+.dashboard
+  :is(
+    .customer-detail-grid article,
+    .activity-detail-grid > div,
+    .reservation-detail-grid article,
+    .revenue-detail-meta > span,
+    .promotion-detail-grid > div,
+    .usage-detail-links > div,
+    .inventory-detail-grid > div,
+    .restaurant-setting-detail-grid > div,
+    .restaurant-setting-copy-grid > div,
+    .table-qr-detail-row
+  ) {
+  padding: var(--ds-space-4);
+  border: 1px solid var(--ds-color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-subtle);
+  box-shadow: none;
+}
+
+.dashboard
+  :is(
+    .customer-detail-profile,
+    .promotion-detail-hero,
+    .transaction-detail-hero,
+    .restaurant-setting-detail-hero,
+    .table-qr-detail-preview
+  ) {
+  border: 1px solid #cfe0f5;
+  border-radius: var(--ds-radius-lg);
+  background: linear-gradient(135deg, #f6f9ff, #f2fbfa);
+  box-shadow: none;
+}
+
+/* Order detail is the reference layout for compact operational details. */
+.dashboard .order-detail-modal {
+  width: min(58rem, calc(100vw - 3rem));
+}
+
+.order-detail-content {
+  display: grid;
+  align-content: start;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-5) var(--ds-space-6);
+  background: var(--ds-color-surface-subtle);
+}
+
+.order-detail-section {
+  display: grid;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-5);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-xs);
+}
+
+.order-detail-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+}
+
+.order-detail-section-heading span {
+  display: block;
+  margin-bottom: var(--ds-space-1);
+  color: var(--ds-color-brand);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.08em;
+}
+
+.order-detail-section-heading h3,
+.order-detail-section-heading small {
+  margin: 0;
+}
+
+.order-detail-section-heading h3 {
+  color: var(--ds-color-text-strong);
+  font-size: var(--ds-font-size-lg);
+}
+
+.order-detail-section-heading small {
+  max-width: 20rem;
+  color: var(--ds-color-text-muted);
+  text-align: right;
+}
+
+.detail-note {
+  align-items: stretch;
+}
+
+.detail-note textarea {
+  min-height: 4.5rem;
+}
+
+.detail-note button,
+.add-order-item button {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-4);
+  border: 1px solid #b9cdf0;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-brand-hover);
+  background: var(--ds-color-brand-soft);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.detail-items {
+  max-height: none;
+  gap: var(--ds-space-2);
+  overflow: visible;
+}
+
+.detail-item {
+  align-items: center;
+  min-height: 4.5rem;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-color: var(--ds-color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-subtle);
+}
+
+.detail-item-actions label {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-xs);
+}
+
+.order-item-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0 var(--ds-space-2);
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-color-info);
+  background: var(--ds-color-info-soft);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.order-item-status.served {
+  color: var(--ds-color-success);
+  background: var(--ds-color-success-soft);
+}
+
+.order-item-status.cancelled {
+  color: var(--ds-color-danger);
+  background: var(--ds-color-danger-soft);
+}
+
+.add-item-section {
+  border-style: dashed;
+}
+
+/* Custom confirmation dialog ------------------------------------------- */
+.ds-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--ds-z-toast) + 10);
+  display: grid;
+  place-items: center;
+  padding: var(--ds-space-5);
+  background: rgb(7 17 31 / 55%);
+  backdrop-filter: blur(2px);
+}
+
+.ds-confirm-dialog {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  width: min(28rem, 100%);
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-lg);
+  overflow: hidden;
+  animation: ds-confirm-enter 180ms ease-out;
+}
+
+.ds-confirm-icon {
+  display: grid;
+  place-items: center;
+  align-self: start;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: var(--ds-space-5) 0 0 var(--ds-space-5);
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-color-brand-hover);
+  background: var(--ds-color-brand-soft);
+  font-size: var(--ds-font-size-lg);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.ds-confirm-dialog.danger .ds-confirm-icon {
+  color: var(--ds-color-danger);
+  background: var(--ds-color-danger-soft);
+}
+
+.ds-confirm-copy {
+  padding: var(--ds-space-5);
+}
+
+.ds-confirm-copy > span {
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.1em;
+}
+
+.ds-confirm-copy h2 {
+  margin: var(--ds-space-1) 0 var(--ds-space-2);
+  color: var(--ds-color-text-strong);
+  font-size: var(--ds-font-size-xl);
+}
+
+.ds-confirm-copy p {
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-sm);
+  line-height: var(--ds-line-height-relaxed);
+  white-space: pre-line;
+}
+
+.ds-confirm-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border-top: 1px solid var(--ds-color-border-subtle);
+  background: var(--ds-color-surface-subtle);
+}
+
+.ds-confirm-actions button {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-4);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text-secondary);
+  background: var(--ds-color-surface);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.ds-confirm-actions button.primary {
+  color: var(--ds-white);
+  border-color: var(--ds-color-brand);
+  background: var(--ds-color-brand);
+}
+
+.ds-confirm-actions button.danger {
+  color: var(--ds-white);
+  border-color: var(--ds-color-danger);
+  background: var(--ds-color-danger);
+}
+
+@keyframes ds-confirm-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.5rem, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 /* Dashboard -------------------------------------------------------------- */
@@ -2054,5 +2509,60 @@
 
   .modal-actions button {
     width: 100%;
+  }
+
+  .modal-backdrop,
+  .customer-modal-backdrop,
+  .activity-modal-backdrop,
+  .reservations-modal-backdrop,
+  .scheduling-backdrop,
+  .inventory-modal-backdrop,
+  .promotions-modal-backdrop,
+  .restaurant-settings-modal-backdrop,
+  .table-qr-modal-backdrop,
+  .table-qr-scan-backdrop {
+    padding: var(--ds-space-2);
+  }
+
+  .dashboard :is(.order-modal, .order-detail-modal, .payment-modal) {
+    width: 100%;
+    max-height: calc(100dvh - var(--ds-space-4));
+  }
+
+  .modal-heading,
+  .dashboard :is(.order-form, .payment-form, .order-detail-content),
+  .dashboard .modal-footer {
+    padding-right: var(--ds-space-4);
+    padding-left: var(--ds-space-4);
+  }
+
+  .order-detail-section-heading,
+  .detail-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .order-detail-section-heading small {
+    max-width: none;
+    text-align: left;
+  }
+
+  .dashboard
+    :is(
+      .inline-alert,
+      .customer-alert,
+      .activity-alert,
+      .reservations-alert,
+      .scheduling-alert,
+      .inventory-alert,
+      .promotions-alert,
+      .restaurant-settings-alert,
+      .table-qr-alert,
+      .account-security-alert
+    ).success {
+    top: var(--ds-space-3);
+    right: var(--ds-space-3);
+    left: var(--ds-space-3);
+    width: auto;
   }
 }

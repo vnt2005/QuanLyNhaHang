@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   changeMenuItemAvailability,
@@ -34,6 +36,7 @@ export default function MenuManagementPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [categoryForm, setCategoryForm] = useState<MenuCategoryForm | null>(null)
   const [itemForm, setItemForm] = useState<MenuItemForm | null>(null)
 
@@ -145,7 +148,7 @@ export default function MenuManagementPage() {
   }
 
   async function removeCategory(category: MenuCategory) {
-    if (!confirm(`Xóa danh mục ${category.name}?`)) return
+    if (!await confirmAction(`Xóa danh mục ${category.name}?`)) return
     setError(''); setMessage('')
     try {
       const result = await deleteMenuCategory(category.id)
@@ -157,7 +160,7 @@ export default function MenuManagementPage() {
   }
 
   async function removeItem(item: MenuItem) {
-    if (!confirm(`Xóa món ${item.name}?`)) return
+    if (!await confirmAction(`Xóa món ${item.name}?`)) return
     setError(''); setMessage('')
     try {
       const result = await deleteMenuItem(item.id)

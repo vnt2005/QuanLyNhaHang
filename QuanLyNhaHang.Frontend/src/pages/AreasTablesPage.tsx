@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   changeTableStatus,
@@ -39,6 +41,7 @@ export default function AreasTablesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [areaForm, setAreaForm] = useState<AreaForm | null>(null)
   const [tableForm, setTableForm] = useState<RestaurantTableForm | null>(null)
   const [saving, setSaving] = useState(false)
@@ -103,13 +106,13 @@ export default function AreasTablesPage() {
   }
 
   async function removeArea(area: Area) {
-    if (!confirm(`Xóa khu vực ${area.name}?`)) return
+    if (!await confirmAction(`Xóa khu vực ${area.name}?`)) return
     try { const result = await deleteArea(area.id); setMessage(result.message ?? 'Đã xóa khu vực.'); await loadAreas(keyword, page) }
     catch (exception) { setError(exception instanceof Error ? exception.message : 'Không thể xóa khu vực.') }
   }
 
   async function removeTable(table: RestaurantTable) {
-    if (!confirm(`Xóa bàn ${table.name}?`)) return
+    if (!await confirmAction(`Xóa bàn ${table.name}?`)) return
     try { const result = await deleteTable(table.id); setMessage(result.message ?? 'Đã xóa bàn.'); await loadTables(keyword, page) }
     catch (exception) { setError(exception instanceof Error ? exception.message : 'Không thể xóa bàn.') }
   }

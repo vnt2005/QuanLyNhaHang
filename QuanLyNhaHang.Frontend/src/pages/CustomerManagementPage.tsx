@@ -1,3 +1,4 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import {
   type FormEvent,
   useEffect,
@@ -116,6 +117,7 @@ export default function CustomerManagementPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedCustomer, setSelectedCustomer] =
     useState<UserAccount | null>(null)

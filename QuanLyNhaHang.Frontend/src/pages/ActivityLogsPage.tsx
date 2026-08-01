@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   deleteActivityLog,
@@ -59,6 +61,7 @@ export default function ActivityLogsPage({ role }: { role?: string }) {
   const [summaryLoading, setSummaryLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
@@ -134,7 +137,7 @@ export default function ActivityLogsPage({ role }: { role?: string }) {
   }
 
   async function removeLog(item: ActivityLog) {
-    if (!window.confirm(`Xóa vĩnh viễn nhật ký ${item.action} lúc ${formatDateTime(item.createdAt)}?`)) {
+    if (!await confirmAction(`Xóa vĩnh viễn nhật ký ${item.action} lúc ${formatDateTime(item.createdAt)}?`)) {
       return
     }
     setActionId(item.id)

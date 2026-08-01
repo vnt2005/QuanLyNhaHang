@@ -8,6 +8,7 @@ import {
   type LoginResult,
 } from './api/auth'
 import AuthPage from './pages/AuthPage'
+import { ConfirmDialogHost } from './design-system/confirmDialog'
 
 const loadAccessManagementPage = () => import('./pages/AccessManagementPage')
 const loadAccountSecurityPage = () => import('./pages/AccountSecurityPage')
@@ -543,6 +544,7 @@ export default function App() {
           {renderContent()}
         </Suspense>
       </main>
+      <ConfirmDialogHost />
     </div>
   )
 }

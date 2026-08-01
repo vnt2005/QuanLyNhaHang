@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { getOrders, type Order } from '../api/orders'
 import {
@@ -34,6 +36,7 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [error, setError] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Payment | null>(null)
@@ -116,7 +119,7 @@ export default function PaymentsPage() {
   }
 
   async function remove(payment: Payment) {
-    if (!confirm(`Hủy thanh toán ${payment.paymentCode}?`)) return
+    if (!await confirmAction(`Hủy thanh toán ${payment.paymentCode}?`)) return
     setSaving(true); setError(''); setMessage('')
     try {
       const result = await cancelPayment(payment.id)
@@ -167,15 +170,16 @@ export default function PaymentsPage() {
 
     <div className="pagination"><span>Trang {page}/{totalPages} • {totalCount} thanh toán</span><div><button disabled={page <= 1 || loading} onClick={() => void loadPayments(page - 1)}>Trước</button><button disabled={page >= totalPages || loading} onClick={() => void loadPayments(page + 1)}>Sau</button></div></div>
 
-    {modalOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setModalOpen(false)}><div className="employee-modal payment-modal" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><h2>{editing ? 'Cập nhật thanh toán' : 'Thanh toán đơn hàng'}</h2><p>{editing ? editing.paymentCode : 'Chọn đơn đã phục vụ và nhập thông tin thanh toán.'}</p></div><button onClick={() => setModalOpen(false)}>×</button></div>
-      <form className="payment-form" onSubmit={submit}>
+    {modalOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setModalOpen(false)}><div className="employee-modal payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">{editing ? 'CẬP NHẬT GIAO DỊCH' : 'THANH TOÁN'}</span><h2 id="payment-modal-title">{editing ? 'Cập nhật thanh toán' : 'Thanh toán đơn hàng'}</h2><p>{editing ? editing.paymentCode : 'Kiểm tra số tiền và phương thức trước khi xác nhận.'}</p></div><button type="button" aria-label="Đóng" onClick={() => setModalOpen(false)}>×</button></div>
+      <form id="payment-form" className="payment-form" onSubmit={submit}>
+        {error && <div className="modal-alert error" role="alert">{error}</div>}
         {!editing && <label>Đơn hàng<select required value={form.orderId} onChange={event => setForm({...form, orderId:event.target.value, customerPaid: eligibleOrders.find(x => x.id === event.target.value)?.totalAmount ?? 0})}><option value="">Chọn đơn chờ thanh toán</option>{eligibleOrders.map(order => <option key={order.id} value={order.id}>{order.orderCode} • {order.restaurantTableName} • {money(order.totalAmount)}</option>)}</select></label>}
         <div className="payment-form-grid"><label>Giảm giá<input type="number" min={0} value={form.discountAmount} onChange={event => setForm({...form,discountAmount:Number(event.target.value)})}/></label><label>VAT<input type="number" min={0} value={form.vatAmount} onChange={event => setForm({...form,vatAmount:Number(event.target.value)})}/></label><label>Khách đưa<input type="number" min={0} value={form.customerPaid} onChange={event => setForm({...form,customerPaid:Number(event.target.value)})}/></label><label>Phương thức<select value={form.paymentMethod} onChange={event => setForm({...form,paymentMethod:event.target.value})}>{methods.map(value => <option key={value} value={value}>{methodLabels[value]}</option>)}</select></label></div>
         <label>Ghi chú<textarea value={form.note} onChange={event => setForm({...form,note:event.target.value})}/></label>
         {!editing && <label className="invoice-toggle"><input type="checkbox" checked={form.issueInvoice} onChange={event => setForm({...form,issueInvoice:event.target.checked})}/> Tự động xuất hóa đơn sau thanh toán</label>}
         <div className="payment-preview"><div><span>Tiền món</span><strong>{money(preview.total)}</strong></div><div><span>Giảm giá</span><strong>-{money(form.discountAmount)}</strong></div><div><span>VAT</span><strong>+{money(form.vatAmount)}</strong></div><div className="final"><span>Khách cần trả</span><strong>{money(preview.final)}</strong></div><div><span>Tiền thối</span><strong>{money(preview.change)}</strong></div></div>
-        <div className="modal-actions"><button type="button" onClick={() => setModalOpen(false)}>Đóng</button><button className="primary-button" disabled={saving}>{saving ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Xác nhận thanh toán'}</button></div>
       </form>
+      <div className="modal-actions modal-footer"><button type="button" onClick={() => setModalOpen(false)}>Đóng</button><button type="submit" form="payment-form" className="primary-button" disabled={saving}>{saving ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Xác nhận thanh toán'}</button></div>
     </div></div>}
   </section>
 }

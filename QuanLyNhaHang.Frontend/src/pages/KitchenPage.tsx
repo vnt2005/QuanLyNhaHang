@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { useEffect, useMemo, useState } from 'react'
 import {
   getKitchenHistory,
@@ -43,6 +45,7 @@ export default function KitchenPage() {
   const [savingId, setSavingId] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   async function loadData(silent = false) {
@@ -71,7 +74,7 @@ export default function KitchenPage() {
 
   async function changeStatus(item: KitchenOrderItem, status: KitchenItemStatus) {
     const label = [...activeStatuses, ...historyStatuses].find(x => x.value === status)?.label ?? status
-    if (!confirm(`Chuyển món ${item.menuItemName} sang “${label}”?`)) return
+    if (!await confirmAction(`Chuyển món ${item.menuItemName} sang “${label}”?`)) return
     setSavingId(item.orderItemId); setError(''); setMessage('')
     try {
       const result = await updateKitchenItemStatus(item.orderItemId, status, item.note)
