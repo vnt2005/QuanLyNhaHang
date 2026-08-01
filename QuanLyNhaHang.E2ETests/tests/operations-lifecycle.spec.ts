@@ -165,7 +165,9 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(orderDetail).toContainText('Ít cay E2E')
   await orderDetail.getByPlaceholder('Ghi chú đơn hàng').fill(`${orderNote} đã cập nhật`)
   await orderDetail.getByRole('button', { name: 'Lưu ghi chú', exact: true }).click()
-  await orderDetail.getByRole('button', { name: 'Đóng', exact: true }).click()
+  await orderDetail.locator('.modal-heading')
+    .getByRole('button', { name: 'Đóng', exact: true })
+    .click()
 
   await openAdminModule(page, 'Bếp')
   let ticket = page.locator('.kitchen-ticket').filter({ hasText: orderCode })
