@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import './design-system/tokens.css'
 import './styles.css'
 import './pages/dashboard.css'
 import './pages/access-management.css'
@@ -23,6 +24,7 @@ import './pages/promotions.css'
 import './pages/inventory.css'
 import './pages/auth-security.css'
 import './pages/module-loading.css'
+import './design-system/admin.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
