@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { getPayments, type Payment } from '../api/payments'
 import {
@@ -37,6 +39,7 @@ export default function InvoicesPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [detail, setDetail] = useState<Invoice | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -124,7 +127,7 @@ export default function InvoicesPage() {
   }
 
   async function markPrinted(invoice: Invoice) {
-    if (!confirm(`Đánh dấu hóa đơn ${invoice.invoiceCode} là đã in?`)) return
+    if (!await confirmAction(`Đánh dấu hóa đơn ${invoice.invoiceCode} là đã in?`)) return
     setSaving(true); setError(''); setMessage('')
     try {
       const result = await updateInvoice(invoice.id, 'Printed', invoice.note ?? '')
@@ -137,7 +140,7 @@ export default function InvoicesPage() {
   }
 
   async function remove(invoice: Invoice) {
-    if (!confirm(`Hủy hóa đơn ${invoice.invoiceCode}?`)) return
+    if (!await confirmAction(`Hủy hóa đơn ${invoice.invoiceCode}?`)) return
     setSaving(true); setError(''); setMessage('')
     try {
       const result = await cancelInvoice(invoice.id)

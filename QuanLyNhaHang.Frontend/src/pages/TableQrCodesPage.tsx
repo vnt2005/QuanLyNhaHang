@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
 import { getTables, type RestaurantTable } from '../api/areasTables'
@@ -169,6 +171,7 @@ export default function TableQrCodesPage() {
   const [actionId, setActionId] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [clientBaseUrl, setClientBaseUrl] = useState(getDefaultClientBaseUrl)
   const [createOpen, setCreateOpen] = useState(false)
   const [selectedTableId, setSelectedTableId] = useState('')
@@ -364,7 +367,7 @@ export default function TableQrCodesPage() {
   async function changeStatus(item: TableQrCode, nextStatus: TableQrCodeStatus) {
     if (
       nextStatus === 'Blocked' &&
-      !window.confirm(`Khóa mã QR của ${item.restaurantTableName}? Khách sẽ không thể gọi món.`)
+      !await confirmAction(`Khóa mã QR của ${item.restaurantTableName}? Khách sẽ không thể gọi món.`)
     ) {
       return
     }
@@ -396,7 +399,7 @@ export default function TableQrCodesPage() {
 
   async function deactivate(item: TableQrCode) {
     if (
-      !window.confirm(
+      !await confirmAction(
         `Vô hiệu hóa mã QR của ${item.restaurantTableName}? Liên kết hiện tại sẽ ngừng hoạt động.`,
       )
     ) {
@@ -427,7 +430,7 @@ export default function TableQrCodesPage() {
     }
 
     if (
-      !window.confirm(
+      !await confirmAction(
         `Tạo lại mã QR của ${item.restaurantTableName}? Mã cũ sẽ mất hiệu lực ngay lập tức.`,
       )
     ) {

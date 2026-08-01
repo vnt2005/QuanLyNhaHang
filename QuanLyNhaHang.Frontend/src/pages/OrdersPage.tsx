@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { getTables, type RestaurantTable } from '../api/areasTables'
 import { getMenuItems, type MenuItem } from '../api/menu'
@@ -25,7 +27,11 @@ const statuses: { value: OrderStatus; label: string }[] = [
   { value: 'Cancelled', label: 'Đã hủy' },
 ]
 
-const emptyForm: CreateOrderForm = { restaurantTableId: '', note: '', items: [] }
+const emptyForm: CreateOrderForm = {
+  restaurantTableId: '',
+  note: '',
+  items: [{ menuItemId: '', quantity: 1, note: '' }],
+}
 const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 
 export default function OrdersPage() {
@@ -44,6 +50,7 @@ export default function OrdersPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [createOpen, setCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState<CreateOrderForm>(emptyForm)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
@@ -129,7 +136,7 @@ export default function OrdersPage() {
   }
 
   async function setStatus(order: Order, status: OrderStatus) {
-    if (!confirm(`Chuyển ${order.orderCode} sang trạng thái ${statuses.find(x => x.value === status)?.label}?`)) return
+    if (!await confirmAction(`Chuyển ${order.orderCode} sang trạng thái ${statuses.find(x => x.value === status)?.label}?`)) return
     setSaving(true); setError(''); setMessage('')
     try {
       const result = await changeOrderStatus(order.id, status)
@@ -164,7 +171,7 @@ export default function OrdersPage() {
   }
 
   async function removeItem(orderItemId: string) {
-    if (!selectedOrder || !confirm('Hủy món này khỏi đơn?')) return
+    if (!selectedOrder || !await confirmAction('Hủy món này khỏi đơn?')) return
     setSaving(true); setError('')
     try {
       await cancelOrderItem(selectedOrder.id, orderItemId)
@@ -174,7 +181,7 @@ export default function OrdersPage() {
   }
 
   async function removeOrder(order: Order) {
-    if (!confirm(`Xóa đơn ${order.orderCode}?`)) return
+    if (!await confirmAction(`Xóa đơn ${order.orderCode}?`)) return
     setSaving(true); setError(''); setMessage('')
     try {
       const result = await deleteOrder(order.id)
@@ -222,17 +229,18 @@ export default function OrdersPage() {
 
     <div className="pagination"><span>Trang {page}/{totalPages} • {totalCount} đơn</span><div><button disabled={!hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trước</button><button disabled={!hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Sau</button></div></div>
 
-    {createOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setCreateOpen(false)}><div className="employee-modal order-modal" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><h2>Tạo đơn hàng</h2><p>Chọn bàn và ít nhất một món đang mở bán.</p></div><button onClick={() => setCreateOpen(false)}>×</button></div><form className="order-form" onSubmit={submitCreate}>
+    {createOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setCreateOpen(false)}><div className="employee-modal order-modal" role="dialog" aria-modal="true" aria-labelledby="create-order-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">ĐƠN HÀNG MỚI</span><h2 id="create-order-title">Tạo đơn hàng</h2><p>Chọn bàn và thêm các món khách đã gọi.</p></div><button type="button" aria-label="Đóng" onClick={() => setCreateOpen(false)}>×</button></div><form id="create-order-form" className="order-form" onSubmit={submitCreate}>
+      {error && <div className="modal-alert error" role="alert">{error}</div>}
       <label>Bàn<select required value={createForm.restaurantTableId} onChange={event => setCreateForm({...createForm, restaurantTableId:event.target.value})}><option value="">Chọn bàn</option>{availableTables.map(table => <option key={table.id} value={table.id}>{table.name} • {table.areaName}</option>)}</select></label>
       <label>Ghi chú<textarea value={createForm.note} onChange={event => setCreateForm({...createForm, note:event.target.value})}/></label>
       <div className="order-lines"><div className="line-heading"><strong>Món trong đơn</strong><button type="button" onClick={addCreateLine}>+ Thêm món</button></div>{createForm.items.map((line, index) => <div className="order-line" key={index}><select required value={line.menuItemId} onChange={event => updateCreateLine(index,{menuItemId:event.target.value})}><option value="">Chọn món</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input type="number" min={1} value={line.quantity} onChange={event => updateCreateLine(index,{quantity:Number(event.target.value)})}/><input value={line.note} onChange={event => updateCreateLine(index,{note:event.target.value})} placeholder="Ghi chú món"/><button type="button" className="danger" onClick={() => setCreateForm({...createForm, items:createForm.items.filter((_, i) => i !== index)})}>×</button></div>)}</div>
-      <div className="modal-actions"><button type="button" onClick={() => setCreateOpen(false)}>Hủy</button><button className="primary-button" disabled={saving}>{saving ? 'Đang tạo...' : 'Tạo đơn'}</button></div>
-    </form></div></div>}
+    </form><div className="modal-actions modal-footer"><button type="button" onClick={() => setCreateOpen(false)}>Hủy</button><button type="submit" form="create-order-form" className="primary-button" disabled={saving}>{saving ? 'Đang tạo...' : 'Tạo đơn'}</button></div></div></div>}
 
-    {detailOpen && selectedOrder && <div className="modal-backdrop" onMouseDown={() => !saving && setDetailOpen(false)}><div className="employee-modal order-detail-modal" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><h2>{selectedOrder.orderCode}</h2><p>{selectedOrder.restaurantTableName} • {money(selectedOrder.totalAmount)}</p></div><button onClick={() => setDetailOpen(false)}>×</button></div>
-      <div className="order-detail-content"><div className="detail-note"><textarea value={noteDraft} onChange={event => setNoteDraft(event.target.value)} placeholder="Ghi chú đơn hàng"/><button onClick={() => void saveNote()} disabled={saving}>Lưu ghi chú</button></div>
-      <div className="detail-items">{selectedOrder.items.map(item => <div className={`detail-item ${item.status.toLowerCase()}`} key={item.id}><div><strong>{item.menuItemName}</strong><span>{money(item.unitPrice)} • {item.note || 'Không ghi chú'}</span></div><div className="detail-item-actions"><span>{item.status}</span><input type="number" min={1} defaultValue={item.quantity} disabled={item.status === 'Cancelled' || item.status === 'Served'} onBlur={event => Number(event.target.value) !== item.quantity && void changeQuantity(item.id, Number(event.target.value))}/>{item.status !== 'Cancelled' && item.status !== 'Served' && <button className="danger" onClick={() => void removeItem(item.id)}>Hủy món</button>}</div></div>)}</div>
-      <div className="add-order-item"><select value={newItem.menuItemId} onChange={event => setNewItem({...newItem,menuItemId:event.target.value})}><option value="">Chọn món thêm</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input type="number" min={1} value={newItem.quantity} onChange={event => setNewItem({...newItem,quantity:Number(event.target.value)})}/><input value={newItem.note} onChange={event => setNewItem({...newItem,note:event.target.value})} placeholder="Ghi chú"/><button onClick={() => void addItem()} disabled={saving}>Thêm món</button></div></div>
+    {detailOpen && selectedOrder && <div className="modal-backdrop" onMouseDown={() => !saving && setDetailOpen(false)}><div className="employee-modal order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="order-detail-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">CHI TIẾT ĐƠN HÀNG</span><h2 id="order-detail-title">{selectedOrder.orderCode}</h2><p>{selectedOrder.restaurantTableName} • Tổng tiền {money(selectedOrder.totalAmount)}</p></div><button type="button" aria-label="Đóng" onClick={() => setDetailOpen(false)}>×</button></div>
+      <div className="order-detail-content">{error && <div className="modal-alert error" role="alert">{error}</div>}<section className="order-detail-section"><div className="order-detail-section-heading"><div><span>GHI CHÚ</span><h3>Ghi chú đơn hàng</h3></div><small>Lưu thông tin phục vụ hoặc yêu cầu của khách.</small></div><div className="detail-note"><textarea value={noteDraft} onChange={event => setNoteDraft(event.target.value)} placeholder="Nhập ghi chú đơn hàng"/><button type="button" onClick={() => void saveNote()} disabled={saving}>Lưu ghi chú</button></div></section>
+      <section className="order-detail-section"><div className="order-detail-section-heading"><div><span>MÓN TRONG ĐƠN</span><h3>{selectedOrder.items.length} món đã thêm</h3></div><small>Có thể chỉnh số lượng với món chưa phục vụ.</small></div><div className="detail-items">{selectedOrder.items.map(item => <div className={`detail-item ${item.status.toLowerCase()}`} key={item.id}><div><strong>{item.menuItemName}</strong><span>{money(item.unitPrice)} • {item.note || 'Không ghi chú'}</span></div><div className="detail-item-actions"><span className={`order-item-status ${item.status.toLowerCase()}`}>{statuses.find(status => status.value === item.status)?.label ?? item.status}</span><label>Số lượng<input type="number" min={1} defaultValue={item.quantity} disabled={item.status === 'Cancelled' || item.status === 'Served'} onBlur={event => Number(event.target.value) !== item.quantity && void changeQuantity(item.id, Number(event.target.value))}/></label>{item.status !== 'Cancelled' && item.status !== 'Served' && <button type="button" className="danger" onClick={() => void removeItem(item.id)}>Hủy món</button>}</div></div>)}</div></section>
+      <section className="order-detail-section add-item-section"><div className="order-detail-section-heading"><div><span>BỔ SUNG</span><h3>Thêm món vào đơn</h3></div></div><div className="add-order-item"><select aria-label="Chọn món thêm" value={newItem.menuItemId} onChange={event => setNewItem({...newItem,menuItemId:event.target.value})}><option value="">Chọn món thêm</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input aria-label="Số lượng" type="number" min={1} value={newItem.quantity} onChange={event => setNewItem({...newItem,quantity:Number(event.target.value)})}/><input aria-label="Ghi chú món" value={newItem.note} onChange={event => setNewItem({...newItem,note:event.target.value})} placeholder="Ghi chú món"/><button type="button" onClick={() => void addItem()} disabled={saving}>Thêm món</button></div></section></div>
+      <div className="modal-actions modal-footer"><button type="button" onClick={() => setDetailOpen(false)}>Đóng</button></div>
     </div></div>}
   </section>
 }

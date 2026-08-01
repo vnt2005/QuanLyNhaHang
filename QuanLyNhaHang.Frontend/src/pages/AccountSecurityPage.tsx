@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import {
   useCallback,
   useEffect,
@@ -78,6 +80,7 @@ export default function AccountSecurityPage({
   const [action, setAction] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
 
   const handleRequestError = useCallback((exception: unknown) => {
     if (exception instanceof AuthApiError && exception.status === 401) {
@@ -122,7 +125,7 @@ export default function AccountSecurityPage({
   ].filter(Boolean).join(' ') || auth.email || 'Người dùng'
 
   async function revokeSession(item: AuthSession) {
-    if (!window.confirm(
+    if (!await confirmAction(
       `Thu hồi phiên đăng nhập trên ${getDeviceName(item.userAgent)}?`,
     )) return
     setAction(item.sessionId)
@@ -139,7 +142,7 @@ export default function AccountSecurityPage({
   }
 
   async function logoutEverywhere() {
-    if (!window.confirm(
+    if (!await confirmAction(
       'Đăng xuất khỏi tất cả thiết bị, bao gồm thiết bị hiện tại?',
     )) return
     setAction('logout-all')

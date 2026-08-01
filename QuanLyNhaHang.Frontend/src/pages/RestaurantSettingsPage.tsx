@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   createRestaurantSetting,
@@ -157,6 +159,7 @@ export default function RestaurantSettingsPage() {
   const [actionId, setActionId] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [formError, setFormError] = useState('')
   const [formMode, setFormMode] = useState<'create' | 'edit' | null>(null)
   const [editing, setEditing] = useState<RestaurantSetting | null>(null)
@@ -334,7 +337,7 @@ export default function RestaurantSettingsPage() {
       )
       return
     }
-    if (!confirm(`Kích hoạt cấu hình “${setting.restaurantName}”?`)) return
+    if (!await confirmAction(`Kích hoạt cấu hình “${setting.restaurantName}”?`)) return
 
     setActionId(setting.id)
     try {
@@ -357,7 +360,7 @@ export default function RestaurantSettingsPage() {
 
   async function deactivate(setting: RestaurantSetting) {
     if (
-      !confirm(
+      !await confirmAction(
         `Vô hiệu hóa cấu hình “${setting.restaurantName}”? Hệ thống sẽ không còn cấu hình nhà hàng đang hoạt động.`,
       )
     ) {

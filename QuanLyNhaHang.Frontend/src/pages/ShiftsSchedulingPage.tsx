@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { getEmployees, type Employee } from '../api/employees'
 import {
@@ -54,6 +56,7 @@ export default function ShiftsSchedulingPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [modal, setModal] = useState<'shift' | 'assignment' | null>(null)
   const [shiftForm, setShiftForm] = useState<ShiftForm>(emptyShift)
   const [assignmentForm, setAssignmentForm] = useState<EmployeeShiftForm>(emptyAssignment)
@@ -142,13 +145,13 @@ export default function ShiftsSchedulingPage() {
   }
 
   async function removeShift(item: Shift) {
-    if (!confirm(`Xóa ca ${item.shiftCode} - ${item.shiftName}?`)) return
+    if (!await confirmAction(`Xóa ca ${item.shiftCode} - ${item.shiftName}?`)) return
     try { const result = await deleteShift(item.id); setMessage(result.message ?? 'Đã xóa ca.'); setShiftOptions(await getShiftList()); await load() }
     catch (exception) { setError(getError(exception)) }
   }
 
   async function removeAssignment(item: EmployeeShift) {
-    if (!confirm(`Xóa phân công ${assignmentName(item)} - ${item.shiftName} ngày ${item.workDate.slice(0, 10)}?`)) return
+    if (!await confirmAction(`Xóa phân công ${assignmentName(item)} - ${item.shiftName} ngày ${item.workDate.slice(0, 10)}?`)) return
     try { const result = await deleteEmployeeShift(item.id); setMessage(result.message ?? 'Đã xóa phân công.'); await load() }
     catch (exception) { setError(getError(exception)) }
   }

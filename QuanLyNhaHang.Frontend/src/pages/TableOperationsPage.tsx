@@ -1,3 +1,4 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { getTables, type RestaurantTable } from '../api/areasTables'
 import { getOrders, type Order, type OrderItem } from '../api/orders'
@@ -91,6 +92,7 @@ export default function TableOperationsPage({
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [error, setError] = useState('')
 
   const sourceOrder = useMemo(

@@ -1,6 +1,8 @@
 .restaurant-settings-modal.form-modal {
-  height: min(860px, calc(100vh - 48px));
+  height: min(860px, calc(100dvh - 40px));
+  max-height: calc(100dvh - 40px);
   grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .restaurant-settings-modal.form-modal > form {
@@ -9,17 +11,32 @@
   overflow: hidden;
 }
 
+.restaurant-settings-modal.form-modal .modal-alert {
+  grid-row: 1;
+}
+
 .restaurant-settings-modal.form-modal .restaurant-settings-form-layout {
+  grid-row: 2;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
 
+.restaurant-settings-modal.form-modal .restaurant-setting-preview {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
 .restaurant-settings-modal.form-modal form > footer {
+  grid-row: 3;
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
+  min-height: 72px;
   box-shadow: 0 -8px 20px rgba(31, 53, 68, 0.06);
 }
 
@@ -29,6 +46,7 @@
   }
 
   .restaurant-settings-modal.form-modal {
-    height: calc(100vh - 24px);
+    height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
   }
 }

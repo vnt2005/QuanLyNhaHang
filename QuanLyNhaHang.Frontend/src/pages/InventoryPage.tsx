@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import {
   FormEvent,
   useCallback,
@@ -236,6 +238,7 @@ export default function InventoryPage() {
 
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [saving, setSaving] = useState(false)
   const [actionId, setActionId] = useState('')
 
@@ -539,7 +542,7 @@ export default function InventoryPage() {
   async function toggleIngredient(item: Ingredient) {
     const action = item.isActive ? 'vô hiệu hóa' : 'kích hoạt lại'
     if (
-      !window.confirm(
+      !await confirmAction(
         item.isActive
           ? `Vô hiệu hóa ${item.name}? Lịch sử kho vẫn được giữ nguyên.`
           : `Kích hoạt lại ${item.name}?`,
@@ -622,7 +625,7 @@ export default function InventoryPage() {
   async function toggleCategory(item: IngredientCategory) {
     const counts = ingredientCountByCategory.get(item.id)
     if (
-      !window.confirm(
+      !await confirmAction(
         item.isActive
           ? `Vô hiệu hóa danh mục ${item.name}? Danh mục còn nguyên liệu đang hoạt động sẽ không thể vô hiệu hóa.`
           : `Kích hoạt lại danh mục ${item.name}?`,
@@ -797,7 +800,7 @@ export default function InventoryPage() {
           ? 'Hệ thống sẽ nhập trả lại lượng đã xuất.'
           : 'Hệ thống sẽ khôi phục tồn kho về mức trước điều chỉnh.'
     if (
-      !window.confirm(
+      !await confirmAction(
         `Hủy giao dịch ${item.transactionCode}? ${warning}`,
       )
     ) {

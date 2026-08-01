@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { getTables, type RestaurantTable } from '../api/areasTables'
 import {
@@ -82,6 +84,7 @@ export default function ReservationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [saving, setSaving] = useState(false)
   const [actionId, setActionId] = useState('')
   const [formOpen, setFormOpen] = useState(false)
@@ -183,7 +186,7 @@ export default function ReservationsPage() {
   }
 
   async function changeStatus(item: Reservation, nextStatus: ReservationStatus) {
-    if (!window.confirm(`Chuyển ${item.reservationCode} sang “${labels[nextStatus]}”?`)) return
+    if (!await confirmAction(`Chuyển ${item.reservationCode} sang “${labels[nextStatus]}”?`)) return
     setActionId(item.id)
     setError('')
     try {
@@ -199,7 +202,7 @@ export default function ReservationsPage() {
   }
 
   async function cancel(item: Reservation) {
-    if (!window.confirm(`Hủy đặt bàn ${item.reservationCode}?`)) return
+    if (!await confirmAction(`Hủy đặt bàn ${item.reservationCode}?`)) return
     setActionId(item.id)
     setError('')
     try {

@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   applyPromotion,
@@ -210,6 +212,7 @@ export default function PromotionsPage() {
   const [actionId, setActionId] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
 
   const [formMode, setFormMode] = useState<'create' | 'edit' | null>(null)
   const [editing, setEditing] = useState<Promotion | null>(null)
@@ -546,7 +549,7 @@ export default function PromotionsPage() {
     resetNotices()
     if (
       promotion.isActive &&
-      !confirm(`Vô hiệu hóa mã “${promotion.promotionCode}”?`)
+      !await confirmAction(`Vô hiệu hóa mã “${promotion.promotionCode}”?`)
     ) {
       return
     }
@@ -679,7 +682,7 @@ export default function PromotionsPage() {
   }
 
   async function cancelUsage(usage: PromotionUsage) {
-    if (!confirm(`Hủy lượt áp dụng mã “${usage.promotionCode}” cho ${usage.orderCode}?`)) {
+    if (!await confirmAction(`Hủy lượt áp dụng mã “${usage.promotionCode}” cho ${usage.orderCode}?`)) {
       return
     }
     resetNotices()

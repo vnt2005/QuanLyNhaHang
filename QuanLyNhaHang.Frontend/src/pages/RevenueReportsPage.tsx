@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   cancelRevenueReport,
@@ -110,6 +112,7 @@ export default function RevenueReportsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [detail, setDetail] = useState<RevenueReport | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<RevenueReport | null>(null)
@@ -325,7 +328,7 @@ export default function RevenueReportsPage() {
   }
 
   async function cancel(report: RevenueReport) {
-    if (!confirm(`Hủy báo cáo ${report.reportCode}?`)) return
+    if (!await confirmAction(`Hủy báo cáo ${report.reportCode}?`)) return
     setSaving(true)
     setError('')
     setMessage('')

@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   createRole,
@@ -35,6 +37,7 @@ export default function AccessManagementPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [userModalOpen, setUserModalOpen] = useState(false)
   const [userForm, setUserForm] = useState<UserForm | null>(null)
   const [roleModalOpen, setRoleModalOpen] = useState(false)
@@ -125,7 +128,7 @@ export default function AccessManagementPage() {
 
   async function removeUser(user: UserAccount) {
     const displayName = [user.ho, user.ten].filter(Boolean).join(' ')
-    const accepted = confirm(
+    const accepted = await confirmAction(
       `Xóa vĩnh viễn tài khoản ${displayName} (${user.email})?\n\n`
       + 'Dữ liệu đăng nhập và các phiên của tài khoản sẽ bị xóa. '
       + 'Thao tác này không thể hoàn tác.',
@@ -195,7 +198,7 @@ export default function AccessManagementPage() {
   }
 
   async function disableRole(role: Role) {
-    if (!confirm(`Vô hiệu hóa vai trò ${role.displayName}?`)) return
+    if (!await confirmAction(`Vô hiệu hóa vai trò ${role.displayName}?`)) return
     setError('')
     setMessage('')
     try {
@@ -259,7 +262,7 @@ export default function AccessManagementPage() {
       .map((item) => item.permissionId)
     if (
       permissionIds.length === 0
-      && !confirm('Bạn đang bỏ toàn bộ quyền của vai trò này. Tiếp tục?')
+      && !await confirmAction('Bạn đang bỏ toàn bộ quyền của vai trò này. Tiếp tục?')
     ) return
 
     setSaving(true)

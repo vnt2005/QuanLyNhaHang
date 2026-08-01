@@ -1,0 +1,2568 @@
+/* Admin application shell ------------------------------------------------- */
+.admin-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--ds-sidebar-width) minmax(0, 1fr);
+  background: var(--ds-color-bg);
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: var(--ds-sidebar-width);
+  height: 100vh;
+  padding: var(--ds-space-5) var(--ds-space-4) var(--ds-space-4);
+  color: #cbd7e7;
+  border-right: 1px solid rgb(255 255 255 / 6%);
+  background: radial-gradient(
+      circle at 15% 0%,
+      rgb(37 99 235 / 18%),
+      transparent 30%
+    ),
+    linear-gradient(180deg, var(--ds-navy-900) 0%, var(--ds-navy-950) 100%);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: #334a66 transparent;
+  scrollbar-width: thin;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  min-height: 3.5rem;
+  margin: 0 var(--ds-space-1) var(--ds-space-5);
+  padding: 0 var(--ds-space-2) var(--ds-space-4);
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+}
+
+.logo > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-white);
+  background: linear-gradient(135deg, var(--ds-blue-500), var(--ds-teal-600));
+  box-shadow: 0 8px 22px rgb(37 99 235 / 26%);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.04em;
+}
+
+.logo > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+.logo strong {
+  color: var(--ds-white);
+  font-size: var(--ds-font-size-lg);
+  line-height: var(--ds-line-height-tight);
+}
+
+.logo small {
+  color: #8092aa;
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: var(--ds-space-5);
+}
+
+.nav-section {
+  display: grid;
+  gap: var(--ds-space-1);
+}
+
+.nav-section-label {
+  display: block;
+  padding: 0 var(--ds-space-3) var(--ds-space-1);
+  color: #667b96;
+  font-size: 0.625rem;
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sidebar nav button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0 var(--ds-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--ds-radius-md);
+  color: #9fb0c5;
+  background: transparent;
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1.25;
+  text-align: left;
+  transition:
+    color var(--ds-transition-fast),
+    border-color var(--ds-transition-fast),
+    background var(--ds-transition-fast),
+    transform var(--ds-transition-fast);
+}
+
+.sidebar nav button > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--ds-radius-sm);
+  color: #7f94af;
+  background: rgb(255 255 255 / 4%);
+  font-size: var(--ds-font-size-md);
+  transition: inherit;
+}
+
+.sidebar nav button:hover {
+  color: #f5f8fc;
+  border-color: rgb(255 255 255 / 7%);
+  background: rgb(255 255 255 / 6%);
+  transform: translateX(1px);
+}
+
+.sidebar nav button.active,
+.sidebar nav button.active:hover {
+  color: var(--ds-white);
+  border-color: rgb(96 165 250 / 18%);
+  background: linear-gradient(
+    90deg,
+    rgb(37 99 235 / 28%),
+    rgb(13 148 136 / 10%)
+  );
+  box-shadow: inset 3px 0 0 #60a5fa;
+}
+
+.sidebar nav button.active > span {
+  color: #dbeafe;
+  background: rgb(59 130 246 / 22%);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--ds-space-6);
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin: 0 var(--ds-space-1);
+  padding: var(--ds-space-3);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--ds-radius-md);
+  background: rgb(255 255 255 / 4%);
+}
+
+.system-status > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+.system-status strong {
+  color: #dce6f2;
+  font-size: var(--ds-font-size-xs);
+}
+
+.system-status small {
+  color: #7388a2;
+  font-size: var(--ds-font-size-2xs);
+}
+
+.status-dot {
+  flex: 0 0 auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-color-success);
+  box-shadow: 0 0 0 4px rgb(22 134 92 / 14%);
+}
+
+.dashboard {
+  min-width: 0;
+  padding: 0 var(--ds-space-8) var(--ds-space-10);
+  background: var(--ds-color-bg);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--ds-topbar-height);
+  gap: var(--ds-space-6);
+  padding: var(--ds-space-4) 0;
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+  background: rgb(243 246 250 / 92%);
+  backdrop-filter: blur(14px);
+}
+
+.topbar .eyebrow {
+  display: block;
+  color: var(--ds-color-brand);
+  font-size: 0.625rem;
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.16em;
+}
+
+.topbar h1 {
+  margin: var(--ds-space-1) 0 0;
+  color: var(--ds-color-text-strong);
+  font-size: clamp(1.25rem, 1.8vw, 1.625rem);
+  line-height: var(--ds-line-height-tight);
+  letter-spacing: -0.02em;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.profile-button,
+.topbar .profile {
+  min-height: 2.75rem;
+  padding: var(--ds-space-1) var(--ds-space-3) var(--ds-space-1)
+    var(--ds-space-1);
+  border: 1px solid transparent;
+  border-radius: var(--ds-radius-md);
+  background: transparent;
+  transition:
+    background var(--ds-transition-fast),
+    border-color var(--ds-transition-fast);
+}
+
+.profile-button:hover,
+.profile-button.active {
+  border-color: var(--ds-color-border);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-xs);
+}
+
+.profile-button > span,
+.topbar .profile > span {
+  display: grid;
+  place-items: center;
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 0.625rem;
+  color: var(--ds-white);
+  background: linear-gradient(135deg, var(--ds-blue-600), var(--ds-teal-600));
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.profile-button strong {
+  color: var(--ds-color-text);
+  font-size: var(--ds-font-size-sm);
+}
+
+.profile-button small {
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-2xs);
+}
+
+.logout {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-4);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text-secondary);
+  background: var(--ds-color-surface);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+  box-shadow: var(--ds-shadow-xs);
+  transition:
+    color var(--ds-transition-fast),
+    border-color var(--ds-transition-fast);
+}
+
+.logout:hover:not(:disabled) {
+  color: var(--ds-color-danger);
+  border-color: var(--ds-color-danger-border);
+}
+
+/* Consistent page rhythm -------------------------------------------------- */
+.dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-operations-page,
+    .table-qr-page
+  ) {
+  width: min(100%, var(--ds-content-max));
+  margin: 0 auto;
+  padding: var(--ds-space-6) 0 var(--ds-space-10);
+  color: var(--ds-color-text);
+}
+
+.page-toolbar,
+.customers-heading,
+.activity-logs-heading,
+.scheduling-header,
+.inventory-toolbar,
+.promotions-toolbar,
+.reservations-toolbar,
+.restaurant-settings-toolbar,
+.table-qr-toolbar,
+.account-security-header,
+.kitchen-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-5);
+  margin: 0 0 var(--ds-space-5);
+}
+
+.dashboard
+  :is(
+    .page-toolbar,
+    .customers-heading,
+    .activity-logs-heading,
+    .scheduling-header,
+    .inventory-toolbar,
+    .promotions-toolbar,
+    .reservations-toolbar,
+    .restaurant-settings-toolbar,
+    .table-qr-toolbar,
+    .account-security-header,
+    .kitchen-toolbar
+  )
+  h2 {
+  margin: 0 0 var(--ds-space-1);
+  color: var(--ds-color-text-strong);
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  line-height: var(--ds-line-height-tight);
+  letter-spacing: -0.02em;
+}
+
+.dashboard
+  :is(
+    .page-toolbar,
+    .customers-heading,
+    .activity-logs-heading,
+    .scheduling-header,
+    .inventory-toolbar,
+    .promotions-toolbar,
+    .reservations-toolbar,
+    .restaurant-settings-toolbar,
+    .table-qr-toolbar,
+    .account-security-header,
+    .kitchen-toolbar
+  )
+  p {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-sm);
+  line-height: var(--ds-line-height-relaxed);
+}
+
+.dashboard
+  :is(
+    .inventory-kicker,
+    .promotions-kicker,
+    .restaurant-settings-kicker,
+    .table-qr-kicker,
+    .activity-logs-kicker
+  ) {
+  display: block;
+  margin-bottom: var(--ds-space-1);
+  color: var(--ds-color-brand);
+  font-size: 0.6875rem;
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Readability floor for meaningful Admin copy. Feature CSS predates the
+   system and several modules used 7–10px text; these roles now start at
+   12px while component rules below can deliberately opt into a larger size. */
+.dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .live-dashboard-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-operations-page,
+    .table-qr-page
+  )
+  :is(p, small, em, dt) {
+  font-size: var(--ds-font-size-xs);
+  line-height: var(--ds-line-height-normal);
+}
+
+.dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .live-dashboard-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-operations-page,
+    .table-qr-page
+  )
+  :is(strong, b, dd, button, input, select, textarea, label, td) {
+  font-size: var(--ds-font-size-sm);
+  line-height: var(--ds-line-height-normal);
+}
+
+.dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .live-dashboard-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-operations-page,
+    .table-qr-page
+  )
+  th {
+  font-size: var(--ds-font-size-xs);
+}
+
+/* Controls and action hierarchy ----------------------------------------- */
+.primary-button,
+.inventory-primary,
+.promotions-primary,
+.restaurant-settings-primary,
+.table-qr-primary,
+.activity-refresh,
+.operation-submit,
+.live-dashboard-welcome > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--ds-control-height-md);
+  gap: var(--ds-space-2);
+  padding: 0 var(--ds-space-4);
+  border: 1px solid transparent !important;
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-white);
+  background: var(--ds-color-brand);
+  box-shadow: 0 4px 12px rgb(37 99 235 / 18%);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast),
+    transform var(--ds-transition-fast);
+}
+
+.primary-button:hover:not(:disabled),
+.inventory-primary:hover:not(:disabled),
+.promotions-primary:hover:not(:disabled),
+.restaurant-settings-primary:hover:not(:disabled),
+.table-qr-primary:hover:not(:disabled),
+.activity-refresh:hover:not(:disabled),
+.operation-submit:hover:not(:disabled),
+.live-dashboard-welcome > button:hover:not(:disabled) {
+  background: var(--ds-color-brand-hover);
+  box-shadow: 0 7px 18px rgb(37 99 235 / 24%);
+  transform: translateY(-1px);
+}
+
+.dashboard
+  :is(
+    .secondary-button,
+    .inventory-secondary,
+    .promotions-secondary,
+    .restaurant-settings-secondary,
+    .table-qr-filter-clear,
+    .secondary
+  ) {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-4);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text-secondary);
+  background: var(--ds-color-surface);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+  box-shadow: var(--ds-shadow-xs);
+}
+
+.dashboard
+  :is(
+    .inventory-secondary,
+    .promotions-secondary,
+    .restaurant-settings-secondary,
+    .secondary-button,
+    .secondary
+  ):hover:not(:disabled) {
+  color: var(--ds-color-brand-hover);
+  border-color: #a9c3f6;
+  background: var(--ds-color-brand-soft);
+}
+
+.dashboard
+  :is(
+    .danger,
+    .inventory-danger,
+    .promotions-danger,
+    .restaurant-settings-danger,
+    .table-qr-danger-button
+  ) {
+  color: var(--ds-color-danger);
+  border-color: var(--ds-color-danger-border);
+  background: var(--ds-color-surface);
+}
+
+.dashboard
+  :is(
+    .danger,
+    .inventory-danger,
+    .promotions-danger,
+    .restaurant-settings-danger,
+    .table-qr-danger-button
+  ):hover:not(:disabled) {
+  color: var(--ds-white);
+  border-color: var(--ds-color-danger);
+  background: var(--ds-color-danger);
+}
+
+.dashboard
+  :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-3);
+  border: 1px solid var(--ds-color-border-strong);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-text);
+  background: var(--ds-color-surface);
+  outline: none;
+  font-size: var(--ds-font-size-sm);
+  transition:
+    border-color var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast),
+    background var(--ds-transition-fast);
+}
+
+.dashboard textarea {
+  min-height: 5.5rem;
+  padding-top: var(--ds-space-3);
+  padding-bottom: var(--ds-space-3);
+  resize: vertical;
+}
+
+.dashboard :is(input, select, textarea):focus {
+  border-color: var(--ds-color-focus);
+  box-shadow: var(--ds-focus-ring);
+}
+
+.dashboard :is(input, select, textarea)::placeholder {
+  color: var(--ds-color-text-muted);
+}
+
+.dashboard label {
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-sm);
+}
+
+/* Tabs and filters ------------------------------------------------------- */
+.dashboard
+  :is(
+    .access-tabs,
+    .management-tabs,
+    .operation-mode-tabs,
+    .scheduling-tabs,
+    .kitchen-tabs,
+    .promotions-tabs,
+    .inventory-tabs
+  ) {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-subtle);
+  overflow-x: auto;
+}
+
+.dashboard
+  :is(
+    .access-tabs,
+    .management-tabs,
+    .operation-mode-tabs,
+    .scheduling-tabs,
+    .kitchen-tabs,
+    .promotions-tabs,
+    .inventory-tabs
+  )
+  button {
+  min-height: 2.125rem;
+  padding: 0 var(--ds-space-3);
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-text-secondary);
+  background: transparent;
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+  white-space: nowrap;
+}
+
+.dashboard
+  :is(
+    .access-tabs,
+    .management-tabs,
+    .operation-mode-tabs,
+    .scheduling-tabs,
+    .kitchen-tabs,
+    .promotions-tabs,
+    .inventory-tabs
+  )
+  button.active {
+  color: var(--ds-color-brand-hover);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-xs);
+}
+
+.dashboard
+  :is(
+    .table-filters,
+    .customer-toolbar,
+    .activity-filters,
+    .space-filters,
+    .operation-history-filters,
+    .reservations-filters,
+    .scheduling-filters,
+    .menu-filters,
+    .order-filters,
+    .kitchen-controls,
+    .payment-filters,
+    .invoice-filters,
+    .revenue-report-filters,
+    .table-qr-filters,
+    .restaurant-settings-filters,
+    .promotions-filters,
+    .promotion-usage-filters,
+    .inventory-filters,
+    .ingredient-filters,
+    .transaction-filters,
+    .category-filters
+  ) {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+  background: var(--ds-color-surface);
+}
+
+/* Cards and data surfaces ------------------------------------------------ */
+.dashboard
+  :is(
+    .table-card,
+    .customer-table-card,
+    .activity-panel,
+    .reservations-panel,
+    .scheduling-panel,
+    .operation-form-card,
+    .operation-context-card,
+    .operation-history-section,
+    .payment-table-wrap,
+    .invoice-table-wrap,
+    .revenue-report-panel,
+    .saved-reports-panel,
+    .table-qr-panel,
+    .restaurant-settings-panel,
+    .promotions-panel,
+    .inventory-panel,
+    .account-profile-card,
+    .account-security-score,
+    .account-session-summary,
+    .account-sessions-card
+  ) {
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.dashboard
+  :is(
+    .table-card,
+    .customer-table-card,
+    .activity-panel,
+    .reservations-panel,
+    .scheduling-panel,
+    .payment-table-wrap,
+    .invoice-table-wrap,
+    .revenue-report-panel,
+    .saved-reports-panel,
+    .table-qr-panel,
+    .restaurant-settings-panel,
+    .promotions-panel,
+    .inventory-panel
+  ) {
+  overflow: hidden;
+}
+
+.dashboard
+  :is(
+    .role-card,
+    .restaurant-table-card,
+    .area-card,
+    .menu-item-card,
+    .category-card,
+    .order-card,
+    .kitchen-ticket,
+    .promotion-card,
+    .table-qr-card,
+    .operation-history-card
+  ) {
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-xs);
+  transition:
+    border-color var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast),
+    transform var(--ds-transition-fast);
+}
+
+.dashboard
+  :is(
+    .role-card,
+    .restaurant-table-card,
+    .area-card,
+    .menu-item-card,
+    .category-card,
+    .order-card,
+    .kitchen-ticket,
+    .promotion-card,
+    .table-qr-card,
+    .operation-history-card
+  ):hover {
+  border-color: #b9c9dd;
+  box-shadow: var(--ds-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.dashboard
+  :is(
+    .employee-summary,
+    .customer-kpis,
+    .activity-summary-grid,
+    .table-kpis,
+    .order-summary,
+    .kitchen-summary,
+    .payment-summary,
+    .invoice-summary,
+    .revenue-summary-grid,
+    .table-qr-summary-grid,
+    .restaurant-settings-summary,
+    .promotions-summary-grid,
+    .inventory-summary-grid,
+    .reservations-summary
+  ) {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ds-space-4);
+  margin: 0 0 var(--ds-space-5);
+}
+
+.dashboard
+  :is(
+    .employee-summary,
+    .customer-kpis,
+    .activity-summary-grid,
+    .table-kpis,
+    .order-summary,
+    .kitchen-summary,
+    .payment-summary,
+    .invoice-summary,
+    .revenue-summary-grid,
+    .table-qr-summary-grid,
+    .restaurant-settings-summary,
+    .promotions-summary-grid,
+    .inventory-summary-grid,
+    .reservations-summary
+  )
+  > article,
+.dashboard
+  :is(
+    .customer-kpis,
+    .activity-summary-grid,
+    .revenue-summary-grid,
+    .table-qr-summary-grid,
+    .restaurant-settings-summary,
+    .promotions-summary-grid,
+    .inventory-summary-grid
+  )
+  > div {
+  min-width: 0;
+  padding: var(--ds-space-5);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-xs);
+}
+
+.dashboard
+  :is(
+    .employee-summary,
+    .customer-kpis,
+    .activity-summary-grid,
+    .table-kpis,
+    .order-summary,
+    .kitchen-summary,
+    .payment-summary,
+    .invoice-summary,
+    .revenue-summary-grid,
+    .table-qr-summary-grid,
+    .restaurant-settings-summary,
+    .promotions-summary-grid,
+    .inventory-summary-grid,
+    .reservations-summary
+  )
+  :is(span, p, small) {
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-xs);
+}
+
+.dashboard
+  :is(
+    .employee-summary,
+    .customer-kpis,
+    .activity-summary-grid,
+    .table-kpis,
+    .order-summary,
+    .kitchen-summary,
+    .payment-summary,
+    .invoice-summary,
+    .revenue-summary-grid,
+    .table-qr-summary-grid,
+    .restaurant-settings-summary,
+    .promotions-summary-grid,
+    .inventory-summary-grid,
+    .reservations-summary
+  )
+  :is(strong, h3) {
+  color: var(--ds-color-text-strong);
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  letter-spacing: -0.02em;
+}
+
+/* Data tables ------------------------------------------------------------ */
+.dashboard
+  :is(
+    .table-scroll,
+    .customer-table-scroll,
+    .activity-table-wrap,
+    .reservations-table-wrap,
+    .scheduling-table-wrap,
+    .payment-table-wrap,
+    .invoice-table-wrap,
+    .revenue-table-wrap,
+    .revenue-detail-table-wrap,
+    .promotion-usage-table-wrap,
+    .inventory-table-wrap,
+    .restaurant-settings-table-wrap
+  ) {
+  overflow: auto;
+  scrollbar-color: var(--ds-neutral-300) transparent;
+  scrollbar-width: thin;
+}
+
+.dashboard
+  :is(
+    .table-scroll,
+    .customer-table-scroll,
+    .activity-table-wrap,
+    .reservations-table-wrap,
+    .scheduling-table-wrap,
+    .payment-table-wrap,
+    .invoice-table-wrap,
+    .revenue-table-wrap,
+    .revenue-detail-table-wrap,
+    .promotion-usage-table-wrap,
+    .inventory-table-wrap,
+    .restaurant-settings-table-wrap
+  )
+  table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--ds-color-text);
+  background: var(--ds-color-surface);
+}
+
+.dashboard
+  :is(
+    .table-scroll,
+    .customer-table-scroll,
+    .activity-table-wrap,
+    .reservations-table-wrap,
+    .scheduling-table-wrap,
+    .payment-table-wrap,
+    .invoice-table-wrap,
+    .revenue-table-wrap,
+    .revenue-detail-table-wrap,
+    .promotion-usage-table-wrap,
+    .inventory-table-wrap,
+    .restaurant-settings-table-wrap
+  )
+  th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 2.75rem;
+  padding: 0 var(--ds-space-4);
+  color: var(--ds-color-text-secondary);
+  border-bottom: 1px solid var(--ds-color-border);
+  background: var(--ds-color-surface-subtle);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.02em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.dashboard
+  :is(
+    .table-scroll,
+    .customer-table-scroll,
+    .activity-table-wrap,
+    .reservations-table-wrap,
+    .scheduling-table-wrap,
+    .payment-table-wrap,
+    .invoice-table-wrap,
+    .revenue-table-wrap,
+    .revenue-detail-table-wrap,
+    .promotion-usage-table-wrap,
+    .inventory-table-wrap,
+    .restaurant-settings-table-wrap
+  )
+  td {
+  min-height: 3.5rem;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  color: var(--ds-color-text);
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+  font-size: var(--ds-font-size-sm);
+  vertical-align: middle;
+}
+
+.dashboard
+  :is(
+    .table-scroll,
+    .customer-table-scroll,
+    .activity-table-wrap,
+    .reservations-table-wrap,
+    .scheduling-table-wrap,
+    .payment-table-wrap,
+    .invoice-table-wrap,
+    .revenue-table-wrap,
+    .promotion-usage-table-wrap,
+    .inventory-table-wrap,
+    .restaurant-settings-table-wrap
+  )
+  tbody
+  tr:last-child
+  td {
+  border-bottom: 0;
+}
+
+.dashboard
+  :is(
+    .table-scroll,
+    .customer-table-scroll,
+    .activity-table-wrap,
+    .reservations-table-wrap,
+    .scheduling-table-wrap,
+    .payment-table-wrap,
+    .invoice-table-wrap,
+    .revenue-table-wrap,
+    .promotion-usage-table-wrap,
+    .inventory-table-wrap,
+    .restaurant-settings-table-wrap
+  )
+  tbody
+  tr:hover
+  td {
+  background: #f8fbff;
+}
+
+.dashboard
+  :is(
+    .row-actions,
+    .customer-actions,
+    .reservation-actions,
+    .payment-actions,
+    .invoice-actions,
+    .revenue-actions,
+    .inventory-row-actions,
+    .promotion-usage-actions,
+    .restaurant-setting-row-actions
+  ) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+.dashboard
+  :is(
+    .row-actions,
+    .customer-actions,
+    .reservation-actions,
+    .payment-actions,
+    .invoice-actions,
+    .revenue-actions,
+    .inventory-row-actions,
+    .promotion-usage-actions,
+    .restaurant-setting-row-actions
+  )
+  button {
+  min-height: var(--ds-control-height-sm);
+  padding: 0 var(--ds-space-3);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-text-secondary);
+  background: var(--ds-color-surface);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.pagination,
+.customer-pagination,
+.activity-pagination,
+.reservations-pagination,
+.scheduling-pagination,
+.table-qr-pagination,
+.promotions-pagination,
+.inventory-pagination,
+.restaurant-settings-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  min-height: 4rem;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  color: var(--ds-color-text-secondary);
+  border-top: 1px solid var(--ds-color-border-subtle);
+  background: var(--ds-color-surface);
+  font-size: var(--ds-font-size-xs);
+}
+
+.dashboard
+  :is(
+    .pagination,
+    .customer-pagination,
+    .activity-pagination,
+    .reservations-pagination,
+    .scheduling-pagination,
+    .table-qr-pagination,
+    .promotions-pagination,
+    .inventory-pagination,
+    .restaurant-settings-pagination
+  )
+  button {
+  min-width: var(--ds-control-height-sm);
+  min-height: var(--ds-control-height-sm);
+  padding: 0 var(--ds-space-3);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-text-secondary);
+  background: var(--ds-color-surface);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+/* Status, feedback and empty states ------------------------------------- */
+.dashboard
+  :is(
+    .status-badge,
+    .customer-badge,
+    .reservation-status,
+    .payment-status,
+    .invoice-status,
+    .revenue-status,
+    .inventory-status,
+    .promotion-status,
+    .order-status,
+    .history-status,
+    .activity-status,
+    .operation-status,
+    .account-session-state,
+    .transaction-type
+  ) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0 var(--ds-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--ds-radius-pill);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dashboard
+  :is(
+    .status-badge.active,
+    .customer-badge.active,
+    .customer-badge.verified,
+    .reservation-status.confirmed,
+    .reservation-status.checkedin,
+    .reservation-status.completed,
+    .payment-status.paid,
+    .invoice-status.issued,
+    .invoice-status.printed,
+    .revenue-status.generated,
+    .revenue-status.exported,
+    .inventory-status.active,
+    .promotion-status.valid,
+    .order-status.served,
+    .order-status.completed,
+    .history-status.served,
+    .account-session-state.active
+  ) {
+  color: var(--ds-color-success);
+  border-color: var(--ds-color-success-border);
+  background: var(--ds-color-success-soft);
+}
+
+.dashboard
+  :is(
+    .reservation-status.pending,
+    .inventory-status.warning,
+    .promotion-status.upcoming,
+    .order-status.pending,
+    .order-status.cooking
+  ) {
+  color: var(--ds-color-warning);
+  border-color: var(--ds-color-warning-border);
+  background: var(--ds-color-warning-soft);
+}
+
+.dashboard
+  :is(
+    .status-badge.inactive,
+    .customer-badge.locked,
+    .reservation-status.cancelled,
+    .reservation-status.noshow,
+    .payment-status.cancelled,
+    .invoice-status.cancelled,
+    .revenue-status.cancelled,
+    .inventory-status.inactive,
+    .promotion-status.expired,
+    .promotion-status.inactive,
+    .order-status.cancelled,
+    .history-status.cancelled,
+    .account-session-state.revoked
+  ) {
+  color: var(--ds-color-danger);
+  border-color: var(--ds-color-danger-border);
+  background: var(--ds-color-danger-soft);
+}
+
+.inline-alert,
+.customer-alert,
+.activity-alert,
+.reservations-alert,
+.scheduling-alert,
+.inventory-alert,
+.promotions-alert,
+.restaurant-settings-alert,
+.table-qr-alert,
+.account-security-alert,
+.modal-alert {
+  margin: 0 0 var(--ds-space-4);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border: 1px solid var(--ds-color-info-border);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-info);
+  background: var(--ds-color-info-soft);
+  font-size: var(--ds-font-size-sm);
+  line-height: var(--ds-line-height-normal);
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .scheduling-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .restaurant-settings-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .modal-alert
+  ).success {
+  color: var(--ds-color-success);
+  border-color: var(--ds-color-success-border);
+  background: var(--ds-color-success-soft);
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .scheduling-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .restaurant-settings-alert,
+    .table-qr-alert,
+    .account-security-alert
+  ).success {
+  position: fixed;
+  top: calc(var(--ds-topbar-height) + var(--ds-space-4));
+  right: var(--ds-space-6);
+  z-index: var(--ds-z-toast);
+  display: flex;
+  align-items: center;
+  width: min(25rem, calc(100vw - 2rem));
+  min-height: 3.5rem;
+  margin: 0;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-color: var(--ds-color-success-border);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-md);
+  animation: ds-toast-enter 220ms ease-out;
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .scheduling-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .restaurant-settings-alert,
+    .table-qr-alert,
+    .account-security-alert
+  ).success::before {
+  display: grid;
+  place-items: center;
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: var(--ds-space-3);
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-white);
+  background: var(--ds-color-success);
+  content: '✓';
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .scheduling-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .restaurant-settings-alert,
+    .table-qr-alert,
+    .account-security-alert
+  ).success
+  :is(p, span) {
+  margin: 0;
+  color: var(--ds-color-text);
+}
+
+@keyframes ds-toast-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -0.75rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .scheduling-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .restaurant-settings-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .modal-alert
+  ).error {
+  color: var(--ds-color-danger);
+  border-color: var(--ds-color-danger-border);
+  background: var(--ds-color-danger-soft);
+}
+
+.dashboard
+  :is(
+    .empty-state,
+    .empty-state-card,
+    .customer-empty,
+    .activity-empty,
+    .reservations-empty,
+    .kitchen-empty,
+    .menu-empty,
+    .empty-order-state,
+    .revenue-empty,
+    .table-qr-empty,
+    .promotions-empty,
+    .inventory-empty,
+    .account-session-empty,
+    .operation-empty
+  ) {
+  display: grid;
+  place-items: center;
+  min-height: 10rem;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-8);
+  color: var(--ds-color-text-muted);
+  text-align: center;
+}
+
+/* Forms and modal layers ------------------------------------------------- */
+.modal-backdrop,
+.customer-modal-backdrop,
+.activity-modal-backdrop,
+.reservations-modal-backdrop,
+.scheduling-backdrop,
+.inventory-modal-backdrop,
+.promotions-modal-backdrop,
+.restaurant-settings-modal-backdrop,
+.table-qr-modal-backdrop,
+.table-qr-scan-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ds-z-overlay);
+  display: grid;
+  place-items: center;
+  padding: var(--ds-space-5);
+  background: var(--ds-color-overlay);
+  backdrop-filter: blur(2px);
+}
+
+.dashboard
+  :is(
+    .employee-modal,
+    .access-modal,
+    .permission-modal,
+    .customer-detail-modal,
+    .customer-edit-modal,
+    .activity-modal,
+    .reservations-modal,
+    .scheduling-modal,
+    .order-modal,
+    .order-detail-modal,
+    .payment-modal,
+    .invoice-detail-modal,
+    .invoice-form-modal,
+    .revenue-detail-modal,
+    .revenue-form-modal,
+    .inventory-modal,
+    .promotions-modal,
+    .restaurant-settings-modal,
+    .table-qr-modal,
+    .table-qr-detail-modal,
+    .table-qr-scan-modal
+  ) {
+  width: min(52rem, 100%);
+  max-height: min(90dvh, 58rem);
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-lg);
+  overflow: auto;
+}
+
+.modal-heading {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-5) var(--ds-space-6);
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+  background: rgb(255 255 255 / 96%);
+  backdrop-filter: blur(10px);
+}
+
+.modal-kicker {
+  display: block;
+  margin-bottom: var(--ds-space-1);
+  color: var(--ds-color-brand);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.11em;
+}
+
+.modal-heading h2 {
+  margin: 0 0 var(--ds-space-1);
+  color: var(--ds-color-text-strong);
+  font-size: var(--ds-font-size-xl);
+}
+
+.modal-heading p {
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-sm);
+}
+
+.modal-heading > button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-text-muted);
+  background: transparent;
+  font-size: 1.375rem;
+}
+
+.modal-heading > button:hover {
+  color: var(--ds-color-text);
+  background: var(--ds-color-surface-subtle);
+}
+
+.employee-form,
+.reservation-form-grid,
+.modal-grid,
+.payment-form,
+.invoice-form,
+.revenue-form,
+.inventory-form-body,
+.promotion-form-layout,
+.table-qr-form-modal form {
+  padding: var(--ds-space-5) var(--ds-space-6) var(--ds-space-6);
+}
+
+.dashboard
+  :is(
+    .employee-form,
+    .reservation-form-grid,
+    .modal-grid,
+    .payment-form-grid,
+    .invoice-form,
+    .revenue-form-grid,
+    .inventory-form-grid,
+    .promotion-form-grid,
+    .restaurant-settings-form-grid
+  ) {
+  gap: var(--ds-space-4);
+}
+
+.dashboard
+  :is(
+    .employee-form,
+    .reservation-form-grid,
+    .modal-grid,
+    .payment-form-grid,
+    .invoice-form,
+    .revenue-form-grid,
+    .inventory-form-grid,
+    .promotion-form-grid,
+    .restaurant-settings-form-grid
+  )
+  label {
+  display: grid;
+  gap: var(--ds-space-2);
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.modal-actions,
+.table-qr-modal-actions,
+.promotion-detail-actions,
+.revenue-detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ds-space-3);
+  padding-top: var(--ds-space-3);
+}
+
+.modal-actions button,
+.table-qr-modal-actions button,
+.promotion-detail-actions button,
+.revenue-detail-actions button {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-4);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text-secondary);
+  background: var(--ds-color-surface);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+/* Transactional modal shell: header and footer never overlap the body. */
+.dashboard :is(.order-modal, .order-detail-modal, .payment-modal) {
+  display: flex;
+  flex-direction: column;
+  max-height: min(88dvh, 52rem);
+  overflow: hidden;
+}
+
+.dashboard .order-modal {
+  width: min(56rem, calc(100vw - 3rem));
+}
+
+.dashboard .payment-modal {
+  width: min(48rem, calc(100vw - 3rem));
+}
+
+.dashboard :is(.order-form, .payment-form, .order-detail-content) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.dashboard :is(.order-form, .payment-form) {
+  padding: var(--ds-space-5) var(--ds-space-6);
+}
+
+.dashboard .modal-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 4.5rem;
+  gap: var(--ds-space-3);
+  margin: 0;
+  padding: var(--ds-space-3) var(--ds-space-6);
+  border-top: 1px solid var(--ds-color-border-subtle);
+  background: var(--ds-color-surface);
+  box-shadow: 0 -6px 18px rgb(15 23 42 / 4%);
+}
+
+.dashboard .restaurant-settings-modal.form-modal {
+  width: min(68rem, calc(100vw - 2rem));
+  overflow: hidden;
+}
+
+/* Detail views ----------------------------------------------------------- */
+.dashboard
+  :is(
+    .customer-detail-modal,
+    .activity-modal,
+    .reservations-modal.detail,
+    .order-detail-modal,
+    .invoice-detail-modal,
+    .revenue-detail-modal,
+    .promotion-detail-modal,
+    .usage-detail-modal,
+    .inventory-detail-modal,
+    .transaction-detail-modal,
+    .restaurant-settings-modal.detail-modal,
+    .table-qr-detail-modal
+  ) {
+  width: min(60rem, calc(100vw - 3rem));
+  max-height: min(88dvh, 54rem);
+  border: 1px solid rgb(255 255 255 / 58%);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-lg);
+}
+
+.dashboard
+  :is(
+    .customer-detail-modal,
+    .activity-modal,
+    .reservations-modal.detail,
+    .invoice-detail-modal,
+    .revenue-detail-modal,
+    .promotion-detail-modal,
+    .usage-detail-modal,
+    .inventory-detail-modal,
+    .transaction-detail-modal,
+    .restaurant-settings-modal.detail-modal,
+    .table-qr-detail-modal
+  )
+  > header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: var(--ds-space-5) var(--ds-space-6);
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+  background: rgb(255 255 255 / 96%);
+  backdrop-filter: blur(10px);
+}
+
+.dashboard
+  :is(
+    .customer-detail-grid article,
+    .activity-detail-grid > div,
+    .reservation-detail-grid article,
+    .revenue-detail-meta > span,
+    .promotion-detail-grid > div,
+    .usage-detail-links > div,
+    .inventory-detail-grid > div,
+    .restaurant-setting-detail-grid > div,
+    .restaurant-setting-copy-grid > div,
+    .table-qr-detail-row
+  ) {
+  padding: var(--ds-space-4);
+  border: 1px solid var(--ds-color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-subtle);
+  box-shadow: none;
+}
+
+.dashboard
+  :is(
+    .customer-detail-profile,
+    .promotion-detail-hero,
+    .transaction-detail-hero,
+    .restaurant-setting-detail-hero,
+    .table-qr-detail-preview
+  ) {
+  border: 1px solid #cfe0f5;
+  border-radius: var(--ds-radius-lg);
+  background: linear-gradient(135deg, #f6f9ff, #f2fbfa);
+  box-shadow: none;
+}
+
+/* Order detail is the reference layout for compact operational details. */
+.dashboard .order-detail-modal {
+  width: min(58rem, calc(100vw - 3rem));
+}
+
+.order-detail-content {
+  display: grid;
+  align-content: start;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-5) var(--ds-space-6);
+  background: var(--ds-color-surface-subtle);
+}
+
+.order-detail-section {
+  display: grid;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-5);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-xs);
+}
+
+.order-detail-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+}
+
+.order-detail-section-heading span {
+  display: block;
+  margin-bottom: var(--ds-space-1);
+  color: var(--ds-color-brand);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.08em;
+}
+
+.order-detail-section-heading h3,
+.order-detail-section-heading small {
+  margin: 0;
+}
+
+.order-detail-section-heading h3 {
+  color: var(--ds-color-text-strong);
+  font-size: var(--ds-font-size-lg);
+}
+
+.order-detail-section-heading small {
+  max-width: 20rem;
+  color: var(--ds-color-text-muted);
+  text-align: right;
+}
+
+.detail-note {
+  align-items: stretch;
+}
+
+.detail-note textarea {
+  min-height: 4.5rem;
+}
+
+.detail-note button,
+.add-order-item button {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-4);
+  border: 1px solid #b9cdf0;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-brand-hover);
+  background: var(--ds-color-brand-soft);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.detail-items {
+  max-height: none;
+  gap: var(--ds-space-2);
+  overflow: visible;
+}
+
+.detail-item {
+  align-items: center;
+  min-height: 4.5rem;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-color: var(--ds-color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-subtle);
+}
+
+.detail-item-actions label {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-xs);
+}
+
+.order-item-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0 var(--ds-space-2);
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-color-info);
+  background: var(--ds-color-info-soft);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.order-item-status.served {
+  color: var(--ds-color-success);
+  background: var(--ds-color-success-soft);
+}
+
+.order-item-status.cancelled {
+  color: var(--ds-color-danger);
+  background: var(--ds-color-danger-soft);
+}
+
+.add-item-section {
+  border-style: dashed;
+}
+
+/* Custom confirmation dialog ------------------------------------------- */
+.ds-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--ds-z-toast) + 10);
+  display: grid;
+  place-items: center;
+  padding: var(--ds-space-5);
+  background: rgb(7 17 31 / 55%);
+  backdrop-filter: blur(2px);
+}
+
+.ds-confirm-dialog {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  width: min(28rem, 100%);
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-lg);
+  overflow: hidden;
+  animation: ds-confirm-enter 180ms ease-out;
+}
+
+.ds-confirm-icon {
+  display: grid;
+  place-items: center;
+  align-self: start;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: var(--ds-space-5) 0 0 var(--ds-space-5);
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-color-brand-hover);
+  background: var(--ds-color-brand-soft);
+  font-size: var(--ds-font-size-lg);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.ds-confirm-dialog.danger .ds-confirm-icon {
+  color: var(--ds-color-danger);
+  background: var(--ds-color-danger-soft);
+}
+
+.ds-confirm-copy {
+  padding: var(--ds-space-5);
+}
+
+.ds-confirm-copy > span {
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-2xs);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.1em;
+}
+
+.ds-confirm-copy h2 {
+  margin: var(--ds-space-1) 0 var(--ds-space-2);
+  color: var(--ds-color-text-strong);
+  font-size: var(--ds-font-size-xl);
+}
+
+.ds-confirm-copy p {
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-sm);
+  line-height: var(--ds-line-height-relaxed);
+  white-space: pre-line;
+}
+
+.ds-confirm-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border-top: 1px solid var(--ds-color-border-subtle);
+  background: var(--ds-color-surface-subtle);
+}
+
+.ds-confirm-actions button {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-4);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text-secondary);
+  background: var(--ds-color-surface);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.ds-confirm-actions button.primary {
+  color: var(--ds-white);
+  border-color: var(--ds-color-brand);
+  background: var(--ds-color-brand);
+}
+
+.ds-confirm-actions button.danger {
+  color: var(--ds-white);
+  border-color: var(--ds-color-danger);
+  background: var(--ds-color-danger);
+}
+
+@keyframes ds-confirm-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.5rem, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* Dashboard -------------------------------------------------------------- */
+.live-dashboard-page {
+  display: grid;
+  width: min(100%, var(--ds-content-max));
+  margin: 0 auto;
+  padding: var(--ds-space-6) 0 var(--ds-space-10);
+  gap: var(--ds-space-5);
+}
+
+.live-dashboard-welcome {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 8.75rem;
+  gap: var(--ds-space-6);
+  padding: var(--ds-space-6) var(--ds-space-7);
+  border: 1px solid rgb(96 165 250 / 16%);
+  border-radius: var(--ds-radius-lg);
+  color: var(--ds-white);
+  background: radial-gradient(
+      circle at 82% 0%,
+      rgb(45 212 191 / 20%),
+      transparent 32%
+    ),
+    linear-gradient(135deg, #0d2039 0%, #17375f 68%, #124f58 130%);
+  box-shadow: var(--ds-shadow-md);
+  overflow: hidden;
+}
+
+.live-dashboard-welcome::after {
+  position: absolute;
+  right: -3.5rem;
+  bottom: -6.5rem;
+  width: 15rem;
+  height: 15rem;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 50%;
+  content: '';
+}
+
+.live-dashboard-welcome > div {
+  position: relative;
+  z-index: 1;
+}
+
+.live-dashboard-welcome > div > span {
+  color: #9dc8e8;
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-semibold);
+  text-transform: capitalize;
+}
+
+.live-dashboard-welcome h2 {
+  margin: var(--ds-space-2) 0 var(--ds-space-2);
+  color: var(--ds-white);
+  font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+  line-height: var(--ds-line-height-tight);
+  letter-spacing: -0.025em;
+}
+
+.live-dashboard-welcome p {
+  max-width: 42rem;
+  margin: 0;
+  color: #bfd0e3;
+  font-size: var(--ds-font-size-sm);
+  line-height: var(--ds-line-height-relaxed);
+}
+
+.live-dashboard-welcome > button {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  background: var(--ds-color-accent);
+  box-shadow: 0 8px 22px rgb(13 148 136 / 28%);
+}
+
+.live-dashboard-welcome > button:hover:not(:disabled) {
+  background: var(--ds-color-accent-hover);
+}
+
+.live-dashboard-control-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-xs);
+}
+
+.live-dashboard-control-row form {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+}
+
+.live-dashboard-control-row label {
+  display: grid;
+  gap: var(--ds-space-2);
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-semibold);
+  text-transform: none;
+}
+
+.live-dashboard-control-row input,
+.live-dashboard-control-row select,
+.live-dashboard-control-row form > button {
+  min-height: var(--ds-control-height-md);
+  font-size: var(--ds-font-size-sm);
+}
+
+.live-dashboard-control-row form > button {
+  padding: 0 var(--ds-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-white);
+  background: var(--ds-color-brand);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.live-dashboard-sync {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  min-width: 17rem;
+}
+
+.live-dashboard-sync > div {
+  display: grid;
+  flex: 1;
+  gap: 0.125rem;
+}
+
+.live-dashboard-sync strong {
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-xs);
+}
+
+.live-dashboard-sync small {
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-2xs);
+}
+
+.live-dashboard-sync > button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 var(--ds-control-height-md);
+  width: var(--ds-control-height-md);
+  height: var(--ds-control-height-md);
+  padding: 0;
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-brand);
+  background: var(--ds-color-surface-subtle);
+  font-size: 1.125rem;
+}
+
+.live-dashboard-alert {
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-radius: var(--ds-radius-md);
+  font-size: var(--ds-font-size-sm);
+}
+
+.live-dashboard-alert button,
+.live-dashboard-empty strong,
+.live-dashboard-ranking > div > span {
+  font-size: var(--ds-font-size-xs);
+}
+
+.live-dashboard-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ds-space-4);
+}
+
+.live-dashboard-kpis article,
+.live-dashboard-card,
+.live-dashboard-operations > article {
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.live-dashboard-kpis article {
+  min-height: 8.5rem;
+  padding: var(--ds-space-5);
+}
+
+.live-dashboard-kpi-icon {
+  top: var(--ds-space-4);
+  right: var(--ds-space-4);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-brand);
+  background: var(--ds-color-brand-soft);
+  font-size: var(--ds-font-size-lg);
+}
+
+.live-dashboard-kpis p {
+  margin: 0 3rem var(--ds-space-2) 0;
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.live-dashboard-kpis h3 {
+  margin: 0 0 var(--ds-space-2);
+  color: var(--ds-color-text-strong);
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  letter-spacing: -0.03em;
+}
+
+.live-dashboard-kpis small {
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-xs);
+  line-height: var(--ds-line-height-normal);
+}
+
+.live-dashboard-card > header {
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-5) var(--ds-space-5) var(--ds-space-4);
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+}
+
+.live-dashboard-card > header span {
+  color: var(--ds-color-accent-hover);
+  font-size: 0.6875rem;
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.08em;
+}
+
+.live-dashboard-card > header h3 {
+  margin: var(--ds-space-1) 0 var(--ds-space-1);
+  color: var(--ds-color-text-strong);
+  font-size: var(--ds-font-size-lg);
+}
+
+.live-dashboard-card > header p,
+.live-dashboard-card > header button {
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-xs);
+}
+
+.live-dashboard-card > header button {
+  color: var(--ds-color-text-link);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.live-dashboard-main-grid {
+  grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.72fr);
+  gap: var(--ds-space-4);
+}
+
+.live-dashboard-chart {
+  min-height: 19rem;
+  padding: var(--ds-space-5);
+}
+
+.live-dashboard-y-axis {
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-2xs);
+}
+
+.live-dashboard-bar-column {
+  grid-template-rows: 13.75rem 1.125rem 1rem;
+}
+
+.live-dashboard-bar-track > span {
+  background: linear-gradient(180deg, #4fc5ba, var(--ds-color-brand));
+  box-shadow: 0 5px 14px rgb(37 99 235 / 16%);
+}
+
+.live-dashboard-bar-column > strong,
+.live-dashboard-bar-column > small {
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-2xs);
+}
+
+.live-dashboard-status-list {
+  gap: 0;
+  padding: var(--ds-space-3) var(--ds-space-5);
+}
+
+.live-dashboard-status-list > div {
+  min-height: 2.75rem;
+  padding: var(--ds-space-2) 0;
+  border-bottom-color: var(--ds-color-border-subtle);
+}
+
+.live-dashboard-status-list strong {
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-sm);
+}
+
+.live-dashboard-status-list b {
+  color: var(--ds-color-text-strong);
+  font-size: var(--ds-font-size-md);
+}
+
+.live-dashboard-today-summary {
+  margin: 0 var(--ds-space-5) var(--ds-space-5);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-success);
+  background: var(--ds-color-success-soft);
+  font-size: var(--ds-font-size-xs);
+}
+
+.live-dashboard-secondary-grid {
+  gap: var(--ds-space-4);
+}
+
+.live-dashboard-ranking,
+.live-dashboard-stock-list {
+  padding: var(--ds-space-2) var(--ds-space-5) var(--ds-space-4);
+}
+
+.live-dashboard-ranking > div,
+.live-dashboard-stock-list > div {
+  min-height: 3.5rem;
+  padding: var(--ds-space-3) 0;
+  border-bottom-color: var(--ds-color-border-subtle);
+}
+
+.live-dashboard-ranking strong,
+.live-dashboard-stock-list strong,
+.live-dashboard-ranking b {
+  color: var(--ds-color-text);
+  font-size: var(--ds-font-size-sm);
+}
+
+.live-dashboard-ranking small,
+.live-dashboard-stock-list small,
+.live-dashboard-stock-list em {
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-2xs);
+}
+
+.live-dashboard-operations {
+  gap: var(--ds-space-4);
+}
+
+.live-dashboard-operations > article {
+  min-height: 10rem;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-5);
+}
+
+.live-dashboard-operation-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--ds-radius-md);
+  font-size: var(--ds-font-size-lg);
+}
+
+.live-dashboard-operations header > span,
+.live-dashboard-operations header button,
+.live-dashboard-operations article > div:last-child {
+  font-size: var(--ds-font-size-2xs);
+}
+
+.live-dashboard-operations h3 {
+  color: var(--ds-color-text-strong);
+  font-size: var(--ds-font-size-xl);
+}
+
+.live-dashboard-loading,
+.module-loading {
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-lg);
+  color: var(--ds-color-text-secondary);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+/* Accessibility and responsive desktop behavior ------------------------ */
+.dashboard button:disabled {
+  opacity: 0.55;
+  box-shadow: none;
+  transform: none;
+}
+
+.dashboard button:focus-visible,
+.sidebar button:focus-visible,
+.topbar button:focus-visible {
+  outline: 2px solid var(--ds-color-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1366px) {
+  :root {
+    --ds-sidebar-width: 15.5rem;
+  }
+
+  .dashboard {
+    padding-right: var(--ds-space-6);
+    padding-left: var(--ds-space-6);
+  }
+
+  .dashboard
+    :is(
+      .employee-summary,
+      .customer-kpis,
+      .activity-summary-grid,
+      .table-kpis,
+      .order-summary,
+      .kitchen-summary,
+      .payment-summary,
+      .invoice-summary,
+      .revenue-summary-grid,
+      .table-qr-summary-grid,
+      .restaurant-settings-summary,
+      .promotions-summary-grid,
+      .inventory-summary-grid,
+      .reservations-summary
+    ) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1180px) {
+  :root {
+    --ds-sidebar-width: 14rem;
+  }
+
+  .sidebar {
+    padding-right: var(--ds-space-3);
+    padding-left: var(--ds-space-3);
+  }
+
+  .live-dashboard-kpis,
+  .live-dashboard-operations {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .live-dashboard-control-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .live-dashboard-sync {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-layout {
+    display: block;
+  }
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
+
+  .sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sidebar-footer {
+    display: none;
+  }
+
+  .dashboard {
+    padding-right: var(--ds-space-4);
+    padding-left: var(--ds-space-4);
+  }
+
+  .topbar {
+    position: relative;
+  }
+
+  .live-dashboard-main-grid,
+  .live-dashboard-secondary-grid,
+  .operation-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .sidebar nav {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar,
+  .page-toolbar,
+  .customers-heading,
+  .activity-logs-heading,
+  .scheduling-header,
+  .inventory-toolbar,
+  .promotions-toolbar,
+  .reservations-toolbar,
+  .restaurant-settings-toolbar,
+  .table-qr-toolbar,
+  .account-security-header,
+  .kitchen-toolbar,
+  .live-dashboard-welcome {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar-actions,
+  .profile-button {
+    width: 100%;
+  }
+
+  .logout {
+    margin-left: auto;
+  }
+
+  .live-dashboard-kpis,
+  .live-dashboard-operations,
+  .dashboard
+    :is(
+      .employee-summary,
+      .customer-kpis,
+      .activity-summary-grid,
+      .table-kpis,
+      .order-summary,
+      .kitchen-summary,
+      .payment-summary,
+      .invoice-summary,
+      .revenue-summary-grid,
+      .table-qr-summary-grid,
+      .restaurant-settings-summary,
+      .promotions-summary-grid,
+      .inventory-summary-grid,
+      .reservations-summary
+    ) {
+    grid-template-columns: 1fr;
+  }
+
+  .live-dashboard-control-row form {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .live-dashboard-control-row input,
+  .live-dashboard-control-row select,
+  .live-dashboard-control-row form > button,
+  .live-dashboard-welcome > button {
+    width: 100%;
+  }
+
+  .modal-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  .modal-backdrop,
+  .customer-modal-backdrop,
+  .activity-modal-backdrop,
+  .reservations-modal-backdrop,
+  .scheduling-backdrop,
+  .inventory-modal-backdrop,
+  .promotions-modal-backdrop,
+  .restaurant-settings-modal-backdrop,
+  .table-qr-modal-backdrop,
+  .table-qr-scan-backdrop {
+    padding: var(--ds-space-2);
+  }
+
+  .dashboard :is(.order-modal, .order-detail-modal, .payment-modal) {
+    width: 100%;
+    max-height: calc(100dvh - var(--ds-space-4));
+  }
+
+  .modal-heading,
+  .dashboard :is(.order-form, .payment-form, .order-detail-content),
+  .dashboard .modal-footer {
+    padding-right: var(--ds-space-4);
+    padding-left: var(--ds-space-4);
+  }
+
+  .order-detail-section-heading,
+  .detail-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .order-detail-section-heading small {
+    max-width: none;
+    text-align: left;
+  }
+
+  .dashboard
+    :is(
+      .inline-alert,
+      .customer-alert,
+      .activity-alert,
+      .reservations-alert,
+      .scheduling-alert,
+      .inventory-alert,
+      .promotions-alert,
+      .restaurant-settings-alert,
+      .table-qr-alert,
+      .account-security-alert
+    ).success {
+    top: var(--ds-space-3);
+    right: var(--ds-space-3);
+    left: var(--ds-space-3);
+    width: auto;
+  }
+}

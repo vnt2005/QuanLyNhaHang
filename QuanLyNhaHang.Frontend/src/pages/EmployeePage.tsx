@@ -1,3 +1,5 @@
+import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useState } from 'react'
 import { createEmployee, deactivateEmployee, getEmployees, updateEmployee, type Employee, type EmployeeForm } from '../api/employees'
 
@@ -16,6 +18,7 @@ export default function EmployeePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<EmployeeForm>(emptyForm)
   const [saving, setSaving] = useState(false)
@@ -60,7 +63,7 @@ export default function EmployeePage() {
   }
 
   async function removeEmployee(employee: Employee) {
-    if (!confirm(`Ngừng hoạt động nhân viên ${employee.ho ?? ''} ${employee.ten}?`)) return
+    if (!await confirmAction(`Ngừng hoạt động nhân viên ${employee.ho ?? ''} ${employee.ten}?`)) return
     setError(''); setMessage('')
     try {
       const result = await deactivateEmployee(employee.id)
