@@ -1,0 +1,216 @@
+/*
+ * Quan Ly Nha Hang Admin Design System
+ * Foundation: 4px spacing grid, semantic color roles and accessible controls.
+ * Keep feature styles dependent on these aliases instead of hard-coded values.
+ */
+:root {
+  color-scheme: light;
+
+  /* Primitive palette */
+  --ds-navy-950: #07111f;
+  --ds-navy-900: #0b1628;
+  --ds-navy-850: #102038;
+  --ds-navy-800: #152842;
+  --ds-blue-700: #1d4ed8;
+  --ds-blue-600: #2563eb;
+  --ds-blue-500: #3b82f6;
+  --ds-blue-100: #dbeafe;
+  --ds-blue-50: #eff6ff;
+  --ds-teal-700: #0f766e;
+  --ds-teal-600: #0d9488;
+  --ds-teal-100: #ccfbf1;
+  --ds-teal-50: #f0fdfa;
+  --ds-neutral-950: #111827;
+  --ds-neutral-900: #172033;
+  --ds-neutral-800: #263449;
+  --ds-neutral-700: #405069;
+  --ds-neutral-600: #596a80;
+  --ds-neutral-500: #748399;
+  --ds-neutral-400: #98a5b7;
+  --ds-neutral-300: #c8d2de;
+  --ds-neutral-200: #dfe6ee;
+  --ds-neutral-100: #edf2f7;
+  --ds-neutral-50: #f7f9fc;
+  --ds-white: #ffffff;
+
+  /* Semantic colors */
+  --ds-color-brand: var(--ds-blue-600);
+  --ds-color-brand-hover: var(--ds-blue-700);
+  --ds-color-brand-pressed: #1e40af;
+  --ds-color-brand-soft: var(--ds-blue-50);
+  --ds-color-accent: var(--ds-teal-600);
+  --ds-color-accent-hover: var(--ds-teal-700);
+  --ds-color-accent-soft: var(--ds-teal-50);
+
+  --ds-color-bg: #f3f6fa;
+  --ds-color-surface: var(--ds-white);
+  --ds-color-surface-subtle: var(--ds-neutral-50);
+  --ds-color-surface-raised: var(--ds-white);
+  --ds-color-surface-inverse: var(--ds-navy-900);
+  --ds-color-overlay: rgb(7 17 31 / 62%);
+
+  --ds-color-text: var(--ds-neutral-900);
+  --ds-color-text-strong: var(--ds-neutral-950);
+  --ds-color-text-secondary: var(--ds-neutral-600);
+  --ds-color-text-muted: var(--ds-neutral-500);
+  --ds-color-text-inverse: #f8fafc;
+  --ds-color-text-link: var(--ds-blue-700);
+  --ds-color-icon: #607087;
+
+  --ds-color-border: var(--ds-neutral-200);
+  --ds-color-border-strong: var(--ds-neutral-300);
+  --ds-color-border-subtle: #e9eef4;
+  --ds-color-focus: var(--ds-blue-500);
+
+  --ds-color-success: #16865c;
+  --ds-color-success-soft: #eaf8f1;
+  --ds-color-success-border: #b9e8d0;
+  --ds-color-warning: #a86612;
+  --ds-color-warning-soft: #fff7e6;
+  --ds-color-warning-border: #f4d6a2;
+  --ds-color-danger: #c2413b;
+  --ds-color-danger-hover: #a93631;
+  --ds-color-danger-soft: #fff0ef;
+  --ds-color-danger-border: #f1c4c1;
+  --ds-color-info: var(--ds-blue-600);
+  --ds-color-info-soft: var(--ds-blue-50);
+  --ds-color-info-border: #bfdbfe;
+
+  /* Typography */
+  --ds-font-sans: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ds-font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --ds-font-size-2xs: 0.6875rem;
+  --ds-font-size-xs: 0.75rem;
+  --ds-font-size-sm: 0.8125rem;
+  --ds-font-size-md: 0.875rem;
+  --ds-font-size-lg: 1rem;
+  --ds-font-size-xl: 1.125rem;
+  --ds-font-size-2xl: 1.375rem;
+  --ds-font-size-3xl: 1.75rem;
+  --ds-line-height-tight: 1.25;
+  --ds-line-height-normal: 1.5;
+  --ds-line-height-relaxed: 1.65;
+  --ds-font-weight-medium: 600;
+  --ds-font-weight-semibold: 700;
+  --ds-font-weight-bold: 800;
+
+  /* 4px spacing grid */
+  --ds-space-0: 0;
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.25rem;
+  --ds-space-6: 1.5rem;
+  --ds-space-7: 1.75rem;
+  --ds-space-8: 2rem;
+  --ds-space-10: 2.5rem;
+  --ds-space-12: 3rem;
+
+  /* Shape and elevation */
+  --ds-radius-sm: 0.5rem;
+  --ds-radius-md: 0.75rem;
+  --ds-radius-lg: 1rem;
+  --ds-radius-xl: 1.25rem;
+  --ds-radius-pill: 999px;
+  --ds-shadow-xs: 0 1px 2px rgb(15 23 42 / 5%);
+  --ds-shadow-sm: 0 4px 14px rgb(15 23 42 / 6%);
+  --ds-shadow-md: 0 14px 34px rgb(15 23 42 / 10%);
+  --ds-shadow-lg: 0 28px 70px rgb(7 17 31 / 24%);
+  --ds-focus-ring: 0 0 0 3px rgb(59 130 246 / 22%);
+
+  /* Component sizing */
+  --ds-control-height-sm: 2rem;
+  --ds-control-height-md: 2.5rem;
+  --ds-control-height-lg: 2.75rem;
+  --ds-sidebar-width: 17rem;
+  --ds-topbar-height: 5.25rem;
+  --ds-content-max: 100rem;
+  --ds-transition-fast: 140ms ease;
+  --ds-transition-base: 200ms ease;
+  --ds-z-overlay: 50;
+  --ds-z-toast: 70;
+
+  font-family: var(--ds-font-sans);
+  color: var(--ds-color-text);
+  background: var(--ds-color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--ds-color-bg);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ds-color-text);
+  background: var(--ds-color-bg);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-font-size-md);
+  line-height: var(--ds-line-height-normal);
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']) {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--ds-color-text-link);
+  text-underline-offset: 0.18em;
+}
+
+::selection {
+  color: var(--ds-color-text-strong);
+  background: var(--ds-blue-100);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ds-color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
