@@ -8,10 +8,7 @@ import {
   deactivateTableQrCode,
   getAllTableQrCodes,
   getTableQrCodes,
-  simulateQrScan,
   updateTableQrCode,
-  type QrOrderMenuItem,
-  type QrOrderTable,
   type TableQrCode,
   type TableQrCodeStatus,
 } from '../api/tableQrCodes'
@@ -28,7 +25,9 @@ const statusLabels: Record<TableQrCodeStatus, string> = {
 function getDefaultClientBaseUrl() {
   const configuredUrl = import.meta.env.VITE_CUSTOMER_APP_URL as string | undefined
   if (typeof window === 'undefined') return configuredUrl ?? ''
-  return localStorage.getItem(CLIENT_URL_STORAGE_KEY) ?? configuredUrl ?? window.location.origin
+  return localStorage.getItem(CLIENT_URL_STORAGE_KEY)
+    ?? configuredUrl
+    ?? window.location.origin
 }
 
 function getNormalizedClientBaseUrl(value: string) {
@@ -49,6 +48,17 @@ function getNormalizedClientBaseUrl(value: string) {
   return url.toString().replace(/\/+$/, '')
 }
 
+function getSafeHttpUrl(value: string) {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+      ? url.toString()
+      : null
+  } catch {
+    return null
+  }
+}
+
 function formatDateTime(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '—'
@@ -62,8 +72,13 @@ function escapeHtml(value: string) {
   return value.replace(
     /[&<>"']/g,
     character =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character] ??
-      character,
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+      })[character] ?? character,
   )
 }
 
@@ -75,15 +90,6 @@ function safeFileName(value: string) {
     .replace(/[^a-z0-9]+/gi, '-')
     .replace(/^-+|-+$/g, '')
     .toLowerCase()
-}
-
-function getSafeHttpUrl(value: string) {
-  try {
-    const url = new URL(value)
-    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : null
-  } catch {
-    return null
-  }
 }
 
 function createQrDataUrl(value: string, width = 720) {
@@ -156,6 +162,12 @@ function QrImage({
   )
 }
 
+type Filters = {
+  keyword: string
+  status: string
+  activity: string
+}
+
 export default function TableQrCodesPage() {
   const [items, setItems] = useState<TableQrCode[]>([])
   const [allItems, setAllItems] = useState<TableQrCode[]>([])
@@ -172,6 +184,7 @@ export default function TableQrCodesPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   useAutoDismissMessage(message, setMessage)
+
   const [clientBaseUrl, setClientBaseUrl] = useState(getDefaultClientBaseUrl)
   const [createOpen, setCreateOpen] = useState(false)
   const [selectedTableId, setSelectedTableId] = useState('')
@@ -180,25 +193,30 @@ export default function TableQrCodesPage() {
   const [editStatus, setEditStatus] = useState<TableQrCodeStatus>('Active')
   const [editNote, setEditNote] = useState('')
   const [detail, setDetail] = useState<TableQrCode | null>(null)
-  const [scanPreview, setScanPreview] = useState<{
-    qrCode: TableQrCode
-    table: QrOrderTable
-    menuItems: QrOrderMenuItem[]
-  } | null>(null)
+  const [livePreview, setLivePreview] = useState<TableQrCode | null>(null)
 
-  async function loadData(targetPage = page) {
+  async function loadData(
+    targetPage = page,
+    filters: Filters = { keyword, status, activity },
+  ) {
     setLoading(true)
     setError('')
     try {
       const [paginatedResult, allResult, tableResult] = await Promise.all([
-        getTableQrCodes(keyword, status, activity, targetPage, PAGE_SIZE),
+        getTableQrCodes(
+          filters.keyword,
+          filters.status,
+          filters.activity,
+          targetPage,
+          PAGE_SIZE,
+        ),
         getAllTableQrCodes(),
         getTables('', '', '', 1, 500),
       ])
 
       const resolvedTotalPages = Math.max(1, paginatedResult.totalPages || 1)
       if (targetPage > resolvedTotalPages) {
-        await loadData(resolvedTotalPages)
+        await loadData(resolvedTotalPages, filters)
         return
       }
 
@@ -209,7 +227,11 @@ export default function TableQrCodesPage() {
       setTotalPages(resolvedTotalPages)
       setTotalCount(paginatedResult.totalCount || 0)
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Không tải được danh sách mã QR.')
+      setError(
+        exception instanceof Error
+          ? exception.message
+          : 'Không tải được danh sách mã QR.',
+      )
     } finally {
       setLoading(false)
     }
@@ -252,10 +274,12 @@ export default function TableQrCodesPage() {
       setClientBaseUrl(normalizedUrl)
       localStorage.setItem(CLIENT_URL_STORAGE_KEY, normalizedUrl)
       setMessage('Đã lưu địa chỉ ứng dụng gọi món trên trình duyệt này.')
-      return normalizedUrl
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Địa chỉ ứng dụng không hợp lệ.')
-      return null
+      setError(
+        exception instanceof Error
+          ? exception.message
+          : 'Địa chỉ ứng dụng không hợp lệ.',
+      )
     }
   }
 
@@ -274,38 +298,7 @@ export default function TableQrCodesPage() {
     setEditing(item)
   }
 
-  async function submitFilters(event: FormEvent) {
-    event.preventDefault()
-    resetNotices()
-    await loadData(1)
-  }
-
-  async function clearFilters() {
-    setKeyword('')
-    setStatus('')
-    setActivity('')
-    resetNotices()
-    setLoading(true)
-    try {
-      const [paginatedResult, allResult, tableResult] = await Promise.all([
-        getTableQrCodes('', '', '', 1, PAGE_SIZE),
-        getAllTableQrCodes(),
-        getTables('', '', '', 1, 500),
-      ])
-      setItems(paginatedResult.items ?? [])
-      setAllItems(allResult ?? [])
-      setTables(tableResult.items ?? [])
-      setPage(1)
-      setTotalPages(Math.max(1, paginatedResult.totalPages || 1))
-      setTotalCount(paginatedResult.totalCount || 0)
-    } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Không tải được danh sách mã QR.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function submitCreate(event: FormEvent) {
+  async function submitCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     resetNotices()
     if (!selectedTableId) {
@@ -317,7 +310,7 @@ export default function TableQrCodesPage() {
     try {
       normalizedUrl = getNormalizedClientBaseUrl(clientBaseUrl)
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Địa chỉ ứng dụng không hợp lệ.')
+      setError(exception instanceof Error ? exception.message : 'Địa chỉ không hợp lệ.')
       return
     }
 
@@ -335,13 +328,13 @@ export default function TableQrCodesPage() {
       setDetail(result.data)
       await loadData(1)
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Không tạo được mã QR cho bàn.')
+      setError(exception instanceof Error ? exception.message : 'Không tạo được mã QR.')
     } finally {
       setSaving(false)
     }
   }
 
-  async function submitEdit(event: FormEvent) {
+  async function submitEdit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!editing) return
     resetNotices()
@@ -354,7 +347,7 @@ export default function TableQrCodesPage() {
         clientBaseUrl: null,
       })
       setEditing(null)
-      setDetail(current => (current?.id === result.data.id ? result.data : current))
+      setDetail(current => current?.id === result.data.id ? result.data : current)
       setMessage(result.message ?? 'Cập nhật mã QR thành công.')
       await loadData(page)
     } catch (exception) {
@@ -368,9 +361,7 @@ export default function TableQrCodesPage() {
     if (
       nextStatus === 'Blocked' &&
       !await confirmAction(`Khóa mã QR của ${item.restaurantTableName}? Khách sẽ không thể gọi món.`)
-    ) {
-      return
-    }
+    ) return
 
     resetNotices()
     setActionId(item.id)
@@ -381,7 +372,7 @@ export default function TableQrCodesPage() {
         regenerate: false,
         clientBaseUrl: null,
       })
-      setDetail(current => (current?.id === result.data.id ? result.data : current))
+      setDetail(current => current?.id === result.data.id ? result.data : current)
       setMessage(
         nextStatus === 'Active'
           ? 'Đã kích hoạt lại mã QR.'
@@ -402,15 +393,13 @@ export default function TableQrCodesPage() {
       !await confirmAction(
         `Vô hiệu hóa mã QR của ${item.restaurantTableName}? Liên kết hiện tại sẽ ngừng hoạt động.`,
       )
-    ) {
-      return
-    }
+    ) return
 
     resetNotices()
     setActionId(item.id)
     try {
       const result = await deactivateTableQrCode(item.id)
-      setDetail(current => (current?.id === item.id ? null : current))
+      setDetail(current => current?.id === item.id ? null : current)
       setMessage(result.message ?? 'Vô hiệu hóa mã QR thành công.')
       await loadData(page)
     } catch (exception) {
@@ -425,7 +414,7 @@ export default function TableQrCodesPage() {
     try {
       normalizedUrl = getNormalizedClientBaseUrl(clientBaseUrl)
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Địa chỉ ứng dụng không hợp lệ.')
+      setError(exception instanceof Error ? exception.message : 'Địa chỉ không hợp lệ.')
       return
     }
 
@@ -433,9 +422,7 @@ export default function TableQrCodesPage() {
       !await confirmAction(
         `Tạo lại mã QR của ${item.restaurantTableName}? Mã cũ sẽ mất hiệu lực ngay lập tức.`,
       )
-    ) {
-      return
-    }
+    ) return
 
     resetNotices()
     setActionId(item.id)
@@ -448,7 +435,7 @@ export default function TableQrCodesPage() {
       })
       localStorage.setItem(CLIENT_URL_STORAGE_KEY, normalizedUrl)
       setClientBaseUrl(normalizedUrl)
-      setDetail(current => (current?.id === result.data.id ? result.data : current))
+      setDetail(current => current?.id === result.data.id ? result.data : current)
       setMessage('Đã tạo token và ảnh QR mới. Mã cũ không còn hiệu lực.')
       await loadData(page)
     } catch (exception) {
@@ -468,25 +455,13 @@ export default function TableQrCodesPage() {
     }
   }
 
-  async function previewScan(item: TableQrCode) {
+  function openLivePreview(item: TableQrCode) {
     resetNotices()
-    setActionId(item.id)
-    try {
-      const result = await simulateQrScan(item.token)
-      setScanPreview({
-        qrCode: item,
-        table: result.table,
-        menuItems: result.menuItems ?? [],
-      })
-    } catch (exception) {
-      setError(
-        exception instanceof Error
-          ? `Mô phỏng quét thất bại: ${exception.message}`
-          : 'Mã QR không vượt qua được bước kiểm tra.',
-      )
-    } finally {
-      setActionId('')
+    if (!getSafeHttpUrl(item.qrCodeUrl)) {
+      setError('Liên kết gọi món của mã QR không hợp lệ.')
+      return
     }
+    setLivePreview(item)
   }
 
   async function downloadQr(item: TableQrCode) {
@@ -560,9 +535,10 @@ export default function TableQrCodesPage() {
         <div>
           <span className="table-qr-kicker">GỌI MÓN KHÔNG TIẾP XÚC</span>
           <h2>Quản lý mã QR theo bàn</h2>
-          <p>Tạo, kiểm tra và in mã QR để khách mở thực đơn đúng bàn.</p>
+          <p>Mỗi bàn có một QR riêng nhưng dùng chung thực đơn đang phục vụ của nhà hàng.</p>
         </div>
         <button
+          type="button"
           className="table-qr-primary"
           onClick={openCreate}
           disabled={loading || eligibleTables.length === 0}
@@ -573,30 +549,22 @@ export default function TableQrCodesPage() {
 
       {error && (
         <div className="table-qr-alert error" role="alert">
-          <span>!</span>
-          <p>{error}</p>
-          <button onClick={() => setError('')} aria-label="Đóng thông báo lỗi">
-            ×
-          </button>
+          <span>!</span><p>{error}</p>
+          <button type="button" onClick={() => setError('')} aria-label="Đóng thông báo lỗi">×</button>
         </div>
       )}
       {message && (
         <div className="table-qr-alert success" role="status">
-          <span>✓</span>
-          <p>{message}</p>
-          <button onClick={() => setMessage('')} aria-label="Đóng thông báo">
-            ×
-          </button>
+          <span>✓</span><p>{message}</p>
+          <button type="button" onClick={() => setMessage('')} aria-label="Đóng thông báo">×</button>
         </div>
       )}
 
       <section className="table-qr-url-settings">
-        <div className="table-qr-url-icon" aria-hidden="true">
-          ↗
-        </div>
+        <div className="table-qr-url-icon" aria-hidden="true">↗</div>
         <div className="table-qr-url-copy">
-          <strong>Địa chỉ ứng dụng gọi món</strong>
-          <span>Backend sẽ nối thêm /qr-order/token khi tạo hoặc tái tạo mã.</span>
+          <strong>Địa chỉ trang gọi món thật</strong>
+          <span>Hệ thống sẽ nối thêm /qr-order/token cho từng bàn.</span>
         </div>
         <label>
           <span className="sr-only">Địa chỉ ứng dụng gọi món</span>
@@ -607,54 +575,41 @@ export default function TableQrCodesPage() {
             placeholder="https://order.example.com"
           />
         </label>
-        <button onClick={saveClientBaseUrl}>Lưu địa chỉ</button>
+        <button type="button" onClick={saveClientBaseUrl}>Lưu địa chỉ</button>
       </section>
 
       <section className="table-qr-summary-grid">
         <article className="table-qr-summary-card total">
           <span className="table-qr-summary-icon">▦</span>
-          <div>
-            <p>Tổng mã QR</p>
-            <strong>{summary.total}</strong>
-            <small>{eligibleTables.length} bàn chưa có mã</small>
-          </div>
+          <div><p>Tổng mã QR</p><strong>{summary.total}</strong><small>{eligibleTables.length} bàn chưa có mã</small></div>
         </article>
         <article className="table-qr-summary-card active">
           <span className="table-qr-summary-icon">✓</span>
-          <div>
-            <p>Đang hoạt động</p>
-            <strong>{summary.active}</strong>
-            <small>Khách có thể gọi món</small>
-          </div>
+          <div><p>Đang hoạt động</p><strong>{summary.active}</strong><small>Khách có thể gọi món</small></div>
         </article>
         <article className="table-qr-summary-card inactive">
           <span className="table-qr-summary-icon">○</span>
-          <div>
-            <p>Đã vô hiệu</p>
-            <strong>{summary.inactive}</strong>
-            <small>Không nhận lượt truy cập</small>
-          </div>
+          <div><p>Đã vô hiệu</p><strong>{summary.inactive}</strong><small>Không nhận lượt truy cập</small></div>
         </article>
         <article className="table-qr-summary-card blocked">
           <span className="table-qr-summary-icon">!</span>
-          <div>
-            <p>Đã khóa</p>
-            <strong>{summary.blocked}</strong>
-            <small>Cần kiểm tra trước khi mở</small>
-          </div>
+          <div><p>Đã khóa</p><strong>{summary.blocked}</strong><small>Cần kiểm tra trước khi mở</small></div>
         </article>
       </section>
 
       <section className="table-qr-panel">
         <div className="table-qr-panel-heading">
-          <div>
-            <h3>Danh sách mã QR</h3>
-            <p>{totalCount} kết quả theo bộ lọc hiện tại</p>
-          </div>
+          <div><h3>Danh sách mã QR</h3><p>{totalCount} kết quả theo bộ lọc hiện tại</p></div>
           <span>Cập nhật trực tiếp từ hệ thống</span>
         </div>
 
-        <form className="table-qr-filters" onSubmit={submitFilters}>
+        <form
+          className="table-qr-filters"
+          onSubmit={event => {
+            event.preventDefault()
+            void loadData(1)
+          }}
+        >
           <label className="table-qr-search">
             <span aria-hidden="true">⌕</span>
             <input
@@ -674,28 +629,30 @@ export default function TableQrCodesPage() {
             <option value="true">Còn hiệu lực</option>
             <option value="false">Hết hiệu lực</option>
           </select>
-          <button className="table-qr-filter-submit" type="submit">
-            Lọc
-          </button>
-          <button className="table-qr-filter-clear" type="button" onClick={clearFilters}>
+          <button className="table-qr-filter-submit" type="submit">Lọc</button>
+          <button
+            className="table-qr-filter-clear"
+            type="button"
+            onClick={() => {
+              setKeyword('')
+              setStatus('')
+              setActivity('')
+              void loadData(1, { keyword: '', status: '', activity: '' })
+            }}
+          >
             Xóa lọc
           </button>
         </form>
 
         {loading ? (
-          <div className="table-qr-loading">
-            <span />
-            <p>Đang tải danh sách mã QR…</p>
-          </div>
+          <div className="table-qr-loading"><span /><p>Đang tải danh sách mã QR…</p></div>
         ) : items.length === 0 ? (
           <div className="table-qr-empty">
             <div className="table-qr-empty-icon">▦</div>
             <h3>Chưa có mã QR phù hợp</h3>
             <p>Thử đổi bộ lọc hoặc tạo mã QR cho một bàn chưa được gán.</p>
             {eligibleTables.length > 0 && (
-              <button className="table-qr-primary" onClick={openCreate}>
-                Tạo mã QR đầu tiên
-              </button>
+              <button type="button" className="table-qr-primary" onClick={openCreate}>Tạo mã QR đầu tiên</button>
             )}
           </div>
         ) : (
@@ -705,35 +662,23 @@ export default function TableQrCodesPage() {
                 <header>
                   <div className="table-qr-table-name">
                     <span>QR</span>
-                    <div>
-                      <strong>{item.restaurantTableName}</strong>
-                      <small>Tạo lúc {formatDateTime(item.createdAt)}</small>
-                    </div>
+                    <div><strong>{item.restaurantTableName}</strong><small>Tạo lúc {formatDateTime(item.createdAt)}</small></div>
                   </div>
-                  <span className={`table-qr-status ${item.status.toLowerCase()}`}>
-                    {statusLabels[item.status] ?? item.status}
-                  </span>
+                  <span className={`table-qr-status ${item.status.toLowerCase()}`}>{statusLabels[item.status]}</span>
                 </header>
-
                 <div className="table-qr-card-content">
                   <QrImage value={item.qrCodeUrl} label={item.restaurantTableName} compact />
                   <div className="table-qr-card-info">
-                    <div>
-                      <span>Liên kết gọi món</span>
-                      <strong title={item.qrCodeUrl}>{item.qrCodeUrl}</strong>
-                    </div>
-                    <div>
-                      <span>Token</span>
-                      <code title={item.token}>{item.token}</code>
-                    </div>
+                    <div><span>Liên kết gọi món</span><strong title={item.qrCodeUrl}>{item.qrCodeUrl}</strong></div>
+                    <div><span>Token</span><code title={item.token}>{item.token}</code></div>
                     <p>{item.note?.trim() || 'Chưa có ghi chú cho mã QR này.'}</p>
                   </div>
                 </div>
-
                 <footer>
-                  <button onClick={() => setDetail(item)}>Chi tiết</button>
-                  <button onClick={() => openEdit(item)}>Chỉnh sửa</button>
+                  <button type="button" onClick={() => setDetail(item)}>Chi tiết</button>
+                  <button type="button" onClick={() => openEdit(item)}>Chỉnh sửa</button>
                   <button
+                    type="button"
                     className="table-qr-card-primary"
                     onClick={() => void downloadQr(item)}
                     disabled={actionId === item.id}
@@ -747,82 +692,44 @@ export default function TableQrCodesPage() {
         )}
 
         <div className="table-qr-pagination">
-          <span>
-            Trang {page}/{totalPages}
-          </span>
+          <span>Trang {page}/{totalPages}</span>
           <div>
-            <button
-              onClick={() => void loadData(page - 1)}
-              disabled={loading || page <= 1}
-              aria-label="Trang trước"
-            >
-              ←
-            </button>
-            <button
-              onClick={() => void loadData(page + 1)}
-              disabled={loading || page >= totalPages}
-              aria-label="Trang sau"
-            >
-              →
-            </button>
+            <button type="button" onClick={() => void loadData(page - 1)} disabled={loading || page <= 1} aria-label="Trang trước">←</button>
+            <button type="button" onClick={() => void loadData(page + 1)} disabled={loading || page >= totalPages} aria-label="Trang sau">→</button>
           </div>
         </div>
       </section>
 
       {createOpen && (
-        <div
-          className="table-qr-modal-backdrop"
-          onMouseDown={event => {
-            if (event.target === event.currentTarget && !saving) setCreateOpen(false)
-          }}
-        >
+        <div className="table-qr-modal-backdrop" onMouseDown={event => {
+          if (event.target === event.currentTarget && !saving) setCreateOpen(false)
+        }}>
           <section className="table-qr-modal table-qr-form-modal" role="dialog" aria-modal="true">
             <header>
-              <div>
-                <span className="table-qr-kicker">MÃ QR MỚI</span>
-                <h3>Tạo mã QR cho bàn</h3>
-                <p>Mỗi bàn chỉ có một mã; mã đã vô hiệu có thể kích hoạt lại.</p>
-              </div>
-              <button onClick={() => setCreateOpen(false)} disabled={saving} aria-label="Đóng">
-                ×
-              </button>
+              <div><span className="table-qr-kicker">MÃ QR MỚI</span><h3>Tạo mã QR cho bàn</h3><p>Mỗi bàn chỉ có một mã QR đang quản lý.</p></div>
+              <button type="button" onClick={() => setCreateOpen(false)} disabled={saving} aria-label="Đóng">×</button>
             </header>
             <form onSubmit={submitCreate}>
               {error && <div className="table-qr-inline-notice error">{error}</div>}
               <label>
                 Bàn <strong>*</strong>
-                <select
-                  value={selectedTableId}
-                  onChange={event => setSelectedTableId(event.target.value)}
-                  required
-                >
+                <select value={selectedTableId} onChange={event => setSelectedTableId(event.target.value)} required>
                   {eligibleTables.map(table => (
-                    <option value={table.id} key={table.id}>
-                      {table.areaName} — {table.name} ({table.capacity} chỗ)
-                    </option>
+                    <option value={table.id} key={table.id}>{table.areaName} — {table.name} ({table.capacity} chỗ)</option>
                   ))}
                 </select>
               </label>
               <label>
                 Ghi chú
-                <textarea
-                  value={createNote}
-                  onChange={event => setCreateNote(event.target.value)}
-                  placeholder="Ví dụ: QR đặt tại mép trái bàn…"
-                  maxLength={500}
-                />
+                <textarea value={createNote} onChange={event => setCreateNote(event.target.value)} placeholder="Ví dụ: QR đặt tại mép trái bàn…" maxLength={500} />
               </label>
               <div className="table-qr-url-preview">
-                <span>Liên kết sẽ được tạo từ</span>
+                <span>Liên kết thật sẽ được tạo từ</span>
                 <code>{clientBaseUrl || 'Chưa nhập địa chỉ ứng dụng'}/qr-order/••••</code>
               </div>
               <div className="table-qr-modal-actions">
-                <button type="button" onClick={() => setCreateOpen(false)} disabled={saving}>
-                  Hủy
-                </button>
-                <button className="table-qr-primary" disabled={saving || !selectedTableId}>
-                  {saving ? 'Đang tạo…' : 'Tạo mã QR'}
-                </button>
+                <button type="button" onClick={() => setCreateOpen(false)} disabled={saving}>Hủy</button>
+                <button className="table-qr-primary" disabled={saving || !selectedTableId}>{saving ? 'Đang tạo…' : 'Tạo mã QR'}</button>
               </div>
             </form>
           </section>
@@ -830,31 +737,19 @@ export default function TableQrCodesPage() {
       )}
 
       {editing && (
-        <div
-          className="table-qr-modal-backdrop"
-          onMouseDown={event => {
-            if (event.target === event.currentTarget && !saving) setEditing(null)
-          }}
-        >
+        <div className="table-qr-modal-backdrop" onMouseDown={event => {
+          if (event.target === event.currentTarget && !saving) setEditing(null)
+        }}>
           <section className="table-qr-modal table-qr-form-modal" role="dialog" aria-modal="true">
             <header>
-              <div>
-                <span className="table-qr-kicker">CẬP NHẬT MÃ QR</span>
-                <h3>{editing.restaurantTableName}</h3>
-                <p>Đổi trạng thái hoặc ghi chú mà không thay token hiện tại.</p>
-              </div>
-              <button onClick={() => setEditing(null)} disabled={saving} aria-label="Đóng">
-                ×
-              </button>
+              <div><span className="table-qr-kicker">CẬP NHẬT MÃ QR</span><h3>{editing.restaurantTableName}</h3><p>Đổi trạng thái hoặc ghi chú mà không thay token hiện tại.</p></div>
+              <button type="button" onClick={() => setEditing(null)} disabled={saving} aria-label="Đóng">×</button>
             </header>
             <form onSubmit={submitEdit}>
               {error && <div className="table-qr-inline-notice error">{error}</div>}
               <label>
                 Trạng thái
-                <select
-                  value={editStatus}
-                  onChange={event => setEditStatus(event.target.value as TableQrCodeStatus)}
-                >
+                <select value={editStatus} onChange={event => setEditStatus(event.target.value as TableQrCodeStatus)}>
                   <option value="Active">Đang hoạt động</option>
                   <option value="Inactive">Đã vô hiệu</option>
                   <option value="Blocked">Đã khóa</option>
@@ -862,20 +757,11 @@ export default function TableQrCodesPage() {
               </label>
               <label>
                 Ghi chú
-                <textarea
-                  value={editNote}
-                  onChange={event => setEditNote(event.target.value)}
-                  placeholder="Thông tin vị trí đặt mã hoặc lưu ý vận hành…"
-                  maxLength={500}
-                />
+                <textarea value={editNote} onChange={event => setEditNote(event.target.value)} placeholder="Thông tin vị trí đặt mã hoặc lưu ý vận hành…" maxLength={500} />
               </label>
               <div className="table-qr-modal-actions">
-                <button type="button" onClick={() => setEditing(null)} disabled={saving}>
-                  Hủy
-                </button>
-                <button className="table-qr-primary" disabled={saving}>
-                  {saving ? 'Đang lưu…' : 'Lưu thay đổi'}
-                </button>
+                <button type="button" onClick={() => setEditing(null)} disabled={saving}>Hủy</button>
+                <button className="table-qr-primary" disabled={saving}>{saving ? 'Đang lưu…' : 'Lưu thay đổi'}</button>
               </div>
             </form>
           </section>
@@ -883,201 +769,87 @@ export default function TableQrCodesPage() {
       )}
 
       {detail && (
-        <div
-          className="table-qr-modal-backdrop"
-          onMouseDown={event => {
-            if (event.target === event.currentTarget && !actionId) setDetail(null)
-          }}
-        >
+        <div className="table-qr-modal-backdrop" onMouseDown={event => {
+          if (event.target === event.currentTarget && !actionId) setDetail(null)
+        }}>
           <section className="table-qr-modal table-qr-detail-modal" role="dialog" aria-modal="true">
             <header>
-              <div>
-                <span className="table-qr-kicker">CHI TIẾT MÃ QR</span>
-                <h3>{detail.restaurantTableName}</h3>
-                <p>Quét bằng camera điện thoại hoặc mở liên kết để kiểm tra luồng gọi món.</p>
-              </div>
-              <button onClick={() => setDetail(null)} disabled={Boolean(actionId)} aria-label="Đóng">
-                ×
-              </button>
+              <div><span className="table-qr-kicker">CHI TIẾT MÃ QR</span><h3>{detail.restaurantTableName}</h3><p>Quét bằng camera hoặc kiểm tra trực tiếp trang gọi món thật.</p></div>
+              <button type="button" onClick={() => setDetail(null)} disabled={Boolean(actionId)} aria-label="Đóng">×</button>
             </header>
 
-            {(error || message) && (
-              <div className={`table-qr-inline-notice ${error ? 'error' : 'success'}`}>
-                {error || message}
-              </div>
-            )}
+            {(error || message) && <div className={`table-qr-inline-notice ${error ? 'error' : 'success'}`}>{error || message}</div>}
             <div className="table-qr-detail-content">
               <div className="table-qr-detail-preview">
                 <QrImage value={detail.qrCodeUrl} label={detail.restaurantTableName} />
-                <span className={`table-qr-status ${detail.status.toLowerCase()}`}>
-                  {statusLabels[detail.status] ?? detail.status}
-                </span>
+                <span className={`table-qr-status ${detail.status.toLowerCase()}`}>{statusLabels[detail.status]}</span>
               </div>
               <div className="table-qr-detail-info">
                 <div className="table-qr-detail-row">
-                  <span>Liên kết gọi món</span>
+                  <span>Liên kết gọi món thật</span>
                   <strong>{detail.qrCodeUrl}</strong>
-                  <button onClick={() => void copyUrl(detail)}>Sao chép</button>
+                  <button type="button" onClick={() => void copyUrl(detail)}>Sao chép</button>
                 </div>
-                <div className="table-qr-detail-row">
-                  <span>Token bảo mật</span>
-                  <code>{detail.token}</code>
-                </div>
+                <div className="table-qr-detail-row"><span>Token bảo mật</span><code>{detail.token}</code></div>
                 <div className="table-qr-detail-meta">
-                  <span>
-                    Ngày tạo <strong>{formatDateTime(detail.createdAt)}</strong>
-                  </span>
-                  <span>
-                    Cập nhật cuối{' '}
-                    <strong>{formatDateTime(detail.updatedAt ?? detail.createdAt)}</strong>
-                  </span>
+                  <span>Ngày tạo <strong>{formatDateTime(detail.createdAt)}</strong></span>
+                  <span>Cập nhật cuối <strong>{formatDateTime(detail.updatedAt ?? detail.createdAt)}</strong></span>
                 </div>
-                <div className="table-qr-detail-note">
-                  <span>Ghi chú</span>
-                  <p>{detail.note?.trim() || 'Chưa có ghi chú.'}</p>
-                </div>
+                <div className="table-qr-detail-note"><span>Ghi chú</span><p>{detail.note?.trim() || 'Chưa có ghi chú.'}</p></div>
                 <div className="table-qr-detail-tools">
                   <button
+                    type="button"
                     className="table-qr-scan-button"
-                    onClick={() => void previewScan(detail)}
-                    disabled={actionId === detail.id}
+                    onClick={() => openLivePreview(detail)}
+                    disabled={!getSafeHttpUrl(detail.qrCodeUrl)}
                   >
-                    Mô phỏng quét
+                    Kiểm tra gọi món thật
                   </button>
-                  {getSafeHttpUrl(detail.qrCodeUrl) ? (
-                    <a href={getSafeHttpUrl(detail.qrCodeUrl) ?? undefined} target="_blank" rel="noreferrer">
-                      Mở liên kết
-                    </a>
-                  ) : (
-                    <button disabled>Liên kết không hợp lệ</button>
-                  )}
-                  <button
-                    onClick={() => void downloadQr(detail)}
-                    disabled={actionId === detail.id}
-                  >
-                    Tải ảnh PNG
-                  </button>
-                  <button onClick={() => void printQr(detail)} disabled={actionId === detail.id}>
-                    In mã QR
-                  </button>
-                  <button
-                    onClick={() => void regenerate(detail)}
-                    disabled={actionId === detail.id}
-                  >
-                    Tạo lại mã
-                  </button>
+                  <button type="button" onClick={() => void downloadQr(detail)} disabled={actionId === detail.id}>Tải ảnh PNG</button>
+                  <button type="button" onClick={() => void printQr(detail)} disabled={actionId === detail.id}>In mã QR</button>
+                  <button type="button" onClick={() => void regenerate(detail)} disabled={actionId === detail.id}>Tạo lại mã</button>
                 </div>
               </div>
             </div>
 
             <footer className="table-qr-detail-actions">
-              <button onClick={() => openEdit(detail)}>Sửa ghi chú</button>
+              <button type="button" onClick={() => openEdit(detail)}>Sửa ghi chú</button>
               {detail.status === 'Active' && detail.isActive ? (
                 <>
-                  <button
-                    className="table-qr-warning-button"
-                    onClick={() => void changeStatus(detail, 'Blocked')}
-                    disabled={actionId === detail.id}
-                  >
-                    Khóa mã
-                  </button>
-                  <button
-                    className="table-qr-danger-button"
-                    onClick={() => void deactivate(detail)}
-                    disabled={actionId === detail.id}
-                  >
-                    Vô hiệu hóa
-                  </button>
+                  <button type="button" className="table-qr-warning-button" onClick={() => void changeStatus(detail, 'Blocked')} disabled={actionId === detail.id}>Khóa mã</button>
+                  <button type="button" className="table-qr-danger-button" onClick={() => void deactivate(detail)} disabled={actionId === detail.id}>Vô hiệu hóa</button>
                 </>
               ) : (
-                <button
-                  className="table-qr-primary"
-                  onClick={() => void changeStatus(detail, 'Active')}
-                  disabled={actionId === detail.id}
-                >
-                  Kích hoạt lại
-                </button>
+                <button type="button" className="table-qr-primary" onClick={() => void changeStatus(detail, 'Active')} disabled={actionId === detail.id}>Kích hoạt lại</button>
               )}
             </footer>
           </section>
         </div>
       )}
 
-      {scanPreview && (
-        <div
-          className="table-qr-modal-backdrop table-qr-scan-backdrop"
-          onMouseDown={event => {
-            if (event.target === event.currentTarget) setScanPreview(null)
-          }}
-        >
-          <section className="table-qr-modal table-qr-scan-modal" role="dialog" aria-modal="true">
+      {livePreview && (
+        <div className="table-qr-modal-backdrop table-qr-scan-backdrop" onMouseDown={event => {
+          if (event.target === event.currentTarget) setLivePreview(null)
+        }}>
+          <section className="table-qr-modal table-qr-live-modal" role="dialog" aria-modal="true">
             <header>
               <div>
-                <span className="table-qr-kicker">MÔ PHỎNG QUÉT QR</span>
-                <h3>Kết nối thành công</h3>
-                <p>Đây là dữ liệu công khai mà khách nhận được sau khi quét mã.</p>
+                <span className="table-qr-kicker">TRANG GỌI MÓN THẬT</span>
+                <h3>{livePreview.restaurantTableName}</h3>
+                <p>Có thể chọn món và xác nhận như khách đang quét QR tại bàn.</p>
               </div>
-              <button onClick={() => setScanPreview(null)} aria-label="Đóng">
-                ×
-              </button>
+              <button type="button" onClick={() => setLivePreview(null)} aria-label="Đóng">×</button>
             </header>
-            <div className="table-qr-phone">
-              <div className="table-qr-phone-top">
-                <span />
-                <strong>Gọi món tại bàn</strong>
-                <small>API trực tuyến</small>
-              </div>
-              <div className="table-qr-phone-hero">
-                <span>✓ Mã QR hợp lệ</span>
-                <h4>{scanPreview.table.restaurantTableName}</h4>
-                <p>
-                  Trạng thái bàn: <strong>{scanPreview.table.tableStatus}</strong>
-                </p>
-              </div>
-              <div className="table-qr-phone-menu">
-                <div>
-                  <h5>Thực đơn đang phục vụ</h5>
-                  <span>{scanPreview.menuItems.length} món</span>
-                </div>
-                {scanPreview.menuItems.length > 0 ? (
-                  scanPreview.menuItems.slice(0, 6).map(menuItem => (
-                    <article key={menuItem.id}>
-                      <span>{menuItem.name.charAt(0).toUpperCase()}</span>
-                      <div>
-                        <strong>{menuItem.name}</strong>
-                        <small>
-                          {new Intl.NumberFormat('vi-VN', {
-                            style: 'currency',
-                            currency: 'VND',
-                          }).format(menuItem.price)}
-                        </small>
-                      </div>
-                      <button aria-label={`Thêm ${menuItem.name}`} disabled>
-                        ＋
-                      </button>
-                    </article>
-                  ))
-                ) : (
-                  <p className="table-qr-phone-empty">Chưa có món đang mở bán.</p>
-                )}
-                {scanPreview.menuItems.length > 6 && (
-                  <p className="table-qr-phone-more">
-                    Và {scanPreview.menuItems.length - 6} món khác…
-                  </p>
-                )}
-              </div>
+            <div className="table-qr-live-frame-wrap">
+              <iframe
+                className="table-qr-live-frame"
+                src={getSafeHttpUrl(livePreview.qrCodeUrl) ?? undefined}
+                title={`Trang gọi món thật của ${livePreview.restaurantTableName}`}
+              />
             </div>
-            <footer className="table-qr-scan-footer">
-              <div>
-                <span className="status-dot" />
-                <p>
-                  <strong>Kiểm tra đạt</strong>
-                  <small>Token, bàn và thực đơn đều truy cập được.</small>
-                </p>
-              </div>
-              <button className="table-qr-primary" onClick={() => setScanPreview(null)}>
-                Hoàn tất
-              </button>
+            <footer className="table-qr-live-actions">
+              <button type="button" onClick={() => setLivePreview(null)}>Đóng</button>
+              <a href={getSafeHttpUrl(livePreview.qrCodeUrl) ?? undefined} target="_blank" rel="noreferrer">Mở toàn màn hình</a>
             </footer>
           </section>
         </div>
