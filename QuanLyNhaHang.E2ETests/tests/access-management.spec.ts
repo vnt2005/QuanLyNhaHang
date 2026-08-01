@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { loginAsAdmin, openAdminModule } from './helpers'
+import { acceptConfirmDialog, loginAsAdmin, openAdminModule } from './helpers'
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
@@ -69,8 +69,8 @@ test('Vai trò: tạo, sửa, phân quyền, kiểm tra lưu và vô hiệu hóa
   await permissionModal.getByRole('button', { name: 'Hủy', exact: true }).click()
 
   card = page.locator('.role-card').filter({ hasText: roleName })
-  page.once('dialog', dialog => dialog.accept())
   await card.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('.role-card').filter({ hasText: roleName }))
     .toContainText('Vô hiệu')
 })
@@ -113,7 +113,7 @@ test('Tài khoản: cập nhật và xóa tài khoản thử nghiệm', async ({
   await expect(row).toContainText('Tài khoản đã sửa')
   await expect(row).toContainText('Đã khóa')
 
-  page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Xóa', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('tbody tr').filter({ hasText: email })).toHaveCount(0)
 })
