@@ -88,6 +88,19 @@ export async function loginAsAdmin(page: Page): Promise<E2EAuthSession> {
   }
 }
 
+export async function acceptConfirmDialog(page: Page) {
+  const dialog = page.getByRole('alertdialog')
+  await expect(dialog).toBeVisible()
+
+  const confirmButton = dialog
+    .locator('.ds-confirm-actions')
+    .getByRole('button')
+    .last()
+  await expect(confirmButton).toBeEnabled()
+  await confirmButton.click()
+  await expect(dialog).toHaveCount(0)
+}
+
 export async function openAdminModule(page: Page, moduleName: string) {
   const navigationButton = page
     .locator('.sidebar nav button')

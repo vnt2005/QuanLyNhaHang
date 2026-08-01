@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures'
 import {
+  acceptConfirmDialog,
   bearerHeaders,
   loginAsAdmin,
   openAdminModule,
@@ -67,8 +68,8 @@ test('Nhật ký: command được ghi, lọc, xem chi tiết và xóa bởi Adm
   await expect(detail).toContainText('Update')
   await expect(detail).toContainText('Success')
 
-  page.once('dialog', dialog => dialog.accept())
   await detail.getByRole('button', { name: 'Xóa vĩnh viễn nhật ký', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(detail).toHaveCount(0)
   await expect(page.locator('.activity-alert.success')).toContainText(/xóa/i)
 

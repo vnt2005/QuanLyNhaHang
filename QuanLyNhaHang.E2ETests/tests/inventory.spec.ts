@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { loginAsAdmin, openAdminModule } from './helpers'
+import { acceptConfirmDialog, loginAsAdmin, openAdminModule } from './helpers'
 
 function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
@@ -111,21 +111,21 @@ test('Kho: danh mục, nguyên liệu, nhập, xuất, điều chỉnh, hoàn t�
   const adjustmentRow = transactionRows.filter({ hasText: 'Điều chỉnh' })
   await expect(adjustmentRow).toContainText('12')
   await expect(adjustmentRow).toContainText('20')
-  page.once('dialog', dialog => dialog.accept())
   await adjustmentRow.getByRole('button', { name: /Hủy / }).click()
+  await acceptConfirmDialog(page)
   await expect(adjustmentRow).toContainText('Đã hủy')
 
   await page.locator('.inventory-tabs').getByRole('button', { name: /Nguyên liệu/ }).click()
   ingredientRow = page.locator('tbody tr').filter({ hasText: ingredientCode })
   await expect(ingredientRow).toContainText('12')
-  page.once('dialog', dialog => dialog.accept())
   await ingredientRow.getByRole('button', { name: `Vô hiệu hóa ${ingredientUpdated}`, exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('tbody tr').filter({ hasText: ingredientCode })).toContainText('Đã vô hiệu')
 
   await page.locator('.inventory-tabs').getByRole('button', { name: /Danh mục/ }).click()
   categoryRow = page.locator('.category-table tbody tr').filter({ hasText: categoryUpdated })
-  page.once('dialog', dialog => dialog.accept())
   await categoryRow.getByRole('button', { name: `Vô hiệu hóa ${categoryUpdated}`, exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('.category-table tbody tr').filter({ hasText: categoryUpdated }))
     .toContainText('Đã vô hiệu')
 })

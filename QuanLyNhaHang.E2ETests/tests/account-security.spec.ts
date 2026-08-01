@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { loginAsAdmin, openAdminModule } from './helpers'
+import { acceptConfirmDialog, loginAsAdmin, openAdminModule } from './helpers'
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
@@ -33,8 +33,8 @@ test('Bảo mật tài khoản: hiển thị, thu hồi phiên khác và đăng 
   const revokeButtons = page.getByRole('button', { name: 'Thu hồi', exact: true })
   const revokeCountBefore = await revokeButtons.count()
   expect(revokeCountBefore).toBeGreaterThanOrEqual(1)
-  page.once('dialog', dialog => dialog.accept())
   await revokeButtons.first().click()
+  await acceptConfirmDialog(page)
   await expect.poll(() => revokeButtons.count()).toBe(revokeCountBefore - 1)
   await expect(page.locator('.account-session-list')).toContainText('Đã thu hồi')
 
@@ -49,8 +49,8 @@ test('Bảo mật tài khoản: hiển thị, thu hồi phiên khác và đăng 
   await page.getByRole('button', { name: '↻ Làm mới', exact: true }).click()
   await expect.poll(() => revokeButtons.count()).toBe(revokeCountBefore)
 
-  page.once('dialog', dialog => dialog.accept())
   await page.getByRole('button', { name: 'Đăng xuất tất cả', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.getByRole('heading', { name: 'Đăng nhập hệ thống' })).toBeVisible()
   await expect(page.getByText(/phiên đã được thu hồi/i)).toBeVisible()
 })

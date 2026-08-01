@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures'
 import {
+  acceptConfirmDialog,
   bearerHeaders,
   loginAsAdmin,
   openAdminModule,
@@ -83,18 +84,18 @@ test('Đặt bàn: tạo, xem chi tiết, sửa và đi hết vòng đời trạ
   await expect(row).toContainText('5 người')
   await expect(row).toContainText('300.000')
 
-  page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Xác nhận', exact: true }).click()
+  await acceptConfirmDialog(page)
   row = page.locator('.reservations-table tbody tr').filter({ hasText: updatedCustomerName })
   await expect(row).toContainText('Đã xác nhận')
 
-  page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Nhận bàn', exact: true }).click()
+  await acceptConfirmDialog(page)
   row = page.locator('.reservations-table tbody tr').filter({ hasText: updatedCustomerName })
   await expect(row).toContainText('Đã nhận bàn')
 
-  page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Hoàn tất', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('.reservations-table tbody tr').filter({ hasText: updatedCustomerName }))
     .toContainText('Hoàn tất')
 })
@@ -130,8 +131,8 @@ test('Đặt bàn: hủy lịch đang chờ xác nhận', async ({ page, request
   await modal.getByRole('button', { name: /Tạo đặt bàn|Lưu đặt bàn|Đang lưu/ }).click()
 
   let row = page.locator('.reservations-table tbody tr').filter({ hasText: customerName })
-  page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Hủy', exact: true }).click()
+  await acceptConfirmDialog(page)
   row = page.locator('.reservations-table tbody tr').filter({ hasText: customerName })
   await expect(row).toContainText('Đã hủy')
 })

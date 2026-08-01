@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { loginAsAdmin, openAdminModule } from './helpers'
+import { acceptConfirmDialog, loginAsAdmin, openAdminModule } from './helpers'
 
 function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
@@ -63,8 +63,8 @@ test('Khuyến mãi: tạo, lọc, xem chi tiết, sửa, vô hiệu và kích h
   await expect(card).toContainText('20%')
   await expect(card).toContainText('75.000')
 
-  page.once('dialog', dialog => dialog.accept())
   await card.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
+  await acceptConfirmDialog(page)
   card = page.locator('.promotion-card').filter({ hasText: code })
   await expect(card).toContainText('Đã vô hiệu')
 

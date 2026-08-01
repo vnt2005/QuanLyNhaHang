@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { bearerHeaders, loginAsAdmin, openAdminModule } from './helpers'
+import { acceptConfirmDialog, bearerHeaders, loginAsAdmin, openAdminModule } from './helpers'
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
@@ -51,8 +51,8 @@ test('Cấu hình nhà hàng: xử lý cấu hình đang hoạt động, tạo, 
     .filter({ hasText: existingName })
   await expect(activeRow).toBeVisible()
   await expect(activeRow).toContainText('Đang hoạt động')
-  page.once('dialog', dialog => dialog.accept())
   await activeRow.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(activeRow).toContainText('Đã vô hiệu')
   await expect(createButton).toBeEnabled()
   await expect(page.locator('.active-setting-card')).not.toContainText(existingName)
@@ -103,14 +103,14 @@ test('Cấu hình nhà hàng: xử lý cấu hình đang hoạt động, tạo, 
   await expect(row).toContainText('Phục vụ 7,5%')
   await expect(page.locator('.active-setting-card')).toContainText(updatedName)
 
-  page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Vô hiệu', exact: true }).click()
+  await acceptConfirmDialog(page)
   row = page.locator('.restaurant-settings-table tbody tr').filter({ hasText: updatedName })
   await expect(row).toContainText('Đã vô hiệu')
   await expect(createButton).toBeEnabled()
 
-  page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Kích hoạt', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('.restaurant-settings-table tbody tr').filter({ hasText: updatedName }))
     .toContainText('Đang hoạt động')
   await expect(page.locator('.active-setting-card')).toContainText(updatedName)

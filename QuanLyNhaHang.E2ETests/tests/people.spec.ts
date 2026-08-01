@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { loginAsAdmin, openAdminModule } from './helpers'
+import { acceptConfirmDialog, loginAsAdmin, openAdminModule } from './helpers'
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
@@ -55,8 +55,8 @@ test('Nhân viên: tạo, tìm kiếm, sửa và ngừng hoạt động', async 
   await expect(row).toContainText('Thu ngân E2E')
   await expect(row).toContainText('8.500.000 ₫')
 
-  page.once('dialog', dialog => dialog.accept())
   await row.getByRole('button', { name: 'Ngừng', exact: true }).click()
+  await acceptConfirmDialog(page)
   await expect(page.locator('.inline-alert.success')).toBeVisible()
   await expect(page.locator('tbody tr').filter({ hasText: employeeCode }))
     .toContainText('Ngừng hoạt động')
