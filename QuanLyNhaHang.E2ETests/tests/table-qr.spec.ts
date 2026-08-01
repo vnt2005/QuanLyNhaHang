@@ -8,6 +8,8 @@ import {
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
+const frontendURL = (process.env.E2E_BASE_URL ?? 'http://localhost:5173')
+  .replace(/\/$/, '')
 
 function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
@@ -65,7 +67,7 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
     headers,
     data: {
       restaurantTableId: table.id,
-      clientBaseUrl: 'http://localhost:5173',
+      clientBaseUrl: frontendURL,
       note,
     },
   })
@@ -90,7 +92,7 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
 
   await openAdminModule(page, 'QR bàn')
   const clientUrl = page.getByPlaceholder('https://order.example.com')
-  await clientUrl.fill('http://localhost:5173')
+  await clientUrl.fill(frontendURL)
   await page.getByRole('button', { name: 'Lưu địa chỉ', exact: true }).click()
   await expect(page.getByText('Đã lưu địa chỉ ứng dụng gọi món trên trình duyệt này.', { exact: true }))
     .toBeVisible()
