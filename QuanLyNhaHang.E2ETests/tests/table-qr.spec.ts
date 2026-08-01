@@ -74,6 +74,13 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   const originalToken = createdQr.data.token
   expect(originalToken).not.toBe('')
 
+  const publicMenuResponse = await request.get(
+    `${apiURL}/api/qr-order/${encodeURIComponent(originalToken)}/menu-items`,
+  )
+  expect(publicMenuResponse.ok()).toBeTruthy()
+  const publicMenuItems = await publicMenuResponse.json() as Array<{ name: string }>
+  expect(publicMenuItems.map(item => item.name)).toContain(menuItemName)
+
   await openAdminModule(page, 'QR bàn')
   const clientUrl = page.getByPlaceholder('https://order.example.com')
   await clientUrl.fill('http://localhost:5173')
@@ -106,7 +113,7 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   const scan = page.locator('.table-qr-scan-modal')
   await expect(scan).toBeVisible()
   await expect(scan).toContainText(tableName)
-  await expect(scan).toContainText(menuItemName)
+  await expect(scan).toContainText('Thực đơn đang phục vụ')
   const scanClose = scan.locator('button[aria-label="Đóng"]').first()
   if (await scanClose.count()) await scanClose.click()
   else await page.keyboard.press('Escape')
