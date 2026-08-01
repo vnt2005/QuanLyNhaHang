@@ -25,6 +25,7 @@ const loadMenuManagementPage = () => import('./pages/MenuManagementPage')
 const loadOrdersPage = () => import('./pages/OrdersPage')
 const loadPaymentsPage = () => import('./pages/PaymentsPage')
 const loadPromotionsPage = () => import('./pages/PromotionsPage')
+const loadQrOrderPage = () => import('./pages/QrOrderPage')
 const loadReservationsPage = () => import('./pages/ReservationsPage')
 const loadRestaurantSettingsPage = () =>
   import('./pages/RestaurantSettingsPage')
@@ -47,6 +48,7 @@ const MenuManagementPage = lazy(loadMenuManagementPage)
 const OrdersPage = lazy(loadOrdersPage)
 const PaymentsPage = lazy(loadPaymentsPage)
 const PromotionsPage = lazy(loadPromotionsPage)
+const QrOrderPage = lazy(loadQrOrderPage)
 const ReservationsPage = lazy(loadReservationsPage)
 const RestaurantSettingsPage = lazy(loadRestaurantSettingsPage)
 const RevenueReportsPage = lazy(loadRevenueReportsPage)
@@ -211,6 +213,17 @@ const navigation: NavigationItem[] = [
 
 const ADMIN_ROLES = new Set(['Admin', 'Manager', 'Cashier', 'Kitchen', 'Staff'])
 
+function getQrOrderToken() {
+  if (typeof window === 'undefined') return null
+  const match = window.location.pathname.match(/^\/qr-order\/([^/]+)\/?$/i)
+  if (!match?.[1]) return null
+  try {
+    return decodeURIComponent(match[1])
+  } catch {
+    return match[1]
+  }
+}
+
 function getRefreshDelay(token: string) {
   const fallbackDelay = 10 * 60 * 1000
   try {
@@ -242,7 +255,20 @@ function ModuleLoading({ label }: { label: string }) {
   )
 }
 
+function QrOrderLoading() {
+  return (
+    <main className="qr-order-page qr-order-state-page">
+      <div className="qr-order-state-card" role="status">
+        <span className="qr-order-spinner" />
+        <h1>Đang mở trang gọi món…</h1>
+        <p>Vui lòng chờ trong giây lát.</p>
+      </div>
+    </main>
+  )
+}
+
 export default function App() {
+  const qrOrderToken = getQrOrderToken()
   const [result, setResult] = useState<LoginResult | null>(null)
   const [activeItem, setActiveItem] = useState('Tổng quan')
   const [restoringSession, setRestoringSession] = useState(true)
@@ -280,6 +306,11 @@ export default function App() {
   )
 
   useEffect(() => {
+    if (qrOrderToken) {
+      setRestoringSession(false)
+      return
+    }
+
     let disposed = false
     const refreshToken = getStoredRefreshToken()
     if (!refreshToken) {
@@ -310,10 +341,10 @@ export default function App() {
     return () => {
       disposed = true
     }
-  }, [acceptAuthentication, clearSession])
+  }, [acceptAuthentication, clearSession, qrOrderToken])
 
   useEffect(() => {
-    if (!result?.token || !result.refreshToken) return
+    if (qrOrderToken || !result?.token || !result.refreshToken) return
     let disposed = false
     const refreshToken = result.refreshToken
     const timer = window.setTimeout(async () => {
@@ -333,7 +364,15 @@ export default function App() {
       disposed = true
       window.clearTimeout(timer)
     }
-  }, [acceptAuthentication, clearSession, result?.refreshToken, result?.token])
+  }, [acceptAuthentication, clearSession, qrOrderToken, result?.refreshToken, result?.token])
+
+  if (qrOrderToken) {
+    return (
+      <Suspense fallback={<QrOrderLoading />}>
+        <QrOrderPage token={qrOrderToken} />
+      </Suspense>
+    )
+  }
 
   async function handleLogout() {
     const refreshToken = result?.refreshToken ?? getStoredRefreshToken()

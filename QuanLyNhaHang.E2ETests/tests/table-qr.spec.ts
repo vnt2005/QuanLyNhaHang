@@ -8,6 +8,8 @@ import {
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
+const frontendURL = (process.env.E2E_BASE_URL ?? 'http://localhost:5173')
+  .replace(/\/$/, '')
 
 function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
@@ -19,7 +21,7 @@ type TableQrResponse = {
   }
 }
 
-test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại và vô hiệu', async ({ page, request }) => {
+test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, tạo lại và vô hiệu', async ({ page, request }) => {
   const id = suffix()
   const areaName = `Khu QR E2E ${id}`
   const tableName = `Bàn QR E2E ${id}`
@@ -54,7 +56,7 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
     data: {
       menuCategoryId: category.id,
       name: menuItemName,
-      description: 'Món hiển thị khi mô phỏng QR.',
+      description: 'Món hiển thị trên trang gọi món QR thật.',
       price: 90000,
       imageUrl: null,
     },
@@ -65,7 +67,7 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
     headers,
     data: {
       restaurantTableId: table.id,
-      clientBaseUrl: 'http://localhost:5173',
+      clientBaseUrl: frontendURL,
       note,
     },
   })
@@ -78,12 +80,19 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
     `${apiURL}/api/qr-order/${encodeURIComponent(originalToken)}/menu-items`,
   )
   expect(publicMenuResponse.ok()).toBeTruthy()
-  const publicMenuItems = await publicMenuResponse.json() as Array<{ name: string }>
-  expect(publicMenuItems.map(item => item.name)).toContain(menuItemName)
+  const publicMenuItems = await publicMenuResponse.json() as Array<{
+    name: string
+    menuCategoryName: string
+    description?: string | null
+  }>
+  const createdMenuItem = publicMenuItems.find(item => item.name === menuItemName)
+  expect(createdMenuItem).toBeTruthy()
+  expect(createdMenuItem?.menuCategoryName).toBe(`Danh mục QR ${id}`)
+  expect(createdMenuItem?.description).toContain('QR thật')
 
   await openAdminModule(page, 'QR bàn')
   const clientUrl = page.getByPlaceholder('https://order.example.com')
-  await clientUrl.fill('http://localhost:5173')
+  await clientUrl.fill(frontendURL)
   await page.getByRole('button', { name: 'Lưu địa chỉ', exact: true }).click()
   await expect(page.getByText('Đã lưu địa chỉ ứng dụng gọi món trên trình duyệt này.', { exact: true }))
     .toBeVisible()
@@ -109,14 +118,20 @@ test('QR bàn: tạo, tải ảnh, mô phỏng quét, sửa, khóa, tạo lại 
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/\.png$/)
 
-  await detail.getByRole('button', { name: 'Mô phỏng quét', exact: true }).click()
-  const scan = page.locator('.table-qr-scan-modal')
-  await expect(scan).toBeVisible()
-  await expect(scan).toContainText(tableName)
-  await expect(scan).toContainText('Thực đơn đang phục vụ')
-  const scanClose = scan.locator('button[aria-label="Đóng"]').first()
-  if (await scanClose.count()) await scanClose.click()
-  else await page.keyboard.press('Escape')
+  await detail.getByRole('button', { name: 'Kiểm tra gọi món thật', exact: true }).click()
+  const livePreview = page.locator('.table-qr-live-modal')
+  await expect(livePreview).toBeVisible()
+  const liveFrame = page.frameLocator('.table-qr-live-frame')
+  await expect(liveFrame.getByRole('heading', {
+    name: 'Chọn món, kiểm tra giỏ và xác nhận',
+  })).toBeVisible()
+  await expect(liveFrame.getByText(tableName, { exact: true }).first()).toBeVisible()
+  await expect(liveFrame.getByText(menuItemName, { exact: true })).toBeVisible()
+  await livePreview
+    .locator('.table-qr-live-actions')
+    .getByRole('button', { name: 'Đóng', exact: true })
+    .click()
+  await expect(livePreview).toHaveCount(0)
 
   detail = page.locator('.table-qr-detail-modal')
   await detail.getByRole('button', { name: 'Sửa ghi chú', exact: true }).click()
