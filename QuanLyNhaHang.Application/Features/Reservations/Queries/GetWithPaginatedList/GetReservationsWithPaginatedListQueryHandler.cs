@@ -61,7 +61,8 @@ public class GetReservationsWithPaginatedListQueryHandler
         }
 
         var reservationDtos = query
-            .OrderByDescending(x => x.Reservation.ReservationTime)
+            .OrderByDescending(x => x.Reservation.CreatedAt)
+            .ThenByDescending(x => x.Reservation.ReservationCode)
             .Select(x => new ReservationDto
             {
                 Id = x.Reservation.Id,
