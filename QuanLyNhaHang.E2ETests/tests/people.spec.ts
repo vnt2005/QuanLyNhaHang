@@ -3,9 +3,68 @@ import { acceptConfirmDialog, loginAsAdmin, openAdminModule } from './helpers'
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
+const mailpitURL = (process.env.E2E_MAILPIT_URL ?? 'http://localhost:8025')
+  .replace(/\/$/, '')
 
 function uniqueSuffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
+}
+
+function findVerificationCode(payload: unknown) {
+  const content = JSON.stringify(payload)
+  return content.match(/Mã xác minh email của bạn là:\s*(\d{6})/i)?.[1]
+    ?? content.match(/mã xác minh[^0-9]*(\d{6})/i)?.[1]
+    ?? ''
+}
+
+async function waitForVerificationCode(
+  request: Parameters<typeof test>[0] extends never ? never : any,
+  email: string,
+) {
+  let verificationCode = ''
+
+  await expect.poll(async () => {
+    const searchResponse = await request.get(
+      `${mailpitURL}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`,
+    )
+
+    if (!searchResponse.ok()) {
+      return ''
+    }
+
+    const searchResult = await searchResponse.json()
+    const messages = searchResult.messages ?? searchResult.Messages ?? []
+
+    for (const message of messages) {
+      verificationCode = findVerificationCode(message)
+      if (verificationCode) {
+        return verificationCode
+      }
+
+      const messageId = message.ID ?? message.Id ?? message.id
+      if (!messageId) {
+        continue
+      }
+
+      const messageResponse = await request.get(`${mailpitURL}/api/v1/message/${messageId}`)
+      if (!messageResponse.ok()) {
+        continue
+      }
+
+      verificationCode = findVerificationCode(await messageResponse.json())
+      if (verificationCode) {
+        return verificationCode
+      }
+    }
+
+    return ''
+  }, {
+    message: `Không tìm thấy mã xác minh Mailpit cho ${email}`,
+    timeout: 15_000,
+    intervals: [250, 500, 1_000],
+  }).toMatch(/^\d{6}$/)
+
+  return verificationCode
 }
 
 test('Nhân viên: tạo, tìm kiếm, sửa và ngừng hoạt động', async ({ page }) => {
@@ -62,7 +121,7 @@ test('Nhân viên: tạo, tìm kiếm, sửa và ngừng hoạt động', async 
     .toContainText('Ngừng hoạt động')
 })
 
-test('Khách hàng: đăng ký, tìm kiếm, xem chi tiết, cập nhật và khóa', async ({ page, request }) => {
+test('Khách hàng: đăng ký, xác minh email, tìm kiếm, xem chi tiết, cập nhật và khóa', async ({ page, request }) => {
   const suffix = uniqueSuffix()
   const email = `customer-${suffix}@example.com`
   const phone = `08${suffix.slice(-8).padStart(8, '0')}`
@@ -78,6 +137,15 @@ test('Khách hàng: đăng ký, tìm kiếm, xem chi tiết, cập nhật và kh
   })
   expect(registerResponse.ok()).toBeTruthy()
 
+  const verificationCode = await waitForVerificationCode(request, email)
+  const verifyResponse = await request.post(`${apiURL}/api/auth/verify-email`, {
+    data: {
+      email,
+      code: verificationCode,
+    },
+  })
+  expect(verifyResponse.ok()).toBeTruthy()
+
   await loginAsAdmin(page)
   await openAdminModule(page, 'Khách hàng')
 
@@ -87,13 +155,14 @@ test('Khách hàng: đăng ký, tìm kiếm, xem chi tiết, cập nhật và kh
 
   let row = page.locator('tbody tr').filter({ hasText: email })
   await expect(row).toBeVisible()
-  await expect(row).toContainText('Chưa xác minh')
+  await expect(row).toContainText('Đã xác minh')
   await expect(row).toContainText('Hoạt động')
 
   await row.getByRole('button', { name: 'Chi tiết', exact: true }).click()
   const detail = page.locator('.customer-detail-modal')
   await expect(detail).toContainText(email)
   await expect(detail).toContainText(phone)
+  await expect(detail).toContainText('Đã xác minh')
   await detail.getByRole('button', { name: 'Đóng', exact: true }).click()
 
   row = page.locator('tbody tr').filter({ hasText: email })
@@ -106,6 +175,7 @@ test('Khách hàng: đăng ký, tìm kiếm, xem chi tiết, cập nhật và kh
   await expect(page.getByText('Cập nhật người dùng thành công.', { exact: true })).toBeVisible()
   row = page.locator('tbody tr').filter({ hasText: email })
   await expect(row).toContainText('Khách E2E đã sửa')
+  await expect(row).toContainText('Đã xác minh')
   await expect(row).toContainText('Đã khóa')
 
   await page.locator('.customer-toolbar select').selectOption('locked')
