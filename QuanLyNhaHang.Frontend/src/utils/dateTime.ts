@@ -1,5 +1,6 @@
 export const RESTAURANT_TIME_ZONE = 'Asia/Ho_Chi_Minh'
 const VIETNAM_OFFSET = '+07:00'
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
 export function parseApiDateTime(value: string | Date) {
   if (value instanceof Date) return value
@@ -33,6 +34,15 @@ export function formatRestaurantTime(value: string | Date) {
 export function toRestaurantDateInput(value: Date) {
   const parts = getRestaurantParts(value)
   return `${parts.year}-${parts.month}-${parts.day}`
+}
+
+export function toRestaurantDateFilter(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  if (DATE_ONLY_PATTERN.test(trimmed)) return trimmed
+
+  const date = parseApiDateTime(trimmed)
+  return Number.isNaN(date.getTime()) ? '' : toRestaurantDateInput(date)
 }
 
 export function toRestaurantDateTimeInput(value: string | Date) {
