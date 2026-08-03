@@ -36,6 +36,28 @@ public class RestaurantTimeTests
     }
 
     [Fact]
+    public void GetUtcRange_NormalizesLegacyUtcFilterToVietnamDate()
+    {
+        var legacyStartOfDayIso = new DateTime(
+            2026,
+            8,
+            3,
+            17,
+            0,
+            0,
+            DateTimeKind.Utc);
+
+        var range = RestaurantTime.GetUtcRange(
+            legacyStartOfDayIso,
+            legacyStartOfDayIso);
+
+        Assert.Equal(legacyStartOfDayIso, range.StartUtc);
+        Assert.Equal(
+            new DateTime(2026, 8, 4, 17, 0, 0, DateTimeKind.Utc),
+            range.EndUtc);
+    }
+
+    [Fact]
     public void ToLocal_AssignsEarlyUtcHoursToTheCorrectVietnamDay()
     {
         var utcValue = new DateTime(
