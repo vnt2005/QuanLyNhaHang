@@ -25,6 +25,7 @@ test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', a
   const tableName = `Bàn thời gian E2E ${id}`
   const customerName = `Khách thời gian E2E ${id}`
   const localDateTime = vietnamFutureDateTime()
+  const localDate = localDateTime.slice(0, 10)
   const expectedUtc = new Date(`${localDateTime}:00+07:00`).toISOString()
 
   const session = await loginAsAdmin(page)
@@ -68,6 +69,7 @@ test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', a
   expect(createResponse.status()).toBe(200)
   const envelope = await createResponse.json() as {
     data: {
+      id: string
       reservationTime: string
       createdAt: string
     }
@@ -76,6 +78,16 @@ test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', a
   expect(envelope.data.reservationTime).toBe(expectedUtc)
   expect(envelope.data.reservationTime).toMatch(/Z$/)
   expect(envelope.data.createdAt).toMatch(/Z$/)
+
+  const filteredResponse = await request.get(
+    `${apiURL}/api/reservations/paginated?fromDate=${localDate}&toDate=${localDate}&pageNumber=1&pageSize=100`,
+    { headers },
+  )
+  expect(filteredResponse.ok()).toBeTruthy()
+  const filteredResult = await filteredResponse.json() as {
+    items: Array<{ id: string }>
+  }
+  expect(filteredResult.items.map(item => item.id)).toContain(envelope.data.id)
 
   const expectedDisplay = new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'short',
