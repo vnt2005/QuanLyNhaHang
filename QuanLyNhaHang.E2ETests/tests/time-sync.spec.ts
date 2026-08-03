@@ -7,6 +7,7 @@ import {
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
+const restaurantTimeZone = 'Asia/Ho_Chi_Minh'
 
 function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
@@ -14,9 +15,16 @@ function suffix() {
 
 function vietnamFutureDateTime() {
   const date = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-  date.setHours(19, 15, 0, 0)
-  const offset = date.getTimezoneOffset()
-  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16)
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: restaurantTimeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find(item => item.type === type)?.value ?? ''
+
+  return `${part('year')}-${part('month')}-${part('day')}T19:15`
 }
 
 test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', async ({ page, request }) => {
@@ -25,6 +33,7 @@ test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', a
   const tableName = `Bàn thời gian E2E ${id}`
   const customerName = `Khách thời gian E2E ${id}`
   const localDateTime = vietnamFutureDateTime()
+  const localDate = localDateTime.slice(0, 10)
   const expectedUtc = new Date(`${localDateTime}:00+07:00`).toISOString()
 
   const session = await loginAsAdmin(page)
@@ -68,19 +77,31 @@ test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', a
   expect(createResponse.status()).toBe(200)
   const envelope = await createResponse.json() as {
     data: {
+      id: string
       reservationTime: string
       createdAt: string
     }
   }
 
-  expect(envelope.data.reservationTime).toBe(expectedUtc)
+  expect(new Date(envelope.data.reservationTime).getTime())
+    .toBe(new Date(expectedUtc).getTime())
   expect(envelope.data.reservationTime).toMatch(/Z$/)
   expect(envelope.data.createdAt).toMatch(/Z$/)
+
+  const filteredResponse = await request.get(
+    `${apiURL}/api/reservations/paginated?fromDate=${localDate}&toDate=${localDate}&pageNumber=1&pageSize=100`,
+    { headers },
+  )
+  expect(filteredResponse.ok()).toBeTruthy()
+  const filteredResult = await filteredResponse.json() as {
+    items: Array<{ id: string }>
+  }
+  expect(filteredResult.items.map(item => item.id)).toContain(envelope.data.id)
 
   const expectedDisplay = new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'short',
     timeStyle: 'short',
-    timeZone: 'Asia/Ho_Chi_Minh',
+    timeZone: restaurantTimeZone,
   }).format(new Date(expectedUtc))
 
   const row = page.locator('.reservations-table tbody tr')
