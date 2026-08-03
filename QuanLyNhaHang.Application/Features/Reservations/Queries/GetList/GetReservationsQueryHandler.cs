@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.Reservations.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Reservations.Queries.GetList;
@@ -30,19 +31,18 @@ public class GetReservationsQueryHandler
             };
 
         if (!string.IsNullOrWhiteSpace(request.Status))
-        {
             query = query.Where(x => x.Reservation.Status == request.Status);
-        }
 
         if (request.FromDate.HasValue)
         {
-            query = query.Where(x => x.Reservation.ReservationTime >= request.FromDate.Value.Date);
+            var fromUtc = RestaurantTime.GetUtcStart(request.FromDate.Value);
+            query = query.Where(x => x.Reservation.ReservationTime >= fromUtc);
         }
 
         if (request.ToDate.HasValue)
         {
-            var toDate = request.ToDate.Value.Date.AddDays(1);
-            query = query.Where(x => x.Reservation.ReservationTime < toDate);
+            var toUtcExclusive = RestaurantTime.GetUtcEndExclusive(request.ToDate.Value);
+            query = query.Where(x => x.Reservation.ReservationTime < toUtcExclusive);
         }
 
         return await query
