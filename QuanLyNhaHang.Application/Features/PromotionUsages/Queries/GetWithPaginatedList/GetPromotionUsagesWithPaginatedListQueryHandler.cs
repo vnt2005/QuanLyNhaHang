@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Models;
+using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.PromotionUsages.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.PromotionUsages.Queries.GetWithPaginatedList;
@@ -42,7 +43,6 @@ public class GetPromotionUsagesWithPaginatedListQueryHandler
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
-
             query = query.Where(x =>
                 x.Usage.PromotionCode.Contains(keyword) ||
                 (x.Promotion != null && x.Promotion.Name.Contains(keyword)) ||
@@ -51,35 +51,30 @@ public class GetPromotionUsagesWithPaginatedListQueryHandler
         }
 
         if (request.PromotionId.HasValue)
-        {
             query = query.Where(x => x.Usage.PromotionId == request.PromotionId.Value);
-        }
 
         if (request.OrderId.HasValue)
-        {
             query = query.Where(x => x.Usage.OrderId == request.OrderId.Value);
-        }
 
         if (request.PaymentId.HasValue)
-        {
             query = query.Where(x => x.Usage.PaymentId == request.PaymentId.Value);
-        }
 
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             var status = request.Status.Trim();
-
             query = query.Where(x => x.Usage.Status == status);
         }
 
         if (request.FromDate.HasValue)
         {
-            query = query.Where(x => x.Usage.UsedAt >= request.FromDate.Value);
+            var fromUtc = RestaurantTime.GetUtcStart(request.FromDate.Value);
+            query = query.Where(x => x.Usage.UsedAt >= fromUtc);
         }
 
         if (request.ToDate.HasValue)
         {
-            query = query.Where(x => x.Usage.UsedAt <= request.ToDate.Value);
+            var toUtcExclusive = RestaurantTime.GetUtcEndExclusive(request.ToDate.Value);
+            query = query.Where(x => x.Usage.UsedAt < toUtcExclusive);
         }
 
         var promotionUsageDtos = query
