@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.RevenueReports.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetSummary;
@@ -19,21 +20,22 @@ public class GetRevenueReportSummaryQueryHandler
         GetRevenueReportSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        var fromDate = request.FromDate?.Date ?? DateTime.Today;
+        var fromDate = request.FromDate?.Date ?? RestaurantTime.LocalToday;
+        var toDate = request.ToDate?.Date ?? RestaurantTime.LocalToday;
 
-        var toDate = request.ToDate?.Date.AddDays(1).AddTicks(-1)
-                     ?? DateTime.Today.AddDays(1).AddTicks(-1);
+        if (fromDate > toDate)
+            (fromDate, toDate) = (toDate, fromDate);
+
+        var utcRange = RestaurantTime.GetUtcRange(fromDate, toDate);
 
         var invoices = await _context.Invoices
             .Where(x =>
                 x.Status != "Cancelled" &&
-                x.IssuedAt >= fromDate &&
-                x.IssuedAt <= toDate)
+                x.IssuedAt >= utcRange.StartUtc &&
+                x.IssuedAt < utcRange.EndUtc)
             .ToListAsync(cancellationToken);
 
-        var invoiceIds = invoices
-            .Select(x => x.Id)
-            .ToList();
+        var invoiceIds = invoices.Select(x => x.Id).ToList();
 
         var invoiceItems = await _context.InvoiceItems
             .Where(x => invoiceIds.Contains(x.InvoiceId))
@@ -64,25 +66,17 @@ public class GetRevenueReportSummaryQueryHandler
         {
             FromDate = fromDate,
             ToDate = toDate,
-
             TotalInvoices = totalInvoices,
-
-            TotalOrders = invoices
-                .Select(x => x.OrderId)
-                .Distinct()
-                .Count(),
-
+            TotalOrders = invoices.Select(x => x.OrderId).Distinct().Count(),
             TotalAmount = invoices.Sum(x => x.TotalAmount),
             TotalDiscountAmount = invoices.Sum(x => x.DiscountAmount),
             TotalVatAmount = invoices.Sum(x => x.VatAmount),
             TotalRevenue = totalRevenue,
             TotalCustomerPaid = invoices.Sum(x => x.CustomerPaid),
             TotalChangeAmount = invoices.Sum(x => x.ChangeAmount),
-
             AverageRevenuePerInvoice = totalInvoices == 0
                 ? 0
                 : totalRevenue / totalInvoices,
-
             Items = summaryItems
         };
     }
