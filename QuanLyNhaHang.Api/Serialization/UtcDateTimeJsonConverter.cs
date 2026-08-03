@@ -7,6 +7,8 @@ namespace QuanLyNhaHang.Api.Serialization;
 
 public sealed class UtcDateTimeJsonConverter : JsonConverter<DateTime>
 {
+    private const string DateOnlyFormat = "yyyy-MM-dd";
+
     public override DateTime Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
@@ -19,18 +21,33 @@ public sealed class UtcDateTimeJsonConverter : JsonConverter<DateTime>
         if (string.IsNullOrWhiteSpace(value))
             throw new JsonException("Giá trị thời gian không được để trống.");
 
+        var trimmedValue = value.Trim();
+
+        // Các trường khoảng ngày (báo cáo, bộ lọc) là ngày theo lịch nhà hàng,
+        // không phải một thời điểm UTC. Giữ DateTimeKind.Unspecified để handler
+        // quy đổi biên ngày sang UTC đúng một lần.
+        if (DateTime.TryParseExact(
+                trimmedValue,
+                DateOnlyFormat,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var dateOnlyValue))
+        {
+            return DateTime.SpecifyKind(dateOnlyValue, DateTimeKind.Unspecified);
+        }
+
         if (DateTimeOffset.TryParse(
-                value,
+                trimmedValue,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AllowWhiteSpaces,
                 out var dateTimeOffset) &&
-            HasExplicitOffset(value))
+            HasExplicitOffset(trimmedValue))
         {
             return dateTimeOffset.UtcDateTime;
         }
 
         if (!DateTime.TryParse(
-                value,
+                trimmedValue,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AllowWhiteSpaces,
                 out var localDateTime))
