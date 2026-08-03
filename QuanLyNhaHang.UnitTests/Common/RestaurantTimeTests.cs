@@ -20,6 +20,21 @@ public class RestaurantTimeTests
     }
 
     [Fact]
+    public void GetUtcRange_UsesExclusiveEndForMultipleVietnamDays()
+    {
+        var range = RestaurantTime.GetUtcRange(
+            new DateTime(2026, 8, 4),
+            new DateTime(2026, 8, 6));
+
+        Assert.Equal(
+            new DateTime(2026, 8, 3, 17, 0, 0, DateTimeKind.Utc),
+            range.StartUtc);
+        Assert.Equal(
+            new DateTime(2026, 8, 6, 17, 0, 0, DateTimeKind.Utc),
+            range.EndUtc);
+    }
+
+    [Fact]
     public void ToLocal_AssignsEarlyUtcHoursToTheCorrectVietnamDay()
     {
         var utcValue = new DateTime(
