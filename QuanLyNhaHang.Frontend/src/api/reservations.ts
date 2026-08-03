@@ -1,3 +1,5 @@
+import { restaurantDateTimeInputToIso } from '../utils/dateTime'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7134'
 
 export type ReservationStatus = 'Pending' | 'Confirmed' | 'CheckedIn' | 'Completed' | 'Cancelled' | 'NoShow'
@@ -159,7 +161,7 @@ function normalizeInput(input: ReservationInput) {
     phoneNumber: input.phoneNumber.trim(),
     email: input.email.trim() || null,
     numberOfGuests: input.numberOfGuests,
-    reservationTime: new Date(input.reservationTime).toISOString(),
+    reservationTime: restaurantDateTimeInputToIso(input.reservationTime),
     depositAmount: input.depositAmount,
     note: input.note.trim() || null,
   }
