@@ -36,15 +36,25 @@ public static class RestaurantTime
         return TimeZoneInfo.ConvertTimeFromUtc(utcValue, TimeZone);
     }
 
+    public static DateTime GetLocalDate(DateTime value)
+    {
+        return value.Kind == DateTimeKind.Unspecified
+            ? value.Date
+            : ToLocal(value).Date;
+    }
+
     public static (DateTime StartUtc, DateTime EndUtc) GetUtcRange(
         DateTime fromLocalDate,
         DateTime toLocalDate)
     {
+        var normalizedFromDate = GetLocalDate(fromLocalDate);
+        var normalizedToDate = GetLocalDate(toLocalDate);
+
         var startLocal = DateTime.SpecifyKind(
-            fromLocalDate.Date,
+            normalizedFromDate,
             DateTimeKind.Unspecified);
         var endLocal = DateTime.SpecifyKind(
-            toLocalDate.Date.AddDays(1),
+            normalizedToDate.AddDays(1),
             DateTimeKind.Unspecified);
 
         return (
