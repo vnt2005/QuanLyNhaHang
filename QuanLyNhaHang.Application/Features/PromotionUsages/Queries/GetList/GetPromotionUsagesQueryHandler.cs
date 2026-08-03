@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.PromotionUsages.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.PromotionUsages.Queries.GetList;
@@ -39,45 +40,39 @@ public class GetPromotionUsagesQueryHandler
             };
 
         if (request.PromotionId.HasValue)
-        {
             query = query.Where(x => x.Usage.PromotionId == request.PromotionId.Value);
-        }
 
         if (request.OrderId.HasValue)
-        {
             query = query.Where(x => x.Usage.OrderId == request.OrderId.Value);
-        }
 
         if (request.PaymentId.HasValue)
-        {
             query = query.Where(x => x.Usage.PaymentId == request.PaymentId.Value);
-        }
 
         if (!string.IsNullOrWhiteSpace(request.PromotionCode))
         {
             var promotionCode = request.PromotionCode.Trim().ToUpper();
-
             query = query.Where(x => x.Usage.PromotionCode.Contains(promotionCode));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             var status = request.Status.Trim();
-
             query = query.Where(x => x.Usage.Status == status);
         }
 
         if (request.FromDate.HasValue)
         {
-            query = query.Where(x => x.Usage.UsedAt >= request.FromDate.Value);
+            var fromUtc = RestaurantTime.GetUtcStart(request.FromDate.Value);
+            query = query.Where(x => x.Usage.UsedAt >= fromUtc);
         }
 
         if (request.ToDate.HasValue)
         {
-            query = query.Where(x => x.Usage.UsedAt <= request.ToDate.Value);
+            var toUtcExclusive = RestaurantTime.GetUtcEndExclusive(request.ToDate.Value);
+            query = query.Where(x => x.Usage.UsedAt < toUtcExclusive);
         }
 
-        var result = await query
+        return await query
             .OrderByDescending(x => x.Usage.UsedAt)
             .Select(x => new PromotionUsageDto
             {
@@ -97,7 +92,5 @@ public class GetPromotionUsagesQueryHandler
                 CancelledAt = x.Usage.CancelledAt
             })
             .ToListAsync(cancellationToken);
-
-        return result;
     }
 }
