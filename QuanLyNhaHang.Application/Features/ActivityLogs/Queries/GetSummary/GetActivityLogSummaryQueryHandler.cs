@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.ActivityLogs.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.ActivityLogs.Queries.GetSummary;
@@ -24,55 +25,53 @@ public class GetActivityLogSummaryQueryHandler
             .AsQueryable();
 
         if (request.UserId.HasValue)
-        {
             query = query.Where(x => x.UserId == request.UserId.Value);
-        }
 
         if (!string.IsNullOrWhiteSpace(request.ModuleName))
         {
             var moduleName = request.ModuleName.Trim();
-
             query = query.Where(x => x.ModuleName == moduleName);
         }
 
         if (request.FromDate.HasValue)
         {
-            query = query.Where(x => x.CreatedAt >= request.FromDate.Value);
+            var fromUtc = RestaurantTime.GetUtcStart(request.FromDate.Value);
+            query = query.Where(x => x.CreatedAt >= fromUtc);
         }
 
         if (request.ToDate.HasValue)
         {
-            query = query.Where(x => x.CreatedAt <= request.ToDate.Value);
+            var toUtcExclusive = RestaurantTime.GetUtcEndExclusive(request.ToDate.Value);
+            query = query.Where(x => x.CreatedAt < toUtcExclusive);
         }
 
-        var todayStart = DateTime.UtcNow.Date;
-        var tomorrowStart = todayStart.AddDays(1);
+        var todayRange = RestaurantTime.GetUtcRange(
+            RestaurantTime.LocalToday,
+            RestaurantTime.LocalToday);
 
         var totalLogs = await query.CountAsync(cancellationToken);
-
         var totalSuccessLogs = await query
             .CountAsync(x => x.Status == "Success", cancellationToken);
-
         var totalFailedLogs = await query
             .CountAsync(x => x.Status == "Failed", cancellationToken);
 
         var totalTodayLogs = await query
             .CountAsync(x =>
-                x.CreatedAt >= todayStart &&
-                x.CreatedAt < tomorrowStart,
+                x.CreatedAt >= todayRange.StartUtc &&
+                x.CreatedAt < todayRange.EndUtc,
                 cancellationToken);
 
         var totalTodaySuccessLogs = await query
             .CountAsync(x =>
-                x.CreatedAt >= todayStart &&
-                x.CreatedAt < tomorrowStart &&
+                x.CreatedAt >= todayRange.StartUtc &&
+                x.CreatedAt < todayRange.EndUtc &&
                 x.Status == "Success",
                 cancellationToken);
 
         var totalTodayFailedLogs = await query
             .CountAsync(x =>
-                x.CreatedAt >= todayStart &&
-                x.CreatedAt < tomorrowStart &&
+                x.CreatedAt >= todayRange.StartUtc &&
+                x.CreatedAt < todayRange.EndUtc &&
                 x.Status == "Failed",
                 cancellationToken);
 
