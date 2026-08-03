@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Models;
+using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.InventoryTransactions.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.InventoryTransactions.Queries.GetWithPaginatedList;
@@ -34,7 +35,6 @@ public class GetInventoryTransactionsWithPaginatedListQueryHandler
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
-
             query = query.Where(x =>
                 x.Transaction.TransactionCode.Contains(keyword) ||
                 x.Transaction.TransactionType.Contains(keyword) ||
@@ -45,37 +45,30 @@ public class GetInventoryTransactionsWithPaginatedListQueryHandler
         }
 
         if (request.IngredientId.HasValue)
-        {
-            query = query.Where(x =>
-                x.Transaction.IngredientId == request.IngredientId.Value);
-        }
+            query = query.Where(x => x.Transaction.IngredientId == request.IngredientId.Value);
 
         if (!string.IsNullOrWhiteSpace(request.TransactionType))
         {
             var transactionType = request.TransactionType.Trim();
-
-            query = query.Where(x =>
-                x.Transaction.TransactionType == transactionType);
+            query = query.Where(x => x.Transaction.TransactionType == transactionType);
         }
 
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             var status = request.Status.Trim();
-
-            query = query.Where(x =>
-                x.Transaction.Status == status);
+            query = query.Where(x => x.Transaction.Status == status);
         }
 
         if (request.FromDate.HasValue)
         {
-            query = query.Where(x =>
-                x.Transaction.TransactionDate >= request.FromDate.Value);
+            var fromUtc = RestaurantTime.GetUtcStart(request.FromDate.Value);
+            query = query.Where(x => x.Transaction.TransactionDate >= fromUtc);
         }
 
         if (request.ToDate.HasValue)
         {
-            query = query.Where(x =>
-                x.Transaction.TransactionDate <= request.ToDate.Value);
+            var toUtcExclusive = RestaurantTime.GetUtcEndExclusive(request.ToDate.Value);
+            query = query.Where(x => x.Transaction.TransactionDate < toUtcExclusive);
         }
 
         var inventoryTransactionDtos = query
