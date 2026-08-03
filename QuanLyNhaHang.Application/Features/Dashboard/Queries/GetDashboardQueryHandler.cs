@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.Dashboard.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Dashboard.Queries.GetDashboard;
@@ -18,34 +19,32 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         GetDashboardQuery request,
         CancellationToken cancellationToken)
     {
-        var today = DateTime.UtcNow.Date;
-        var tomorrow = today.AddDays(1);
-
+        var today = RestaurantTime.LocalToday;
         var fromDate = (request.FromDate ?? today.AddDays(-6)).Date;
         var toDate = (request.ToDate ?? today).Date;
 
         if (fromDate > toDate)
-        {
             (fromDate, toDate) = (toDate, fromDate);
-        }
 
-        var toDateExclusive = toDate.AddDays(1);
+        var todayRange = RestaurantTime.GetUtcRange(today, today);
+        var selectedRange = RestaurantTime.GetUtcRange(fromDate, toDate);
         var top = request.Top <= 0 ? 5 : request.Top;
 
         var overview = await GetOverviewAsync(
-            today,
-            tomorrow,
+            todayRange.StartUtc,
+            todayRange.EndUtc,
             cancellationToken);
 
         var revenueChart = await GetRevenueChartAsync(
             fromDate,
             toDate,
-            toDateExclusive,
+            selectedRange.StartUtc,
+            selectedRange.EndUtc,
             cancellationToken);
 
         var topSellingItems = await GetTopSellingItemsAsync(
-            fromDate,
-            toDateExclusive,
+            selectedRange.StartUtc,
+            selectedRange.EndUtc,
             top,
             cancellationToken);
 
@@ -63,42 +62,37 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
     }
 
     private async Task<DashboardOverviewDto> GetOverviewAsync(
-        DateTime today,
-        DateTime tomorrow,
+        DateTime todayStartUtc,
+        DateTime tomorrowStartUtc,
         CancellationToken cancellationToken)
     {
         var todayOrdersQuery = _context.Orders
             .AsNoTracking()
-            .Where(x => x.CreatedAt >= today && x.CreatedAt < tomorrow);
+            .Where(x => x.CreatedAt >= todayStartUtc && x.CreatedAt < tomorrowStartUtc);
 
         var todayInvoicesQuery = _context.Invoices
             .AsNoTracking()
-            .Where(x => x.CreatedAt >= today && x.CreatedAt < tomorrow);
+            .Where(x => x.CreatedAt >= todayStartUtc && x.CreatedAt < tomorrowStartUtc);
 
         var todayPaymentsQuery = _context.Payments
             .AsNoTracking()
-            .Where(x => x.CreatedAt >= today && x.CreatedAt < tomorrow);
+            .Where(x => x.CreatedAt >= todayStartUtc && x.CreatedAt < tomorrowStartUtc);
 
         var todayReservationsQuery = _context.Reservations
             .AsNoTracking()
-            .Where(x => x.CreatedAt >= today && x.CreatedAt < tomorrow);
+            .Where(x => x.CreatedAt >= todayStartUtc && x.CreatedAt < tomorrowStartUtc);
 
         var todayActivityLogsQuery = _context.ActivityLogs
             .AsNoTracking()
-            .Where(x => x.CreatedAt >= today && x.CreatedAt < tomorrow);
+            .Where(x => x.CreatedAt >= todayStartUtc && x.CreatedAt < tomorrowStartUtc);
 
         var todayRevenue = await todayPaymentsQuery
             .Where(x => x.Status == "Paid")
             .SumAsync(x => x.FinalAmount, cancellationToken);
 
-        var todayOrders = await todayOrdersQuery
-            .CountAsync(cancellationToken);
-
-        var todayInvoices = await todayInvoicesQuery
-            .CountAsync(cancellationToken);
-
-        var todayPayments = await todayPaymentsQuery
-            .CountAsync(cancellationToken);
+        var todayOrders = await todayOrdersQuery.CountAsync(cancellationToken);
+        var todayInvoices = await todayInvoicesQuery.CountAsync(cancellationToken);
+        var todayPayments = await todayPaymentsQuery.CountAsync(cancellationToken);
 
         var todayDiscountAmount = await todayPaymentsQuery
             .Where(x => x.Status == "Paid")
@@ -108,79 +102,47 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             .Where(x => x.Status == "Paid")
             .SumAsync(x => x.VatAmount, cancellationToken);
 
-        var pendingOrders = await _context.Orders
-            .AsNoTracking()
+        var pendingOrders = await _context.Orders.AsNoTracking()
             .CountAsync(x => x.Status == "Pending", cancellationToken);
-
-        var cookingOrders = await _context.Orders
-            .AsNoTracking()
+        var cookingOrders = await _context.Orders.AsNoTracking()
             .CountAsync(x => x.Status == "Cooking", cancellationToken);
-
-        var servedOrders = await _context.Orders
-            .AsNoTracking()
+        var servedOrders = await _context.Orders.AsNoTracking()
             .CountAsync(x => x.Status == "Served", cancellationToken);
-
-        var completedOrders = await _context.Orders
-            .AsNoTracking()
+        var completedOrders = await _context.Orders.AsNoTracking()
             .CountAsync(x => x.Status == "Completed", cancellationToken);
-
-        var cancelledOrders = await _context.Orders
-            .AsNoTracking()
+        var cancelledOrders = await _context.Orders.AsNoTracking()
             .CountAsync(x => x.Status == "Cancelled", cancellationToken);
 
-        var availableTables = await _context.RestaurantTables
-            .AsNoTracking()
+        var availableTables = await _context.RestaurantTables.AsNoTracking()
             .CountAsync(x => x.Status == "Available", cancellationToken);
-
-        var occupiedTables = await _context.RestaurantTables
-            .AsNoTracking()
+        var occupiedTables = await _context.RestaurantTables.AsNoTracking()
             .CountAsync(x => x.Status == "Occupied", cancellationToken);
-
-        var reservedTables = await _context.RestaurantTables
-            .AsNoTracking()
+        var reservedTables = await _context.RestaurantTables.AsNoTracking()
             .CountAsync(x => x.Status == "Reserved", cancellationToken);
-
-        var cleaningTables = await _context.RestaurantTables
-            .AsNoTracking()
+        var cleaningTables = await _context.RestaurantTables.AsNoTracking()
             .CountAsync(x => x.Status == "Cleaning", cancellationToken);
 
-        var pendingKitchenItems = await _context.OrderItems
-            .AsNoTracking()
+        var pendingKitchenItems = await _context.OrderItems.AsNoTracking()
             .CountAsync(x => x.Status == "Pending", cancellationToken);
-
-        var cookingKitchenItems = await _context.OrderItems
-            .AsNoTracking()
+        var cookingKitchenItems = await _context.OrderItems.AsNoTracking()
             .CountAsync(x => x.Status == "Cooking", cancellationToken);
-
-        var readyKitchenItems = await _context.OrderItems
-            .AsNoTracking()
+        var readyKitchenItems = await _context.OrderItems.AsNoTracking()
             .CountAsync(x => x.Status == "Ready", cancellationToken);
-
-        var servedKitchenItems = await _context.OrderItems
-            .AsNoTracking()
+        var servedKitchenItems = await _context.OrderItems.AsNoTracking()
             .CountAsync(x => x.Status == "Served", cancellationToken);
 
-        var todayReservations = await todayReservationsQuery
-            .CountAsync(cancellationToken);
-
-        var pendingReservations = await _context.Reservations
-            .AsNoTracking()
+        var todayReservations = await todayReservationsQuery.CountAsync(cancellationToken);
+        var pendingReservations = await _context.Reservations.AsNoTracking()
             .CountAsync(x => x.Status == "Pending", cancellationToken);
-
-        var confirmedReservations = await _context.Reservations
-            .AsNoTracking()
+        var confirmedReservations = await _context.Reservations.AsNoTracking()
             .CountAsync(x => x.Status == "Confirmed", cancellationToken);
 
-        var lowStockIngredients = await _context.Ingredients
-            .AsNoTracking()
-            .CountAsync(x =>
-                x.IsActive &&
-                x.CurrentStock <= x.MinimumStock,
+        var lowStockIngredients = await _context.Ingredients.AsNoTracking()
+            .CountAsync(
+                x => x.IsActive && x.CurrentStock <= x.MinimumStock,
                 cancellationToken);
 
-        var todayActivityLogs = await todayActivityLogsQuery
-            .CountAsync(cancellationToken);
-
+        var todayActivityLogs = await todayActivityLogsQuery.CountAsync(cancellationToken);
         var todayFailedActivityLogs = await todayActivityLogsQuery
             .CountAsync(x => x.Status == "Failed", cancellationToken);
 
@@ -192,95 +154,77 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             TodayPayments = todayPayments,
             TodayDiscountAmount = todayDiscountAmount,
             TodayVatAmount = todayVatAmount,
-
             PendingOrders = pendingOrders,
             CookingOrders = cookingOrders,
             ServedOrders = servedOrders,
             CompletedOrders = completedOrders,
             CancelledOrders = cancelledOrders,
-
             AvailableTables = availableTables,
             OccupiedTables = occupiedTables,
             ReservedTables = reservedTables,
             CleaningTables = cleaningTables,
-
             PendingKitchenItems = pendingKitchenItems,
             CookingKitchenItems = cookingKitchenItems,
             ReadyKitchenItems = readyKitchenItems,
             ServedKitchenItems = servedKitchenItems,
-
             TodayReservations = todayReservations,
             PendingReservations = pendingReservations,
             ConfirmedReservations = confirmedReservations,
-
             LowStockIngredients = lowStockIngredients,
-
             TodayActivityLogs = todayActivityLogs,
             TodayFailedActivityLogs = todayFailedActivityLogs
         };
     }
 
     private async Task<List<DashboardRevenueChartDto>> GetRevenueChartAsync(
-        DateTime fromDate,
-        DateTime toDate,
-        DateTime toDateExclusive,
+        DateTime fromLocalDate,
+        DateTime toLocalDate,
+        DateTime fromUtc,
+        DateTime toUtcExclusive,
         CancellationToken cancellationToken)
     {
-        var revenueData = await _context.Payments
+        var payments = await _context.Payments
             .AsNoTracking()
             .Where(x =>
-                x.CreatedAt >= fromDate &&
-                x.CreatedAt < toDateExclusive &&
+                x.CreatedAt >= fromUtc &&
+                x.CreatedAt < toUtcExclusive &&
                 x.Status == "Paid")
-            .GroupBy(x => x.CreatedAt.Date)
-            .Select(g => new
-            {
-                Date = g.Key,
-                Revenue = g.Sum(x => x.FinalAmount)
-            })
+            .Select(x => new { x.CreatedAt, x.FinalAmount })
             .ToListAsync(cancellationToken);
 
-        var orderData = await _context.Orders
+        var orders = await _context.Orders
             .AsNoTracking()
-            .Where(x => x.CreatedAt >= fromDate && x.CreatedAt < toDateExclusive)
-            .GroupBy(x => x.CreatedAt.Date)
-            .Select(g => new
-            {
-                Date = g.Key,
-                OrderCount = g.Count()
-            })
+            .Where(x => x.CreatedAt >= fromUtc && x.CreatedAt < toUtcExclusive)
+            .Select(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        var invoiceData = await _context.Invoices
+        var invoices = await _context.Invoices
             .AsNoTracking()
             .Where(x =>
-                x.CreatedAt >= fromDate &&
-                x.CreatedAt < toDateExclusive &&
+                x.CreatedAt >= fromUtc &&
+                x.CreatedAt < toUtcExclusive &&
                 x.Status != "Cancelled")
-            .GroupBy(x => x.CreatedAt.Date)
-            .Select(g => new
-            {
-                Date = g.Key,
-                InvoiceCount = g.Count()
-            })
+            .Select(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        var revenueDictionary = revenueData
-            .ToDictionary(x => x.Date.Date, x => x.Revenue);
+        var revenueDictionary = payments
+            .GroupBy(x => RestaurantTime.ToLocal(x.CreatedAt).Date)
+            .ToDictionary(x => x.Key, x => x.Sum(item => item.FinalAmount));
 
-        var orderDictionary = orderData
-            .ToDictionary(x => x.Date.Date, x => x.OrderCount);
+        var orderDictionary = orders
+            .GroupBy(x => RestaurantTime.ToLocal(x).Date)
+            .ToDictionary(x => x.Key, x => x.Count());
 
-        var invoiceDictionary = invoiceData
-            .ToDictionary(x => x.Date.Date, x => x.InvoiceCount);
+        var invoiceDictionary = invoices
+            .GroupBy(x => RestaurantTime.ToLocal(x).Date)
+            .ToDictionary(x => x.Key, x => x.Count());
 
-        var totalDays = (toDate - fromDate).Days + 1;
+        var totalDays = (toLocalDate - fromLocalDate).Days + 1;
 
         return Enumerable.Range(0, totalDays)
             .Select(index =>
             {
-                var date = fromDate.AddDays(index).Date;
-
+                var date = fromLocalDate.AddDays(index).Date;
                 revenueDictionary.TryGetValue(date, out var revenue);
                 orderDictionary.TryGetValue(date, out var orderCount);
                 invoiceDictionary.TryGetValue(date, out var invoiceCount);
@@ -298,16 +242,16 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
     }
 
     private async Task<List<DashboardTopSellingItemDto>> GetTopSellingItemsAsync(
-        DateTime fromDate,
-        DateTime toDateExclusive,
+        DateTime fromUtc,
+        DateTime toUtcExclusive,
         int top,
         CancellationToken cancellationToken)
     {
         var validOrderIdsQuery = _context.Orders
             .AsNoTracking()
             .Where(x =>
-                x.CreatedAt >= fromDate &&
-                x.CreatedAt < toDateExclusive &&
+                x.CreatedAt >= fromUtc &&
+                x.CreatedAt < toUtcExclusive &&
                 x.Status != "Cancelled")
             .Select(x => x.Id);
 
@@ -316,11 +260,7 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             .Where(x =>
                 validOrderIdsQuery.Contains(x.OrderId) &&
                 x.Status != "Cancelled")
-            .GroupBy(x => new
-            {
-                x.MenuItemId,
-                x.MenuItemName
-            })
+            .GroupBy(x => new { x.MenuItemId, x.MenuItemName })
             .Select(g => new DashboardTopSellingItemDto
             {
                 MenuItemId = g.Key.MenuItemId,
@@ -339,9 +279,7 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
     {
         return await _context.Ingredients
             .AsNoTracking()
-            .Where(x =>
-                x.IsActive &&
-                x.CurrentStock <= x.MinimumStock)
+            .Where(x => x.IsActive && x.CurrentStock <= x.MinimumStock)
             .OrderBy(x => x.CurrentStock)
             .Take(top)
             .Select(x => new DashboardLowStockIngredientDto
