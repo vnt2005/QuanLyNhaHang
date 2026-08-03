@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Api.Serialization;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
 using QuanLyNhaHang.Application.Features.Roles.Commands.SyncSystem;
@@ -49,7 +50,13 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new UtcDateTimeJsonConverter());
+    });
 
 builder.Services.AddOpenApi();
 
