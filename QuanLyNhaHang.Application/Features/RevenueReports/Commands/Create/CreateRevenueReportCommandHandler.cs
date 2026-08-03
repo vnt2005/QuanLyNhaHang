@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.RevenueReports.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -26,7 +27,7 @@ public class CreateRevenueReportCommandHandler
         if (fromDate > toDate)
             throw new Exception("Ngày bắt đầu không được lớn hơn ngày kết thúc.");
 
-        var toDateExclusive = toDate.AddDays(1);
+        var utcRange = RestaurantTime.GetUtcRange(fromDate, toDate);
 
         var existedReport = await _context.RevenueReports
             .AnyAsync(x =>
@@ -41,8 +42,8 @@ public class CreateRevenueReportCommandHandler
         var invoices = await _context.Invoices
             .AsNoTracking()
             .Where(x =>
-                x.IssuedAt >= fromDate &&
-                x.IssuedAt < toDateExclusive &&
+                x.IssuedAt >= utcRange.StartUtc &&
+                x.IssuedAt < utcRange.EndUtc &&
                 (x.Status == "Issued" || x.Status == "Printed"))
             .ToListAsync(cancellationToken);
 
