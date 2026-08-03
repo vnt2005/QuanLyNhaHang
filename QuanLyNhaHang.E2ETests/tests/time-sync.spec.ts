@@ -7,6 +7,7 @@ import {
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
+const restaurantTimeZone = 'Asia/Ho_Chi_Minh'
 
 function suffix() {
   return `${Date.now()}${Math.floor(Math.random() * 10_000)}`
@@ -14,9 +15,16 @@ function suffix() {
 
 function vietnamFutureDateTime() {
   const date = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-  date.setHours(19, 15, 0, 0)
-  const offset = date.getTimezoneOffset()
-  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16)
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: restaurantTimeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find(item => item.type === type)?.value ?? ''
+
+  return `${part('year')}-${part('month')}-${part('day')}T19:15`
 }
 
 test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', async ({ page, request }) => {
@@ -75,7 +83,8 @@ test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', a
     }
   }
 
-  expect(envelope.data.reservationTime).toBe(expectedUtc)
+  expect(new Date(envelope.data.reservationTime).getTime())
+    .toBe(new Date(expectedUtc).getTime())
   expect(envelope.data.reservationTime).toMatch(/Z$/)
   expect(envelope.data.createdAt).toMatch(/Z$/)
 
@@ -92,7 +101,7 @@ test('Thời gian: đặt bàn giữ nguyên giờ Việt Nam qua UI và API', a
   const expectedDisplay = new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'short',
     timeStyle: 'short',
-    timeZone: 'Asia/Ho_Chi_Minh',
+    timeZone: restaurantTimeZone,
   }).format(new Date(expectedUtc))
 
   const row = page.locator('.reservations-table tbody tr')
