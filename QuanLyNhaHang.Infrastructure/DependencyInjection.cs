@@ -13,19 +13,10 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration
-            .GetConnectionString("DefaultConnection");
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException(
-                "ConnectionStrings:DefaultConnection chưa được cấu hình.");
-        }
-
         services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseSqlServer(
-                connectionString,
+                configuration.GetConnectionString("DefaultConnection"),
                 sqlServerOptions =>
                 {
                     sqlServerOptions.EnableRetryOnFailure(
