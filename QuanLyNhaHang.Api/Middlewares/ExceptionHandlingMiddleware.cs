@@ -115,6 +115,7 @@ public class ExceptionHandlingMiddleware
             title = error.Title,
             status = error.StatusCode,
             detail = error.Detail,
+            message = error.Detail,
             traceId = context.TraceIdentifier
         };
 
