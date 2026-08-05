@@ -113,9 +113,7 @@ try {
     Set-Content -Path $localSqlFile -Value $backupQuery -Encoding utf8
 
     Write-Host "Đang sao lưu database $DatabaseName..."
-    Invoke-SqlFileInContainer \
-        -LocalSqlFile $localSqlFile \
-        -ContainerSqlFile $containerSqlFile
+    Invoke-SqlFileInContainer -LocalSqlFile $localSqlFile -ContainerSqlFile $containerSqlFile
 
     Invoke-DockerCommand -Arguments @(
         'compose', 'cp',
