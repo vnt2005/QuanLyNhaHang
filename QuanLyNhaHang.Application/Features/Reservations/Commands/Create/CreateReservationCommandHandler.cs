@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Reservations.DTOs;
@@ -24,16 +24,17 @@ public class CreateReservationCommandHandler
             .FirstOrDefaultAsync(x => x.Id == request.RestaurantTableId, cancellationToken);
 
         if (table == null)
-            throw new Exception("Không tìm thấy bàn.");
+            throw new KeyNotFoundException("Không tìm thấy bàn.");
 
         if (!table.IsActive)
-            throw new Exception("Bàn này đã bị vô hiệu hóa.");
+            throw new InvalidOperationException("Bàn này đã bị vô hiệu hóa.");
 
         if (request.NumberOfGuests > table.Capacity)
-            throw new Exception("Số lượng khách vượt quá sức chứa của bàn.");
+            throw new ArgumentException("Số lượng khách vượt quá sức chứa của bàn.");
 
         if (request.ReservationTime <= DateTime.UtcNow)
-            throw new Exception("Thời gian đặt bàn phải lớn hơn thời gian hiện tại.");
+            throw new ArgumentException(
+                "Thời gian đặt bàn phải lớn hơn thời gian hiện tại.");
 
         var fromTime = request.ReservationTime.AddHours(-2);
         var toTime = request.ReservationTime.AddHours(2);
@@ -49,7 +50,8 @@ public class CreateReservationCommandHandler
                 cancellationToken);
 
         if (existedReservation)
-            throw new Exception("Bàn này đã có lịch đặt trong khoảng thời gian gần đó.");
+            throw new InvalidOperationException(
+                "Bàn này đã có lịch đặt trong khoảng thời gian gần đó.");
 
         var reservation = new Reservation(
             request.RestaurantTableId,
