@@ -5,6 +5,7 @@ Backend quản lý nhà hàng xây dựng bằng ASP.NET Core, Clean Architectur
 ## Tài liệu
 
 - [Kiến trúc hệ thống](docs/ARCHITECTURE.md)
+- [Chương 10 – Dependable systems](docs/DEPENDABLE_SYSTEMS.md)
 - [Cấu hình local an toàn](docs/LOCAL_CONFIGURATION.md)
 
 ## Chạy local
@@ -37,12 +38,37 @@ docker compose up --build -d
 
 Docker Compose tự khởi động SQL Server, chờ database healthy, chạy migration còn thiếu và khởi động API.
 
+## Kiểm tra trạng thái
+
+```text
+GET /health        # liveness tương thích
+GET /health/live   # tiến trình API
+GET /health/ready  # API và SQL Server sẵn sàng
+```
+
 ## Kiểm thử
 
 ```powershell
 dotnet test QuanLyNhaHang.UnitTests/QuanLyNhaHang.UnitTests.csproj
 dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj
 ```
+
+## Sao lưu và khôi phục database Docker
+
+Tạo file backup có checksum và tự chạy `RESTORE VERIFYONLY`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\backup-database.ps1
+```
+
+Khôi phục một file `.bak` đã được kiểm tra:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\restore-database.ps1 `
+  -BackupFile D:\RestaurantBackups\QuanLyNhaHang-20260805-230000.bak
+```
+
+Quy trình, RPO/RTO và lưu ý vận hành nằm trong [docs/DEPENDABLE_SYSTEMS.md](docs/DEPENDABLE_SYSTEMS.md).
 
 ## Bảo mật cấu hình
 
