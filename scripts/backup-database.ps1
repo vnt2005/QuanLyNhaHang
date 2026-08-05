@@ -36,55 +36,45 @@ function Assert-DatabaseContainerRunning {
     }
 }
 
-function Get-SqlCmdPath {
-    & docker compose exec -T database test -x \
-        /opt/mssql-tools18/bin/sqlcmd
-
-    if ($LASTEXITCODE -eq 0) {
-        return '/opt/mssql-tools18/bin/sqlcmd'
-    }
-
-    & docker compose exec -T database test -x \
-        /opt/mssql-tools/bin/sqlcmd
-
-    if ($LASTEXITCODE -eq 0) {
-        return '/opt/mssql-tools/bin/sqlcmd'
-    }
-
-    throw 'Không tìm thấy sqlcmd trong container SQL Server.'
-}
-
-function Invoke-DatabaseSql {
+function Invoke-SqlFileInContainer {
     param(
         [Parameter(Mandatory)]
-        [string]$Query
+        [string]$LocalSqlFile,
+
+        [Parameter(Mandatory)]
+        [string]$ContainerSqlFile
     )
 
-    $password = (
-        @(& docker compose exec -T database printenv MSSQL_SA_PASSWORD) \
-            -join "`n"
-    ).Trim()
+    Invoke-DockerCommand -Arguments @(
+        'compose', 'cp',
+        $LocalSqlFile,
+        "database:$ContainerSqlFile"
+    )
 
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($password)) {
-        throw 'Không đọc được MSSQL_SA_PASSWORD từ container database.'
-    }
+    $command = @'
+set -e
+if [ -x /opt/mssql-tools18/bin/sqlcmd ]; then
+    SQLCMD=/opt/mssql-tools18/bin/sqlcmd
+    TRUST_SERVER_CERTIFICATE=-C
+else
+    SQLCMD=/opt/mssql-tools/bin/sqlcmd
+    TRUST_SERVER_CERTIFICATE=
+fi
+"$SQLCMD" -S localhost -U sa -P "$MSSQL_SA_PASSWORD" $TRUST_SERVER_CERTIFICATE -b -i "$SQL_FILE"
+'@
 
-    $sqlCmdPath = Get-SqlCmdPath
     $arguments = @(
-        'compose', 'exec', '-T', 'database',
-        $sqlCmdPath,
-        '-S', 'localhost',
-        '-U', 'sa',
-        '-P', $password,
-        '-b'
+        'compose', 'exec', '-T',
+        '--env', "SQL_FILE=$ContainerSqlFile",
+        'database', '/bin/bash', '-lc', $command
     )
 
-    if ($sqlCmdPath -like '*mssql-tools18*') {
-        $arguments += '-C'
+    try {
+        Invoke-DockerCommand -Arguments $arguments
     }
-
-    $arguments += @('-Q', $Query)
-    Invoke-DockerCommand -Arguments $arguments
+    finally {
+        & docker compose exec -T database rm -f $ContainerSqlFile
+    }
 }
 
 Assert-DatabaseContainerRunning
@@ -94,8 +84,7 @@ if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = Join-Path $repositoryRoot 'backups'
 }
 
-$null = New-Item -ItemType Directory -Force \
-    -Path $OutputDirectory
+$null = New-Item -ItemType Directory -Force -Path $OutputDirectory
 $outputDirectoryPath = (Resolve-Path $OutputDirectory).Path
 
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
@@ -103,6 +92,8 @@ $fileName = "$DatabaseName-$timestamp.bak"
 $outputPath = Join-Path $outputDirectoryPath $fileName
 $containerDirectory = '/var/opt/mssql/backup'
 $containerPath = "$containerDirectory/$fileName"
+$containerSqlFile = "/tmp/backup-$timestamp.sql"
+$localSqlFile = Join-Path ([System.IO.Path]::GetTempPath()) "backup-$timestamp.sql"
 
 Invoke-DockerCommand -Arguments @(
     'compose', 'exec', '-T', 'database',
@@ -119,8 +110,12 @@ WITH CHECKSUM;
 "@
 
 try {
+    Set-Content -Path $localSqlFile -Value $backupQuery -Encoding utf8
+
     Write-Host "Đang sao lưu database $DatabaseName..."
-    Invoke-DatabaseSql -Query $backupQuery
+    Invoke-SqlFileInContainer \
+        -LocalSqlFile $localSqlFile \
+        -ContainerSqlFile $containerSqlFile
 
     Invoke-DockerCommand -Arguments @(
         'compose', 'cp',
@@ -129,12 +124,13 @@ try {
     )
 }
 finally {
+    Remove-Item -Force -ErrorAction SilentlyContinue $localSqlFile
     & docker compose exec -T database rm -f $containerPath
 }
 
 $backupFile = Get-Item $outputPath
 $sizeMb = [Math]::Round($backupFile.Length / 1MB, 2)
 
-Write-Host "Sao lưu và VERIFYONLY thành công."
+Write-Host 'Sao lưu và VERIFYONLY thành công.'
 Write-Host "File: $($backupFile.FullName)"
 Write-Host "Dung lượng: $sizeMb MB"
