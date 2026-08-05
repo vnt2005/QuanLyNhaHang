@@ -1,5 +1,8 @@
 using MediatR;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using QuanLyNhaHang.Api.Health;
 using QuanLyNhaHang.Api.Serialization;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
@@ -60,7 +63,16 @@ builder.Services
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddHealthChecks();
+builder.Services
+    .AddHealthChecks()
+    .AddCheck(
+        "self",
+        () => HealthCheckResult.Healthy(
+            "Tiến trình API đang hoạt động."),
+        tags: ["live", "ready"])
+    .AddCheck<DatabaseHealthCheck>(
+        "database",
+        tags: ["ready"]);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -284,7 +296,32 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks(
+    "/health",
+    new HealthCheckOptions
+    {
+        Predicate = registration =>
+            registration.Tags.Contains("live"),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    });
+
+app.MapHealthChecks(
+    "/health/live",
+    new HealthCheckOptions
+    {
+        Predicate = registration =>
+            registration.Tags.Contains("live"),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    });
+
+app.MapHealthChecks(
+    "/health/ready",
+    new HealthCheckOptions
+    {
+        Predicate = registration =>
+            registration.Tags.Contains("ready"),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    });
 
 app.MapControllers();
 
