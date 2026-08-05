@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
@@ -24,13 +24,13 @@ public class CreatePaymentCommandHandler
             .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
 
         if (order == null)
-            throw new Exception("Không tìm thấy đơn hàng.");
+            throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
 
         if (order.Status == "Completed")
-            throw new Exception("Đơn hàng này đã hoàn tất thanh toán.");
+            throw new InvalidOperationException("Đơn hàng này đã hoàn tất thanh toán.");
 
         if (order.Status == "Cancelled")
-            throw new Exception("Đơn hàng đã hủy, không thể thanh toán.");
+            throw new InvalidOperationException("Đơn hàng đã hủy, không thể thanh toán.");
 
         var existedPayment = await _context.Payments
             .AnyAsync(x =>
@@ -39,7 +39,7 @@ public class CreatePaymentCommandHandler
                 cancellationToken);
 
         if (existedPayment)
-            throw new Exception("Đơn hàng này đã được thanh toán.");
+            throw new InvalidOperationException("Đơn hàng này đã được thanh toán.");
 
         var orderItems = await _context.OrderItems
             .Where(x =>
@@ -48,14 +48,15 @@ public class CreatePaymentCommandHandler
             .ToListAsync(cancellationToken);
 
         if (!orderItems.Any())
-            throw new Exception("Đơn hàng chưa có món để thanh toán.");
+            throw new InvalidOperationException("Đơn hàng chưa có món để thanh toán.");
 
         var hasUnfinishedItems = orderItems.Any(x =>
             x.Status == "Pending" ||
             x.Status == "Cooking");
 
         if (hasUnfinishedItems)
-            throw new Exception("Đơn hàng còn món chưa hoàn thành, chưa thể thanh toán.");
+            throw new InvalidOperationException(
+                "Đơn hàng còn món chưa hoàn thành, chưa thể thanh toán.");
 
         foreach (var item in orderItems)
         {
@@ -89,12 +90,11 @@ public class CreatePaymentCommandHandler
             table.MarkAvailable();
         }
 
-        // THÊM MỚI:
-        // Nếu IssueInvoice = true thì thanh toán xong tự động tạo hóa đơn
+        // Nếu IssueInvoice = true thì thanh toán xong tự động tạo hóa đơn.
         if (request.IssueInvoice)
         {
             if (table == null)
-                throw new Exception("Không tìm thấy bàn để xuất hóa đơn.");
+                throw new KeyNotFoundException("Không tìm thấy bàn để xuất hóa đơn.");
 
             var existedInvoice = await _context.Invoices
                 .AnyAsync(x =>
@@ -103,7 +103,8 @@ public class CreatePaymentCommandHandler
                     cancellationToken);
 
             if (existedInvoice)
-                throw new Exception("Đơn hàng hoặc thanh toán này đã có hóa đơn.");
+                throw new InvalidOperationException(
+                    "Đơn hàng hoặc thanh toán này đã có hóa đơn.");
 
             var invoice = new Invoice(
                 order.Id,

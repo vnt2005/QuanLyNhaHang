@@ -26,6 +26,30 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v7
 
+      - name: Validate PowerShell script syntax
+        shell: pwsh
+        run: |
+          $hasErrors = $false
+
+          Get-ChildItem -Path ./scripts -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName,
+              [ref]$tokens,
+              [ref]$parseErrors
+            ) | Out-Null
+
+            foreach ($parseError in $parseErrors) {
+              Write-Error "$($_.FullName): $($parseError.Message)"
+              $hasErrors = $true
+            }
+          }
+
+          if ($hasErrors) {
+            exit 1
+          }
+
       - name: Reject tracked local secret files
         shell: bash
         run: |
