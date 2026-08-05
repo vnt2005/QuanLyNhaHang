@@ -81,7 +81,7 @@ Assert-DatabaseContainerRunning
 
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $repositoryRoot = Split-Path -Parent $PSScriptRoot
-    $OutputDirectory = Join-Path $repositoryRoot 'backups'
+    $OutputDirectory = Join-Path $repositoryRoot '.artifacts/database-backups'
 }
 
 $null = New-Item -ItemType Directory -Force -Path $OutputDirectory
