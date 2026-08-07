@@ -19,7 +19,6 @@ const loadCustomerManagementPage = () =>
 const loadDashboardPage = () => import('./pages/DashboardPage')
 const loadEmployeePage = () => import('./pages/EmployeePage')
 const loadInvoicesPage = () => import('./pages/InvoicesPage')
-const loadInventoryPage = () => import('./pages/InventoryPage')
 const loadKitchenPage = () => import('./pages/KitchenPage')
 const loadMenuManagementPage = () => import('./pages/MenuManagementPage')
 const loadOrdersPage = () => import('./pages/OrdersPage')
@@ -41,7 +40,6 @@ const CustomerManagementPage = lazy(loadCustomerManagementPage)
 const DashboardPage = lazy(loadDashboardPage)
 const EmployeePage = lazy(loadEmployeePage)
 const InvoicesPage = lazy(loadInvoicesPage)
-const InventoryPage = lazy(loadInventoryPage)
 const KitchenPage = lazy(loadKitchenPage)
 const MenuManagementPage = lazy(loadMenuManagementPage)
 const OrdersPage = lazy(loadOrdersPage)
@@ -172,13 +170,6 @@ const navigation: NavigationItem[] = [
     icon: '◇',
     permissions: ['Promotions.View', 'PromotionUsages.View'],
     preload: loadPromotionsPage,
-  },
-  {
-    label: 'Kho nguyên liệu',
-    section: 'Sản phẩm',
-    icon: '▧',
-    permissions: ['Inventory.View'],
-    preload: loadInventoryPage,
   },
   {
     label: 'Nhật ký hoạt động',
@@ -466,8 +457,6 @@ export default function App() {
         return <RevenueReportsPage />
       case 'Khuyến mãi':
         return <PromotionsPage />
-      case 'Kho nguyên liệu':
-        return <InventoryPage />
       case 'Nhật ký hoạt động':
         return <ActivityLogsPage role={authenticatedResult.role} />
       case 'Bảo mật tài khoản':
