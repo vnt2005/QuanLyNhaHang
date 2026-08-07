@@ -113,7 +113,7 @@ const navigation: NavigationItem[] = [
     preload: loadAreasTablesPage,
   },
   {
-    label: 'Chuyển / gộp / tách bàn',
+    label: 'Chuyển bàn',
     section: 'Vận hành',
     icon: '⇄',
     permissions: ['TableOperations.View'],
@@ -457,7 +457,7 @@ export default function App() {
         return <AccessManagementPage />
       case 'Khu vực & bàn':
         return <AreasTablesPage />
-      case 'Chuyển / gộp / tách bàn':
+      case 'Chuyển bàn':
         return (
           <TableOperationsPage
             role={authenticatedResult.role}
