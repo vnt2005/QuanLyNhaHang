@@ -76,7 +76,7 @@ function LoadingDashboard() {
     <section className="live-dashboard-loading" aria-live="polite">
       <span className="live-dashboard-spinner"/>
       <strong>Đang tổng hợp dữ liệu vận hành…</strong>
-      <small>Doanh thu, đơn hàng, bàn và kho đang được đồng bộ.</small>
+      <small>Doanh thu, đơn hàng và bàn đang được đồng bộ.</small>
     </section>
   )
 }
@@ -447,44 +447,6 @@ export default function DashboardPage({
                   ))}
                 </div>
                 : <EmptyList message="Chưa có món bán trong khoảng đã chọn"/>
-              }
-            </article>
-
-            <article className="live-dashboard-card live-dashboard-list-card">
-              <header>
-                <div>
-                  <span>KHO NGUYÊN LIỆU</span>
-                  <h3>Cảnh báo tồn kho</h3>
-                  <p>{number(overview?.lowStockIngredients ?? 0)} nguyên liệu dưới mức tối thiểu</p>
-                </div>
-                <button type="button" onClick={() => onNavigate('Kho nguyên liệu')}>
-                  Mở kho →
-                </button>
-              </header>
-              {data?.lowStockIngredients.length
-                ? <div className="live-dashboard-stock-list">
-                  {data.lowStockIngredients.map(item => {
-                    const stockRatio = item.minimumStock > 0
-                      ? Math.max(0, Math.min(100, (item.currentStock / item.minimumStock) * 100))
-                      : 0
-                    return (
-                      <div key={item.ingredientId || item.ingredientCode}>
-                        <span>!</span>
-                        <div>
-                          <strong>{item.ingredientName}</strong>
-                          <small>{item.ingredientCode} · thiếu {number(item.missingQuantity, 3)} {item.unit}</small>
-                          <i>
-                            <b style={{ width: `${stockRatio}%` }}/>
-                          </i>
-                        </div>
-                        <em>
-                          {number(item.currentStock, 3)} / {number(item.minimumStock, 3)} {item.unit}
-                        </em>
-                      </div>
-                    )
-                  })}
-                </div>
-                : <EmptyList message="Tồn kho đang ở mức an toàn"/>
               }
             </article>
           </section>
