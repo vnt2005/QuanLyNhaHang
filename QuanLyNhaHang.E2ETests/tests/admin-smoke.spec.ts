@@ -12,7 +12,6 @@ const adminModules = [
   'Ca làm việc & phân ca',
   'Tài khoản & phân quyền',
   'Khu vực & bàn',
-  'Chuyển / gộp / tách bàn',
   'Đặt bàn',
   'QR bàn',
   'Thực đơn',
@@ -30,6 +29,13 @@ const adminModules = [
 
 test('Admin mở toàn bộ module không phát sinh lỗi giao diện, JavaScript hoặc API', async ({ page }) => {
   await loginAsAdmin(page)
+
+  await expect(
+    page.locator('.sidebar nav button').filter({ hasText: 'Chuyển / gộp / tách bàn' }),
+  ).toHaveCount(0)
+  await expect(
+    page.locator('.sidebar nav button').filter({ hasText: 'Chuyển bàn' }),
+  ).toHaveCount(0)
 
   for (const moduleName of adminModules) {
     await test.step(moduleName, async () => {
