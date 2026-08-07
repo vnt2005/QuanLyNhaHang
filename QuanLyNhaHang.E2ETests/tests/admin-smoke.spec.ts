@@ -21,7 +21,6 @@ const adminModules = [
   'Hóa đơn',
   'Báo cáo doanh thu',
   'Khuyến mãi',
-  'Kho nguyên liệu',
   'Nhật ký hoạt động',
   'Bảo mật tài khoản',
   'Cấu hình nhà hàng',
@@ -35,6 +34,9 @@ test('Admin mở toàn bộ module không phát sinh lỗi giao diện, JavaScri
   ).toHaveCount(0)
   await expect(
     page.locator('.sidebar nav button').filter({ hasText: 'Chuyển bàn' }),
+  ).toHaveCount(0)
+  await expect(
+    page.locator('.sidebar nav button').filter({ hasText: 'Kho nguyên liệu' }),
   ).toHaveCount(0)
 
   for (const moduleName of adminModules) {
