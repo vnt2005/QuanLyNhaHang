@@ -31,7 +31,6 @@ const loadRestaurantSettingsPage = () =>
   import('./pages/RestaurantSettingsPage')
 const loadRevenueReportsPage = () => import('./pages/RevenueReportsPage')
 const loadShiftsSchedulingPage = () => import('./pages/ShiftsSchedulingPage')
-const loadTableOperationsPage = () => import('./pages/TableOperationsPage')
 const loadTableQrCodesPage = () => import('./pages/TableQrCodesPage')
 
 const AccessManagementPage = lazy(loadAccessManagementPage)
@@ -53,7 +52,6 @@ const ReservationsPage = lazy(loadReservationsPage)
 const RestaurantSettingsPage = lazy(loadRestaurantSettingsPage)
 const RevenueReportsPage = lazy(loadRevenueReportsPage)
 const ShiftsSchedulingPage = lazy(loadShiftsSchedulingPage)
-const TableOperationsPage = lazy(loadTableOperationsPage)
 const TableQrCodesPage = lazy(loadTableQrCodesPage)
 
 type NavigationItem = {
@@ -111,13 +109,6 @@ const navigation: NavigationItem[] = [
     icon: '▦',
     permissions: ['Tables.View'],
     preload: loadAreasTablesPage,
-  },
-  {
-    label: 'Chuyển bàn',
-    section: 'Vận hành',
-    icon: '⇄',
-    permissions: ['TableOperations.View'],
-    preload: loadTableOperationsPage,
   },
   {
     label: 'Đặt bàn',
@@ -457,13 +448,6 @@ export default function App() {
         return <AccessManagementPage />
       case 'Khu vực & bàn':
         return <AreasTablesPage />
-      case 'Chuyển bàn':
-        return (
-          <TableOperationsPage
-            role={authenticatedResult.role}
-            permissions={authenticatedResult.permissions}
-          />
-        )
       case 'Đặt bàn':
         return <ReservationsPage />
       case 'QR bàn':
