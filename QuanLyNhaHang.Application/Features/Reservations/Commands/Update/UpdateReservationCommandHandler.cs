@@ -34,6 +34,14 @@ public class UpdateReservationCommandHandler
         if (!table.IsActive)
             throw new InvalidOperationException("Bàn này đã bị vô hiệu hóa.");
 
+        var areaIsActive = await _context.Areas
+            .AnyAsync(
+                x => x.Id == table.AreaId && x.IsActive,
+                cancellationToken);
+
+        if (!areaIsActive)
+            throw new InvalidOperationException("Khu vực của bàn đã ngừng hoạt động.");
+
         if (request.NumberOfGuests > table.Capacity)
             throw new ArgumentException("Số lượng khách vượt quá sức chứa của bàn.");
 
