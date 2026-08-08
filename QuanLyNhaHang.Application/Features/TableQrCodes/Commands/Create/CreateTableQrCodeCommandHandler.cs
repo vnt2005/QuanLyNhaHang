@@ -24,7 +24,7 @@ public class CreateTableQrCodeCommandHandler
             .FirstOrDefaultAsync(x => x.Id == request.RestaurantTableId, cancellationToken);
 
         if (table == null)
-            throw new Exception("Không tìm thấy bàn.");
+            throw new KeyNotFoundException("Không tìm thấy bàn.");
 
         var areaIsActive = await _context.Areas
             .AnyAsync(
@@ -41,7 +41,7 @@ public class CreateTableQrCodeCommandHandler
             .AnyAsync(x => x.RestaurantTableId == request.RestaurantTableId, cancellationToken);
 
         if (existedQrCode)
-            throw new Exception("Bàn này đã có mã QR.");
+            throw new InvalidOperationException("Bàn này đã có mã QR.");
 
         var token = GenerateToken();
         var qrCodeUrl = GenerateQrCodeUrl(request.ClientBaseUrl, token);
