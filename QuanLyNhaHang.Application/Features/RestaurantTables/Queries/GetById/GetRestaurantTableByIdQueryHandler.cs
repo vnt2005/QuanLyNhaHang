@@ -22,7 +22,9 @@ public class GetRestaurantTableByIdQueryHandler
         var query =
             from table in _context.RestaurantTables
             join area in _context.Areas on table.AreaId equals area.Id
-            where table.Id == request.Id
+            where table.Id == request.Id &&
+                  table.IsActive &&
+                  area.IsActive
             select new RestaurantTableDto
             {
                 Id = table.Id,
