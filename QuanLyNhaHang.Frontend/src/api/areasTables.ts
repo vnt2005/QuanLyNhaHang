@@ -29,6 +29,7 @@ export type RestaurantTable = {
 }
 
 export type TableStatus = 'Available' | 'Occupied' | 'Reserved' | 'Cleaning'
+export type TableSelectionPurpose = 'Reservation' | 'Order' | 'QrCode'
 
 export type RestaurantTableForm = {
   id?: string
@@ -204,6 +205,16 @@ export async function getTables(
     hasPreviousPage: Boolean(result.hasPreviousPage ?? result.HasPreviousPage),
     hasNextPage: Boolean(result.hasNextPage ?? result.HasNextPage),
   } satisfies PaginatedTables
+}
+
+export async function getSelectableTables(purpose: TableSelectionPurpose) {
+  const params = new URLSearchParams({ purpose })
+  const response = await request<unknown>(
+    `/api/RestaurantTables/selectable?${params}`,
+    { cache: 'no-store' },
+  )
+  const payload = unwrapData(response)
+  return Array.isArray(payload) ? payload as RestaurantTable[] : []
 }
 
 export function createTable(form: RestaurantTableForm) {

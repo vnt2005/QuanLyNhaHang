@@ -1,7 +1,7 @@
 import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
-import { getTables, type RestaurantTable } from '../api/areasTables'
+import { getSelectableTables, type RestaurantTable } from '../api/areasTables'
 import {
   cancelReservation,
   createReservation,
@@ -93,7 +93,6 @@ export default function ReservationsPage() {
   const [formError, setFormError] = useState('')
   const [detail, setDetail] = useState<Reservation | null>(null)
 
-  const activeTables = useMemo(() => tables.filter(table => table.isActive), [tables])
   const summary = useMemo(() => ({
     pending: items.filter(item => item.status === 'Pending').length,
     confirmed: items.filter(item => item.status === 'Confirmed').length,
@@ -117,42 +116,80 @@ export default function ReservationsPage() {
     }
   }, [fromDate, keyword, page, status, toDate])
 
+  const loadTableOptions = useCallback(async () => {
+    const result = await getSelectableTables('Reservation')
+    setTables(result)
+    return result
+  }, [])
+
   useEffect(() => { void load() }, [load])
 
   useEffect(() => {
-    void getTables('', '', '', 1, 100)
-      .then(result => setTables(result.items))
-      .catch(exception => setError(getErrorMessage(exception)))
+    let ignore = false
+
+    void getSelectableTables('Reservation')
+      .then(result => {
+        if (!ignore) setTables(result)
+      })
+      .catch(exception => {
+        if (!ignore) setError(getErrorMessage(exception))
+      })
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
-  function openCreate() {
-    setEditing(null)
-    setForm(emptyForm(activeTables[0]?.id ?? ''))
-    setFormError('')
-    setFormOpen(true)
+  async function openCreate() {
+    setError('')
+    try {
+      const options = await loadTableOptions()
+      if (!options.length) {
+        setError('Không có bàn đang hoạt động để tạo đặt bàn.')
+        return
+      }
+
+      setEditing(null)
+      setForm(emptyForm(options[0].id))
+      setFormError('')
+      setFormOpen(true)
+    } catch (exception) {
+      setError(getErrorMessage(exception))
+    }
   }
 
-  function openEdit(item: Reservation) {
-    setEditing(item)
-    setForm({
-      restaurantTableId: item.restaurantTableId,
-      customerName: item.customerName,
-      phoneNumber: item.phoneNumber,
-      email: item.email ?? '',
-      numberOfGuests: item.numberOfGuests,
-      reservationTime: toLocalInput(item.reservationTime),
-      depositAmount: item.depositAmount,
-      note: item.note ?? '',
-    })
-    setFormError('')
-    setFormOpen(true)
-    setDetail(null)
+  async function openEdit(item: Reservation) {
+    setError('')
+    try {
+      const options = await loadTableOptions()
+      if (!options.some(table => table.id === item.restaurantTableId)) {
+        setError('Bàn của lịch đặt này đã ngừng hoạt động nên không thể tiếp tục chỉnh sửa.')
+        return
+      }
+
+      setEditing(item)
+      setForm({
+        restaurantTableId: item.restaurantTableId,
+        customerName: item.customerName,
+        phoneNumber: item.phoneNumber,
+        email: item.email ?? '',
+        numberOfGuests: item.numberOfGuests,
+        reservationTime: toLocalInput(item.reservationTime),
+        depositAmount: item.depositAmount,
+        note: item.note ?? '',
+      })
+      setFormError('')
+      setFormOpen(true)
+      setDetail(null)
+    } catch (exception) {
+      setError(getErrorMessage(exception))
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setFormError('')
-    const table = activeTables.find(item => item.id === form.restaurantTableId)
+    const table = tables.find(item => item.id === form.restaurantTableId)
     if (!table || !form.customerName.trim() || !form.phoneNumber.trim() || !form.reservationTime) {
       setFormError('Vui lòng nhập đầy đủ bàn, khách hàng, số điện thoại và thời gian.')
       return
@@ -177,7 +214,7 @@ export default function ReservationsPage() {
         : await createReservation(form)
       setMessage(result.message ?? (editing ? 'Đã cập nhật đặt bàn.' : 'Đã tạo đặt bàn.'))
       setFormOpen(false)
-      await load()
+      await Promise.all([load(), loadTableOptions()])
     } catch (exception) {
       setFormError(getErrorMessage(exception))
     } finally {
@@ -232,7 +269,7 @@ export default function ReservationsPage() {
     <section className="reservations-page">
       <header className="reservations-toolbar">
         <div><span>ĐẶT BÀN</span><h2>Lịch đặt &amp; tiếp nhận khách</h2><p>Quản lý lịch, tiền cọc và tiến trình nhận bàn theo đúng trạng thái vận hành.</p></div>
-        <button type="button" onClick={openCreate} disabled={!activeTables.length}>+ Tạo đặt bàn</button>
+        <button type="button" onClick={() => void openCreate()} disabled={loading}>+ Tạo đặt bàn</button>
       </header>
 
       {error && <div className="reservations-alert error"><span>!</span><p>{error}</p><button onClick={() => setError('')}>×</button></div>}
@@ -272,7 +309,7 @@ export default function ReservationsPage() {
                     <td>{formatMoney(item.depositAmount)}</td>
                     <td><span className={`reservation-status ${item.status.toLowerCase()}`}>{labels[item.status]}</span></td>
                     <td><div className="reservation-actions">
-                      {(item.status === 'Pending' || item.status === 'Confirmed') && <button onClick={() => openEdit(item)}>Sửa</button>}
+                      {(item.status === 'Pending' || item.status === 'Confirmed') && <button onClick={() => void openEdit(item)}>Sửa</button>}
                       {(nextActions[item.status] ?? []).map(action => <button key={action.status} onClick={() => void changeStatus(item, action.status)} disabled={actionId === item.id}>{action.label}</button>)}
                       {(item.status === 'Pending' || item.status === 'Confirmed') && <button className="danger" onClick={() => void cancel(item)} disabled={actionId === item.id}>Hủy</button>}
                     </div></td>
@@ -288,7 +325,7 @@ export default function ReservationsPage() {
       {formOpen && <div className="reservations-modal-backdrop" onMouseDown={() => !saving && setFormOpen(false)}><form className="reservations-modal" onSubmit={submit} onMouseDown={event => event.stopPropagation()}>
         <header><div><span>{editing ? 'CẬP NHẬT' : 'TẠO MỚI'}</span><h3>{editing ? editing.reservationCode : 'Đặt bàn mới'}</h3></div><button type="button" onClick={() => setFormOpen(false)}>×</button></header>
         <div className="reservation-form-grid">
-          <label>Bàn<select value={form.restaurantTableId} onChange={event => setForm(current => ({ ...current, restaurantTableId: event.target.value }))} required><option value="">Chọn bàn</option>{activeTables.map(table => <option key={table.id} value={table.id}>{table.name} • {table.areaName} • {table.capacity} chỗ</option>)}</select></label>
+          <label>Bàn<select value={form.restaurantTableId} onChange={event => setForm(current => ({ ...current, restaurantTableId: event.target.value }))} required><option value="">Chọn bàn</option>{tables.map(table => <option key={table.id} value={table.id}>{table.name} • {table.areaName} • {table.capacity} chỗ</option>)}</select></label>
           <label>Thời gian<input type="datetime-local" value={form.reservationTime} onChange={event => setForm(current => ({ ...current, reservationTime: event.target.value }))} required /></label>
           <label>Tên khách<input value={form.customerName} onChange={event => setForm(current => ({ ...current, customerName: event.target.value }))} required /></label>
           <label>Số điện thoại<input value={form.phoneNumber} onChange={event => setForm(current => ({ ...current, phoneNumber: event.target.value }))} required /></label>
