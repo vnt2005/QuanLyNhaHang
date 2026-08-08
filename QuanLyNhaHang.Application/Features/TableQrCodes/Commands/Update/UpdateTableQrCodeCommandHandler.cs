@@ -31,6 +31,17 @@ public class UpdateTableQrCodeCommandHandler
         if (table == null)
             throw new Exception("Không tìm thấy bàn.");
 
+        var areaIsActive = await _context.Areas
+            .AnyAsync(
+                x => x.Id == table.AreaId && x.IsActive,
+                cancellationToken);
+
+        if (!table.IsActive || !areaIsActive)
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
+
         if (request.Regenerate)
         {
             var newToken = GenerateToken();
