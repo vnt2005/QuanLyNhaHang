@@ -114,13 +114,21 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             .CountAsync(x => x.Status == "Cancelled", cancellationToken);
 
         var availableTables = await _context.RestaurantTables.AsNoTracking()
-            .CountAsync(x => x.Status == "Available", cancellationToken);
+            .CountAsync(
+                x => x.IsActive && x.Status == "Available",
+                cancellationToken);
         var occupiedTables = await _context.RestaurantTables.AsNoTracking()
-            .CountAsync(x => x.Status == "Occupied", cancellationToken);
+            .CountAsync(
+                x => x.IsActive && x.Status == "Occupied",
+                cancellationToken);
         var reservedTables = await _context.RestaurantTables.AsNoTracking()
-            .CountAsync(x => x.Status == "Reserved", cancellationToken);
+            .CountAsync(
+                x => x.IsActive && x.Status == "Reserved",
+                cancellationToken);
         var cleaningTables = await _context.RestaurantTables.AsNoTracking()
-            .CountAsync(x => x.Status == "Cleaning", cancellationToken);
+            .CountAsync(
+                x => x.IsActive && x.Status == "Cleaning",
+                cancellationToken);
 
         var pendingKitchenItems = await _context.OrderItems.AsNoTracking()
             .CountAsync(x => x.Status == "Pending", cancellationToken);
