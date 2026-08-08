@@ -23,13 +23,13 @@ public class UpdateTableQrCodeCommandHandler
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         if (qrCode == null)
-            throw new Exception("Không tìm thấy mã QR.");
+            throw new KeyNotFoundException("Không tìm thấy mã QR.");
 
         var table = await _context.RestaurantTables
             .FirstOrDefaultAsync(x => x.Id == qrCode.RestaurantTableId, cancellationToken);
 
         if (table == null)
-            throw new Exception("Không tìm thấy bàn.");
+            throw new KeyNotFoundException("Không tìm thấy bàn.");
 
         var areaIsActive = await _context.Areas
             .AnyAsync(
@@ -74,7 +74,7 @@ public class UpdateTableQrCodeCommandHandler
                     break;
 
                 default:
-                    throw new Exception("Trạng thái mã QR không hợp lệ.");
+                    throw new ArgumentException("Trạng thái mã QR không hợp lệ.");
             }
         }
 
