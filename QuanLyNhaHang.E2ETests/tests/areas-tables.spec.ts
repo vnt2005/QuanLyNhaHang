@@ -1,5 +1,10 @@
 import { expect, test } from './fixtures'
-import { loginAsAdmin, openAdminModule, uniqueName } from './helpers'
+import {
+  acceptConfirmDialog,
+  loginAsAdmin,
+  openAdminModule,
+  uniqueName,
+} from './helpers'
 
 test('Tạo khu vực và bàn phải hiển thị ngay trên giao diện', async ({ page }) => {
   const areaName = uniqueName('Khu vực Playwright')
@@ -36,4 +41,12 @@ test('Tạo khu vực và bàn phải hiển thị ngay trên giao diện', asyn
   await expect(tableCard).toBeVisible()
   await expect(tableCard).toContainText(areaName)
   await expect(tableCard).toContainText('4 chỗ')
+
+  await tableCard.getByRole('button', { name: 'Xóa', exact: true }).click()
+  await acceptConfirmDialog(page)
+
+  await expect(page.getByText('Xóa bàn thành công.', { exact: true })).toBeVisible()
+  await expect(
+    page.locator('.restaurant-table-card').filter({ hasText: tableName }),
+  ).toHaveCount(0)
 })
