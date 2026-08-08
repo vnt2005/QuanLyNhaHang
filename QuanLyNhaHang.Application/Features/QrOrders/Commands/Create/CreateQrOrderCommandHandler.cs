@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.QrOrders.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -26,16 +27,22 @@ public class CreateQrOrderCommandHandler
             .FirstOrDefaultAsync(x => x.Token == token, cancellationToken);
 
         if (qrCode == null)
-            throw new Exception("Mã QR không hợp lệ.");
+            throw new KeyNotFoundException("Mã QR không hợp lệ.");
 
         if (!qrCode.IsActive || qrCode.Status != "Active")
-            throw new Exception("Mã QR đã bị vô hiệu hóa.");
+            throw new InvalidOperationException("Mã QR đã bị vô hiệu hóa.");
 
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == qrCode.RestaurantTableId, cancellationToken);
+            .WhereOperational(_context)
+            .FirstOrDefaultAsync(
+                x => x.Id == qrCode.RestaurantTableId,
+                cancellationToken);
 
-        if (table == null || !table.IsActive)
-            throw new Exception("Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        if (table == null)
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
 
         if (request.Items is null || request.Items.Count == 0)
         {
@@ -44,16 +51,16 @@ public class CreateQrOrderCommandHandler
         }
 
         if (request.Items.Count > 50)
-            throw new Exception("Một order không được vượt quá 50 dòng món.");
+            throw new ArgumentException("Một order không được vượt quá 50 dòng món.");
 
         foreach (var item in request.Items)
         {
             if (item.MenuItemId == Guid.Empty)
-                throw new Exception("Món ăn không hợp lệ.");
+                throw new ArgumentException("Món ăn không hợp lệ.");
 
             if (item.Quantity <= 0 || item.Quantity > 99)
             {
-                throw new Exception(
+                throw new ArgumentException(
                     "Số lượng mỗi món phải từ 1 đến 99.");
             }
         }
@@ -72,7 +79,7 @@ public class CreateQrOrderCommandHandler
 
         if (menuItems.Count != menuItemIds.Count)
         {
-            throw new Exception(
+            throw new InvalidOperationException(
                 "Có món không tồn tại hoặc hiện không phục vụ.");
         }
 

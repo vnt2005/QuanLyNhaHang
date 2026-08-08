@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.QrOrders.DTOs;
 
@@ -26,10 +27,23 @@ public class GetQrOrderMenuItemsQueryHandler
             .FirstOrDefaultAsync(x => x.Token == token, cancellationToken);
 
         if (qrCode == null)
-            throw new Exception("Mã QR không hợp lệ.");
+            throw new KeyNotFoundException("Mã QR không hợp lệ.");
 
         if (!qrCode.IsActive || qrCode.Status != "Active")
-            throw new Exception("Mã QR đã bị vô hiệu hóa.");
+            throw new InvalidOperationException("Mã QR đã bị vô hiệu hóa.");
+
+        var tableIsAvailable = await _context.RestaurantTables
+            .AsNoTracking()
+            .WhereOperational(_context)
+            .AnyAsync(
+                table => table.Id == qrCode.RestaurantTableId,
+                cancellationToken);
+
+        if (!tableIsAvailable)
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
 
         var menuItems = await (
             from menuItem in _context.MenuItems.AsNoTracking()

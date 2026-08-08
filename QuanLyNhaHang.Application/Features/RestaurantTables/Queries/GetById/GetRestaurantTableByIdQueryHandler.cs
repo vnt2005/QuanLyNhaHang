@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.RestaurantTables.DTOs;
 
@@ -21,7 +22,9 @@ public class GetRestaurantTableByIdQueryHandler
     {
         var query =
             from table in _context.RestaurantTables
-            join area in _context.Areas on table.AreaId equals area.Id
+                .AsNoTracking()
+                .WhereOperational(_context)
+            join area in _context.Areas.AsNoTracking() on table.AreaId equals area.Id
             where table.Id == request.Id
             select new RestaurantTableDto
             {

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Application.Features.RestaurantTables.Commands.Update;
@@ -19,7 +20,10 @@ public class UpdateRestaurantTableCommandHandler
         CancellationToken cancellationToken)
     {
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            .WhereOperational(_context)
+            .FirstOrDefaultAsync(
+                x => x.Id == request.Id,
+                cancellationToken);
 
         if (table == null)
         {
@@ -42,7 +46,8 @@ public class UpdateRestaurantTableCommandHandler
             .AnyAsync(
                 x => x.AreaId == request.AreaId &&
                      x.Name == name &&
-                     x.Id != request.Id,
+                     x.Id != request.Id &&
+                     x.IsActive,
                 cancellationToken);
 
         if (tableNameExists)

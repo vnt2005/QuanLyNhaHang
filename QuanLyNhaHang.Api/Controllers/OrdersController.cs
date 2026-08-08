@@ -12,6 +12,7 @@ using QuanLyNhaHang.Application.Features.Orders.Commands.UpdateOrderItemQuantity
 using QuanLyNhaHang.Application.Features.Orders.Queries.GetById;
 using QuanLyNhaHang.Application.Features.Orders.Queries.GetList;
 using QuanLyNhaHang.Application.Features.Orders.Queries.GetWithPaginatedList;
+using QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetSelectable;
 
 namespace QuanLyNhaHang.Api.Controllers;
 
@@ -34,6 +35,20 @@ public class OrdersController : ControllerBase
     {
         var result = await _mediator.Send(
             new GetOrderListQuery(),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    // GET: api/orders/selectable-tables
+    [HttpGet("selectable-tables")]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+    [HasPermission(PermissionCodes.OrdersView)]
+    public async Task<IActionResult> GetSelectableTables(
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetSelectableRestaurantTablesQuery("Order"),
             cancellationToken);
 
         return Ok(result);

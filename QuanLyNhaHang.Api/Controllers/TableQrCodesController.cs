@@ -7,6 +7,7 @@ using QuanLyNhaHang.Application.Features.TableQrCodes.Commands.Delete;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Commands.Update;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Queries.GetById;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Queries.GetList;
+using QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetSelectable;
 using QuanLyNhaHang.Application.Features.TableQrCodes.Queries.GetWithPaginatedList;
 
 namespace QuanLyNhaHang.Api.Controllers;
@@ -34,6 +35,19 @@ public class TableQrCodesController : ControllerBase
             Status = status,
             IsActive = isActive
         });
+
+        return Ok(result);
+    }
+
+    [HttpGet("selectable-tables")]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+    [HasPermission(PermissionCodes.TablesView)]
+    public async Task<IActionResult> GetSelectableTables(
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetSelectableRestaurantTablesQuery("QrCode"),
+            cancellationToken);
 
         return Ok(result);
     }

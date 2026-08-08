@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.TableQrCodes.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -21,35 +22,64 @@ public class CreateTableQrCodeCommandHandler
         CancellationToken cancellationToken)
     {
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == request.RestaurantTableId, cancellationToken);
+            .WhereOperational(_context)
+            .FirstOrDefaultAsync(
+                x => x.Id == request.RestaurantTableId,
+                cancellationToken);
 
         if (table == null)
-            throw new Exception("Không tìm thấy bàn.");
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
 
-        var existedQrCode = await _context.TableQrCodes
-            .AnyAsync(x => x.RestaurantTableId == request.RestaurantTableId, cancellationToken);
+        var qrCode = await _context.TableQrCodes
+            .SingleOrDefaultAsync(
+                x => x.RestaurantTableId == request.RestaurantTableId,
+                cancellationToken);
 
-        if (existedQrCode)
-            throw new Exception("Bàn này đã có mã QR.");
+        if (qrCode != null &&
+            (qrCode.IsActive || qrCode.Status != "Inactive"))
+        {
+            throw new InvalidOperationException("Bàn này đã có mã QR.");
+        }
 
         var token = GenerateToken();
         var qrCodeUrl = GenerateQrCodeUrl(request.ClientBaseUrl, token);
 
-        var qrCode = new TableQrCode(
-            request.RestaurantTableId,
-            token,
-            qrCodeUrl,
-            request.Note);
+        if (qrCode == null)
+        {
+            qrCode = new TableQrCode(
+                request.RestaurantTableId,
+                token,
+                qrCodeUrl,
+                request.Note);
 
-        await _context.TableQrCodes.AddAsync(qrCode, cancellationToken);
+            await _context.TableQrCodes.AddAsync(
+                qrCode,
+                cancellationToken);
+        }
+        else
+        {
+            // RestaurantTableId has a unique index. Reuse the soft-deleted
+            // record so operators can issue a fresh token without violating it.
+            qrCode.Regenerate(token, qrCodeUrl, request.Note);
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        return ToDto(qrCode, table.Name);
+    }
+
+    private static TableQrCodeDto ToDto(
+        TableQrCode qrCode,
+        string restaurantTableName)
+    {
         return new TableQrCodeDto
         {
             Id = qrCode.Id,
             RestaurantTableId = qrCode.RestaurantTableId,
-            RestaurantTableName = table.Name,
+            RestaurantTableName = restaurantTableName,
             Token = qrCode.Token,
             QrCodeUrl = qrCode.QrCodeUrl,
             Status = qrCode.Status,

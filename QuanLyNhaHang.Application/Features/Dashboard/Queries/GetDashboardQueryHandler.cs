@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Time;
 using QuanLyNhaHang.Application.Features.Dashboard.DTOs;
@@ -113,13 +114,17 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         var cancelledOrders = await _context.Orders.AsNoTracking()
             .CountAsync(x => x.Status == "Cancelled", cancellationToken);
 
-        var availableTables = await _context.RestaurantTables.AsNoTracking()
+        var operationalTables = _context.RestaurantTables
+            .AsNoTracking()
+            .WhereOperational(_context);
+
+        var availableTables = await operationalTables
             .CountAsync(x => x.Status == "Available", cancellationToken);
-        var occupiedTables = await _context.RestaurantTables.AsNoTracking()
+        var occupiedTables = await operationalTables
             .CountAsync(x => x.Status == "Occupied", cancellationToken);
-        var reservedTables = await _context.RestaurantTables.AsNoTracking()
+        var reservedTables = await operationalTables
             .CountAsync(x => x.Status == "Reserved", cancellationToken);
-        var cleaningTables = await _context.RestaurantTables.AsNoTracking()
+        var cleaningTables = await operationalTables
             .CountAsync(x => x.Status == "Cleaning", cancellationToken);
 
         var pendingKitchenItems = await _context.OrderItems.AsNoTracking()

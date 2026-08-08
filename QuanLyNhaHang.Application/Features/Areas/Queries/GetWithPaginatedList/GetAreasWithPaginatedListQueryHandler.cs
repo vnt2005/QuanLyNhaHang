@@ -22,7 +22,7 @@ public class GetAreasWithPaginatedListQueryHandler
     {
         var query = _context.Areas
             .AsNoTracking()
-            .AsQueryable();
+            .Where(x => x.IsActive);
 
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {

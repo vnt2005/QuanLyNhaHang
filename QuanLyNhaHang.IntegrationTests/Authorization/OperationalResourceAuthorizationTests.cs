@@ -178,6 +178,102 @@ public sealed class OperationalResourceAuthorizationTests
     }
 
     [Fact]
+    public async Task ReservationSelector_UsesReservationPermission()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var roleName = $"ReservationAgent{suffix}";
+        Guid tableId;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+
+            await context.Database.EnsureCreatedAsync();
+
+            var role = new Role(
+                roleName,
+                "Nhân viên đặt bàn",
+                "Chỉ có quyền đặt bàn, không có Tables.View.");
+            var reservationsView = new Permission(
+                PermissionCodes.ReservationsView,
+                "Xem đặt bàn",
+                "Reservations",
+                null);
+            var reservationsCreate = new Permission(
+                PermissionCodes.ReservationsCreate,
+                "Tạo đặt bàn",
+                "Reservations",
+                null);
+            var area = new Area(
+                $"Khu đặt bàn {suffix}",
+                "Kiểm thử quyền selector.");
+            var table = new RestaurantTable(
+                area.Id,
+                $"Bàn đặt {suffix}",
+                4,
+                null);
+
+            context.Roles.Add(role);
+            context.Permissions.AddRange(
+                reservationsView,
+                reservationsCreate);
+            context.RolePermissions.AddRange(
+                new RolePermission(role.Id, reservationsView.Id),
+                new RolePermission(role.Id, reservationsCreate.Id));
+            context.Areas.Add(area);
+            context.RestaurantTables.Add(table);
+            await context.SaveChangesAsync();
+
+            tableId = table.Id;
+        }
+
+        await AuthenticateRoleAsync(factory, client, roleName);
+
+        using (var legacySelector = await client.GetAsync(
+            "/api/RestaurantTables/selectable?purpose=Reservation"))
+        {
+            Assert.Equal(
+                HttpStatusCode.Forbidden,
+                legacySelector.StatusCode);
+        }
+
+        using (var selectorResponse = await client.GetAsync(
+            "/api/reservations/selectable-tables"))
+        {
+            Assert.Equal(HttpStatusCode.OK, selectorResponse.StatusCode);
+            Assert.True(
+                selectorResponse.Headers.CacheControl?.NoStore ?? false);
+
+            using var selectorJson =
+                await ReadJsonAsync(selectorResponse);
+            Assert.Contains(
+                selectorJson.RootElement.EnumerateArray(),
+                item =>
+                    item.GetProperty("id").GetGuid() == tableId);
+        }
+
+        using var createResponse = await client.PostAsJsonAsync(
+            "/api/reservations",
+            new
+            {
+                restaurantTableId = tableId,
+                customerName = "Khách theo quyền đặt bàn",
+                phoneNumber = "0901234568",
+                email = "reservation-agent@example.com",
+                numberOfGuests = 2,
+                reservationTime = DateTime.UtcNow.AddDays(1),
+                depositAmount = 0m,
+                note = "Không cần Tables.View để chọn bàn."
+            });
+
+        Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task Staff_CanCreateAndCancelReservation()
     {
         using var factory = new ApiWebApplicationFactory();

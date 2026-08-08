@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.TableQrCodes.DTOs;
 
@@ -23,13 +24,19 @@ public class UpdateTableQrCodeCommandHandler
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         if (qrCode == null)
-            throw new Exception("Không tìm thấy mã QR.");
+            throw new KeyNotFoundException("Không tìm thấy mã QR.");
 
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == qrCode.RestaurantTableId, cancellationToken);
+            .WhereOperational(_context)
+            .FirstOrDefaultAsync(
+                x => x.Id == qrCode.RestaurantTableId,
+                cancellationToken);
 
         if (table == null)
-            throw new Exception("Không tìm thấy bàn.");
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
 
         if (request.Regenerate)
         {
@@ -63,7 +70,7 @@ public class UpdateTableQrCodeCommandHandler
                     break;
 
                 default:
-                    throw new Exception("Trạng thái mã QR không hợp lệ.");
+                    throw new ArgumentException("Trạng thái mã QR không hợp lệ.");
             }
         }
 

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Reservations.DTOs;
 
@@ -26,13 +27,16 @@ public class UpdateReservationCommandHandler
             throw new KeyNotFoundException("Không tìm thấy đặt bàn.");
 
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == request.RestaurantTableId, cancellationToken);
+            .WhereOperational(_context)
+            .FirstOrDefaultAsync(
+                x => x.Id == request.RestaurantTableId,
+                cancellationToken);
 
         if (table == null)
-            throw new KeyNotFoundException("Không tìm thấy bàn.");
-
-        if (!table.IsActive)
-            throw new InvalidOperationException("Bàn này đã bị vô hiệu hóa.");
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
 
         if (request.NumberOfGuests > table.Capacity)
             throw new ArgumentException("Số lượng khách vượt quá sức chứa của bàn.");

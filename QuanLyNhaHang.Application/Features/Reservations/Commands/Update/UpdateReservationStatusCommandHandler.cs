@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Reservations.DTOs;
 
@@ -39,6 +40,11 @@ public class UpdateReservationStatusCommandHandler
                 "Không tìm thấy bàn.");
         }
 
+        var tableIsAvailable = await _context.RestaurantTables
+            .AsNoTracking()
+            .WhereOperational(_context)
+            .AnyAsync(x => x.Id == table.Id, cancellationToken);
+
         if (string.IsNullOrWhiteSpace(request.Status))
         {
             throw new ArgumentException(
@@ -50,7 +56,7 @@ public class UpdateReservationStatusCommandHandler
         switch (status)
         {
             case "Confirmed":
-                EnsureTableIsActive(table.IsActive);
+                EnsureTableIsActive(tableIsAvailable);
                 reservation.Confirm();
 
                 if (!await HasActiveOrderAsync(
@@ -63,7 +69,7 @@ public class UpdateReservationStatusCommandHandler
                 break;
 
             case "CheckedIn":
-                EnsureTableIsActive(table.IsActive);
+                EnsureTableIsActive(tableIsAvailable);
 
                 if (await HasActiveOrderAsync(
                         table.Id,

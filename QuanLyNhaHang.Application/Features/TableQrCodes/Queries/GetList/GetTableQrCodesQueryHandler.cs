@@ -23,6 +23,9 @@ public class GetTableQrCodesQueryHandler
             from qrCode in _context.TableQrCodes.AsNoTracking()
             join table in _context.RestaurantTables.AsNoTracking()
                 on qrCode.RestaurantTableId equals table.Id
+            join area in _context.Areas.AsNoTracking()
+                on table.AreaId equals area.Id
+            where table.IsActive && area.IsActive
             select new
             {
                 QrCode = qrCode,

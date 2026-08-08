@@ -8,6 +8,7 @@ using QuanLyNhaHang.Application.Features.Reservations.Commands.Update;
 using QuanLyNhaHang.Application.Features.Reservations.Queries.GetById;
 using QuanLyNhaHang.Application.Features.Reservations.Queries.GetList;
 using QuanLyNhaHang.Application.Features.Reservations.Queries.GetWithPaginatedList;
+using QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetSelectable;
 
 namespace QuanLyNhaHang.Api.Controllers;
 
@@ -36,6 +37,19 @@ public class ReservationsController : ControllerBase
             FromDate = fromDate,
             ToDate = toDate
         });
+
+        return Ok(result);
+    }
+
+    [HttpGet("selectable-tables")]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+    [HasPermission(PermissionCodes.ReservationsView)]
+    public async Task<IActionResult> GetSelectableTables(
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetSelectableRestaurantTablesQuery("Reservation"),
+            cancellationToken);
 
         return Ok(result);
     }

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.RestaurantTables.DTOs;
@@ -21,7 +22,9 @@ public class GetRestaurantTablesWithPaginatedListQueryHandler
         CancellationToken cancellationToken)
     {
         var query =
-            from table in _context.RestaurantTables.AsNoTracking()
+            from table in _context.RestaurantTables
+                .AsNoTracking()
+                .WhereOperational(_context)
             join area in _context.Areas.AsNoTracking() on table.AreaId equals area.Id
             select new
             {

@@ -21,7 +21,9 @@ public class CreateAreaCommandHandler : IRequestHandler<CreateAreaCommand, Guid>
         var name = request.Name.Trim();
 
         var nameExists = await _context.Areas
-            .AnyAsync(x => x.Name == name, cancellationToken);
+            .AnyAsync(
+                x => x.Name == name && x.IsActive,
+                cancellationToken);
 
         if (nameExists)
         {

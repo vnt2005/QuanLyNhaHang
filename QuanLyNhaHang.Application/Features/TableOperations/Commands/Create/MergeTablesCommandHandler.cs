@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.TableOperations.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -48,10 +49,16 @@ public class MergeTablesCommandHandler
             throw new Exception("Không tìm thấy bàn nguồn.");
 
         var targetTable = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == targetOrder.RestaurantTableId, cancellationToken);
+            .WhereOperational(_context)
+            .FirstOrDefaultAsync(
+                x => x.Id == targetOrder.RestaurantTableId,
+                cancellationToken);
 
         if (targetTable == null)
-            throw new Exception("Không tìm thấy bàn đích.");
+        {
+            throw new InvalidOperationException(
+                "Bàn đích không tồn tại hoặc đã ngừng hoạt động.");
+        }
 
         if (sourceTable.Id == targetTable.Id)
             throw new Exception("Hai order phải thuộc hai bàn khác nhau để thực hiện gộp bàn.");
