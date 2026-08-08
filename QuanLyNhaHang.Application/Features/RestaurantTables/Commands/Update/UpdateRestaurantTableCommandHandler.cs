@@ -19,7 +19,9 @@ public class UpdateRestaurantTableCommandHandler
         CancellationToken cancellationToken)
     {
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Id == request.Id && x.IsActive,
+                cancellationToken);
 
         if (table == null)
         {
@@ -42,7 +44,8 @@ public class UpdateRestaurantTableCommandHandler
             .AnyAsync(
                 x => x.AreaId == request.AreaId &&
                      x.Name == name &&
-                     x.Id != request.Id,
+                     x.Id != request.Id &&
+                     x.IsActive,
                 cancellationToken);
 
         if (tableNameExists)
