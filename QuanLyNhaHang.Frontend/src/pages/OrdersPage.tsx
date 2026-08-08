@@ -1,7 +1,7 @@
 import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { getTables, type RestaurantTable } from '../api/areasTables'
+import { getSelectableTables, getTables, type RestaurantTable } from '../api/areasTables'
 import { getMenuItems, type MenuItem } from '../api/menu'
 import {
   addOrderItem,
@@ -37,6 +37,7 @@ const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'curren
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [tables, setTables] = useState<RestaurantTable[]>([])
+  const [selectableTables, setSelectableTables] = useState<RestaurantTable[]>([])
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [keyword, setKeyword] = useState('')
   const [tableFilter, setTableFilter] = useState('')
@@ -73,16 +74,20 @@ export default function OrdersPage() {
     } finally { setLoading(false) }
   }
 
-  async function loadLookups() {
+  async function loadLookups(): Promise<RestaurantTable[]> {
     try {
-      const [tableResult, menuResult] = await Promise.all([
+      const [tableResult, selectableTableResult, menuResult] = await Promise.all([
         getTables('', '', '', 1, 100),
+        getSelectableTables('Order'),
         getMenuItems('', '', true, true, 1, 100),
       ])
       setTables(tableResult.items ?? [])
+      setSelectableTables(selectableTableResult)
       setMenuItems(menuResult.items ?? [])
+      return selectableTableResult
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không tải được dữ liệu bàn và thực đơn.')
+      return []
     }
   }
 
@@ -99,6 +104,24 @@ export default function OrdersPage() {
     try { await refreshSelected(order.id); setDetailOpen(true) }
     catch (exception) { setError(exception instanceof Error ? exception.message : 'Không tải được chi tiết đơn hàng.') }
     finally { setSaving(false) }
+  }
+
+  async function openCreate() {
+    setError('')
+    setMessage('')
+    const options = await loadLookups()
+
+    if (!options.length) {
+      setError('Không có bàn phù hợp để tạo đơn hàng mới.')
+      return
+    }
+
+    setCreateForm({
+      ...emptyForm,
+      restaurantTableId: options[0].id,
+      items: emptyForm.items.map(item => ({ ...item })),
+    })
+    setCreateOpen(true)
   }
 
   function addCreateLine() {
@@ -192,7 +215,6 @@ export default function OrdersPage() {
     finally { setSaving(false) }
   }
 
-  const availableTables = useMemo(() => tables.filter(x => x.isActive && x.status !== 'Occupied'), [tables])
   const summary = useMemo(() => ({
     pending: orders.filter(x => x.status === 'Pending').length,
     cooking: orders.filter(x => x.status === 'Cooking').length,
@@ -200,7 +222,7 @@ export default function OrdersPage() {
   }), [orders])
 
   return <section className="orders-page">
-    <div className="page-toolbar"><div><h2>Quản lý đơn hàng</h2><p>Tạo đơn, theo dõi món và cập nhật tiến trình phục vụ.</p></div><button className="primary-button" onClick={() => { setCreateForm(emptyForm); setCreateOpen(true); setError(''); setMessage('') }}>+ Tạo đơn hàng</button></div>
+    <div className="page-toolbar"><div><h2>Quản lý đơn hàng</h2><p>Tạo đơn, theo dõi món và cập nhật tiến trình phục vụ.</p></div><button className="primary-button" onClick={() => void openCreate()}>+ Tạo đơn hàng</button></div>
 
     <div className="order-summary">
       <article><span>Tổng đơn phù hợp</span><strong>{totalCount}</strong></article>
@@ -231,7 +253,7 @@ export default function OrdersPage() {
 
     {createOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setCreateOpen(false)}><div className="employee-modal order-modal" role="dialog" aria-modal="true" aria-labelledby="create-order-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">ĐƠN HÀNG MỚI</span><h2 id="create-order-title">Tạo đơn hàng</h2><p>Chọn bàn và thêm các món khách đã gọi.</p></div><button type="button" aria-label="Đóng" onClick={() => setCreateOpen(false)}>×</button></div><form id="create-order-form" className="order-form" onSubmit={submitCreate}>
       {error && <div className="modal-alert error" role="alert">{error}</div>}
-      <label>Bàn<select required value={createForm.restaurantTableId} onChange={event => setCreateForm({...createForm, restaurantTableId:event.target.value})}><option value="">Chọn bàn</option>{availableTables.map(table => <option key={table.id} value={table.id}>{table.name} • {table.areaName}</option>)}</select></label>
+      <label>Bàn<select required value={createForm.restaurantTableId} onChange={event => setCreateForm({...createForm, restaurantTableId:event.target.value})}><option value="">Chọn bàn</option>{selectableTables.map(table => <option key={table.id} value={table.id}>{table.name} • {table.areaName}</option>)}</select></label>
       <label>Ghi chú<textarea value={createForm.note} onChange={event => setCreateForm({...createForm, note:event.target.value})}/></label>
       <div className="order-lines"><div className="line-heading"><strong>Món trong đơn</strong><button type="button" onClick={addCreateLine}>+ Thêm món</button></div>{createForm.items.map((line, index) => <div className="order-line" key={index}><select required value={line.menuItemId} onChange={event => updateCreateLine(index,{menuItemId:event.target.value})}><option value="">Chọn món</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input type="number" min={1} value={line.quantity} onChange={event => updateCreateLine(index,{quantity:Number(event.target.value)})}/><input value={line.note} onChange={event => updateCreateLine(index,{note:event.target.value})} placeholder="Ghi chú món"/><button type="button" className="danger" onClick={() => setCreateForm({...createForm, items:createForm.items.filter((_, i) => i !== index)})}>×</button></div>)}</div>
     </form><div className="modal-actions modal-footer"><button type="button" onClick={() => setCreateOpen(false)}>Hủy</button><button type="submit" form="create-order-form" className="primary-button" disabled={saving}>{saving ? 'Đang tạo...' : 'Tạo đơn'}</button></div></div></div>}

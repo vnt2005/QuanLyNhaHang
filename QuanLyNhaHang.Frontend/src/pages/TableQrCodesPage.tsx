@@ -2,7 +2,7 @@ import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
-import { getTables, type RestaurantTable } from '../api/areasTables'
+import { getSelectableTables, type RestaurantTable } from '../api/areasTables'
 import {
   createTableQrCode,
   deactivateTableQrCode,
@@ -211,7 +211,7 @@ export default function TableQrCodesPage() {
           PAGE_SIZE,
         ),
         getAllTableQrCodes(),
-        getTables('', '', '', 1, 500),
+        getSelectableTables('QrCode'),
       ])
 
       const resolvedTotalPages = Math.max(1, paginatedResult.totalPages || 1)
@@ -222,7 +222,7 @@ export default function TableQrCodesPage() {
 
       setItems(paginatedResult.items ?? [])
       setAllItems(allResult ?? [])
-      setTables(tableResult.items ?? [])
+      setTables(tableResult)
       setPage(paginatedResult.pageNumber || targetPage)
       setTotalPages(resolvedTotalPages)
       setTotalCount(paginatedResult.totalCount || 0)
@@ -252,15 +252,12 @@ export default function TableQrCodesPage() {
   )
 
   const eligibleTables = useMemo(() => {
-    const assignedTableIds = new Set(allItems.map(item => item.restaurantTableId))
-    return tables
-      .filter(table => table.isActive && !assignedTableIds.has(table.id))
-      .sort(
-        (left, right) =>
-          left.areaName.localeCompare(right.areaName, 'vi') ||
-          left.name.localeCompare(right.name, 'vi'),
-      )
-  }, [allItems, tables])
+    return [...tables].sort(
+      (left, right) =>
+        left.areaName.localeCompare(right.areaName, 'vi') ||
+        left.name.localeCompare(right.name, 'vi'),
+    )
+  }, [tables])
 
   function resetNotices() {
     setError('')
@@ -283,11 +280,23 @@ export default function TableQrCodesPage() {
     }
   }
 
-  function openCreate() {
+  async function openCreate() {
     resetNotices()
-    setSelectedTableId(eligibleTables[0]?.id ?? '')
-    setCreateNote('')
-    setCreateOpen(true)
+    try {
+      const options = await getSelectableTables('QrCode')
+      setTables(options)
+
+      if (!options.length) {
+        setError('Không có bàn đang hoạt động và chưa được gán mã QR.')
+        return
+      }
+
+      setSelectedTableId(options[0].id)
+      setCreateNote('')
+      setCreateOpen(true)
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không tải được danh sách bàn có thể tạo QR.')
+    }
   }
 
   function openEdit(item: TableQrCode) {
@@ -540,8 +549,8 @@ export default function TableQrCodesPage() {
         <button
           type="button"
           className="table-qr-primary"
-          onClick={openCreate}
-          disabled={loading || eligibleTables.length === 0}
+          onClick={() => void openCreate()}
+          disabled={loading}
         >
           <span>＋</span> Tạo mã QR
         </button>
@@ -652,7 +661,7 @@ export default function TableQrCodesPage() {
             <h3>Chưa có mã QR phù hợp</h3>
             <p>Thử đổi bộ lọc hoặc tạo mã QR cho một bàn chưa được gán.</p>
             {eligibleTables.length > 0 && (
-              <button type="button" className="table-qr-primary" onClick={openCreate}>Tạo mã QR đầu tiên</button>
+              <button type="button" className="table-qr-primary" onClick={() => void openCreate()}>Tạo mã QR đầu tiên</button>
             )}
           </div>
         ) : (
