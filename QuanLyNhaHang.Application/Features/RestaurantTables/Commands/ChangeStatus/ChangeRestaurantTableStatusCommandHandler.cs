@@ -19,11 +19,24 @@ public class ChangeRestaurantTableStatusCommandHandler
         CancellationToken cancellationToken)
     {
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Id == request.Id && x.IsActive,
+                cancellationToken);
 
         if (table == null)
         {
             return false;
+        }
+
+        var areaIsActive = await _context.Areas
+            .AnyAsync(
+                x => x.Id == table.AreaId && x.IsActive,
+                cancellationToken);
+
+        if (!areaIsActive)
+        {
+            throw new InvalidOperationException(
+                "Khu vực của bàn đã ngừng hoạt động.");
         }
 
         var status = request.Status.Trim();
