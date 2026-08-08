@@ -26,6 +26,17 @@ public class CreateTableQrCodeCommandHandler
         if (table == null)
             throw new Exception("Không tìm thấy bàn.");
 
+        var areaIsActive = await _context.Areas
+            .AnyAsync(
+                x => x.Id == table.AreaId && x.IsActive,
+                cancellationToken);
+
+        if (!table.IsActive || !areaIsActive)
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
+
         var existedQrCode = await _context.TableQrCodes
             .AnyAsync(x => x.RestaurantTableId == request.RestaurantTableId, cancellationToken);
 
