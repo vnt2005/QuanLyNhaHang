@@ -31,6 +31,22 @@ public class GetQrOrderMenuItemsQueryHandler
         if (!qrCode.IsActive || qrCode.Status != "Active")
             throw new Exception("Mã QR đã bị vô hiệu hóa.");
 
+        var tableIsAvailable = await (
+            from table in _context.RestaurantTables.AsNoTracking()
+            join area in _context.Areas.AsNoTracking()
+                on table.AreaId equals area.Id
+            where table.Id == qrCode.RestaurantTableId &&
+                  table.IsActive &&
+                  area.IsActive
+            select table.Id
+        ).AnyAsync(cancellationToken);
+
+        if (!tableIsAvailable)
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
+
         var menuItems = await (
             from menuItem in _context.MenuItems.AsNoTracking()
             join category in _context.MenuCategories.AsNoTracking()
