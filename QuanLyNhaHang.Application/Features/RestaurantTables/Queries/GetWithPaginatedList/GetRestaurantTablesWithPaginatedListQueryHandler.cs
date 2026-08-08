@@ -23,6 +23,7 @@ public class GetRestaurantTablesWithPaginatedListQueryHandler
         var query =
             from table in _context.RestaurantTables.AsNoTracking()
             join area in _context.Areas.AsNoTracking() on table.AreaId equals area.Id
+            where table.IsActive && area.IsActive
             select new
             {
                 Table = table,
