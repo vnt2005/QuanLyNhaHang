@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.TableQrCodes.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -21,17 +22,12 @@ public class CreateTableQrCodeCommandHandler
         CancellationToken cancellationToken)
     {
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == request.RestaurantTableId, cancellationToken);
-
-        if (table == null)
-            throw new KeyNotFoundException("Không tìm thấy bàn.");
-
-        var areaIsActive = await _context.Areas
-            .AnyAsync(
-                x => x.Id == table.AreaId && x.IsActive,
+            .WhereOperational(_context)
+            .FirstOrDefaultAsync(
+                x => x.Id == request.RestaurantTableId,
                 cancellationToken);
 
-        if (!table.IsActive || !areaIsActive)
+        if (table == null)
         {
             throw new InvalidOperationException(
                 "Bàn không tồn tại hoặc đã ngừng hoạt động.");

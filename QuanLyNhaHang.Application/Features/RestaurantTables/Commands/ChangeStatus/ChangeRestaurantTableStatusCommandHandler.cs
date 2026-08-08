@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Application.Features.RestaurantTables.Commands.ChangeStatus;
@@ -19,24 +20,14 @@ public class ChangeRestaurantTableStatusCommandHandler
         CancellationToken cancellationToken)
     {
         var table = await _context.RestaurantTables
+            .WhereOperational(_context)
             .FirstOrDefaultAsync(
-                x => x.Id == request.Id && x.IsActive,
+                x => x.Id == request.Id,
                 cancellationToken);
 
         if (table == null)
         {
             return false;
-        }
-
-        var areaIsActive = await _context.Areas
-            .AnyAsync(
-                x => x.Id == table.AreaId && x.IsActive,
-                cancellationToken);
-
-        if (!areaIsActive)
-        {
-            throw new InvalidOperationException(
-                "Khu vực của bàn đã ngừng hoạt động.");
         }
 
         var status = request.Status.Trim();

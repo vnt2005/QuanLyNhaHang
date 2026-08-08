@@ -8,6 +8,7 @@ using QuanLyNhaHang.Application.Features.RestaurantTables.Commands.Delete;
 using QuanLyNhaHang.Application.Features.RestaurantTables.Commands.Update;
 using QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetById;
 using QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetList;
+using QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetSelectable;
 using QuanLyNhaHang.Application.Features.RestaurantTables.Queries.GetWithPaginatedList;
 
 namespace QuanLyNhaHang.Api.Controllers;
@@ -31,6 +32,21 @@ public class RestaurantTablesController : ControllerBase
     {
         var result = await _mediator.Send(
             new GetRestaurantTableListQuery(),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    // GET: api/restauranttables/selectable?purpose=Reservation|Order|QrCode
+    [HttpGet("selectable")]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+    [HasPermission(PermissionCodes.TablesView)]
+    public async Task<IActionResult> GetSelectable(
+        [FromQuery] string? purpose,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetSelectableRestaurantTablesQuery(purpose),
             cancellationToken);
 
         return Ok(result);

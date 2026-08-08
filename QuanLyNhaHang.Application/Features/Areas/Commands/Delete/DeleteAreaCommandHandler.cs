@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
@@ -18,11 +18,36 @@ public class DeleteAreaCommandHandler : IRequestHandler<DeleteAreaCommand, bool>
         CancellationToken cancellationToken)
     {
         var area = await _context.Areas
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Id == request.Id && x.IsActive,
+                cancellationToken);
 
         if (area == null)
         {
             return false;
+        }
+
+        var tables = await _context.RestaurantTables
+            .Where(table =>
+                table.AreaId == area.Id &&
+                table.IsActive)
+            .ToListAsync(cancellationToken);
+
+        var tableIds = tables.Select(table => table.Id).ToList();
+        var qrCodes = await _context.TableQrCodes
+            .Where(qrCode =>
+                tableIds.Contains(qrCode.RestaurantTableId) &&
+                qrCode.IsActive)
+            .ToListAsync(cancellationToken);
+
+        foreach (var qrCode in qrCodes)
+        {
+            qrCode.Deactivate();
+        }
+
+        foreach (var table in tables)
+        {
+            table.Deactivate();
         }
 
         area.Deactivate();

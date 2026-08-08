@@ -18,7 +18,9 @@ public class UpdateAreaCommandHandler : IRequestHandler<UpdateAreaCommand, bool>
         CancellationToken cancellationToken)
     {
         var area = await _context.Areas
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Id == request.Id && x.IsActive,
+                cancellationToken);
 
         if (area == null)
         {
@@ -29,7 +31,9 @@ public class UpdateAreaCommandHandler : IRequestHandler<UpdateAreaCommand, bool>
 
         var nameExists = await _context.Areas
             .AnyAsync(
-                x => x.Name == name && x.Id != request.Id,
+                x => x.Name == name &&
+                     x.Id != request.Id &&
+                     x.IsActive,
                 cancellationToken);
 
         if (nameExists)

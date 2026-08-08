@@ -19,6 +19,8 @@ public class GetAreaListQueryHandler : IRequestHandler<GetAreaListQuery, List<Ar
         CancellationToken cancellationToken)
     {
         return await _context.Areas
+            .AsNoTracking()
+            .Where(x => x.IsActive)
             .OrderByDescending(x => x.CreatedAt)
             .Select(x => new AreaDto
             {

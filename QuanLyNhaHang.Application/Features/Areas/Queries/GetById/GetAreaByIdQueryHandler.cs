@@ -19,7 +19,7 @@ public class GetAreaByIdQueryHandler : IRequestHandler<GetAreaByIdQuery, AreaDto
         CancellationToken cancellationToken)
     {
         return await _context.Areas
-            .Where(x => x.Id == request.Id)
+            .Where(x => x.Id == request.Id && x.IsActive)
             .Select(x => new AreaDto
             {
                 Id = x.Id,

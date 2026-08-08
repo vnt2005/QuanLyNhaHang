@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.QrOrders.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -32,18 +33,16 @@ public class CreateQrOrderCommandHandler
             throw new InvalidOperationException("Mã QR đã bị vô hiệu hóa.");
 
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == qrCode.RestaurantTableId, cancellationToken);
-
-        if (table == null || !table.IsActive)
-            throw new InvalidOperationException("Bàn không tồn tại hoặc đã ngừng hoạt động.");
-
-        var areaIsActive = await _context.Areas
-            .AnyAsync(
-                x => x.Id == table.AreaId && x.IsActive,
+            .WhereOperational(_context)
+            .FirstOrDefaultAsync(
+                x => x.Id == qrCode.RestaurantTableId,
                 cancellationToken);
 
-        if (!areaIsActive)
-            throw new InvalidOperationException("Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        if (table == null)
+        {
+            throw new InvalidOperationException(
+                "Bàn không tồn tại hoặc đã ngừng hoạt động.");
+        }
 
         if (request.Items is null || request.Items.Count == 0)
         {

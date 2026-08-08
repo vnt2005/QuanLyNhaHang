@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Reservations.DTOs;
 
@@ -39,11 +40,10 @@ public class UpdateReservationStatusCommandHandler
                 "Không tìm thấy bàn.");
         }
 
-        var areaIsActive = await _context.Areas
-            .AnyAsync(
-                x => x.Id == table.AreaId && x.IsActive,
-                cancellationToken);
-        var tableIsAvailable = table.IsActive && areaIsActive;
+        var tableIsAvailable = await _context.RestaurantTables
+            .AsNoTracking()
+            .WhereOperational(_context)
+            .AnyAsync(x => x.Id == table.Id, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(request.Status))
         {

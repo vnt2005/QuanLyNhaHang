@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -24,18 +25,15 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Gui
         }
 
         var table = await _context.RestaurantTables
+            .WhereSelectableForOrder(_context)
             .FirstOrDefaultAsync(
-                x => x.Id == request.RestaurantTableId && x.IsActive,
+                x => x.Id == request.RestaurantTableId,
                 cancellationToken);
 
         if (table == null)
         {
-            throw new Exception("Bàn không tồn tại hoặc đã ngừng hoạt động.");
-        }
-
-        if (table.Status == "Occupied")
-        {
-            throw new Exception("Bàn này đang có khách.");
+            throw new InvalidOperationException(
+                "Bàn không tồn tại, đã ngừng hoạt động, đang vệ sinh hoặc đã có đơn chưa hoàn tất.");
         }
 
         var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
