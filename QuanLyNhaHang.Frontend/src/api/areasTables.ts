@@ -207,10 +207,15 @@ export async function getTables(
   } satisfies PaginatedTables
 }
 
+const selectableTablePaths: Record<TableSelectionPurpose, string> = {
+  Reservation: '/api/reservations/selectable-tables',
+  Order: '/api/Orders/selectable-tables',
+  QrCode: '/api/table-qr-codes/selectable-tables',
+}
+
 export async function getSelectableTables(purpose: TableSelectionPurpose) {
-  const params = new URLSearchParams({ purpose })
   const response = await request<unknown>(
-    `/api/RestaurantTables/selectable?${params}`,
+    selectableTablePaths[purpose],
     { cache: 'no-store' },
   )
   const payload = unwrapData(response)

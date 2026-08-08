@@ -17,6 +17,7 @@ function suffix() {
 
 type TableQrResponse = {
   data: {
+    id: string
     token: string
   }
 }
@@ -63,18 +64,42 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
   })
   expect(menuResponse.ok()).toBeTruthy()
 
-  const qrResponse = await request.post(`${apiURL}/api/table-qr-codes`, {
-    headers,
-    data: {
-      restaurantTableId: table.id,
-      clientBaseUrl: frontendURL,
-      note,
-    },
+  await openAdminModule(page, 'QR bàn')
+  const clientUrl = page.getByPlaceholder('https://order.example.com')
+  await clientUrl.fill(frontendURL)
+  await page.getByRole('button', { name: 'Lưu địa chỉ', exact: true }).click()
+  await expect(page.getByText('Đã lưu địa chỉ ứng dụng gọi món trên trình duyệt này.', { exact: true }))
+    .toBeVisible()
+
+  await page.getByRole('button', { name: /Tạo mã QR$/ }).first().click()
+  let createModal = page.locator('.table-qr-form-modal')
+  await expect(createModal).toBeVisible()
+  await createModal.locator('select').selectOption({
+    label: `${areaName} — ${tableName} (4 chỗ)`,
   })
-  expect(qrResponse.ok()).toBeTruthy()
+  await createModal.locator('textarea').fill(note)
+
+  const createResponsePromise = page.waitForResponse(response => (
+    response.url().endsWith('/api/table-qr-codes')
+    && response.request().method() === 'POST'
+  ))
+  await createModal
+    .getByRole('button', { name: 'Tạo mã QR', exact: true })
+    .click()
+  const qrResponse = await createResponsePromise
+  expect(qrResponse.status()).toBe(200)
+
   const createdQr = await qrResponse.json() as TableQrResponse
   const originalToken = createdQr.data.token
   expect(originalToken).not.toBe('')
+
+  const createdDetail = page.locator('.table-qr-detail-modal')
+  await expect(createdDetail).toBeVisible()
+  await expect(createdDetail).toContainText(tableName)
+  await expect(createdDetail.locator('code').first()).toHaveText(originalToken)
+  await createdDetail
+    .getByRole('button', { name: 'Đóng', exact: true })
+    .click()
 
   const publicMenuResponse = await request.get(
     `${apiURL}/api/qr-order/${encodeURIComponent(originalToken)}/menu-items`,
@@ -89,13 +114,6 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
   expect(createdMenuItem).toBeTruthy()
   expect(createdMenuItem?.menuCategoryName).toBe(`Danh mục QR ${id}`)
   expect(createdMenuItem?.description).toContain('QR thật')
-
-  await openAdminModule(page, 'QR bàn')
-  const clientUrl = page.getByPlaceholder('https://order.example.com')
-  await clientUrl.fill(frontendURL)
-  await page.getByRole('button', { name: 'Lưu địa chỉ', exact: true }).click()
-  await expect(page.getByText('Đã lưu địa chỉ ứng dụng gọi món trên trình duyệt này.', { exact: true }))
-    .toBeVisible()
 
   const keyword = page.getByPlaceholder('Tìm theo bàn, token hoặc liên kết…')
   await keyword.fill(tableName)
@@ -166,4 +184,32 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
   await acceptConfirmDialog(page)
   card = page.locator('.table-qr-card').filter({ hasText: tableName })
   await expect(card).toContainText('Đã vô hiệu')
+
+  await page.getByRole('button', { name: /Tạo mã QR$/ }).first().click()
+  createModal = page.locator('.table-qr-form-modal')
+  await expect(createModal).toBeVisible()
+  await createModal.locator('select').selectOption({
+    label: `${areaName} — ${tableName} (4 chỗ)`,
+  })
+  await createModal.locator('textarea').fill(`${updatedNote} cấp lại`)
+
+  const recreateResponsePromise = page.waitForResponse(response => (
+    response.url().endsWith('/api/table-qr-codes')
+    && response.request().method() === 'POST'
+  ))
+  await createModal
+    .getByRole('button', { name: 'Tạo mã QR', exact: true })
+    .click()
+  const recreateResponse = await recreateResponsePromise
+  expect(recreateResponse.status()).toBe(200)
+
+  const recreatedQr = await recreateResponse.json() as TableQrResponse
+  expect(recreatedQr.data.id).toBe(createdQr.data.id)
+  expect(recreatedQr.data.token).not.toBe(regeneratedToken)
+
+  detail = page.locator('.table-qr-detail-modal')
+  await expect(detail).toBeVisible()
+  await expect(detail).toContainText('Đang hoạt động')
+  await expect(detail.locator('code').first())
+    .toHaveText(recreatedQr.data.token)
 })

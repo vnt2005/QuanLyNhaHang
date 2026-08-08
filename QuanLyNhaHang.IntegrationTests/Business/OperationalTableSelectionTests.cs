@@ -65,6 +65,24 @@ public sealed class OperationalTableSelectionTests
             "QrCode",
             expected: true);
 
+        using var createReservationResponse = await client.PostAsJsonAsync(
+            "/api/reservations",
+            new
+            {
+                restaurantTableId = tableId,
+                customerName = "Khách chọn bàn",
+                phoneNumber = "0900000012",
+                email = "selectable-table@example.com",
+                numberOfGuests = 2,
+                reservationTime = DateTime.UtcNow.AddDays(2),
+                depositAmount = 50_000m,
+                note = "Tạo thật qua cùng policy với selector."
+            });
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            createReservationResponse.StatusCode);
+
         using var occupyResponse = await client.PatchAsJsonAsync(
             $"/api/RestaurantTables/{tableId}/status",
             new { id = tableId, status = "Occupied" });
@@ -108,14 +126,59 @@ public sealed class OperationalTableSelectionTests
         using var qrJson = await ReadJsonAsync(createQrResponse);
         var qrData = qrJson.RootElement.GetProperty("data");
         var qrId = qrData.GetProperty("id").GetGuid();
-        var qrToken = qrData.GetProperty("token").GetString();
+        var originalQrToken = qrData.GetProperty("token").GetString();
 
-        Assert.False(string.IsNullOrWhiteSpace(qrToken));
+        Assert.False(string.IsNullOrWhiteSpace(originalQrToken));
         await AssertSelectionContainsAsync(
             client,
             tableId,
             "QrCode",
             expected: false);
+
+        using var deactivateQrResponse = await client.DeleteAsync(
+            $"/api/table-qr-codes/{qrId}");
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            deactivateQrResponse.StatusCode);
+        await AssertSelectionContainsAsync(
+            client,
+            tableId,
+            "QrCode",
+            expected: true);
+
+        using var recreateQrResponse = await client.PostAsJsonAsync(
+            "/api/table-qr-codes",
+            new
+            {
+                restaurantTableId = tableId,
+                clientBaseUrl = "http://localhost:5173",
+                note = "QR inactive phải được cấp token mới."
+            });
+
+        Assert.Equal(HttpStatusCode.OK, recreateQrResponse.StatusCode);
+        using var recreatedQrJson = await ReadJsonAsync(recreateQrResponse);
+        var recreatedQrData =
+            recreatedQrJson.RootElement.GetProperty("data");
+        var qrToken = recreatedQrData.GetProperty("token").GetString();
+
+        Assert.Equal(
+            qrId,
+            recreatedQrData.GetProperty("id").GetGuid());
+        Assert.False(string.IsNullOrWhiteSpace(qrToken));
+        Assert.NotEqual(originalQrToken, qrToken);
+        await AssertSelectionContainsAsync(
+            client,
+            tableId,
+            "QrCode",
+            expected: false);
+
+        using var oldPublicQrResponse = await client.GetAsync(
+            $"/api/qr-order/{Uri.EscapeDataString(originalQrToken!)}");
+
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            oldPublicQrResponse.StatusCode);
 
         using var deleteAreaResponse = await client.DeleteAsync(
             $"/api/Areas/{areaId}");
@@ -171,8 +234,18 @@ public sealed class OperationalTableSelectionTests
         string purpose,
         bool expected)
     {
-        using var response = await client.GetAsync(
-            $"/api/RestaurantTables/selectable?purpose={Uri.EscapeDataString(purpose)}");
+        var endpoint = purpose switch
+        {
+            "Reservation" => "/api/reservations/selectable-tables",
+            "Order" => "/api/Orders/selectable-tables",
+            "QrCode" => "/api/table-qr-codes/selectable-tables",
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(purpose),
+                purpose,
+                "Mục đích chọn bàn không hợp lệ.")
+        };
+
+        using var response = await client.GetAsync(endpoint);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.Headers.CacheControl?.NoStore ?? false);

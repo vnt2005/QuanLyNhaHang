@@ -39,7 +39,8 @@ public static class RestaurantTableQueryExtensions
             .WhereOperational(context)
             .Where(table =>
                 !context.TableQrCodes.Any(qrCode =>
-                    qrCode.RestaurantTableId == table.Id));
+                    qrCode.RestaurantTableId == table.Id &&
+                    (qrCode.IsActive || qrCode.Status != "Inactive")));
     }
 
     public static IQueryable<RestaurantTable> WhereAvailableForTableOperation(
