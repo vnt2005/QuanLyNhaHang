@@ -26,10 +26,10 @@ public class GetQrOrderMenuItemsQueryHandler
             .FirstOrDefaultAsync(x => x.Token == token, cancellationToken);
 
         if (qrCode == null)
-            throw new Exception("Mã QR không hợp lệ.");
+            throw new KeyNotFoundException("Mã QR không hợp lệ.");
 
         if (!qrCode.IsActive || qrCode.Status != "Active")
-            throw new Exception("Mã QR đã bị vô hiệu hóa.");
+            throw new InvalidOperationException("Mã QR đã bị vô hiệu hóa.");
 
         var tableIsAvailable = await (
             from table in _context.RestaurantTables.AsNoTracking()
