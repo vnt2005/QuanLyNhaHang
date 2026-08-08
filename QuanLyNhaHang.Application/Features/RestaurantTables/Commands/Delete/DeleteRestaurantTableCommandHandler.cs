@@ -19,11 +19,24 @@ public class DeleteRestaurantTableCommandHandler
         CancellationToken cancellationToken)
     {
         var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Id == request.Id && x.IsActive,
+                cancellationToken);
 
         if (table == null)
         {
             return false;
+        }
+
+        var activeQrCodes = await _context.TableQrCodes
+            .Where(x =>
+                x.RestaurantTableId == table.Id &&
+                x.IsActive)
+            .ToListAsync(cancellationToken);
+
+        foreach (var qrCode in activeQrCodes)
+        {
+            qrCode.Deactivate();
         }
 
         table.Deactivate();
