@@ -37,6 +37,14 @@ public class CreateQrOrderCommandHandler
         if (table == null || !table.IsActive)
             throw new Exception("Bàn không tồn tại hoặc đã ngừng hoạt động.");
 
+        var areaIsActive = await _context.Areas
+            .AnyAsync(
+                x => x.Id == table.AreaId && x.IsActive,
+                cancellationToken);
+
+        if (!areaIsActive)
+            throw new Exception("Bàn không tồn tại hoặc đã ngừng hoạt động.");
+
         if (request.Items is null || request.Items.Count == 0)
         {
             throw new ArgumentException(
