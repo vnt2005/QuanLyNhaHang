@@ -34,7 +34,8 @@ public class CreateRestaurantTableCommandHandler
         var tableExists = await _context.RestaurantTables
             .AnyAsync(
                 x => x.AreaId == request.AreaId &&
-                     x.Name == name,
+                     x.Name == name &&
+                     x.IsActive,
                 cancellationToken);
 
         if (tableExists)
