@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -79,6 +79,8 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
         builder.HasIndex(x => x.OrderId);
 
-        builder.HasIndex(x => x.PaymentId).IsUnique();
+        builder.HasIndex(x => x.PaymentId)
+            .IsUnique()
+            .HasFilter("[Status] <> 'Cancelled'");
     }
 }
