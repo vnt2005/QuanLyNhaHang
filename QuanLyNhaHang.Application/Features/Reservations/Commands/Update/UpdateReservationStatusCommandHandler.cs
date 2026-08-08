@@ -39,6 +39,12 @@ public class UpdateReservationStatusCommandHandler
                 "Không tìm thấy bàn.");
         }
 
+        var areaIsActive = await _context.Areas
+            .AnyAsync(
+                x => x.Id == table.AreaId && x.IsActive,
+                cancellationToken);
+        var tableIsAvailable = table.IsActive && areaIsActive;
+
         if (string.IsNullOrWhiteSpace(request.Status))
         {
             throw new ArgumentException(
@@ -50,7 +56,7 @@ public class UpdateReservationStatusCommandHandler
         switch (status)
         {
             case "Confirmed":
-                EnsureTableIsActive(table.IsActive);
+                EnsureTableIsActive(tableIsAvailable);
                 reservation.Confirm();
 
                 if (!await HasActiveOrderAsync(
@@ -63,7 +69,7 @@ public class UpdateReservationStatusCommandHandler
                 break;
 
             case "CheckedIn":
-                EnsureTableIsActive(table.IsActive);
+                EnsureTableIsActive(tableIsAvailable);
 
                 if (await HasActiveOrderAsync(
                         table.Id,
