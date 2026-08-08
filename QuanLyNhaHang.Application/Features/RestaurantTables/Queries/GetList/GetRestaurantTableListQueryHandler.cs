@@ -22,6 +22,7 @@ public class GetRestaurantTableListQueryHandler
         var query =
             from table in _context.RestaurantTables
             join area in _context.Areas on table.AreaId equals area.Id
+            where table.IsActive && area.IsActive
             orderby table.CreatedAt descending
             select new RestaurantTableDto
             {
