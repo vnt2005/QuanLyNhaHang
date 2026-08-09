@@ -141,7 +141,7 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
   await expect(livePreview).toBeVisible()
   const liveFrame = page.frameLocator('.table-qr-live-frame')
   await expect(liveFrame.getByRole('heading', {
-    name: 'Chọn món, kiểm tra giỏ và xác nhận',
+    name: 'Bạn muốn dùng món gì?',
   })).toBeVisible()
   await expect(liveFrame.getByText(tableName, { exact: true }).first()).toBeVisible()
   await expect(liveFrame.getByText(menuItemName, { exact: true })).toBeVisible()
