@@ -22,6 +22,8 @@ public class InvoiceDto
 
     public decimal DiscountAmount { get; set; }
 
+    public decimal ServiceChargeAmount { get; set; }
+
     public decimal VatAmount { get; set; }
 
     public decimal FinalAmount { get; set; }
