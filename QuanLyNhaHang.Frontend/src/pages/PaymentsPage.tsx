@@ -3,6 +3,10 @@ import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { getOrders, type Order } from '../api/orders'
 import {
+  getRestaurantSettings,
+  type RestaurantSetting,
+} from '../api/restaurantSettings'
+import {
   cancelPayment,
   createPayment,
   getPayments,
@@ -19,14 +23,35 @@ const methodLabels: Record<string, string> = {
   EWallet: 'Ví điện tử',
 }
 const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
+const percent = (value: number) => new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(value)
+
+function calculateConfiguredCharges(
+  totalAmount: number,
+  discountAmount: number,
+  setting: RestaurantSetting | null,
+) {
+  const discountedSubtotal = Math.max(0, totalAmount - discountAmount)
+  const serviceChargeAmount = Math.round(
+    discountedSubtotal * (setting?.serviceChargePercent ?? 0) / 100,
+  )
+  const vatAmount = Math.round(
+    (discountedSubtotal + serviceChargeAmount)
+      * (setting?.defaultVatPercent ?? 0) / 100,
+  )
+
+  return { serviceChargeAmount, vatAmount }
+}
+
 const emptyForm: CreatePaymentForm = {
-  orderId: '', discountAmount: 0, vatAmount: 0, customerPaid: 0,
+  orderId: '', discountAmount: 0, serviceChargeAmount: 0, vatAmount: 0, customerPaid: 0,
   paymentMethod: 'Cash', note: '', issueInvoice: true,
 }
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([])
   const [eligibleOrders, setEligibleOrders] = useState<Order[]>([])
+  const [activeSetting, setActiveSetting] = useState<RestaurantSetting | null>(null)
+  const [settingsLoading, setSettingsLoading] = useState(true)
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('')
   const [method, setMethod] = useState('')
@@ -81,7 +106,21 @@ export default function PaymentsPage() {
     }
   }
 
-  useEffect(() => { void Promise.all([loadPayments(1), loadEligibleOrders()]) }, [])
+  async function loadActiveSetting() {
+    setSettingsLoading(true)
+    try {
+      const settings = await getRestaurantSettings('true')
+      setActiveSetting(settings[0] ?? null)
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không tải được cấu hình VAT và phí phục vụ.')
+    } finally {
+      setSettingsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void Promise.all([loadPayments(1), loadEligibleOrders(), loadActiveSetting()])
+  }, [])
 
   const selectedOrder = useMemo(
     () => eligibleOrders.find(order => order.id === form.orderId) ?? null,
@@ -89,9 +128,64 @@ export default function PaymentsPage() {
   )
   const preview = useMemo(() => {
     const total = editing?.totalAmount ?? selectedOrder?.totalAmount ?? 0
-    const final = Math.max(0, total - Number(form.discountAmount || 0) + Number(form.vatAmount || 0))
+    const final = Math.max(
+      0,
+      total - Number(form.discountAmount || 0)
+        + Number(form.serviceChargeAmount || 0)
+        + Number(form.vatAmount || 0),
+    )
     return { total, final, change: Math.max(0, Number(form.customerPaid || 0) - final) }
-  }, [editing, selectedOrder, form.discountAmount, form.vatAmount, form.customerPaid])
+  }, [
+    editing,
+    selectedOrder,
+    form.discountAmount,
+    form.serviceChargeAmount,
+    form.vatAmount,
+    form.customerPaid,
+  ])
+
+  function changeOrder(orderId: string) {
+    const order = eligibleOrders.find(item => item.id === orderId)
+    const totalAmount = order?.totalAmount ?? 0
+    const charges = calculateConfiguredCharges(totalAmount, 0, activeSetting)
+    const finalAmount = totalAmount
+      + charges.serviceChargeAmount
+      + charges.vatAmount
+
+    setForm(current => ({
+      ...current,
+      orderId,
+      discountAmount: 0,
+      ...charges,
+      customerPaid: finalAmount,
+    }))
+  }
+
+  function changeDiscount(discountAmount: number) {
+    if (editing) {
+      setForm(current => ({ ...current, discountAmount }))
+      return
+    }
+
+    const charges = calculateConfiguredCharges(
+      selectedOrder?.totalAmount ?? 0,
+      discountAmount,
+      activeSetting,
+    )
+    const finalAmount = Math.max(
+      0,
+      (selectedOrder?.totalAmount ?? 0) - discountAmount
+        + charges.serviceChargeAmount
+        + charges.vatAmount,
+    )
+
+    setForm(current => ({
+      ...current,
+      discountAmount,
+      ...charges,
+      customerPaid: finalAmount,
+    }))
+  }
 
   function openCreate() {
     setEditing(null); setForm(emptyForm); setMessage(''); setError(''); setModalOpen(true)
@@ -102,6 +196,7 @@ export default function PaymentsPage() {
     setForm({
       orderId: payment.orderId,
       discountAmount: payment.discountAmount,
+      serviceChargeAmount: payment.serviceChargeAmount,
       vatAmount: payment.vatAmount,
       customerPaid: payment.customerPaid,
       paymentMethod: payment.paymentMethod,
@@ -121,6 +216,7 @@ export default function PaymentsPage() {
       const result = editing
         ? await updatePayment(editing.id, {
             discountAmount: form.discountAmount,
+            serviceChargeAmount: form.serviceChargeAmount,
             vatAmount: form.vatAmount,
             customerPaid: form.customerPaid,
             paymentMethod: form.paymentMethod,
@@ -148,7 +244,7 @@ export default function PaymentsPage() {
   }
 
   return <section className="payments-page">
-    <div className="page-toolbar"><div><h2>Quản lý thanh toán</h2><p>Thu tiền, áp dụng giảm giá/VAT và xuất hóa đơn theo đơn hàng.</p></div><button className="primary-button" onClick={openCreate}>+ Thanh toán mới</button></div>
+    <div className="page-toolbar"><div><h2>Quản lý thanh toán</h2><p>Thu tiền, áp dụng giảm giá, phí phục vụ, VAT và xuất hóa đơn theo đơn hàng.</p></div><button className="primary-button" disabled={settingsLoading} onClick={openCreate}>+ Thanh toán mới</button></div>
 
     <div className="payment-summary">
       <article><span>Tổng phù hợp</span><strong>{totalCount}</strong></article>
@@ -167,13 +263,13 @@ export default function PaymentsPage() {
       <button type="submit">Lọc</button>
     </form>
 
-    <div className="payment-table-wrap"><table className="payment-table"><thead><tr><th>Mã</th><th>Thời gian</th><th>Phương thức</th><th>Tổng</th><th>Giảm/VAT</th><th>Thực thu</th><th>Trạng thái</th><th></th></tr></thead><tbody>
+    <div className="payment-table-wrap"><table className="payment-table"><thead><tr><th>Mã</th><th>Thời gian</th><th>Phương thức</th><th>Tổng</th><th>Giảm/Phí/VAT</th><th>Thực thu</th><th>Trạng thái</th><th></th></tr></thead><tbody>
       {loading ? <tr><td colSpan={8}>Đang tải...</td></tr> : payments.length === 0 ? <tr><td colSpan={8}>Không có thanh toán phù hợp.</td></tr> : payments.map(payment => <tr key={payment.id}>
         <td><strong>{payment.paymentCode}</strong><small>{payment.note || 'Không ghi chú'}</small></td>
         <td>{new Date(payment.paidAt).toLocaleString('vi-VN')}</td>
         <td>{methodLabels[payment.paymentMethod] ?? payment.paymentMethod}</td>
         <td>{money(payment.totalAmount)}</td>
-        <td><span>-{money(payment.discountAmount)}</span><small>+{money(payment.vatAmount)}</small></td>
+        <td><span>-{money(payment.discountAmount)}</span><small>Phí +{money(payment.serviceChargeAmount)}</small><small>VAT +{money(payment.vatAmount)}</small></td>
         <td><strong>{money(payment.finalAmount)}</strong><small>Thối {money(payment.changeAmount)}</small></td>
         <td><span className={`payment-status ${payment.status.toLowerCase()}`}>{payment.status === 'Paid' ? 'Đã thanh toán' : 'Đã hủy'}</span></td>
         <td><div className="payment-actions"><button disabled={saving || payment.status === 'Cancelled'} onClick={() => openEdit(payment)}>Sửa</button><button className="danger" disabled={saving || payment.status === 'Cancelled'} onClick={() => void remove(payment)}>Hủy</button></div></td>
@@ -184,11 +280,11 @@ export default function PaymentsPage() {
     {modalOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setModalOpen(false)}><div className="employee-modal payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">{editing ? 'CẬP NHẬT GIAO DỊCH' : 'THANH TOÁN'}</span><h2 id="payment-modal-title">{editing ? 'Cập nhật thanh toán' : 'Thanh toán đơn hàng'}</h2><p>{editing ? editing.paymentCode : 'Kiểm tra số tiền và phương thức trước khi xác nhận.'}</p></div><button type="button" aria-label="Đóng" onClick={() => setModalOpen(false)}>×</button></div>
       <form id="payment-form" className="payment-form" onSubmit={submit}>
         {error && <div className="modal-alert error" role="alert">{error}</div>}
-        {!editing && <label>Đơn hàng<select required value={form.orderId} onChange={event => setForm({...form, orderId:event.target.value, customerPaid: eligibleOrders.find(x => x.id === event.target.value)?.totalAmount ?? 0})}><option value="">Chọn đơn chờ thanh toán</option>{eligibleOrders.map(order => <option key={order.id} value={order.id}>{order.orderCode} • {order.restaurantTableName} • {money(order.totalAmount)}</option>)}</select></label>}
-        <div className="payment-form-grid"><label>Giảm giá<input type="number" min={0} value={form.discountAmount} onChange={event => setForm({...form,discountAmount:Number(event.target.value)})}/></label><label>VAT<input type="number" min={0} value={form.vatAmount} onChange={event => setForm({...form,vatAmount:Number(event.target.value)})}/></label><label>Khách đưa<input type="number" min={0} value={form.customerPaid} onChange={event => setForm({...form,customerPaid:Number(event.target.value)})}/></label><label>Phương thức<select value={form.paymentMethod} onChange={event => setForm({...form,paymentMethod:event.target.value})}>{methods.map(value => <option key={value} value={value}>{methodLabels[value]}</option>)}</select></label></div>
+        {!editing && <label>Đơn hàng<select required value={form.orderId} onChange={event => changeOrder(event.target.value)}><option value="">Chọn đơn chờ thanh toán</option>{eligibleOrders.map(order => <option key={order.id} value={order.id}>{order.orderCode} • {order.restaurantTableName} • {money(order.totalAmount)}</option>)}</select></label>}
+        <div className="payment-form-grid"><label>Giảm giá<input type="number" min={0} max={preview.total} value={form.discountAmount} onChange={event => changeDiscount(Number(event.target.value))}/></label><label>Phí phục vụ{!editing && activeSetting ? ` (${percent(activeSetting.serviceChargePercent)}%)` : ''}<input type="number" min={0} value={form.serviceChargeAmount} onChange={event => setForm({...form,serviceChargeAmount:Number(event.target.value)})}/></label><label>VAT{!editing && activeSetting ? ` (${percent(activeSetting.defaultVatPercent)}%)` : ''}<input type="number" min={0} value={form.vatAmount} onChange={event => setForm({...form,vatAmount:Number(event.target.value)})}/></label><label>Khách đưa<input type="number" min={0} value={form.customerPaid} onChange={event => setForm({...form,customerPaid:Number(event.target.value)})}/></label><label>Phương thức<select value={form.paymentMethod} onChange={event => setForm({...form,paymentMethod:event.target.value})}>{methods.map(value => <option key={value} value={value}>{methodLabels[value]}</option>)}</select></label></div>
         <label>Ghi chú<textarea value={form.note} onChange={event => setForm({...form,note:event.target.value})}/></label>
         {!editing && <label className="invoice-toggle"><input type="checkbox" checked={form.issueInvoice} onChange={event => setForm({...form,issueInvoice:event.target.checked})}/> Tự động xuất hóa đơn sau thanh toán</label>}
-        <div className="payment-preview"><div><span>Tiền món</span><strong>{money(preview.total)}</strong></div><div><span>Giảm giá</span><strong>-{money(form.discountAmount)}</strong></div><div><span>VAT</span><strong>+{money(form.vatAmount)}</strong></div><div className="final"><span>Khách cần trả</span><strong>{money(preview.final)}</strong></div><div><span>Tiền thối</span><strong>{money(preview.change)}</strong></div></div>
+        <div className="payment-preview"><div><span>Tiền món</span><strong>{money(preview.total)}</strong></div><div><span>Giảm giá</span><strong>-{money(form.discountAmount)}</strong></div><div><span>Phí phục vụ</span><strong>+{money(form.serviceChargeAmount)}</strong></div><div><span>VAT</span><strong>+{money(form.vatAmount)}</strong></div><div className="final"><span>Khách cần trả</span><strong>{money(preview.final)}</strong></div><div><span>Tiền thối</span><strong>{money(preview.change)}</strong></div></div>
       </form>
       <div className="modal-actions modal-footer"><button type="button" onClick={() => setModalOpen(false)}>Đóng</button><button type="submit" form="payment-form" className="primary-button" disabled={saving}>{saving ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Xác nhận thanh toán'}</button></div>
     </div></div>}
