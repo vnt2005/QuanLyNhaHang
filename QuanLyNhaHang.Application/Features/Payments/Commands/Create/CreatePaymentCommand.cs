@@ -9,6 +9,8 @@ public class CreatePaymentCommand : IRequest<PaymentDto>
 
     public decimal DiscountAmount { get; set; }
 
+    public decimal ServiceChargeAmount { get; set; }
+
     public decimal VatAmount { get; set; }
 
     public decimal CustomerPaid { get; set; }
