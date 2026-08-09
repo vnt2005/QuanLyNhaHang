@@ -166,6 +166,120 @@ public sealed class OrderPaymentWorkflowTests
     }
 
     [Fact]
+    public async Task UpdatePayment_SynchronizesActiveInvoiceSnapshot()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var scenario = await SeedOrderingScenarioAsync(factory);
+        var orderId = await CreateOrderAsync(client, scenario);
+        await MoveOrderToServedAsync(client, orderId);
+
+        using var paymentResponse = await PayAsync(client, orderId);
+        Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
+
+        using var paymentJson = await ReadJsonAsync(paymentResponse);
+        var paymentId = paymentJson.RootElement
+            .GetProperty("data")
+            .GetProperty("id")
+            .GetGuid();
+
+        using var updateResponse = await client.PutAsJsonAsync(
+            $"/api/payments/{paymentId}",
+            new
+            {
+                discountAmount = 20_000m,
+                vatAmount = 10_000m,
+                customerPaid = 300_000m,
+                paymentMethod = "EWallet",
+                note = "Đã đối soát"
+            });
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+
+        var payment = await context.Payments
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == paymentId);
+        var invoice = await context.Invoices
+            .AsNoTracking()
+            .SingleAsync(x => x.PaymentId == paymentId);
+
+        Assert.Equal(240_000m, payment.FinalAmount);
+        Assert.Equal("EWallet", payment.PaymentMethod);
+        Assert.Equal(payment.TotalAmount, invoice.TotalAmount);
+        Assert.Equal(payment.DiscountAmount, invoice.DiscountAmount);
+        Assert.Equal(payment.VatAmount, invoice.VatAmount);
+        Assert.Equal(payment.FinalAmount, invoice.FinalAmount);
+        Assert.Equal(payment.CustomerPaid, invoice.CustomerPaid);
+        Assert.Equal(payment.ChangeAmount, invoice.ChangeAmount);
+        Assert.Equal(payment.PaymentMethod, invoice.PaymentMethod);
+    }
+
+    [Fact]
+    public async Task CancelInvoice_AllowsReissueForSamePayment()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var scenario = await SeedOrderingScenarioAsync(factory);
+        var orderId = await CreateOrderAsync(client, scenario);
+        await MoveOrderToServedAsync(client, orderId);
+
+        using var paymentResponse = await PayAsync(client, orderId);
+        Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
+
+        using var paymentJson = await ReadJsonAsync(paymentResponse);
+        var paymentId = paymentJson.RootElement
+            .GetProperty("data")
+            .GetProperty("id")
+            .GetGuid();
+
+        Guid firstInvoiceId;
+        using (var firstScope = factory.Services.CreateScope())
+        {
+            var context = firstScope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+
+            firstInvoiceId = await context.Invoices
+                .Where(x => x.PaymentId == paymentId)
+                .Select(x => x.Id)
+                .SingleAsync();
+        }
+
+        using var cancelResponse = await client.DeleteAsync(
+            $"/api/invoices/{firstInvoiceId}");
+        Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
+
+        using var reissueResponse = await client.PostAsJsonAsync(
+            "/api/invoices",
+            new
+            {
+                paymentId,
+                note = "Xuất lại hóa đơn đã hủy"
+            });
+        Assert.Equal(HttpStatusCode.OK, reissueResponse.StatusCode);
+
+        using var verificationScope = factory.Services.CreateScope();
+        var verificationContext = verificationScope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+
+        var invoices = await verificationContext.Invoices
+            .AsNoTracking()
+            .Where(x => x.PaymentId == paymentId)
+            .ToListAsync();
+
+        Assert.Equal(2, invoices.Count);
+        Assert.Single(invoices, x => x.Status == "Cancelled");
+        Assert.Single(invoices, x => x.Status == "Issued");
+    }
+
+    [Fact]
     public async Task CancelPayment_CancelsInvoiceAndAllowsReplacement()
     {
         using var factory = new ApiWebApplicationFactory();

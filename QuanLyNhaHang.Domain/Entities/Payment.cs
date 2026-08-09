@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Domain.Entities;
+namespace QuanLyNhaHang.Domain.Entities;
 
 public class Payment
 {
@@ -56,6 +56,8 @@ public class Payment
 
         FinalAmount = TotalAmount - DiscountAmount + VatAmount;
 
+        EnsurePositiveFinalAmount();
+
         SetCustomerPaid(customerPaid);
 
         ChangeAmount = CustomerPaid - FinalAmount;
@@ -79,6 +81,8 @@ public class Payment
         SetNote(note);
 
         FinalAmount = TotalAmount - DiscountAmount + VatAmount;
+
+        EnsurePositiveFinalAmount();
 
         SetCustomerPaid(customerPaid);
 
@@ -130,6 +134,12 @@ public class Payment
         VatAmount = vatAmount;
     }
 
+    private void EnsurePositiveFinalAmount()
+    {
+        if (FinalAmount <= 0)
+            throw new ArgumentException("Số tiền thanh toán phải lớn hơn 0.");
+    }
+
     private void SetCustomerPaid(decimal customerPaid)
     {
         if (customerPaid < FinalAmount)
@@ -145,7 +155,7 @@ public class Payment
 
         paymentMethod = paymentMethod.Trim();
 
-        var validMethods = new[] { "Cash", "Card", "BankTransfer", "Momo", "ZaloPay", "Other" };
+        var validMethods = new[] { "Cash", "Card", "BankTransfer", "EWallet", "Momo", "ZaloPay", "Other" };
 
         if (!validMethods.Contains(paymentMethod))
             throw new ArgumentException("Phương thức thanh toán không hợp lệ.");

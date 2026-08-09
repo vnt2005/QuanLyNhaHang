@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
@@ -34,6 +34,24 @@ public class UpdatePaymentCommandHandler
             request.CustomerPaid,
             request.PaymentMethod,
             request.Note);
+
+        var activeInvoices = await _context.Invoices
+            .Where(x =>
+                x.PaymentId == payment.Id &&
+                x.Status != "Cancelled")
+            .ToListAsync(cancellationToken);
+
+        foreach (var invoice in activeInvoices)
+        {
+            invoice.UpdatePaymentSnapshot(
+                payment.TotalAmount,
+                payment.DiscountAmount,
+                payment.VatAmount,
+                payment.FinalAmount,
+                payment.CustomerPaid,
+                payment.ChangeAmount,
+                payment.PaymentMethod);
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 

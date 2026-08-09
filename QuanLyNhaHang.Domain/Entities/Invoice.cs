@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Domain.Entities;
+namespace QuanLyNhaHang.Domain.Entities;
 
 public class Invoice
 {
@@ -86,6 +86,29 @@ public class Invoice
             throw new InvalidOperationException("Hóa đơn đã hủy, không thể cập nhật.");
 
         SetNote(note);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void UpdatePaymentSnapshot(
+        decimal totalAmount,
+        decimal discountAmount,
+        decimal vatAmount,
+        decimal finalAmount,
+        decimal customerPaid,
+        decimal changeAmount,
+        string paymentMethod)
+    {
+        if (Status == "Cancelled")
+            throw new InvalidOperationException("Hóa đơn đã hủy, không thể cập nhật thanh toán.");
+
+        SetAmounts(
+            totalAmount,
+            discountAmount,
+            vatAmount,
+            finalAmount,
+            customerPaid,
+            changeAmount);
+        SetPaymentMethod(paymentMethod);
         UpdatedAt = DateTime.UtcNow;
     }
 

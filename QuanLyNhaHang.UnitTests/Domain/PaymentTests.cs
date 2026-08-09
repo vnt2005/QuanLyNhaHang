@@ -70,6 +70,47 @@ public sealed class PaymentTests
     }
 
     [Fact]
+    public void Constructor_RejectsZeroFinalAmount()
+    {
+        Assert.Throws<ArgumentException>(() => new Payment(
+            Guid.NewGuid(),
+            100_000m,
+            100_000m,
+            0,
+            0,
+            "Cash",
+            null));
+    }
+
+    [Fact]
+    public void UpdateInfo_RejectsZeroFinalAmount()
+    {
+        var payment = CreatePayment();
+
+        Assert.Throws<ArgumentException>(() => payment.UpdateInfo(
+            100_000m,
+            0,
+            0,
+            "Cash",
+            null));
+    }
+
+    [Fact]
+    public void Constructor_AcceptsFrontendEWalletMethod()
+    {
+        var payment = new Payment(
+            Guid.NewGuid(),
+            100_000m,
+            0,
+            0,
+            100_000m,
+            "EWallet",
+            null);
+
+        Assert.Equal("EWallet", payment.PaymentMethod);
+    }
+
+    [Fact]
     public void Constructor_RejectsInsufficientCustomerPayment()
     {
         Assert.Throws<ArgumentException>(() => new Payment(

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
@@ -32,6 +32,13 @@ public class CancelInventoryTransactionCommandHandler
 
         if (ingredient == null)
             throw new Exception("Không tìm thấy nguyên liệu của giao dịch tồn kho.");
+
+        if (ingredient.CurrentStock != transaction.StockAfter)
+        {
+            throw new InvalidOperationException(
+                "Không thể hủy giao dịch vì tồn kho đã thay đổi sau giao dịch này. " +
+                "Hãy hủy các giao dịch mới hơn trước.");
+        }
 
         if (transaction.TransactionType == "Import")
         {
