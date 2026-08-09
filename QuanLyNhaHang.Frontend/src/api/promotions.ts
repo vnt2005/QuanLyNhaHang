@@ -267,6 +267,10 @@ export function getAllPromotionUsages() {
   return request<PromotionUsage[]>('/api/promotion-usages')
 }
 
+export function getAppliedPromotionUsages() {
+  return request<PromotionUsage[]>('/api/promotion-usages?status=Applied')
+}
+
 export function getPromotionUsage(id: string) {
   return request<PromotionUsage>(`/api/promotion-usages/${id}`)
 }
