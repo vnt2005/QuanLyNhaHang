@@ -1613,6 +1613,58 @@
   padding: var(--ds-space-5) var(--ds-space-6);
 }
 
+.dashboard .payment-promotion-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--ds-space-2) var(--ds-space-3);
+  padding: var(--ds-space-4);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-subtle);
+}
+
+.dashboard .payment-promotion-controls label {
+  display: grid;
+  gap: var(--ds-space-2);
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.dashboard .payment-promotion-controls input {
+  text-transform: uppercase;
+}
+
+.dashboard .payment-promotion-controls > button {
+  min-height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-4);
+  border-radius: var(--ds-radius-md);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.dashboard .remove-promotion-button {
+  border: 1px solid var(--ds-color-border);
+  color: var(--ds-color-danger);
+  background: var(--ds-color-danger-soft);
+}
+
+.dashboard .payment-promotion-message {
+  grid-column: 1 / -1;
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-xs);
+  line-height: var(--ds-line-height-normal);
+}
+
+.dashboard .payment-promotion-message.success {
+  color: var(--ds-color-success);
+}
+
+.dashboard .payment-promotion-message.error {
+  color: var(--ds-color-danger);
+}
+
 .dashboard .modal-footer {
   display: flex;
   flex: 0 0 auto;
@@ -2508,6 +2560,14 @@
   }
 
   .modal-actions button {
+    width: 100%;
+  }
+
+  .dashboard .payment-promotion-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard .payment-promotion-controls > button {
     width: 100%;
   }
 
