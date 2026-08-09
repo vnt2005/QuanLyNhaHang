@@ -126,9 +126,11 @@ public sealed class OrderPaymentWorkflowTests
             paymentData.GetProperty("status").GetString());
         Assert.Equal(250_000m,
             paymentData.GetProperty("totalAmount").GetDecimal());
-        Assert.Equal(247_500m,
+        Assert.Equal(10_000m,
+            paymentData.GetProperty("serviceChargeAmount").GetDecimal());
+        Assert.Equal(257_500m,
             paymentData.GetProperty("finalAmount").GetDecimal());
-        Assert.Equal(52_500m,
+        Assert.Equal(42_500m,
             paymentData.GetProperty("changeAmount").GetDecimal());
 
         using var scope = factory.Services.CreateScope();
@@ -190,6 +192,7 @@ public sealed class OrderPaymentWorkflowTests
             new
             {
                 discountAmount = 20_000m,
+                serviceChargeAmount = 5_000m,
                 vatAmount = 10_000m,
                 customerPaid = 300_000m,
                 paymentMethod = "EWallet",
@@ -209,10 +212,12 @@ public sealed class OrderPaymentWorkflowTests
             .AsNoTracking()
             .SingleAsync(x => x.PaymentId == paymentId);
 
-        Assert.Equal(240_000m, payment.FinalAmount);
+        Assert.Equal(5_000m, payment.ServiceChargeAmount);
+        Assert.Equal(245_000m, payment.FinalAmount);
         Assert.Equal("EWallet", payment.PaymentMethod);
         Assert.Equal(payment.TotalAmount, invoice.TotalAmount);
         Assert.Equal(payment.DiscountAmount, invoice.DiscountAmount);
+        Assert.Equal(payment.ServiceChargeAmount, invoice.ServiceChargeAmount);
         Assert.Equal(payment.VatAmount, invoice.VatAmount);
         Assert.Equal(payment.FinalAmount, invoice.FinalAmount);
         Assert.Equal(payment.CustomerPaid, invoice.CustomerPaid);
@@ -530,6 +535,7 @@ public sealed class OrderPaymentWorkflowTests
             {
                 orderId,
                 discountAmount = 25_000m,
+                serviceChargeAmount = 10_000m,
                 vatAmount = 22_500m,
                 customerPaid = 300_000m,
                 paymentMethod = "Cash",
