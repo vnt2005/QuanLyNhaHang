@@ -168,6 +168,83 @@ public sealed class OrderPaymentWorkflowTests
     }
 
     [Fact]
+    public async Task CreatePayment_UsesAppliedPromotionAndLinksUsage()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var scenario = await SeedOrderingScenarioAsync(factory);
+        var orderId = await CreateOrderAsync(client, scenario);
+        await MoveOrderToServedAsync(client, orderId);
+
+        Guid promotionUsageId;
+        using (var promotionScope = factory.Services.CreateScope())
+        {
+            var context = promotionScope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+            var promotion = new Promotion(
+                $"PROMO-{Guid.NewGuid():N}",
+                "Khuyến mãi thanh toán integration test",
+                null,
+                "Amount",
+                40_000m,
+                0,
+                null,
+                DateTime.UtcNow.AddHours(-1),
+                DateTime.UtcNow.AddHours(1),
+                null);
+            var usage = new PromotionUsage(
+                promotion.Id,
+                orderId,
+                null,
+                promotion.PromotionCode,
+                250_000m,
+                40_000m,
+                "Khuyến mãi phải được đưa sang thanh toán");
+
+            promotion.IncreaseUsedCount();
+            context.Promotions.Add(promotion);
+            context.PromotionUsages.Add(usage);
+            await context.SaveChangesAsync();
+            promotionUsageId = usage.Id;
+        }
+
+        using var paymentResponse = await PayAsync(client, orderId);
+        Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
+
+        using var paymentJson = await ReadJsonAsync(paymentResponse);
+        var paymentData = paymentJson.RootElement.GetProperty("data");
+        var paymentId = paymentData.GetProperty("id").GetGuid();
+
+        Assert.Equal(
+            40_000m,
+            paymentData.GetProperty("discountAmount").GetDecimal());
+        Assert.Equal(
+            242_500m,
+            paymentData.GetProperty("finalAmount").GetDecimal());
+
+        using var verificationScope = factory.Services.CreateScope();
+        var verificationContext = verificationScope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+
+        var usageAfterPayment = await verificationContext.PromotionUsages
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == promotionUsageId);
+        var payment = await verificationContext.Payments
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == paymentId);
+        var invoice = await verificationContext.Invoices
+            .AsNoTracking()
+            .SingleAsync(x => x.PaymentId == paymentId);
+
+        Assert.Equal(payment.Id, usageAfterPayment.PaymentId);
+        Assert.Equal(40_000m, payment.DiscountAmount);
+        Assert.Equal(payment.DiscountAmount, invoice.DiscountAmount);
+        Assert.Equal(payment.FinalAmount, invoice.FinalAmount);
+    }
+
+    [Fact]
     public async Task UpdatePayment_SynchronizesActiveInvoiceSnapshot()
     {
         using var factory = new ApiWebApplicationFactory();
