@@ -25,6 +25,9 @@ export type PaginatedPayments = {
   totalCount: number
   hasPreviousPage: boolean
   hasNextPage: boolean
+  paidCount: number
+  cancelledCount: number
+  revenue: number
 }
 
 export type CreatePaymentForm = {

@@ -1,10 +1,9 @@
 ﻿using MediatR;
-using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Queries.GetWithPaginatedList;
 
-public class GetPaymentsWithPaginatedListQuery : IRequest<PaginatedList<PaymentDto>>
+public class GetPaymentsWithPaginatedListQuery : IRequest<PaymentPaginatedResultDto>
 {
     public string? Keyword { get; set; }
 

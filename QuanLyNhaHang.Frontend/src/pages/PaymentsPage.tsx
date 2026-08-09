@@ -1,6 +1,6 @@
 import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import { confirmAction } from '../design-system/confirmDialog'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { getOrders, type Order } from '../api/orders'
 import {
   cancelPayment,
@@ -33,6 +33,12 @@ export default function PaymentsPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const [summary, setSummary] = useState({
+    paid: 0,
+    cancelled: 0,
+    revenue: 0,
+  })
+  const latestPaymentRequest = useRef(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -43,16 +49,27 @@ export default function PaymentsPage() {
   const [form, setForm] = useState<CreatePaymentForm>(emptyForm)
 
   async function loadPayments(targetPage = page) {
+    const requestId = ++latestPaymentRequest.current
     setLoading(true); setError('')
     try {
       const result = await getPayments(keyword, status, method, targetPage, 10)
+      if (requestId !== latestPaymentRequest.current) return
+
       setPayments(result.items ?? [])
-      setPage(result.pageNumber || targetPage)
-      setTotalPages(Math.max(1, result.totalPages || 1))
-      setTotalCount(result.totalCount || 0)
+      setPage(result.pageNumber ?? targetPage)
+      setTotalPages(Math.max(1, result.totalPages ?? 1))
+      setTotalCount(result.totalCount ?? 0)
+      setSummary({
+        paid: result.paidCount ?? 0,
+        cancelled: result.cancelledCount ?? 0,
+        revenue: result.revenue ?? 0,
+      })
     } catch (exception) {
+      if (requestId !== latestPaymentRequest.current) return
       setError(exception instanceof Error ? exception.message : 'Không tải được danh sách thanh toán.')
-    } finally { setLoading(false) }
+    } finally {
+      if (requestId === latestPaymentRequest.current) setLoading(false)
+    }
   }
 
   async function loadEligibleOrders() {
@@ -130,20 +147,14 @@ export default function PaymentsPage() {
     } finally { setSaving(false) }
   }
 
-  const summary = useMemo(() => ({
-    paid: payments.filter(x => x.status === 'Paid').length,
-    cancelled: payments.filter(x => x.status === 'Cancelled').length,
-    revenue: payments.filter(x => x.status === 'Paid').reduce((sum, x) => sum + x.finalAmount, 0),
-  }), [payments])
-
   return <section className="payments-page">
     <div className="page-toolbar"><div><h2>Quản lý thanh toán</h2><p>Thu tiền, áp dụng giảm giá/VAT và xuất hóa đơn theo đơn hàng.</p></div><button className="primary-button" onClick={openCreate}>+ Thanh toán mới</button></div>
 
     <div className="payment-summary">
       <article><span>Tổng phù hợp</span><strong>{totalCount}</strong></article>
-      <article><span>Đã thanh toán trên trang</span><strong>{summary.paid}</strong></article>
-      <article><span>Đã hủy trên trang</span><strong>{summary.cancelled}</strong></article>
-      <article><span>Doanh thu trên trang</span><strong>{money(summary.revenue)}</strong></article>
+      <article><span>Đã thanh toán</span><strong>{summary.paid}</strong></article>
+      <article><span>Đã hủy</span><strong>{summary.cancelled}</strong></article>
+      <article><span>Doanh thu</span><strong>{money(summary.revenue)}</strong></article>
     </div>
 
     {message && <div className="inline-alert success">{message}</div>}
