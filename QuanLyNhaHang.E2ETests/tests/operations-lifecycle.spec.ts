@@ -93,7 +93,6 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   const paymentNote = `Thanh toán Playwright ${id}`
   const promotionCode = `E2E-${id}`
   const promotionName = `Khuyến mãi Playwright ${id}`
-  const promotionNote = `Áp dụng khuyến mãi Playwright ${id}`
   const reportNote = `Báo cáo Playwright ${id}`
   const itemPrice = 120000
   const promotionDiscount = 24000
@@ -245,30 +244,22 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   })
   expect(promotionResponse.ok()).toBeTruthy()
 
-  await openAdminModule(page, 'Khuyến mãi')
-  await page.getByRole('button', { name: /Áp dụng mã/ }).first().click()
-  const promotionModal = page.locator('.apply-promotion-modal')
-  await expect(promotionModal).toBeVisible()
-  await selectOptionContaining(promotionModal.locator('select').nth(0), orderCode)
-  await selectOptionContaining(promotionModal.locator('select').nth(1), promotionCode)
-  await promotionModal.locator('textarea').fill(promotionNote)
-  await expect(promotionModal.locator('.apply-calculation')).toContainText('24.000')
-  await promotionModal.getByRole('button', { name: 'Xác nhận áp dụng', exact: true }).click()
-  await expect(promotionModal.locator('.apply-success-content')).toContainText(promotionCode)
-  await expect(promotionModal.locator('.apply-success-content')).toContainText('24.000')
-  await promotionModal.getByRole('button', { name: 'Xem lịch sử sử dụng', exact: true }).click()
-  await expect(promotionModal).toHaveCount(0)
-
   await page.setViewportSize({ width: 960, height: 822 })
   await openAdminModule(page, 'Thanh toán')
   await page.getByRole('button', { name: '+ Thanh toán mới', exact: true }).click()
   const paymentModal = page.locator('.payment-modal')
   await expectModalLayout(page, paymentModal)
   await selectOptionContaining(paymentModal.locator('select').first(), orderCode)
+  const promotionCodeInput = paymentModal.getByLabel('Mã khuyến mãi', { exact: true })
+  await promotionCodeInput.fill(promotionCode)
+  await paymentModal.getByRole('button', { name: 'Áp dụng', exact: true }).click()
+  await expect(paymentModal.getByRole('button', { name: 'Gỡ mã', exact: true })).toBeVisible()
+  await expect(promotionCodeInput).toHaveValue(promotionCode)
+  await expect(promotionCodeInput).not.toBeEditable()
   const discountInput = paymentModal.getByLabel('Giảm giá', { exact: true })
   await expect(discountInput).toHaveValue(String(promotionDiscount))
   await expect(discountInput).not.toBeEditable()
-  await expect(paymentModal).toContainText(`Mã ${promotionCode} đã được tự động áp dụng.`)
+  await expect(paymentModal).toContainText(`Đã áp dụng mã ${promotionCode}`)
   await paymentModal.getByLabel(/^Phí phục vụ/).fill('3000')
   await paymentModal.getByLabel(/^VAT/).fill('5000')
   await paymentModal.getByLabel('Khách đưa', { exact: true }).fill('300000')
