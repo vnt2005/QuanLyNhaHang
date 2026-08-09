@@ -26,6 +26,7 @@ export type Invoice = {
   restaurantTableName: string
   totalAmount: number
   discountAmount: number
+  serviceChargeAmount: number
   vatAmount: number
   finalAmount: number
   customerPaid: number

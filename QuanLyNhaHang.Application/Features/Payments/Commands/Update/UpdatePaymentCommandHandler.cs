@@ -33,7 +33,8 @@ public class UpdatePaymentCommandHandler
             request.VatAmount,
             request.CustomerPaid,
             request.PaymentMethod,
-            request.Note);
+            request.Note,
+            request.ServiceChargeAmount);
 
         var activeInvoices = await _context.Invoices
             .Where(x =>
@@ -62,6 +63,7 @@ public class UpdatePaymentCommandHandler
             PaymentCode = payment.PaymentCode,
             TotalAmount = payment.TotalAmount,
             DiscountAmount = payment.DiscountAmount,
+            ServiceChargeAmount = payment.ServiceChargeAmount,
             VatAmount = payment.VatAmount,
             FinalAmount = payment.FinalAmount,
             CustomerPaid = payment.CustomerPaid,

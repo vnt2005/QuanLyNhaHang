@@ -12,6 +12,9 @@ public class Payment
 
     public decimal DiscountAmount { get; private set; }
 
+    public decimal ServiceChargeAmount =>
+        FinalAmount - TotalAmount + DiscountAmount - VatAmount;
+
     public decimal VatAmount { get; private set; }
 
     public decimal FinalAmount { get; private set; }
@@ -43,7 +46,8 @@ public class Payment
         decimal vatAmount,
         decimal customerPaid,
         string paymentMethod,
-        string? note)
+        string? note,
+        decimal serviceChargeAmount = 0)
     {
         Id = Guid.NewGuid();
 
@@ -51,10 +55,12 @@ public class Payment
         SetTotalAmount(totalAmount);
         SetDiscountAmount(discountAmount);
         SetVatAmount(vatAmount);
+        EnsureNonNegativeServiceCharge(serviceChargeAmount);
         SetPaymentMethod(paymentMethod);
         SetNote(note);
 
-        FinalAmount = TotalAmount - DiscountAmount + VatAmount;
+        FinalAmount = TotalAmount - DiscountAmount +
+            serviceChargeAmount + VatAmount;
 
         EnsurePositiveFinalAmount();
 
@@ -73,14 +79,17 @@ public class Payment
         decimal vatAmount,
         decimal customerPaid,
         string paymentMethod,
-        string? note)
+        string? note,
+        decimal serviceChargeAmount = 0)
     {
         SetDiscountAmount(discountAmount);
         SetVatAmount(vatAmount);
+        EnsureNonNegativeServiceCharge(serviceChargeAmount);
         SetPaymentMethod(paymentMethod);
         SetNote(note);
 
-        FinalAmount = TotalAmount - DiscountAmount + VatAmount;
+        FinalAmount = TotalAmount - DiscountAmount +
+            serviceChargeAmount + VatAmount;
 
         EnsurePositiveFinalAmount();
 
@@ -132,6 +141,13 @@ public class Payment
             throw new ArgumentException("Tiền VAT không được nhỏ hơn 0.");
 
         VatAmount = vatAmount;
+    }
+
+    private static void EnsureNonNegativeServiceCharge(
+        decimal serviceChargeAmount)
+    {
+        if (serviceChargeAmount < 0)
+            throw new ArgumentException("Phí phục vụ không được nhỏ hơn 0.");
     }
 
     private void EnsurePositiveFinalAmount()

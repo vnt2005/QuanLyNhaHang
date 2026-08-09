@@ -42,6 +42,8 @@ public class GetPaymentsQueryHandler
                 PaymentCode = x.PaymentCode,
                 TotalAmount = x.TotalAmount,
                 DiscountAmount = x.DiscountAmount,
+                ServiceChargeAmount = x.FinalAmount - x.TotalAmount +
+                    x.DiscountAmount - x.VatAmount,
                 VatAmount = x.VatAmount,
                 FinalAmount = x.FinalAmount,
                 CustomerPaid = x.CustomerPaid,

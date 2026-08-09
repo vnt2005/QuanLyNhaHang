@@ -6,6 +6,7 @@ export type Payment = {
   paymentCode: string
   totalAmount: number
   discountAmount: number
+  serviceChargeAmount: number
   vatAmount: number
   finalAmount: number
   customerPaid: number
@@ -33,6 +34,7 @@ export type PaginatedPayments = {
 export type CreatePaymentForm = {
   orderId: string
   discountAmount: number
+  serviceChargeAmount: number
   vatAmount: number
   customerPaid: number
   paymentMethod: string
