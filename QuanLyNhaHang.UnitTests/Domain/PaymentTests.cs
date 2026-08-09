@@ -31,6 +31,24 @@ public sealed class PaymentTests
     }
 
     [Fact]
+    public void Constructor_IncludesServiceChargeInFinalAmount()
+    {
+        var payment = new Payment(
+            Guid.NewGuid(),
+            500_000m,
+            0,
+            53_750m,
+            600_000m,
+            "Cash",
+            null,
+            37_500m);
+
+        Assert.Equal(37_500m, payment.ServiceChargeAmount);
+        Assert.Equal(591_250m, payment.FinalAmount);
+        Assert.Equal(8_750m, payment.ChangeAmount);
+    }
+
+    [Fact]
     public void UpdateInfo_RecalculatesAmounts()
     {
         var payment = CreatePayment();
@@ -40,10 +58,12 @@ public sealed class PaymentTests
             10_000m,
             120_000m,
             "Card",
-            "  Đã đối soát  ");
+            "  Đã đối soát  ",
+            5_000m);
 
-        Assert.Equal(90_000m, payment.FinalAmount);
-        Assert.Equal(30_000m, payment.ChangeAmount);
+        Assert.Equal(5_000m, payment.ServiceChargeAmount);
+        Assert.Equal(95_000m, payment.FinalAmount);
+        Assert.Equal(25_000m, payment.ChangeAmount);
         Assert.Equal("Card", payment.PaymentMethod);
         Assert.Equal("Đã đối soát", payment.Note);
         Assert.NotNull(payment.UpdatedAt);
@@ -67,6 +87,20 @@ public sealed class PaymentTests
             200_000m,
             "Cash",
             null));
+    }
+
+    [Fact]
+    public void Constructor_RejectsNegativeServiceCharge()
+    {
+        Assert.Throws<ArgumentException>(() => new Payment(
+            Guid.NewGuid(),
+            100_000m,
+            0,
+            0,
+            100_000m,
+            "Cash",
+            null,
+            -1));
     }
 
     [Fact]
