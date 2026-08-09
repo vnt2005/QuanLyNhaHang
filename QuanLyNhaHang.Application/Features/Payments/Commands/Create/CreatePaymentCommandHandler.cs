@@ -75,7 +75,8 @@ public class CreatePaymentCommandHandler
             request.VatAmount,
             request.CustomerPaid,
             request.PaymentMethod,
-            request.Note);
+            request.Note,
+            request.ServiceChargeAmount);
 
         await _context.Payments.AddAsync(payment, cancellationToken);
 
@@ -146,6 +147,7 @@ public class CreatePaymentCommandHandler
             PaymentCode = payment.PaymentCode,
             TotalAmount = payment.TotalAmount,
             DiscountAmount = payment.DiscountAmount,
+            ServiceChargeAmount = payment.ServiceChargeAmount,
             VatAmount = payment.VatAmount,
             FinalAmount = payment.FinalAmount,
             CustomerPaid = payment.CustomerPaid,
