@@ -68,10 +68,19 @@ public class CreatePaymentCommandHandler
 
         var totalAmount = orderItems.Sum(x => x.TotalPrice);
 
+        var appliedPromotionUsage = await _context.PromotionUsages
+            .FirstOrDefaultAsync(x =>
+                x.OrderId == request.OrderId &&
+                x.Status == "Applied",
+                cancellationToken);
+
+        var discountAmount = appliedPromotionUsage?.DiscountAmount
+            ?? request.DiscountAmount;
+
         var payment = new Payment(
             request.OrderId,
             totalAmount,
-            request.DiscountAmount,
+            discountAmount,
             request.VatAmount,
             request.CustomerPaid,
             request.PaymentMethod,
@@ -79,6 +88,11 @@ public class CreatePaymentCommandHandler
             request.ServiceChargeAmount);
 
         await _context.Payments.AddAsync(payment, cancellationToken);
+
+        if (appliedPromotionUsage != null)
+        {
+            appliedPromotionUsage.SetPayment(payment.Id);
+        }
 
         order.UpdateTotalAmount(totalAmount);
         order.MarkCompleted();
