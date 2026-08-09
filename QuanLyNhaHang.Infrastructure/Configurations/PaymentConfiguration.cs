@@ -12,6 +12,8 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 
         builder.HasKey(x => x.Id);
 
+        builder.Ignore(x => x.ServiceChargeAmount);
+
         builder.Property(x => x.OrderId)
             .IsRequired();
 
