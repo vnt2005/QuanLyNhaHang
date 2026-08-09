@@ -61,6 +61,7 @@ public class UpdateInvoiceCommandHandler
             RestaurantTableName = invoice.RestaurantTableName,
             TotalAmount = invoice.TotalAmount,
             DiscountAmount = invoice.DiscountAmount,
+            ServiceChargeAmount = invoice.ServiceChargeAmount,
             VatAmount = invoice.VatAmount,
             FinalAmount = invoice.FinalAmount,
             CustomerPaid = invoice.CustomerPaid,
