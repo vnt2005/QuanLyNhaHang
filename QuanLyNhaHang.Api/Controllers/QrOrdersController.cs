@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -59,6 +59,31 @@ public class QrOrdersController : ControllerBase
             {
                 Token = token
             });
+
+        return Ok(result);
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting("QrBrowse")]
+    [HttpGet("{token}/orders/{orderId:guid}")]
+    public async Task<IActionResult> GetOrder(
+        string token,
+        Guid orderId)
+    {
+        var result = await _mediator.Send(
+            new GetQrOrderByIdQuery
+            {
+                Token = token,
+                OrderId = orderId
+            });
+
+        if (result == null)
+        {
+            return NotFound(new
+            {
+                message = "Không tìm thấy đơn của bàn này."
+            });
+        }
 
         return Ok(result);
     }
