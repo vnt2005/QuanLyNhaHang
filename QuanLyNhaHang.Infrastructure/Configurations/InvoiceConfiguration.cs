@@ -12,6 +12,8 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
         builder.HasKey(x => x.Id);
 
+        builder.Ignore(x => x.ServiceChargeAmount);
+
         builder.Property(x => x.OrderId).IsRequired();
 
         builder.Property(x => x.PaymentId).IsRequired();
