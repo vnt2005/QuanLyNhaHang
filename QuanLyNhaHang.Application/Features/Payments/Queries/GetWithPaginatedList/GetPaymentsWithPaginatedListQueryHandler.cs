@@ -1,13 +1,12 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
-using QuanLyNhaHang.Application.Common.Models;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Queries.GetWithPaginatedList;
 
 public class GetPaymentsWithPaginatedListQueryHandler
-    : IRequestHandler<GetPaymentsWithPaginatedListQuery, PaginatedList<PaymentDto>>
+    : IRequestHandler<GetPaymentsWithPaginatedListQuery, PaymentPaginatedResultDto>
 {
     private readonly IApplicationDbContext _context;
 
@@ -16,7 +15,7 @@ public class GetPaymentsWithPaginatedListQueryHandler
         _context = context;
     }
 
-    public async Task<PaginatedList<PaymentDto>> Handle(
+    public async Task<PaymentPaginatedResultDto> Handle(
         GetPaymentsWithPaginatedListQuery request,
         CancellationToken cancellationToken)
     {
@@ -44,8 +43,32 @@ public class GetPaymentsWithPaginatedListQueryHandler
             query = query.Where(x => x.PaymentMethod == request.PaymentMethod);
         }
 
-        var paymentDtos = query
+        var totalCount = await query.CountAsync(cancellationToken);
+        var paidCount = await query.CountAsync(
+            x => x.Status == "Paid",
+            cancellationToken);
+        var cancelledCount = await query.CountAsync(
+            x => x.Status == "Cancelled",
+            cancellationToken);
+        var revenue = await query
+            .Where(x => x.Status == "Paid")
+            .SumAsync(
+                x => (decimal?)x.FinalAmount,
+                cancellationToken) ?? 0m;
+
+        var pageSize = Math.Clamp(request.PageSize, 1, 100);
+        var totalPages = Math.Max(
+            1,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
+        var pageNumber = Math.Clamp(
+            request.PageNumber,
+            1,
+            totalPages);
+
+        var items = await query
             .OrderByDescending(x => x.PaidAt)
+            .ThenByDescending(x => x.CreatedAt)
+            .ThenByDescending(x => x.Id)
             .Select(x => new PaymentDto
             {
                 Id = x.Id,
@@ -63,11 +86,20 @@ public class GetPaymentsWithPaginatedListQueryHandler
                 PaidAt = x.PaidAt,
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt
-            });
+            })
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
 
-        return await PaginatedList<PaymentDto>.CreateAsync(
-            paymentDtos,
-            request.PageNumber,
-            request.PageSize);
+        return new PaymentPaginatedResultDto
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            TotalPages = totalPages,
+            TotalCount = totalCount,
+            PaidCount = paidCount,
+            CancelledCount = cancelledCount,
+            Revenue = revenue
+        };
     }
 }
