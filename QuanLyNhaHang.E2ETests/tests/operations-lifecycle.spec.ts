@@ -91,8 +91,11 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   const menuItemName = `Món vận hành E2E ${id}`
   const orderNote = `Đơn vận hành Playwright ${id}`
   const paymentNote = `Thanh toán Playwright ${id}`
+  const promotionCode = `E2E-${id}`
+  const promotionName = `Khuyến mãi Playwright ${id}`
   const reportNote = `Báo cáo Playwright ${id}`
   const itemPrice = 120000
+  const promotionDiscount = 24000
   const now = new Date()
   const reportFrom = inputDate(new Date(now.getTime() - 24 * 60 * 60 * 1000))
   const reportTo = inputDate(new Date(now.getTime() + 24 * 60 * 60 * 1000))
@@ -158,6 +161,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
     },
   })
   expect(createOrderResponse.ok()).toBeTruthy()
+  const createdOrder = await createOrderResponse.json() as { id: string }
 
   const orderSearch = page.getByPlaceholder('Tìm mã đơn, bàn hoặc ghi chú...')
   await orderSearch.fill(orderNote)
@@ -223,13 +227,39 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
     ]),
   )
 
+  const promotionResponse = await request.post(`${apiURL}/api/promotions`, {
+    headers,
+    data: {
+      promotionCode,
+      name: promotionName,
+      description: 'Kiểm tra khuyến mãi được chuyển sang thanh toán.',
+      discountType: 'Percent',
+      discountValue: 10,
+      minimumOrderAmount: 0,
+      maximumDiscountAmount: 50000,
+      startDate: new Date(now.getTime() - 60 * 60 * 1000).toISOString(),
+      endDate: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+      usageLimit: 20,
+    },
+  })
+  expect(promotionResponse.ok()).toBeTruthy()
+
   await page.setViewportSize({ width: 960, height: 822 })
   await openAdminModule(page, 'Thanh toán')
   await page.getByRole('button', { name: '+ Thanh toán mới', exact: true }).click()
   const paymentModal = page.locator('.payment-modal')
   await expectModalLayout(page, paymentModal)
   await selectOptionContaining(paymentModal.locator('select').first(), orderCode)
-  await paymentModal.getByLabel('Giảm giá', { exact: true }).fill('10000')
+  const promotionCodeInput = paymentModal.getByLabel('Mã khuyến mãi', { exact: true })
+  await promotionCodeInput.fill(promotionCode)
+  await paymentModal.getByRole('button', { name: 'Áp dụng', exact: true }).click()
+  await expect(paymentModal.getByRole('button', { name: 'Gỡ mã', exact: true })).toBeVisible()
+  await expect(promotionCodeInput).toHaveValue(promotionCode)
+  await expect(promotionCodeInput).not.toBeEditable()
+  const discountInput = paymentModal.getByLabel('Giảm giá', { exact: true })
+  await expect(discountInput).toHaveValue(String(promotionDiscount))
+  await expect(discountInput).not.toBeEditable()
+  await expect(paymentModal).toContainText(`Đã áp dụng mã ${promotionCode}`)
   await paymentModal.getByLabel(/^Phí phục vụ/).fill('3000')
   await paymentModal.getByLabel(/^VAT/).fill('5000')
   await paymentModal.getByLabel('Khách đưa', { exact: true }).fill('300000')
@@ -238,17 +268,36 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await paymentModal.getByLabel('Tự động xuất hóa đơn sau thanh toán', { exact: true }).check()
   await expect(paymentModal.locator('.payment-preview')).toContainText('Phí phục vụ')
   await expect(paymentModal.locator('.payment-preview')).toContainText('3.000')
-  await expect(paymentModal.locator('.payment-preview')).toContainText('238.000')
+  await expect(paymentModal.locator('.payment-preview')).toContainText(promotionCode)
+  await expect(paymentModal.locator('.payment-preview')).toContainText('224.000')
   await paymentModal.getByRole('button', { name: 'Xác nhận thanh toán', exact: true }).click()
   await expect(paymentModal).toHaveCount(0)
   await page.setViewportSize({ width: 1440, height: 900 })
 
   const paymentRow = page.locator('.payment-table tbody tr').filter({ hasText: paymentNote })
   await expect(paymentRow).toBeVisible()
-  await expect(paymentRow).toContainText('238.000')
+  await expect(paymentRow).toContainText('224.000')
   await expect(paymentRow).toContainText('Đã thanh toán')
   const paymentCode = (await paymentRow.locator('td').first().locator('strong').textContent())?.trim() ?? ''
   expect(paymentCode).not.toBe('')
+
+  const promotionUsagesResponse = await request.get(
+    `${apiURL}/api/promotion-usages?orderId=${createdOrder.id}&status=Applied`,
+    { headers },
+  )
+  expect(promotionUsagesResponse.ok()).toBeTruthy()
+  const promotionUsages = await promotionUsagesResponse.json() as Array<{
+    promotionCode: string
+    discountAmount: number
+    paymentCode: string | null
+  }>
+  expect(promotionUsages).toEqual([
+    expect.objectContaining({
+      promotionCode,
+      discountAmount: promotionDiscount,
+      paymentCode,
+    }),
+  ])
 
   await openAdminModule(page, 'Hóa đơn')
   const invoiceSearch = page.getByPlaceholder('Tìm mã hóa đơn, đơn, thanh toán hoặc bàn...')
@@ -258,7 +307,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(invoiceRow).toBeVisible()
   await expect(invoiceRow).toContainText(orderCode)
   await expect(invoiceRow).toContainText(tableName)
-  await expect(invoiceRow).toContainText('238.000')
+  await expect(invoiceRow).toContainText('224.000')
   await expect(invoiceRow).toContainText('Đã phát hành')
 
   await invoiceRow.getByRole('button', { name: 'Chi tiết', exact: true }).click()
@@ -267,7 +316,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   await expect(invoiceDetail).toContainText('2')
   await expect(invoiceDetail).toContainText('Phí phục vụ')
   await expect(invoiceDetail).toContainText('3.000')
-  await expect(invoiceDetail).toContainText('238.000')
+  await expect(invoiceDetail).toContainText('224.000')
   await invoiceDetail.getByRole('button', { name: 'Đóng', exact: true }).click()
 
   invoiceRow = page.locator('.invoice-table tbody tr').filter({ hasText: paymentCode })

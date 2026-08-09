@@ -3,6 +3,12 @@ import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { getOrders, type Order } from '../api/orders'
 import {
+  applyPromotion,
+  cancelPromotionUsage,
+  getAppliedPromotionUsages,
+  type PromotionUsage,
+} from '../api/promotions'
+import {
   getRestaurantSettings,
   type RestaurantSetting,
 } from '../api/restaurantSettings'
@@ -52,6 +58,8 @@ export default function PaymentsPage() {
   const [eligibleOrders, setEligibleOrders] = useState<Order[]>([])
   const [activeSetting, setActiveSetting] = useState<RestaurantSetting | null>(null)
   const [settingsLoading, setSettingsLoading] = useState(true)
+  const [appliedPromotionUsages, setAppliedPromotionUsages] = useState<PromotionUsage[]>([])
+  const [promotionUsagesLoading, setPromotionUsagesLoading] = useState(true)
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('')
   const [method, setMethod] = useState('')
@@ -72,6 +80,9 @@ export default function PaymentsPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Payment | null>(null)
   const [form, setForm] = useState<CreatePaymentForm>(emptyForm)
+  const [checkoutPromotionCode, setCheckoutPromotionCode] = useState('')
+  const [promotionApplying, setPromotionApplying] = useState(false)
+  const [promotionError, setPromotionError] = useState('')
 
   async function loadPayments(targetPage = page) {
     const requestId = ++latestPaymentRequest.current
@@ -118,13 +129,33 @@ export default function PaymentsPage() {
     }
   }
 
+  async function loadAppliedPromotionUsages() {
+    setPromotionUsagesLoading(true)
+    try {
+      setAppliedPromotionUsages(await getAppliedPromotionUsages())
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không tải được khuyến mãi đã áp dụng.')
+    } finally {
+      setPromotionUsagesLoading(false)
+    }
+  }
+
   useEffect(() => {
-    void Promise.all([loadPayments(1), loadEligibleOrders(), loadActiveSetting()])
+    void Promise.all([
+      loadPayments(1),
+      loadEligibleOrders(),
+      loadActiveSetting(),
+      loadAppliedPromotionUsages(),
+    ])
   }, [])
 
   const selectedOrder = useMemo(
     () => eligibleOrders.find(order => order.id === form.orderId) ?? null,
     [eligibleOrders, form.orderId],
+  )
+  const selectedPromotionUsage = useMemo(
+    () => appliedPromotionUsages.find(usage => usage.orderId === form.orderId) ?? null,
+    [appliedPromotionUsages, form.orderId],
   )
   const preview = useMemo(() => {
     const total = editing?.totalAmount ?? selectedOrder?.totalAmount ?? 0
@@ -146,16 +177,29 @@ export default function PaymentsPage() {
 
   function changeOrder(orderId: string) {
     const order = eligibleOrders.find(item => item.id === orderId)
+    const promotionUsage = appliedPromotionUsages.find(
+      usage => usage.orderId === orderId,
+    )
     const totalAmount = order?.totalAmount ?? 0
-    const charges = calculateConfiguredCharges(totalAmount, 0, activeSetting)
-    const finalAmount = totalAmount
-      + charges.serviceChargeAmount
-      + charges.vatAmount
+    const discountAmount = promotionUsage?.discountAmount ?? 0
+    const charges = calculateConfiguredCharges(
+      totalAmount,
+      discountAmount,
+      activeSetting,
+    )
+    const finalAmount = Math.max(
+      0,
+      totalAmount - discountAmount
+        + charges.serviceChargeAmount
+        + charges.vatAmount,
+    )
 
+    setCheckoutPromotionCode(promotionUsage?.promotionCode ?? '')
+    setPromotionError('')
     setForm(current => ({
       ...current,
       orderId,
-      discountAmount: 0,
+      discountAmount,
       ...charges,
       customerPaid: finalAmount,
     }))
@@ -188,7 +232,13 @@ export default function PaymentsPage() {
   }
 
   function openCreate() {
-    setEditing(null); setForm(emptyForm); setMessage(''); setError(''); setModalOpen(true)
+    setEditing(null)
+    setForm(emptyForm)
+    setCheckoutPromotionCode('')
+    setPromotionError('')
+    setMessage('')
+    setError('')
+    setModalOpen(true)
   }
 
   function openEdit(payment: Payment) {
@@ -203,11 +253,71 @@ export default function PaymentsPage() {
       note: payment.note ?? '',
       issueInvoice: false,
     })
-    setMessage(''); setError(''); setModalOpen(true)
+    setCheckoutPromotionCode('')
+    setPromotionError('')
+    setMessage('')
+    setError('')
+    setModalOpen(true)
+  }
+
+  async function applyCheckoutPromotion() {
+    if (!form.orderId) {
+      setPromotionError('Vui lòng chọn đơn hàng trước khi áp mã.')
+      return
+    }
+
+    const promotionCode = checkoutPromotionCode.trim()
+    if (!promotionCode) {
+      setPromotionError('Vui lòng nhập mã khuyến mãi.')
+      return
+    }
+
+    setPromotionApplying(true)
+    setPromotionError('')
+    try {
+      const result = await applyPromotion(
+        form.orderId,
+        promotionCode,
+        'Áp dụng tại màn hình thanh toán',
+      )
+      changeDiscount(result.data.discountAmount)
+      setCheckoutPromotionCode(result.data.promotionCode)
+      await loadAppliedPromotionUsages()
+    } catch (exception) {
+      setPromotionError(
+        exception instanceof Error
+          ? exception.message
+          : 'Không áp dụng được mã khuyến mãi.',
+      )
+    } finally {
+      setPromotionApplying(false)
+    }
+  }
+
+  async function removeCheckoutPromotion() {
+    if (!selectedPromotionUsage) return
+
+    setPromotionApplying(true)
+    setPromotionError('')
+    try {
+      await cancelPromotionUsage(selectedPromotionUsage.id)
+      changeDiscount(0)
+      setCheckoutPromotionCode('')
+      await loadAppliedPromotionUsages()
+    } catch (exception) {
+      setPromotionError(
+        exception instanceof Error
+          ? exception.message
+          : 'Không gỡ được mã khuyến mãi.',
+      )
+    } finally {
+      setPromotionApplying(false)
+    }
   }
 
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (promotionApplying) { setError('Vui lòng chờ xử lý mã khuyến mãi.'); return }
     if (!editing && !form.orderId) { setError('Vui lòng chọn đơn hàng.'); return }
     if (preview.final <= 0) { setError('Số tiền thanh toán phải lớn hơn 0.'); return }
     if (form.customerPaid < preview.final) { setError('Số tiền khách đưa chưa đủ.'); return }
@@ -225,7 +335,11 @@ export default function PaymentsPage() {
         : await createPayment(form)
       setMessage(result.message ?? 'Lưu thanh toán thành công.')
       setModalOpen(false)
-      await Promise.all([loadPayments(1), loadEligibleOrders()])
+      await Promise.all([
+        loadPayments(1),
+        loadEligibleOrders(),
+        loadAppliedPromotionUsages(),
+      ])
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không lưu được thanh toán.')
     } finally { setSaving(false) }
@@ -237,14 +351,18 @@ export default function PaymentsPage() {
     try {
       const result = await cancelPayment(payment.id)
       setMessage(result.message ?? 'Hủy thanh toán thành công.')
-      await Promise.all([loadPayments(page), loadEligibleOrders()])
+      await Promise.all([
+        loadPayments(page),
+        loadEligibleOrders(),
+        loadAppliedPromotionUsages(),
+      ])
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không hủy được thanh toán.')
     } finally { setSaving(false) }
   }
 
   return <section className="payments-page">
-    <div className="page-toolbar"><div><h2>Quản lý thanh toán</h2><p>Thu tiền, áp dụng giảm giá, phí phục vụ, VAT và xuất hóa đơn theo đơn hàng.</p></div><button className="primary-button" disabled={settingsLoading} onClick={openCreate}>+ Thanh toán mới</button></div>
+    <div className="page-toolbar"><div><h2>Quản lý thanh toán</h2><p>Thu tiền, áp dụng giảm giá, phí phục vụ, VAT và xuất hóa đơn theo đơn hàng.</p></div><button className="primary-button" disabled={settingsLoading || promotionUsagesLoading} onClick={openCreate}>+ Thanh toán mới</button></div>
 
     <div className="payment-summary">
       <article><span>Tổng phù hợp</span><strong>{totalCount}</strong></article>
@@ -281,12 +399,13 @@ export default function PaymentsPage() {
       <form id="payment-form" className="payment-form" onSubmit={submit}>
         {error && <div className="modal-alert error" role="alert">{error}</div>}
         {!editing && <label>Đơn hàng<select required value={form.orderId} onChange={event => changeOrder(event.target.value)}><option value="">Chọn đơn chờ thanh toán</option>{eligibleOrders.map(order => <option key={order.id} value={order.id}>{order.orderCode} • {order.restaurantTableName} • {money(order.totalAmount)}</option>)}</select></label>}
-        <div className="payment-form-grid"><label>Giảm giá<input type="number" min={0} max={preview.total} value={form.discountAmount} onChange={event => changeDiscount(Number(event.target.value))}/></label><label>Phí phục vụ{!editing && activeSetting ? ` (${percent(activeSetting.serviceChargePercent)}%)` : ''}<input type="number" min={0} value={form.serviceChargeAmount} onChange={event => setForm({...form,serviceChargeAmount:Number(event.target.value)})}/></label><label>VAT{!editing && activeSetting ? ` (${percent(activeSetting.defaultVatPercent)}%)` : ''}<input type="number" min={0} value={form.vatAmount} onChange={event => setForm({...form,vatAmount:Number(event.target.value)})}/></label><label>Khách đưa<input type="number" min={0} value={form.customerPaid} onChange={event => setForm({...form,customerPaid:Number(event.target.value)})}/></label><label>Phương thức<select value={form.paymentMethod} onChange={event => setForm({...form,paymentMethod:event.target.value})}>{methods.map(value => <option key={value} value={value}>{methodLabels[value]}</option>)}</select></label></div>
+        {!editing && <div className="payment-promotion-controls"><label>Mã khuyến mãi<input value={checkoutPromotionCode} readOnly={Boolean(selectedPromotionUsage)} placeholder="Nhập mã khách cung cấp" autoComplete="off" onChange={event => { setCheckoutPromotionCode(event.target.value.toUpperCase()); setPromotionError('') }} onKeyDown={event => { if (event.key === 'Enter' && !selectedPromotionUsage) { event.preventDefault(); void applyCheckoutPromotion() } }}/></label>{selectedPromotionUsage ? <button type="button" className="remove-promotion-button" disabled={promotionApplying} onClick={() => void removeCheckoutPromotion()}>{promotionApplying ? 'Đang gỡ...' : 'Gỡ mã'}</button> : <button type="button" className="primary-button" disabled={promotionApplying || !form.orderId || !checkoutPromotionCode.trim()} onClick={() => void applyCheckoutPromotion()}>{promotionApplying ? 'Đang áp dụng...' : 'Áp dụng'}</button>}{promotionError ? <small className="payment-promotion-message error" role="alert">{promotionError}</small> : selectedPromotionUsage ? <small className="payment-promotion-message success">Đã áp dụng mã {selectedPromotionUsage.promotionCode}, giảm {money(selectedPromotionUsage.discountAmount)}.</small> : <small className="payment-promotion-message">Nhập mã khách cung cấp; hệ thống sẽ kiểm tra điều kiện trước khi tính tiền.</small>}</div>}
+        <div className="payment-form-grid"><label>Giảm giá<input type="number" aria-label="Giảm giá" min={0} max={preview.total} value={form.discountAmount} readOnly={!editing && Boolean(selectedPromotionUsage)} aria-describedby={!editing && selectedPromotionUsage ? 'applied-promotion-note' : undefined} onChange={event => changeDiscount(Number(event.target.value))}/>{!editing && selectedPromotionUsage ? <small id="applied-promotion-note">Mã {selectedPromotionUsage.promotionCode} đã được tự động áp dụng.</small> : null}</label><label>Phí phục vụ{!editing && activeSetting ? ` (${percent(activeSetting.serviceChargePercent)}%)` : ''}<input type="number" min={0} value={form.serviceChargeAmount} onChange={event => setForm({...form,serviceChargeAmount:Number(event.target.value)})}/></label><label>VAT{!editing && activeSetting ? ` (${percent(activeSetting.defaultVatPercent)}%)` : ''}<input type="number" min={0} value={form.vatAmount} onChange={event => setForm({...form,vatAmount:Number(event.target.value)})}/></label><label>Khách đưa<input type="number" min={0} value={form.customerPaid} onChange={event => setForm({...form,customerPaid:Number(event.target.value)})}/></label><label>Phương thức<select value={form.paymentMethod} onChange={event => setForm({...form,paymentMethod:event.target.value})}>{methods.map(value => <option key={value} value={value}>{methodLabels[value]}</option>)}</select></label></div>
         <label>Ghi chú<textarea value={form.note} onChange={event => setForm({...form,note:event.target.value})}/></label>
         {!editing && <label className="invoice-toggle"><input type="checkbox" checked={form.issueInvoice} onChange={event => setForm({...form,issueInvoice:event.target.checked})}/> Tự động xuất hóa đơn sau thanh toán</label>}
-        <div className="payment-preview"><div><span>Tiền món</span><strong>{money(preview.total)}</strong></div><div><span>Giảm giá</span><strong>-{money(form.discountAmount)}</strong></div><div><span>Phí phục vụ</span><strong>+{money(form.serviceChargeAmount)}</strong></div><div><span>VAT</span><strong>+{money(form.vatAmount)}</strong></div><div className="final"><span>Khách cần trả</span><strong>{money(preview.final)}</strong></div><div><span>Tiền thối</span><strong>{money(preview.change)}</strong></div></div>
+        <div className="payment-preview"><div><span>Tiền món</span><strong>{money(preview.total)}</strong></div>{!editing && selectedPromotionUsage ? <div><span>Khuyến mãi</span><strong>{selectedPromotionUsage.promotionCode}</strong></div> : null}<div><span>Giảm giá</span><strong>-{money(form.discountAmount)}</strong></div><div><span>Phí phục vụ</span><strong>+{money(form.serviceChargeAmount)}</strong></div><div><span>VAT</span><strong>+{money(form.vatAmount)}</strong></div><div className="final"><span>Khách cần trả</span><strong>{money(preview.final)}</strong></div><div><span>Tiền thối</span><strong>{money(preview.change)}</strong></div></div>
       </form>
-      <div className="modal-actions modal-footer"><button type="button" onClick={() => setModalOpen(false)}>Đóng</button><button type="submit" form="payment-form" className="primary-button" disabled={saving}>{saving ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Xác nhận thanh toán'}</button></div>
+      <div className="modal-actions modal-footer"><button type="button" onClick={() => setModalOpen(false)}>Đóng</button><button type="submit" form="payment-form" className="primary-button" disabled={saving || promotionApplying}>{saving ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Xác nhận thanh toán'}</button></div>
     </div></div>}
   </section>
 }
