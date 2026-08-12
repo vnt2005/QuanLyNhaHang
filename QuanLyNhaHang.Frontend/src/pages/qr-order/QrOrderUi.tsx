@@ -5,7 +5,7 @@ import type {
   QrOrderTable,
 } from '../../api/qrOrders'
 
-export type CustomerView = 'menu' | 'order'
+export type CustomerView = 'menu' | 'order' | 'account'
 
 export type CartEntry = {
   item: QrOrderMenuItem
@@ -52,6 +52,10 @@ function ReceiptIcon() {
   return <Icon><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" /><path d="M9 8h6M9 12h6" /></Icon>
 }
 
+function AccountIcon() {
+  return <Icon><circle cx="12" cy="8" r="3.5" /><path d="M5 21a7 7 0 0 1 14 0" /></Icon>
+}
+
 function CartIcon() {
   return <Icon><path d="M3 4h2l2 11h10l2-7H6" /><circle cx="9" cy="19" r="1" /><circle cx="17" cy="19" r="1" /></Icon>
 }
@@ -88,7 +92,7 @@ export function getCategoryName(item: QrOrderMenuItem) {
   return item.menuCategoryName?.trim() || 'Món khác'
 }
 
-function CustomerHeader({ table }: { table: QrOrderTable }) {
+export function CustomerHeader({ table }: { table: QrOrderTable }) {
   return (
     <header className="customer-header">
       <div className="customer-brand" aria-label="Nhà Hàng">
@@ -300,6 +304,15 @@ export function BottomNavigation({
         <ReceiptIcon />
         <span>Đơn của tôi</span>
         {hasOrder ? <i aria-label="Có đơn đang theo dõi" /> : null}
+      </button>
+      <button
+        type="button"
+        className={activeView === 'account' ? 'active' : ''}
+        aria-current={activeView === 'account' ? 'page' : undefined}
+        onClick={() => onChange('account')}
+      >
+        <AccountIcon />
+        <span>Tài khoản</span>
       </button>
     </nav>
   )
