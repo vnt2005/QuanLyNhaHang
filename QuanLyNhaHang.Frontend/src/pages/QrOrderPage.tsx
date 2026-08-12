@@ -1,47 +1,59 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   createQrOrder,
+  getQrOrder,
   getQrOrderContext,
   type QrOrderMenuItem,
   type QrOrderResult,
   type QrOrderTable,
 } from '../api/qrOrders'
+import {
+  BottomNavigation,
+  CartBar,
+  CartDrawer,
+  getCategoryName,
+  MenuView,
+  OrderTrackingView,
+  SuccessDialog,
+  type CartEntry,
+  type CustomerView,
+} from './qr-order/QrOrderUi'
+import {
+  clearCurrentQrOrderId,
+  clearQrCart,
+  readCurrentQrOrderId,
+  readQrCart,
+  writeCurrentQrOrderId,
+  writeQrCart,
+} from './qr-order/qrOrderStorage'
 
 type QrOrderPageProps = {
   token: string
 }
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
-function getTableStatusLabel(value: string) {
-  const labels: Record<string, string> = {
-    Available: 'Sẵn sàng phục vụ',
-    Occupied: 'Đang có khách',
-    Reserved: 'Đã đặt trước',
-    Maintenance: 'Đang bảo trì',
-  }
-  return labels[value] ?? value
-}
-
-function getCategoryName(item: QrOrderMenuItem) {
-  return item.menuCategoryName?.trim() || 'Món khác'
-}
+const TERMINAL_ORDER_STATUSES = new Set(['Completed', 'Cancelled'])
 
 export default function QrOrderPage({ token }: QrOrderPageProps) {
+  const [initialCart] = useState(() => readQrCart(token))
   const [table, setTable] = useState<QrOrderTable | null>(null)
   const [menuItems, setMenuItems] = useState<QrOrderMenuItem[]>([])
-  const [quantities, setQuantities] = useState<Record<string, number>>({})
+  const [quantities, setQuantities] = useState<Record<string, number>>(
+    initialCart.quantities,
+  )
+  const [itemNotes, setItemNotes] = useState<Record<string, string>>(
+    initialCart.itemNotes,
+  )
   const [keyword, setKeyword] = useState('')
   const [category, setCategory] = useState('Tất cả')
   const [orderNote, setOrderNote] = useState('')
+  const [activeView, setActiveView] = useState<CustomerView>(() =>
+    readCurrentQrOrderId(token) ? 'order' : 'menu',
+  )
+  const [currentOrder, setCurrentOrder] = useState<QrOrderResult | null>(null)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [orderLoading, setOrderLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState<{
@@ -51,14 +63,27 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
 
   useEffect(() => {
     let active = true
+    const storedOrderId = readCurrentQrOrderId(token)
+
     setLoading(true)
+    setOrderLoading(Boolean(storedOrderId))
     setError('')
 
-    void getQrOrderContext(token)
-      .then(result => {
+    const orderPromise = storedOrderId
+      ? getQrOrder(token, storedOrderId).catch(() => null)
+      : Promise.resolve(null)
+
+    void Promise.all([getQrOrderContext(token), orderPromise])
+      .then(([context, restoredOrder]) => {
         if (!active) return
-        setTable(result.table)
-        setMenuItems(result.menuItems)
+        setTable(context.table)
+        setMenuItems(context.menuItems)
+        if (restoredOrder) {
+          setCurrentOrder(restoredOrder)
+          setLastUpdatedAt(new Date())
+        } else if (storedOrderId) {
+          clearCurrentQrOrderId(token)
+        }
       })
       .catch(exception => {
         if (!active) return
@@ -69,7 +94,9 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
         )
       })
       .finally(() => {
-        if (active) setLoading(false)
+        if (!active) return
+        setLoading(false)
+        setOrderLoading(false)
       })
 
     return () => {
@@ -77,11 +104,12 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     }
   }, [token])
 
+  useEffect(() => {
+    writeQrCart(token, quantities, itemNotes)
+  }, [itemNotes, quantities, token])
+
   const categories = useMemo(
-    () => [
-      'Tất cả',
-      ...Array.from(new Set(menuItems.map(getCategoryName))),
-    ],
+    () => ['Tất cả', ...Array.from(new Set(menuItems.map(getCategoryName)))],
     [menuItems],
   )
 
@@ -98,11 +126,15 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     })
   }, [category, keyword, menuItems])
 
-  const selectedItems = useMemo(
+  const selectedItems = useMemo<CartEntry[]>(
     () => menuItems
-      .map(item => ({ item, quantity: quantities[item.id] ?? 0 }))
+      .map(item => ({
+        item,
+        quantity: quantities[item.id] ?? 0,
+        note: itemNotes[item.id] ?? '',
+      }))
       .filter(entry => entry.quantity > 0),
-    [menuItems, quantities],
+    [itemNotes, menuItems, quantities],
   )
 
   const selectedQuantity = selectedItems.reduce(
@@ -114,7 +146,49 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     0,
   )
 
+  const menuItemImages = useMemo(() => {
+    const images = new Map<string, string>()
+    menuItems.forEach(item => {
+      if (item.imageUrl) images.set(item.id, item.imageUrl)
+    })
+    return images
+  }, [menuItems])
+
+  const refreshOrder = useCallback(async () => {
+    const orderId = currentOrder?.id ?? readCurrentQrOrderId(token)
+    if (!orderId || orderLoading) return
+
+    setOrderLoading(true)
+    setError('')
+    try {
+      const order = await getQrOrder(token, orderId)
+      setCurrentOrder(order)
+      setLastUpdatedAt(new Date())
+    } catch (exception) {
+      setError(
+        exception instanceof Error
+          ? exception.message
+          : 'Không cập nhật được trạng thái đơn.',
+      )
+    } finally {
+      setOrderLoading(false)
+    }
+  }, [currentOrder?.id, orderLoading, token])
+
+  useEffect(() => {
+    if (!currentOrder || TERMINAL_ORDER_STATUSES.has(currentOrder.status)) return
+    const timer = window.setInterval(() => void refreshOrder(), 10_000)
+    return () => window.clearInterval(timer)
+  }, [currentOrder, refreshOrder])
+
   function changeQuantity(itemId: string, delta: number) {
+    if ((quantities[itemId] ?? 0) + delta <= 0) {
+      setItemNotes(notes => {
+        const nextNotes = { ...notes }
+        delete nextNotes[itemId]
+        return nextNotes
+      })
+    }
     setQuantities(current => {
       const nextQuantity = Math.min(
         99,
@@ -129,6 +203,10 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     })
   }
 
+  function changeItemNote(itemId: string, note: string) {
+    setItemNotes(current => ({ ...current, [itemId]: note }))
+  }
+
   async function submitOrder() {
     if (selectedItems.length === 0 || submitting) return
     setSubmitting(true)
@@ -139,10 +217,18 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
         items: selectedItems.map(entry => ({
           menuItemId: entry.item.id,
           quantity: entry.quantity,
+          note: entry.note,
         })),
       })
-      setSuccess({ message: result.message, order: result.data })
+      setCurrentOrder(result.data)
+      setLastUpdatedAt(new Date())
+      writeCurrentQrOrderId(token, result.data.id)
+      clearQrCart(token)
+      setQuantities({})
+      setItemNotes({})
+      setOrderNote('')
       setCartOpen(false)
+      setSuccess({ message: result.message, order: result.data })
     } catch (exception) {
       setError(
         exception instanceof Error
@@ -154,20 +240,31 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     }
   }
 
-  function startAnotherOrder() {
-    setQuantities({})
-    setOrderNote('')
+  function showMenu() {
     setSuccess(null)
+    setActiveView('menu')
     setKeyword('')
     setCategory('Tất cả')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  function showOrder() {
+    setSuccess(null)
+    setActiveView('order')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (currentOrder) void refreshOrder()
+  }
+
+  function changeView(view: CustomerView) {
+    if (view === 'menu') showMenu()
+    else showOrder()
+  }
+
   if (loading) {
     return (
-      <main className="qr-order-page qr-order-state-page">
-        <div className="qr-order-state-card" role="status">
-          <span className="qr-order-spinner" />
+      <main className="qr-order-page customer-state-page">
+        <div className="customer-state-card" role="status">
+          <span className="customer-spinner" />
           <h1>Đang mở thực đơn…</h1>
           <p>Hệ thống đang kiểm tra mã QR và tải các món đang phục vụ.</p>
         </div>
@@ -175,266 +272,87 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     )
   }
 
-  if (!table || error && menuItems.length === 0) {
+  if (!table || (error && menuItems.length === 0)) {
     return (
-      <main className="qr-order-page qr-order-state-page">
-        <div className="qr-order-state-card error" role="alert">
-          <span className="qr-order-state-icon">!</span>
+      <main className="qr-order-page customer-state-page">
+        <div className="customer-state-card error" role="alert">
+          <span className="customer-state-icon">!</span>
           <h1>Không thể mở thực đơn</h1>
           <p>{error || 'Mã QR không hợp lệ hoặc đã ngừng hoạt động.'}</p>
-          <button type="button" onClick={() => window.location.reload()}>
-            Thử lại
-          </button>
+          <button type="button" onClick={() => window.location.reload()}>Thử lại</button>
         </div>
       </main>
     )
   }
 
   return (
-    <main className="qr-order-page">
-      <header className="qr-order-hero">
-        <div className="qr-order-brand">
-          <span>QL</span>
-          <div>
-            <strong>Nhà Hàng</strong>
-            <small>Gọi món tại bàn</small>
+    <main className={`qr-order-page customer-view-${activeView}`}>
+      <div className="customer-app-shell">
+        {error ? (
+          <div className="customer-alert" role="alert">
+            <span>!</span><p>{error}</p>
+            <button type="button" onClick={() => setError('')} aria-label="Đóng thông báo">×</button>
           </div>
-        </div>
-        <div className="qr-order-table-badge">
-          <span>BÀN CỦA BẠN</span>
-          <strong>{table.restaurantTableName}</strong>
-          <small>{getTableStatusLabel(table.tableStatus)}</small>
-        </div>
-        <div className="qr-order-hero-copy">
-          <span>THỰC ĐƠN ĐANG PHỤC VỤ</span>
-          <h1>Chọn món, kiểm tra giỏ và xác nhận</h1>
-          <p>
-            Không cần đăng nhập. Món bạn xác nhận sẽ được tạo thành đơn của
-            đúng {table.restaurantTableName} và gửi trực tiếp xuống bếp.
-          </p>
-        </div>
-      </header>
+        ) : null}
 
-      <section className="qr-order-content">
-        {error && (
-          <div className="qr-order-alert" role="alert">
-            <span>!</span>
-            <p>{error}</p>
-            <button type="button" onClick={() => setError('')} aria-label="Đóng">
-              ×
-            </button>
-          </div>
-        )}
-
-        <div className="qr-order-search-row">
-          <label className="qr-order-search">
-            <span aria-hidden="true">⌕</span>
-            <input
-              value={keyword}
-              onChange={event => setKeyword(event.target.value)}
-              placeholder="Tìm món ăn…"
-            />
-          </label>
-          <span>{menuItems.length} món đang mở bán</span>
-        </div>
-
-        <nav className="qr-order-categories" aria-label="Danh mục món ăn">
-          {categories.map(item => (
-            <button
-              type="button"
-              key={item}
-              className={category === item ? 'active' : ''}
-              onClick={() => setCategory(item)}
-            >
-              {item}
-            </button>
-          ))}
-        </nav>
-
-        {filteredItems.length === 0 ? (
-          <div className="qr-order-empty">
-            <span>⌕</span>
-            <h2>Không tìm thấy món phù hợp</h2>
-            <p>Thử đổi từ khóa hoặc chọn danh mục khác.</p>
-          </div>
+        {activeView === 'menu' ? (
+          <MenuView
+            table={table}
+            menuItems={menuItems}
+            filteredItems={filteredItems}
+            categories={categories}
+            category={category}
+            keyword={keyword}
+            quantities={quantities}
+            onCategoryChange={setCategory}
+            onKeywordChange={setKeyword}
+            onQuantityChange={changeQuantity}
+          />
         ) : (
-          <section className="qr-order-menu-grid" aria-label="Danh sách món ăn">
-            {filteredItems.map(item => {
-              const quantity = quantities[item.id] ?? 0
-              return (
-                <article className="qr-order-menu-card" key={item.id}>
-                  <div className="qr-order-menu-image">
-                    {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.name} loading="lazy" />
-                    ) : (
-                      <span>{item.name.charAt(0).toLocaleUpperCase('vi')}</span>
-                    )}
-                  </div>
-                  <div className="qr-order-menu-copy">
-                    <small>{getCategoryName(item)}</small>
-                    <h2>{item.name}</h2>
-                    <p>{item.description?.trim() || 'Món đang phục vụ tại nhà hàng.'}</p>
-                    <strong>{formatMoney(item.price)}</strong>
-                  </div>
-                  {quantity === 0 ? (
-                    <button
-                      type="button"
-                      className="qr-order-add-button"
-                      onClick={() => changeQuantity(item.id, 1)}
-                      aria-label={`Thêm ${item.name}`}
-                    >
-                      <span>＋</span> Thêm
-                    </button>
-                  ) : (
-                    <div className="qr-order-quantity" aria-label={`Số lượng ${item.name}`}>
-                      <button
-                        type="button"
-                        onClick={() => changeQuantity(item.id, -1)}
-                        aria-label={`Giảm ${item.name}`}
-                      >
-                        −
-                      </button>
-                      <strong>{quantity}</strong>
-                      <button
-                        type="button"
-                        onClick={() => changeQuantity(item.id, 1)}
-                        aria-label={`Tăng ${item.name}`}
-                      >
-                        ＋
-                      </button>
-                    </div>
-                  )}
-                </article>
-              )
-            })}
-          </section>
+          <OrderTrackingView
+            table={table}
+            order={currentOrder}
+            loading={orderLoading}
+            lastUpdatedAt={lastUpdatedAt}
+            menuItemImages={menuItemImages}
+            onRefresh={() => void refreshOrder()}
+            onOrderMore={showMenu}
+          />
         )}
-      </section>
+      </div>
 
-      {selectedQuantity > 0 && (
-        <button
-          type="button"
-          className="qr-order-cart-bar"
-          onClick={() => setCartOpen(true)}
-        >
-          <span className="qr-order-cart-count">{selectedQuantity}</span>
-          <span>
-            <small>Giỏ món của {table.restaurantTableName}</small>
-            <strong>Xem giỏ món</strong>
-          </span>
-          <strong>{formatMoney(totalAmount)}</strong>
-        </button>
-      )}
+      {activeView === 'menu' && selectedQuantity > 0 ? (
+        <CartBar quantity={selectedQuantity} total={totalAmount} onOpen={() => setCartOpen(true)} />
+      ) : null}
 
-      {cartOpen && (
-        <div
-          className="qr-order-drawer-backdrop"
-          onMouseDown={event => {
-            if (event.target === event.currentTarget && !submitting) setCartOpen(false)
-          }}
-        >
-          <section className="qr-order-drawer" role="dialog" aria-modal="true">
-            <header>
-              <div>
-                <span>XÁC NHẬN GỌI MÓN</span>
-                <h2>Giỏ món · {table.restaurantTableName}</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setCartOpen(false)}
-                disabled={submitting}
-                aria-label="Đóng giỏ món"
-              >
-                ×
-              </button>
-            </header>
+      <BottomNavigation
+        activeView={activeView}
+        hasOrder={Boolean(currentOrder)}
+        onChange={changeView}
+      />
 
-            <div className="qr-order-cart-items">
-              {selectedItems.map(entry => (
-                <article key={entry.item.id}>
-                  <div>
-                    <strong>{entry.item.name}</strong>
-                    <small>{formatMoney(entry.item.price)} / món</small>
-                  </div>
-                  <div className="qr-order-quantity compact">
-                    <button
-                      type="button"
-                      onClick={() => changeQuantity(entry.item.id, -1)}
-                      aria-label={`Giảm ${entry.item.name} trong giỏ`}
-                    >
-                      −
-                    </button>
-                    <strong>{entry.quantity}</strong>
-                    <button
-                      type="button"
-                      onClick={() => changeQuantity(entry.item.id, 1)}
-                      aria-label={`Tăng ${entry.item.name} trong giỏ`}
-                    >
-                      ＋
-                    </button>
-                  </div>
-                  <strong>{formatMoney(entry.item.price * entry.quantity)}</strong>
-                </article>
-              ))}
-            </div>
+      {cartOpen ? (
+        <CartDrawer
+          table={table}
+          entries={selectedItems}
+          orderNote={orderNote}
+          submitting={submitting}
+          onClose={() => setCartOpen(false)}
+          onQuantityChange={changeQuantity}
+          onItemNoteChange={changeItemNote}
+          onOrderNoteChange={setOrderNote}
+          onSubmit={() => void submitOrder()}
+        />
+      ) : null}
 
-            <label className="qr-order-note">
-              Ghi chú chung cho bếp
-              <textarea
-                value={orderNote}
-                onChange={event => setOrderNote(event.target.value)}
-                placeholder="Ví dụ: ít cay, không hành…"
-                maxLength={500}
-              />
-            </label>
-
-            <div className="qr-order-cart-total">
-              <span>
-                <small>{selectedQuantity} món</small>
-                <strong>Tổng tiền tạm tính</strong>
-              </span>
-              <strong>{formatMoney(totalAmount)}</strong>
-            </div>
-
-            <button
-              type="button"
-              className="qr-order-confirm-button"
-              onClick={() => void submitOrder()}
-              disabled={submitting || selectedItems.length === 0}
-            >
-              {submitting ? 'Đang gửi xuống bếp…' : 'Xác nhận gọi món'}
-            </button>
-            <p className="qr-order-confirm-hint">
-              Sau khi xác nhận, đơn sẽ xuất hiện trong màn hình Đơn hàng và Bếp.
-            </p>
-          </section>
-        </div>
-      )}
-
-      {success && (
-        <div className="qr-order-success-backdrop">
-          <section className="qr-order-success-card" role="status">
-            <span className="qr-order-success-icon">✓</span>
-            <small>GỌI MÓN THÀNH CÔNG</small>
-            <h2>Đã gửi món xuống bếp</h2>
-            <p>{success.message}</p>
-            <div>
-              <span>
-                Mã đơn <strong>{success.order.orderCode}</strong>
-              </span>
-              <span>
-                Bàn <strong>{success.order.restaurantTableName}</strong>
-              </span>
-              <span>
-                Tổng tiền <strong>{formatMoney(success.order.totalAmount)}</strong>
-              </span>
-            </div>
-            <button type="button" onClick={startAnotherOrder}>
-              Gọi thêm món
-            </button>
-          </section>
-        </div>
-      )}
+      {success ? (
+        <SuccessDialog
+          message={success.message}
+          order={success.order}
+          onTrack={showOrder}
+          onOrderMore={showMenu}
+        />
+      ) : null}
     </main>
   )
 }

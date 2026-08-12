@@ -102,6 +102,12 @@ export async function getQrOrderContext(token: string) {
   }
 }
 
+export function getQrOrder(token: string, orderId: string) {
+  return publicRequest<QrOrderResult>(
+    `/api/qr-order/${encodeURIComponent(token)}/orders/${encodeURIComponent(orderId)}`,
+  )
+}
+
 export async function createQrOrder(
   token: string,
   input: { items: QrOrderItemInput[]; note?: string | null },
