@@ -8,6 +8,14 @@ import {
   type QrOrderTable,
 } from '../api/qrOrders'
 import {
+  clearCustomerSession,
+  hasStoredCustomerSession,
+  logoutCustomer,
+  restoreCustomerSession,
+  type CustomerSession,
+} from '../api/customerAuth'
+import CustomerAccountView from './customer-auth/CustomerAccountView'
+import {
   BottomNavigation,
   CartBar,
   CartDrawer,
@@ -60,6 +68,11 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     message: string
     order: QrOrderResult
   } | null>(null)
+  const [customerSession, setCustomerSession] = useState<CustomerSession | null>(null)
+  const [customerSessionLoading, setCustomerSessionLoading] = useState(
+    hasStoredCustomerSession,
+  )
+  const [customerAuthMessage, setCustomerAuthMessage] = useState('')
 
   useEffect(() => {
     let active = true
@@ -103,6 +116,31 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
       active = false
     }
   }, [token])
+
+  useEffect(() => {
+    if (!hasStoredCustomerSession()) {
+      setCustomerSessionLoading(false)
+      return
+    }
+    let active = true
+    setCustomerSessionLoading(true)
+    void restoreCustomerSession()
+      .then(session => {
+        if (active) setCustomerSession(session)
+      })
+      .catch(() => {
+        if (active) {
+          clearCustomerSession()
+          setCustomerSession(null)
+        }
+      })
+      .finally(() => {
+        if (active) setCustomerSessionLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     writeQrCart(token, quantities, itemNotes)
@@ -255,9 +293,36 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     if (currentOrder) void refreshOrder()
   }
 
+  function showAccount() {
+    setSuccess(null)
+    setActiveView('account')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function handleCustomerAuthenticated(session: CustomerSession) {
+    setCustomerSession(session)
+    setCustomerAuthMessage('')
+  }
+
+  function handleCustomerSessionEnded(message = '') {
+    clearCustomerSession()
+    setCustomerSession(null)
+    setCustomerAuthMessage(message)
+  }
+
+  async function handleCustomerLogout() {
+    try {
+      await logoutCustomer()
+    } finally {
+      setCustomerSession(null)
+      setCustomerAuthMessage('Bạn đã đăng xuất khỏi tài khoản khách hàng.')
+    }
+  }
+
   function changeView(view: CustomerView) {
     if (view === 'menu') showMenu()
-    else showOrder()
+    else if (view === 'order') showOrder()
+    else showAccount()
   }
 
   if (loading) {
@@ -308,7 +373,7 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
             onKeywordChange={setKeyword}
             onQuantityChange={changeQuantity}
           />
-        ) : (
+        ) : activeView === 'order' ? (
           <OrderTrackingView
             table={table}
             order={currentOrder}
@@ -317,6 +382,18 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
             menuItemImages={menuItemImages}
             onRefresh={() => void refreshOrder()}
             onOrderMore={showMenu}
+          />
+        ) : (
+          <CustomerAccountView
+            session={customerSession}
+            sessionLoading={customerSessionLoading}
+            hasOrder={Boolean(currentOrder)}
+            initialMessage={customerAuthMessage}
+            onAuthenticated={handleCustomerAuthenticated}
+            onSessionEnded={handleCustomerSessionEnded}
+            onShowMenu={showMenu}
+            onShowOrder={showOrder}
+            onLogout={handleCustomerLogout}
           />
         )}
       </div>
