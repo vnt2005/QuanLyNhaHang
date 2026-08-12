@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createQrOrder,
   getQrOrder,
@@ -9,12 +9,15 @@ import {
 } from '../api/qrOrders'
 import {
   clearCustomerSession,
+  getStoredCustomerAccessToken,
   hasStoredCustomerSession,
   logoutCustomer,
   restoreCustomerSession,
   type CustomerSession,
 } from '../api/customerAuth'
+import { claimCustomerOrder } from '../api/customerOrders'
 import CustomerAccountView from './customer-auth/CustomerAccountView'
+import CustomerOrderHistoryView from './customer-orders/CustomerOrderHistoryView'
 import {
   BottomNavigation,
   CartBar,
@@ -73,6 +76,8 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     hasStoredCustomerSession,
   )
   const [customerAuthMessage, setCustomerAuthMessage] = useState('')
+  const [customerOrderRevision, setCustomerOrderRevision] = useState(0)
+  const claimedOrderKeyRef = useRef('')
 
   useEffect(() => {
     let active = true
@@ -252,6 +257,9 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     try {
       const result = await createQrOrder(token, {
         note: orderNote,
+        customerAccessToken: customerSession
+          ? getStoredCustomerAccessToken() ?? customerSession.token
+          : null,
         items: selectedItems.map(entry => ({
           menuItemId: entry.item.id,
           quantity: entry.quantity,
@@ -267,6 +275,9 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
       setOrderNote('')
       setCartOpen(false)
       setSuccess({ message: result.message, order: result.data })
+      if (customerSession) {
+        setCustomerOrderRevision(value => value + 1)
+      }
     } catch (exception) {
       setError(
         exception instanceof Error
@@ -290,7 +301,7 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     setSuccess(null)
     setActiveView('order')
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    if (currentOrder) void refreshOrder()
+    if (!customerSession && currentOrder) void refreshOrder()
   }
 
   function showAccount() {
@@ -299,16 +310,40 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const attachCurrentOrderToCustomer = useCallback(async (session: CustomerSession) => {
+    const orderId = currentOrder?.id ?? readCurrentQrOrderId(token)
+    if (!orderId) return
+    const claimKey = `${session.userId}:${orderId}`
+    if (claimedOrderKeyRef.current === claimKey) return
+    claimedOrderKeyRef.current = claimKey
+
+    try {
+      await claimCustomerOrder(session.token, token, orderId)
+      setCustomerOrderRevision(value => value + 1)
+    } catch (exception) {
+      claimedOrderKeyRef.current = ''
+      setError(
+        exception instanceof Error
+          ? exception.message
+          : 'Không thể lưu đơn hiện tại vào tài khoản.',
+      )
+    }
+  }, [currentOrder?.id, token])
+
+  useEffect(() => {
+    if (customerSession) void attachCurrentOrderToCustomer(customerSession)
+  }, [attachCurrentOrderToCustomer, customerSession])
+
   function handleCustomerAuthenticated(session: CustomerSession) {
     setCustomerSession(session)
     setCustomerAuthMessage('')
   }
 
-  function handleCustomerSessionEnded(message = '') {
+  const handleCustomerSessionEnded = useCallback((message = '') => {
     clearCustomerSession()
     setCustomerSession(null)
     setCustomerAuthMessage(message)
-  }
+  }, [])
 
   async function handleCustomerLogout() {
     try {
@@ -374,20 +409,29 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
             onQuantityChange={changeQuantity}
           />
         ) : activeView === 'order' ? (
-          <OrderTrackingView
-            table={table}
-            order={currentOrder}
-            loading={orderLoading}
-            lastUpdatedAt={lastUpdatedAt}
-            menuItemImages={menuItemImages}
-            onRefresh={() => void refreshOrder()}
-            onOrderMore={showMenu}
-          />
+          customerSession ? (
+            <CustomerOrderHistoryView
+              table={table}
+              session={customerSession}
+              revision={customerOrderRevision}
+              onOrderMore={showMenu}
+              onSessionEnded={handleCustomerSessionEnded}
+            />
+          ) : (
+            <OrderTrackingView
+              table={table}
+              order={currentOrder}
+              loading={orderLoading}
+              lastUpdatedAt={lastUpdatedAt}
+              menuItemImages={menuItemImages}
+              onRefresh={() => void refreshOrder()}
+              onOrderMore={showMenu}
+            />
+          )
         ) : (
           <CustomerAccountView
             session={customerSession}
             sessionLoading={customerSessionLoading}
-            hasOrder={Boolean(currentOrder)}
             initialMessage={customerAuthMessage}
             onAuthenticated={handleCustomerAuthenticated}
             onSessionEnded={handleCustomerSessionEnded}

@@ -92,7 +92,7 @@ export function getCategoryName(item: QrOrderMenuItem) {
   return item.menuCategoryName?.trim() || 'Món khác'
 }
 
-function CustomerHeader({ table }: { table: QrOrderTable }) {
+export function CustomerHeader({ table }: { table: QrOrderTable }) {
   return (
     <header className="customer-header">
       <div className="customer-brand" aria-label="Nhà Hàng">

@@ -1,5 +1,6 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.QrOrders.DTOs;
@@ -85,10 +86,32 @@ public class CreateQrOrderCommandHandler
 
         var orderCode = GenerateOrderCode();
 
+        if (request.CustomerUserId.HasValue)
+        {
+            var isActiveCustomer = await _context.Users
+                .AsNoTracking()
+                .AnyAsync(
+                    x =>
+                        x.Id == request.CustomerUserId.Value &&
+                        x.Role == SystemRoles.Customer &&
+                        x.IsActive &&
+                        x.IsEmailVerified,
+                    cancellationToken);
+
+            if (!isActiveCustomer)
+            {
+                throw new UnauthorizedAccessException(
+                    "Tài khoản khách hàng không còn hợp lệ.");
+            }
+        }
+
         var order = new Order(
             table.Id,
             orderCode,
             request.Note);
+
+        if (request.CustomerUserId.HasValue)
+            order.AssignCustomer(request.CustomerUserId.Value);
 
         await _context.Orders.AddAsync(order, cancellationToken);
 

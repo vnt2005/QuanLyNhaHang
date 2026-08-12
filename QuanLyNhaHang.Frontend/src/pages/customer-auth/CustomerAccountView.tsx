@@ -30,7 +30,6 @@ type AuthMode =
 type CustomerAccountViewProps = {
   session: CustomerSession | null
   sessionLoading: boolean
-  hasOrder: boolean
   initialMessage?: string
   onAuthenticated: (session: CustomerSession) => void
   onSessionEnded: (message?: string) => void
@@ -523,13 +522,11 @@ function AccountRow({
 
 function CustomerAccount({
   session,
-  hasOrder,
   onSessionEnded,
   onShowOrder,
   onLogout,
 }: {
   session: CustomerSession
-  hasOrder: boolean
   onSessionEnded: (message?: string) => void
   onShowOrder: () => void
   onLogout: () => Promise<void>
@@ -621,7 +618,7 @@ function CustomerAccount({
 
       <div className="customer-account-list">
         <AccountRow icon={<UserIcon />} title="Thông tin cá nhân" description="Xem thông tin tài khoản" onClick={() => setPanel('profile')} />
-        <AccountRow icon={<ReceiptIcon />} title="Đơn của tôi" description={hasOrder ? 'Xem đơn đang theo dõi' : 'Chưa có đơn trên thiết bị này'} onClick={onShowOrder} />
+        <AccountRow icon={<ReceiptIcon />} title="Đơn của tôi" description="Xem toàn bộ lịch sử gọi món" onClick={onShowOrder} />
         <AccountRow icon={<GiftIcon />} title="Ưu đãi của tôi" description="Khuyến mãi được áp dụng khi thanh toán" onClick={() => setPanel('offers')} />
         <AccountRow icon={<ShieldIcon />} title="Bảo mật tài khoản" description="Đổi mật khẩu đăng nhập" onClick={() => setPanel('security')} />
       </div>
@@ -655,7 +652,6 @@ export default function CustomerAccountView(props: CustomerAccountViewProps) {
   return (
     <CustomerAccount
       session={props.session}
-      hasOrder={props.hasOrder}
       onSessionEnded={props.onSessionEnded}
       onShowOrder={props.onShowOrder}
       onLogout={props.onLogout}

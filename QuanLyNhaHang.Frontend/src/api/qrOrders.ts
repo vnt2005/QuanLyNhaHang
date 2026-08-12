@@ -1,4 +1,16 @@
+import { getStoredCustomerAccessToken, restoreCustomerSession } from './customerAuth'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7134'
+
+class QrOrderRequestError extends Error {
+  status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'QrOrderRequestError'
+    this.status = status
+  }
+}
 
 export type QrOrderTable = {
   restaurantTableId: string
@@ -85,8 +97,47 @@ async function publicRequest<T>(path: string, init?: RequestInit): Promise<T> {
     },
   })
   const body = await response.json().catch(() => null)
-  if (!response.ok) throw new Error(getErrorMessage(body, response.status))
+  if (!response.ok) {
+    throw new QrOrderRequestError(
+      getErrorMessage(body, response.status),
+      response.status,
+    )
+  }
   return body as T
+}
+
+async function customerOrderRequest<T>(
+  path: string,
+  accessToken: string,
+  init: RequestInit,
+  retryAfterRefresh = true,
+): Promise<T> {
+  try {
+    return await publicRequest<T>(path, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...init.headers,
+      },
+    })
+  } catch (exception) {
+    if (
+      retryAfterRefresh &&
+      exception instanceof QrOrderRequestError &&
+      exception.status === 401
+    ) {
+      const currentToken = getStoredCustomerAccessToken()
+      if (currentToken && currentToken !== accessToken) {
+        return customerOrderRequest<T>(path, currentToken, init, false)
+      }
+
+      const session = await restoreCustomerSession().catch(() => null)
+      if (session?.token) {
+        return customerOrderRequest<T>(path, session.token, init, false)
+      }
+    }
+    throw exception
+  }
 }
 
 export async function getQrOrderContext(token: string) {
@@ -110,23 +161,38 @@ export function getQrOrder(token: string, orderId: string) {
 
 export async function createQrOrder(
   token: string,
-  input: { items: QrOrderItemInput[]; note?: string | null },
+  input: {
+    items: QrOrderItemInput[]
+    note?: string | null
+    customerAccessToken?: string | null
+  },
 ) {
   const encodedToken = encodeURIComponent(token)
-  const result = await publicRequest<ApiEnvelope<QrOrderResult>>(
-    `/api/qr-order/${encodedToken}/orders`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        note: input.note?.trim() || null,
-        items: input.items.map(item => ({
-          menuItemId: item.menuItemId,
-          quantity: item.quantity,
-          note: item.note?.trim() || null,
-        })),
-      }),
-    },
-  )
+  const isCustomerOrder = Boolean(input.customerAccessToken)
+  const path = isCustomerOrder
+    ? '/api/customer/orders'
+    : `/api/qr-order/${encodedToken}/orders`
+  const init: RequestInit = {
+    method: 'POST',
+    body: JSON.stringify({
+      ...(isCustomerOrder ? { token } : {}),
+      note: input.note?.trim() || null,
+      items: input.items.map(item => ({
+        menuItemId: item.menuItemId,
+        quantity: item.quantity,
+        note: item.note?.trim() || null,
+      })),
+    }),
+  }
+  const customerAccessToken = getStoredCustomerAccessToken()
+    ?? input.customerAccessToken
+  const result = customerAccessToken
+    ? await customerOrderRequest<ApiEnvelope<QrOrderResult>>(
+        path,
+        customerAccessToken,
+        init,
+      )
+    : await publicRequest<ApiEnvelope<QrOrderResult>>(path, init)
 
   if (!result.data) throw new Error('Backend không trả thông tin đơn vừa tạo.')
   return {

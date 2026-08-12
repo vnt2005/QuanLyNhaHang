@@ -187,6 +187,10 @@ export function clearCustomerSession() {
   localStorage.removeItem(CUSTOMER_REFRESH_TOKEN_KEY)
 }
 
+export function getStoredCustomerAccessToken() {
+  return sessionStorage.getItem(CUSTOMER_ACCESS_TOKEN_KEY)
+}
+
 export async function loginCustomer(email: string, password: string) {
   const envelope = await request<CustomerAuthResult>('/api/auth/login', {
     method: 'POST',

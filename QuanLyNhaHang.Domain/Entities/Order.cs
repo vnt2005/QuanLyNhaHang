@@ -1,10 +1,12 @@
-﻿namespace QuanLyNhaHang.Domain.Entities;
+namespace QuanLyNhaHang.Domain.Entities;
 
 public class Order
 {
     public Guid Id { get; private set; }
 
     public Guid RestaurantTableId { get; private set; }
+
+    public Guid? CustomerUserId { get; private set; }
 
     public string OrderCode { get; private set; } = string.Empty;
 
@@ -39,6 +41,25 @@ public class Order
         TotalAmount = 0;
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
+    }
+
+    public void AssignCustomer(Guid customerUserId)
+    {
+        if (customerUserId == Guid.Empty)
+            throw new ArgumentException("Khách hàng không hợp lệ.");
+
+        if (CustomerUserId.HasValue &&
+            CustomerUserId.Value != customerUserId)
+        {
+            throw new InvalidOperationException(
+                "Không thể lưu đơn này vào tài khoản.");
+        }
+
+        if (CustomerUserId == customerUserId)
+            return;
+
+        CustomerUserId = customerUserId;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void UpdateInfo(string? note)

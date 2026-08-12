@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -14,6 +14,22 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.Property(x => x.RestaurantTableId)
             .IsRequired();
+
+        builder.Property(x => x.CustomerUserId)
+            .IsRequired(false);
+
+        builder.HasIndex(x => new
+            {
+                x.CustomerUserId,
+                x.CreatedAt
+            })
+            .HasDatabaseName("IX_Orders_CustomerUserId_CreatedAt")
+            .HasFilter("[CustomerUserId] IS NOT NULL");
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(x => x.CustomerUserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(x => x.OrderCode)
             .IsRequired()
