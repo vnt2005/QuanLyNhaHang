@@ -19,18 +19,34 @@ function futureIso(days: number) {
 
 test('Thông báo Admin: yêu cầu đặt bàn từ khách xuất hiện realtime và mở đúng màn hình', async ({ page, request }) => {
   const id = suffix()
+  const areaName = `Khu thông báo E2E ${id}`
+  const tableName = `Bàn thông báo E2E ${id}`
   const customerName = `Khách realtime E2E ${id}`
 
   const session = await loginAsAdmin(page)
-  const headers = bearerHeaders(session)
+  const initialHeaders = bearerHeaders(session)
 
   const readAllResponse = await request.patch(`${apiURL}/api/notifications/read-all`, {
-    headers,
+    headers: initialHeaders,
   })
   expect(readAllResponse.ok()).toBeTruthy()
 
+  // App khôi phục phiên bằng refresh token sau reload. Backend rotate session,
+  // vì vậy access token lấy từ loginAsAdmin ở trên không còn hợp lệ sau bước này.
   await page.reload()
   await expect(page.locator('.admin-layout')).toBeVisible()
+
+  const refreshedToken = await page.evaluate(
+    () => sessionStorage.getItem('accessToken') ?? '',
+  )
+  expect(
+    refreshedToken,
+    'Frontend phải lưu access token mới sau khi khôi phục phiên.',
+  ).not.toBe('')
+  const headers = {
+    Authorization: `Bearer ${refreshedToken}`,
+    'Content-Type': 'application/json',
+  }
 
   const notificationTrigger = page.locator('.notification-trigger')
   await expect(notificationTrigger).toBeVisible()
@@ -44,31 +60,33 @@ test('Thông báo Admin: yêu cầu đặt bàn từ khách xuất hiện realti
     { timeout: 20_000 },
   )
 
-  // Lấy bàn đang hoạt động qua đúng API public mà CustomerWeb sử dụng.
-  // Test notification không nên phụ thuộc vào quyền TablesManage chỉ để tạo fixture.
-  const bootstrapResponse = await request.get(`${apiURL}/api/customer-site/bootstrap`)
-  expect(bootstrapResponse.ok()).toBeTruthy()
+  const areaResponse = await request.post(`${apiURL}/api/Areas`, {
+    headers,
+    data: {
+      name: areaName,
+      description: 'Dữ liệu nền cho kiểm thử thông báo realtime.',
+    },
+  })
+  expect(areaResponse.ok()).toBeTruthy()
+  const area = await areaResponse.json() as { id: string }
 
-  const bootstrap = await bootstrapResponse.json() as {
-    reservationTables: Array<{
-      id: string
-      name: string
-      capacity: number
-    }>
-  }
-  const table = bootstrap.reservationTables.find(item => item.capacity >= 4)
-  expect(
-    table,
-    'E2E seed phải có ít nhất một bàn đang hoạt động với sức chứa từ 4 khách.',
-  ).toBeTruthy()
-
-  const tableName = table!.name
+  const tableResponse = await request.post(`${apiURL}/api/RestaurantTables`, {
+    headers,
+    data: {
+      areaId: area.id,
+      name: tableName,
+      capacity: 6,
+      note: 'Bàn dùng cho kiểm thử thông báo realtime.',
+    },
+  })
+  expect(tableResponse.ok()).toBeTruthy()
+  const table = await tableResponse.json() as { id: string }
 
   // Đây là route production của CustomerWeb. Route cố ý anonymous và backend
   // tự đánh dấu command là customer request để phát thông báo cho Admin.
   const reservationResponse = await request.post(`${apiURL}/api/customer-site/reservations`, {
     data: {
-      restaurantTableId: table!.id,
+      restaurantTableId: table.id,
       customerName,
       phoneNumber: `09${id.slice(-8).padStart(8, '0')}`,
       email: `notification-${id}@example.com`,
