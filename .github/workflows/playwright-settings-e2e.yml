@@ -34,10 +34,13 @@ env:
   JWT_ISSUER: 'QuanLyNhaHang.E2E'
   JWT_AUDIENCE: 'QuanLyNhaHang.E2E.Client'
   FRONTEND_ORIGIN: 'http://127.0.0.1:5173'
+  CUSTOMER_FRONTEND_ORIGIN: 'http://127.0.0.1:5174'
   API_PORT: '8080'
   VITE_API_BASE_URL: 'http://127.0.0.1:8080'
+  VITE_CUSTOMER_APP_URL: 'http://127.0.0.1:5174'
   E2E_API_URL: 'http://127.0.0.1:8080'
   E2E_BASE_URL: 'http://127.0.0.1:5173'
+  E2E_CUSTOMER_BASE_URL: 'http://127.0.0.1:5174'
   E2E_ADMIN_EMAIL: 'playwright-admin@example.com'
   E2E_ADMIN_PASSWORD: 'Playwright-Admin-2026!Aa1'
   E2E_ALLOW_SETTINGS_MUTATION: 'true'
@@ -61,6 +64,10 @@ jobs:
         working-directory: QuanLyNhaHang.Frontend
         run: npm ci
 
+      - name: Install customer website dependencies
+        working-directory: QuanLyNhaHang.CustomerWeb
+        run: npm ci
+
       - name: Install Playwright dependencies
         working-directory: QuanLyNhaHang.E2ETests
         run: npm install --no-audit --no-fund
@@ -77,6 +84,7 @@ jobs:
           JWT_ISSUER=${JWT_ISSUER}
           JWT_AUDIENCE=${JWT_AUDIENCE}
           FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+          CUSTOMER_FRONTEND_ORIGIN=${CUSTOMER_FRONTEND_ORIGIN}
           API_PORT=${API_PORT}
           EMAIL_SMTP_HOST=mailpit
           EMAIL_SMTP_PORT=1025
@@ -156,6 +164,7 @@ jobs:
 
       - name: Upload restaurant settings report
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: restaurant-settings-report-${{ github.run_attempt }}

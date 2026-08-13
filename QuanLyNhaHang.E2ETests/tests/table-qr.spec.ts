@@ -8,7 +8,7 @@ import {
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
-const frontendURL = (process.env.E2E_BASE_URL ?? 'http://localhost:5173')
+const customerURL = (process.env.E2E_CUSTOMER_BASE_URL ?? 'http://localhost:5174')
   .replace(/\/$/, '')
 
 function suffix() {
@@ -66,9 +66,9 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
 
   await openAdminModule(page, 'QR bàn')
   const clientUrl = page.getByPlaceholder('https://order.example.com')
-  await clientUrl.fill(frontendURL)
+  await clientUrl.fill(customerURL)
   await page.getByRole('button', { name: 'Lưu địa chỉ', exact: true }).click()
-  await expect(page.getByText('Đã lưu địa chỉ ứng dụng gọi món trên trình duyệt này.', { exact: true }))
+  await expect(page.getByText('Đã lưu địa chỉ website khách hàng trên trình duyệt này.', { exact: true }))
     .toBeVisible()
 
   await page.getByRole('button', { name: /Tạo mã QR$/ }).first().click()
@@ -141,10 +141,9 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
   await expect(livePreview).toBeVisible()
   const liveFrame = page.frameLocator('.table-qr-live-frame')
   await expect(liveFrame.getByRole('heading', {
-    name: 'Bạn muốn dùng món gì?',
+    name: `Gọi món tại ${tableName}`,
   })).toBeVisible()
-  await expect(liveFrame.getByText(tableName, { exact: true }).first()).toBeVisible()
-  await expect(liveFrame.getByText(menuItemName, { exact: true })).toBeVisible()
+  await expect(liveFrame.locator('.qr-menu-item').filter({ hasText: menuItemName })).toBeVisible()
   await livePreview
     .locator('.table-qr-live-actions')
     .getByRole('button', { name: 'Đóng', exact: true })
