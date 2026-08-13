@@ -27,7 +27,9 @@ if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
     allowedOrigins =
     [
         "http://localhost:5173",
-        "https://localhost:5173"
+        "https://localhost:5173",
+        "http://localhost:5174",
+        "https://localhost:5174"
     ];
 }
 
@@ -206,6 +208,24 @@ builder.Services.AddRateLimiter(options =>
                 QueueProcessingOrder.OldestFirst,
             AutoReplenishment = true
         }));
+
+    options.AddPolicy("CustomerReservation", context =>
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString()
+                 ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"customer-reservation:{ip}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                QueueProcessingOrder =
+                    QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            });
+    });
 
     options.AddPolicy("QrCreate", context =>
     {

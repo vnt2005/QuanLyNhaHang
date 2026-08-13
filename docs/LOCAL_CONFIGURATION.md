@@ -3,6 +3,8 @@
 Tài liệu này chuẩn hóa cách chạy dự án với SQL Server và Mailpit dùng chung cho:
 
 - API chạy trong Visual Studio;
+- cổng quản trị chạy tại `http://localhost:5173`;
+- website khách hàng chạy tại `http://localhost:5174`;
 - API chạy bằng Docker Compose;
 - SQL Server Management Studio (SSMS);
 - các luồng email xác minh, 2FA và đặt lại mật khẩu.
@@ -41,6 +43,7 @@ SQLSERVER_PORT=1433
 MAILPIT_WEB_PORT=8025
 MAILPIT_SMTP_PORT=1025
 FRONTEND_ORIGIN=http://localhost:5173
+CUSTOMER_FRONTEND_ORIGIN=http://localhost:5174
 MSSQL_SA_PASSWORD=<strong-local-password>
 JWT_SECRET_KEY=<long-random-secret-at-least-32-bytes>
 JWT_ISSUER=QuanLyNhaHang
@@ -92,7 +95,8 @@ Trong Visual Studio:
   },
   "Cors": {
     "AllowedOrigins": [
-      "http://localhost:5173"
+      "http://localhost:5173",
+      "http://localhost:5174"
     ]
   },
   "Email": {
@@ -113,8 +117,9 @@ Factory design-time của EF Core dùng cùng `UserSecretsId` với project
 đọc `ConnectionStrings:DefaultConnection` từ User Secrets này, kể cả khi
 **Default project** là `QuanLyNhaHang.Infrastructure`.
 
-Khi chạy môi trường `Development` mà chưa cấu hình mục `Cors`, API mặc định chỉ
-cho phép frontend tại `http://localhost:5173` và `https://localhost:5173`.
+Khi chạy môi trường `Development` mà chưa cấu hình mục `Cors`, API mặc định
+cho phép cổng quản trị ở cổng `5173` và website khách hàng ở cổng `5174`, với
+cả hai giao thức HTTP/HTTPS.
 Môi trường khác phải khai báo rõ từng origin; không sử dụng wildcard `*`.
 
 Không chụp màn hình hoặc chia sẻ kết quả `dotnet user-secrets list`, vì lệnh đó
@@ -124,7 +129,7 @@ hiển thị giá trị bí mật.
 
 1. Chạy `docker compose up -d database mailpit`.
 2. Khởi động `QuanLyNhaHang.Api` bằng Visual Studio.
-3. Mở frontend tại `http://localhost:5173`.
+3. Mở website cần kiểm thử: cổng quản trị tại `http://localhost:5173` hoặc website khách hàng tại `http://localhost:5174`.
 4. Mở hộp thư tại `http://localhost:8025`.
 5. Đăng nhập tài khoản bật 2FA.
 6. Mở email mới trong Mailpit và nhập mã 6 chữ số vào frontend.
