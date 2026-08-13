@@ -131,7 +131,9 @@ export default function NotificationCenter({
           sessionStorage.getItem('accessToken') ?? '',
       })
       .withAutomaticReconnect([0, 2_000, 10_000, 30_000])
-      .configureLogging(LogLevel.Warning)
+      // Connection shutdown during navigation/StrictMode is expected and is
+      // represented by realtimeState instead of surfacing a console error.
+      .configureLogging(LogLevel.None)
       .build()
 
     const refreshFeed = async () => {
