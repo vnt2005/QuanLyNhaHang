@@ -21,5 +21,8 @@
     "@types/qrcode": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest"
+  },
+  "overrides": {
+    "nanoid": "3.3.18"
   }
 }
