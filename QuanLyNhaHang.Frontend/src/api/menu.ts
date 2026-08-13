@@ -181,6 +181,13 @@ export function deleteMenuCategory(id: string) {
   return request<ApiMessage>(`/api/MenuCategories/${id}`, { method: 'DELETE' })
 }
 
+export function changeMenuCategoryStatus(id: string, isActive: boolean) {
+  return request<ApiMessage>(`/api/MenuCategories/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ id, isActive }),
+  })
+}
+
 export async function getMenuItems(
   keyword = '',
   menuCategoryId = '',

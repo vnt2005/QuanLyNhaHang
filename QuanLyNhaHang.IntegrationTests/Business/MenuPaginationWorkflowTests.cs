@@ -52,6 +52,50 @@ public sealed class MenuPaginationWorkflowTests
     }
 
     [Fact]
+    public async Task ChangeMenuCategoryStatus_FiltersAndReactivatesCategory()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var categoryName = $"Danh mục trạng thái {suffix}";
+        var categoryId = await CreateMenuCategoryAsync(client, categoryName);
+
+        using var deactivateResponse = await client.PatchAsJsonAsync(
+            $"/api/MenuCategories/{categoryId}/status",
+            new { id = categoryId, isActive = false });
+
+        Assert.Equal(HttpStatusCode.OK, deactivateResponse.StatusCode);
+        await AssertCategoryFilterAsync(
+            client,
+            categoryName,
+            isActive: true,
+            expectedCount: 0);
+        await AssertCategoryFilterAsync(
+            client,
+            categoryName,
+            isActive: false,
+            expectedCount: 1);
+
+        using var reactivateResponse = await client.PatchAsJsonAsync(
+            $"/api/MenuCategories/{categoryId}/status",
+            new { id = categoryId, isActive = true });
+
+        Assert.Equal(HttpStatusCode.OK, reactivateResponse.StatusCode);
+        await AssertCategoryFilterAsync(
+            client,
+            categoryName,
+            isActive: true,
+            expectedCount: 1);
+        await AssertCategoryFilterAsync(
+            client,
+            categoryName,
+            isActive: false,
+            expectedCount: 0);
+    }
+
+    [Fact]
     public async Task CreateMenuItem_ThenPaginatedList_ReturnsCreatedItemInsideItems()
     {
         using var factory = new ApiWebApplicationFactory();
@@ -119,6 +163,32 @@ public sealed class MenuPaginationWorkflowTests
 
         using var json = await ReadJsonAsync(response);
         return json.RootElement.GetProperty("id").GetGuid();
+    }
+
+    private static async Task AssertCategoryFilterAsync(
+        HttpClient client,
+        string categoryName,
+        bool isActive,
+        int expectedCount)
+    {
+        using var response = await client.GetAsync(
+            "/api/MenuCategories/paginated" +
+            $"?keyword={Uri.EscapeDataString(categoryName)}" +
+            $"&isActive={isActive.ToString().ToLowerInvariant()}" +
+            "&pageNumber=1&pageSize=12");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var json = await ReadJsonAsync(response);
+        var items = json.RootElement.GetProperty("items");
+
+        Assert.Equal(expectedCount, items.GetArrayLength());
+        if (expectedCount == 1)
+        {
+            var category = items[0];
+            Assert.Equal(categoryName, category.GetProperty("name").GetString());
+            Assert.Equal(isActive, category.GetProperty("isActive").GetBoolean());
+        }
     }
 
     private static void AssertPaginationMetadata(JsonElement root)
