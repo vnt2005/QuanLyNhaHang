@@ -68,8 +68,9 @@ test('Thông báo Admin: yêu cầu đặt bàn từ khách xuất hiện realti
   expect(tableResponse.ok()).toBeTruthy()
   const table = await tableResponse.json() as { id: string }
 
-  const reservationResponse = await request.post(`${apiURL}/api/reservations`, {
-    headers,
+  // This is the production CustomerWeb reservation route. It is intentionally
+  // anonymous; the server marks the command as a customer request itself.
+  const reservationResponse = await request.post(`${apiURL}/api/customer-site/reservations`, {
     data: {
       restaurantTableId: table.id,
       customerName,
@@ -77,9 +78,7 @@ test('Thông báo Admin: yêu cầu đặt bàn từ khách xuất hiện realti
       email: `notification-${id}@example.com`,
       numberOfGuests: 4,
       reservationTime: futureIso(2),
-      depositAmount: 150_000,
       note: 'Yêu cầu đặt bàn từ khách để kiểm tra realtime.',
-      isCustomerRequest: true,
     },
   })
   expect(reservationResponse.ok()).toBeTruthy()
