@@ -2,10 +2,10 @@ import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import { confirmAction } from '../design-system/confirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
+  changeMenuCategoryStatus,
   changeMenuItemAvailability,
   createMenuCategory,
   createMenuItem,
-  deleteMenuCategory,
   deleteMenuItem,
   getMenuCategories,
   getMenuCategoryList,
@@ -20,6 +20,7 @@ import {
 
 const emptyCategory: MenuCategoryForm = { name: '', description: '', displayOrder: 0 }
 const emptyItem: MenuItemForm = { menuCategoryId: '', name: '', description: '', price: 0, imageUrl: '' }
+type CategoryStatusFilter = 'active' | 'inactive' | 'all'
 
 export default function MenuManagementPage() {
   const [tab, setTab] = useState<'items' | 'categories'>('items')
@@ -29,6 +30,7 @@ export default function MenuManagementPage() {
   const [keyword, setKeyword] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [availabilityFilter, setAvailabilityFilter] = useState('')
+  const [categoryStatusFilter, setCategoryStatusFilter] = useState<CategoryStatusFilter>('active')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
@@ -47,12 +49,17 @@ export default function MenuManagementPage() {
     categories: categories.length,
   }), [items, categories])
 
-  async function loadCategories(search = keyword, targetPage = 1) {
+  async function loadCategories(
+    search = keyword,
+    targetPage = 1,
+    status: CategoryStatusFilter = categoryStatusFilter,
+  ) {
     setLoading(true); setError('')
     try {
+      const isActive = status === 'all' ? undefined : status === 'active'
       const [list, paged] = await Promise.all([
         getMenuCategoryList(),
-        getMenuCategories(search, undefined, targetPage, 12),
+        getMenuCategories(search, isActive, targetPage, 12),
       ])
       setCategories(list.filter(category => category.isActive))
       setCategoryItems(paged.items ?? [])
@@ -147,15 +154,16 @@ export default function MenuManagementPage() {
     } finally { setSaving(false) }
   }
 
-  async function removeCategory(category: MenuCategory) {
-    if (!await confirmAction(`Xóa danh mục ${category.name}?`)) return
+  async function updateCategoryStatus(category: MenuCategory, isActive: boolean) {
+    const action = isActive ? 'Kích hoạt lại' : 'Ngừng hoạt động'
+    if (!await confirmAction(`${action} danh mục ${category.name}?`)) return
     setError(''); setMessage('')
     try {
-      const result = await deleteMenuCategory(category.id)
-      setMessage(result.message ?? 'Đã xóa danh mục món.')
-      await loadCategories(keyword, page)
+      const result = await changeMenuCategoryStatus(category.id, isActive)
+      setMessage(result.message ?? `${action} danh mục món ăn thành công.`)
+      await loadCategories(keyword, page, categoryStatusFilter)
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Không thể xóa danh mục món.')
+      setError(exception instanceof Error ? exception.message : 'Không thể cập nhật trạng thái danh mục món.')
     }
   }
 
@@ -240,8 +248,21 @@ export default function MenuManagementPage() {
         </article>)}
       </div>
     </> : <>
-      <form className="menu-filters category-filter" onSubmit={event => { event.preventDefault(); void loadCategories(keyword, 1) }}>
+      <form className="menu-filters category-filter" onSubmit={event => { event.preventDefault(); void loadCategories(keyword, 1, categoryStatusFilter) }}>
         <input value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm danh mục món..." />
+        <select
+          aria-label="Trạng thái danh mục"
+          value={categoryStatusFilter}
+          onChange={event => {
+            const status = event.target.value as CategoryStatusFilter
+            setCategoryStatusFilter(status)
+            void loadCategories(keyword, 1, status)
+          }}
+        >
+          <option value="active">Đang hoạt động</option>
+          <option value="inactive">Đã ngừng</option>
+          <option value="all">Tất cả trạng thái</option>
+        </select>
         <button type="submit">Tìm kiếm</button>
       </form>
       <div className="category-grid">
@@ -249,7 +270,12 @@ export default function MenuManagementPage() {
           <div className="category-order">{category.displayOrder}</div>
           <div><h3>{category.name}</h3><p>{category.description || 'Chưa có mô tả.'}</p></div>
           <span className={`status-badge ${category.isActive ? 'active' : 'inactive'}`}>{category.isActive ? 'Hoạt động' : 'Ngừng hoạt động'}</span>
-          <div className="menu-card-actions"><button onClick={() => openEditCategory(category)}>Sửa</button><button className="danger" onClick={() => void removeCategory(category)}>Xóa</button></div>
+          <div className="menu-card-actions">
+            <button onClick={() => openEditCategory(category)}>Sửa</button>
+            {category.isActive
+              ? <button className="danger" onClick={() => void updateCategoryStatus(category, false)}>Ngừng</button>
+              : <button className="reactivate" onClick={() => void updateCategoryStatus(category, true)}>Kích hoạt lại</button>}
+          </div>
         </article>)}
       </div>
     </>}

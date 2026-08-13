@@ -1,7 +1,12 @@
 import { expect, test } from './fixtures'
-import { loginAsAdmin, openAdminModule, uniqueName } from './helpers'
+import {
+  acceptConfirmDialog,
+  loginAsAdmin,
+  openAdminModule,
+  uniqueName,
+} from './helpers'
 
-test('Tạo danh mục và món ăn phải hiển thị ngay trên giao diện', async ({ page }) => {
+test('Tạo món và quản lý vòng đời danh mục trên giao diện', async ({ page }) => {
   const categoryName = uniqueName('Danh mục Playwright')
   const itemName = uniqueName('Món Playwright')
 
@@ -39,4 +44,39 @@ test('Tạo danh mục và món ăn phải hiển thị ngay trên giao diện',
   await expect(itemCard).toBeVisible()
   await expect(itemCard).toContainText(categoryName)
   await expect(itemCard).toContainText('125.000 ₫')
+
+  await page.getByRole('button', { name: 'Danh mục', exact: true }).click()
+  const categorySearch = page.getByPlaceholder('Tìm danh mục món...')
+  await categorySearch.fill(categoryName)
+  await page.getByRole('button', { name: 'Tìm kiếm', exact: true }).click()
+
+  let categoryCard = page.locator('.category-card').filter({ hasText: categoryName })
+  await categoryCard.getByRole('button', { name: 'Ngừng', exact: true }).click()
+  await acceptConfirmDialog(page)
+  await expect(page.getByText(
+    'Ngừng hoạt động danh mục món ăn thành công.',
+    { exact: true },
+  )).toBeVisible()
+  await expect(categoryCard).toHaveCount(0)
+
+  const statusFilter = page.getByRole('combobox', { name: 'Trạng thái danh mục' })
+  await statusFilter.selectOption('inactive')
+  categoryCard = page.locator('.category-card').filter({ hasText: categoryName })
+  await expect(categoryCard).toContainText('Ngừng hoạt động')
+  await categoryCard.getByRole('button', { name: 'Kích hoạt lại', exact: true }).click()
+  await acceptConfirmDialog(page)
+  await expect(page.getByText(
+    'Kích hoạt lại danh mục món ăn thành công.',
+    { exact: true },
+  )).toBeVisible()
+  await expect(categoryCard).toHaveCount(0)
+
+  await statusFilter.selectOption('active')
+  categoryCard = page.locator('.category-card').filter({ hasText: categoryName })
+  await expect(categoryCard).toContainText('Hoạt động')
+
+  // Cleanup keeps E2E data out of the default active view.
+  await categoryCard.getByRole('button', { name: 'Ngừng', exact: true }).click()
+  await acceptConfirmDialog(page)
+  await expect(categoryCard).toHaveCount(0)
 })

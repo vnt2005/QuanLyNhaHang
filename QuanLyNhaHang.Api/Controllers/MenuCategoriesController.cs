@@ -1,7 +1,8 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Common.Constants;
+using QuanLyNhaHang.Application.Features.MenuCategories.Commands.ChangeStatus;
 using QuanLyNhaHang.Application.Features.MenuCategories.Commands.Create;
 using QuanLyNhaHang.Application.Features.MenuCategories.Commands.Delete;
 using QuanLyNhaHang.Application.Features.MenuCategories.Commands.Update;
@@ -131,6 +132,40 @@ public class MenuCategoriesController : ControllerBase
         });
     }
 
+    // PATCH: api/menucategories/{id}/status
+    [HttpPatch("{id:guid}/status")]
+    [HasPermission(PermissionCodes.MenuManage)]
+    public async Task<IActionResult> ChangeStatus(
+        Guid id,
+        [FromBody] ChangeMenuCategoryStatusCommand command,
+        CancellationToken cancellationToken)
+    {
+        if (id != command.Id)
+        {
+            return BadRequest(new
+            {
+                Message = "Id trên URL không khớp với Id trong body."
+            });
+        }
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result)
+        {
+            return BadRequest(new
+            {
+                Message = "Cập nhật trạng thái danh mục món ăn thất bại."
+            });
+        }
+
+        return Ok(new
+        {
+            Message = command.IsActive
+                ? "Kích hoạt lại danh mục món ăn thành công."
+                : "Ngừng hoạt động danh mục món ăn thành công."
+        });
+    }
+
     // DELETE: api/menucategories/{id}
     [HttpDelete("{id:guid}")]
     [HasPermission(PermissionCodes.MenuManage)]
@@ -146,13 +181,13 @@ public class MenuCategoriesController : ControllerBase
         {
             return BadRequest(new
             {
-                Message = "Xóa danh mục món ăn thất bại."
+                Message = "Ngừng hoạt động danh mục món ăn thất bại."
             });
         }
 
         return Ok(new
         {
-            Message = "Xóa danh mục món ăn thành công."
+            Message = "Ngừng hoạt động danh mục món ăn thành công."
         });
     }
 }
