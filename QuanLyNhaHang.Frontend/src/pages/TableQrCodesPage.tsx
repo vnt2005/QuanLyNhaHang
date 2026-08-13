@@ -25,24 +25,31 @@ const statusLabels: Record<TableQrCodeStatus, string> = {
 function getDefaultClientBaseUrl() {
   const configuredUrl = import.meta.env.VITE_CUSTOMER_APP_URL as string | undefined
   if (typeof window === 'undefined') return configuredUrl ?? ''
+
+  const isLocal = window.location.hostname === 'localhost'
+    || window.location.hostname === '127.0.0.1'
+  const localCustomerWebsite = isLocal
+    ? `${window.location.protocol}//${window.location.hostname}:5174`
+    : ''
+
   return localStorage.getItem(CLIENT_URL_STORAGE_KEY)
     ?? configuredUrl
-    ?? window.location.origin
+    ?? localCustomerWebsite
 }
 
 function getNormalizedClientBaseUrl(value: string) {
   const trimmedValue = value.trim()
-  if (!trimmedValue) throw new Error('Vui lòng nhập địa chỉ ứng dụng gọi món.')
+  if (!trimmedValue) throw new Error('Vui lòng nhập địa chỉ website khách hàng.')
 
   let url: URL
   try {
     url = new URL(trimmedValue)
   } catch {
-    throw new Error('Địa chỉ ứng dụng gọi món chưa đúng định dạng URL.')
+    throw new Error('Địa chỉ website khách hàng chưa đúng định dạng URL.')
   }
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    throw new Error('Địa chỉ ứng dụng gọi món phải bắt đầu bằng http:// hoặc https://.')
+    throw new Error('Địa chỉ website khách hàng phải bắt đầu bằng http:// hoặc https://.')
   }
 
   return url.toString().replace(/\/+$/, '')
@@ -270,7 +277,7 @@ export default function TableQrCodesPage() {
       const normalizedUrl = getNormalizedClientBaseUrl(clientBaseUrl)
       setClientBaseUrl(normalizedUrl)
       localStorage.setItem(CLIENT_URL_STORAGE_KEY, normalizedUrl)
-      setMessage('Đã lưu địa chỉ ứng dụng gọi món trên trình duyệt này.')
+      setMessage('Đã lưu địa chỉ website khách hàng trên trình duyệt này.')
     } catch (exception) {
       setError(
         exception instanceof Error
@@ -576,7 +583,7 @@ export default function TableQrCodesPage() {
           <span>Hệ thống sẽ nối thêm /qr-order/token cho từng bàn.</span>
         </div>
         <label>
-          <span className="sr-only">Địa chỉ ứng dụng gọi món</span>
+          <span className="sr-only">Địa chỉ website khách hàng</span>
           <input
             type="url"
             value={clientBaseUrl}

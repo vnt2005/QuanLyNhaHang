@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - 'QuanLyNhaHang.Frontend/**'
+      - 'QuanLyNhaHang.CustomerWeb/**'
       - '.github/workflows/frontend-ci.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'QuanLyNhaHang.Frontend/**'
+      - 'QuanLyNhaHang.CustomerWeb/**'
       - '.github/workflows/frontend-ci.yml'
   workflow_dispatch:
 
@@ -24,13 +26,20 @@ concurrency:
 
 jobs:
   build:
-    name: Install, audit and build
+    name: Install, audit and build (${{ matrix.project }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - QuanLyNhaHang.Frontend
+          - QuanLyNhaHang.CustomerWeb
+
     defaults:
       run:
-        working-directory: QuanLyNhaHang.Frontend
+        working-directory: ${{ matrix.project }}
 
     steps:
       - name: Checkout source
@@ -41,7 +50,7 @@ jobs:
         with:
           node-version: '24.x'
           cache: npm
-          cache-dependency-path: QuanLyNhaHang.Frontend/package-lock.json
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
 
       - name: Install dependencies
         run: npm ci

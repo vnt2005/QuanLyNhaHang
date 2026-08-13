@@ -7,6 +7,7 @@ Backend quản lý nhà hàng xây dựng bằng ASP.NET Core, Clean Architectur
 - [Kiến trúc hệ thống](docs/ARCHITECTURE.md)
 - [Chương 10 – Dependable systems](docs/DEPENDABLE_SYSTEMS.md)
 - [Cấu hình local an toàn](docs/LOCAL_CONFIGURATION.md)
+- [Website khách hàng độc lập](docs/CUSTOMER_WEBSITE.md)
 
 ## Chạy local
 
@@ -29,6 +30,21 @@ Update-Database
 5. Chạy `QuanLyNhaHang.Api` bằng Visual Studio.
 
 Hướng dẫn đầy đủ và quy tắc bảo mật: [docs/LOCAL_CONFIGURATION.md](docs/LOCAL_CONFIGURATION.md).
+
+## Chạy website khách hàng
+
+Website khách hàng là project riêng, không nằm trong cổng quản trị:
+
+```powershell
+cd .\QuanLyNhaHang.CustomerWeb
+Copy-Item .env.example .env.local
+npm install
+npm run dev
+```
+
+Mở `http://localhost:5174`. Cổng quản trị tiếp tục chạy riêng tại
+`http://localhost:5173`. Xem cấu hình QR và CORS tại
+[docs/CUSTOMER_WEBSITE.md](docs/CUSTOMER_WEBSITE.md).
 
 ## Chạy toàn bộ bằng Docker
 

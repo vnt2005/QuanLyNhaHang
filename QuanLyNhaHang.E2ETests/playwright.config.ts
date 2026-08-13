@@ -2,9 +2,13 @@ import { defineConfig, devices } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:5173'
+const customerBaseURL = process.env.E2E_CUSTOMER_BASE_URL ?? 'http://localhost:5174'
 const apiURL = process.env.E2E_API_URL ?? 'http://localhost:8080'
 const frontendDirectory = fileURLToPath(
   new URL('../QuanLyNhaHang.Frontend/', import.meta.url),
+)
+const customerFrontendDirectory = fileURLToPath(
+  new URL('../QuanLyNhaHang.CustomerWeb/', import.meta.url),
 )
 
 export default defineConfig({
@@ -34,16 +38,29 @@ export default defineConfig({
   },
   webServer: process.env.E2E_SKIP_WEBSERVER === 'true'
     ? undefined
-    : {
-        command: 'npm run dev -- --host 127.0.0.1 --port 5173',
-        cwd: frontendDirectory,
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-        env: {
-          VITE_API_BASE_URL: apiURL,
+    : [
+        {
+          command: 'npm run dev -- --host 127.0.0.1 --port 5173',
+          cwd: frontendDirectory,
+          url: baseURL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+          env: {
+            VITE_API_BASE_URL: apiURL,
+            VITE_CUSTOMER_APP_URL: customerBaseURL,
+          },
         },
-      },
+        {
+          command: 'npm run dev -- --host 127.0.0.1 --port 5174',
+          cwd: customerFrontendDirectory,
+          url: customerBaseURL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+          env: {
+            VITE_API_BASE_URL: apiURL,
+          },
+        },
+      ],
   projects: [
     {
       name: 'chromium-desktop',

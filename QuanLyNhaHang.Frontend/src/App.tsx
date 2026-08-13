@@ -24,7 +24,6 @@ const loadMenuManagementPage = () => import('./pages/MenuManagementPage')
 const loadOrdersPage = () => import('./pages/OrdersPage')
 const loadPaymentsPage = () => import('./pages/PaymentsPage')
 const loadPromotionsPage = () => import('./pages/PromotionsPage')
-const loadQrOrderPage = () => import('./pages/QrOrderPage')
 const loadReservationsPage = () => import('./pages/ReservationsPage')
 const loadRestaurantSettingsPage = () =>
   import('./pages/RestaurantSettingsPage')
@@ -45,7 +44,6 @@ const MenuManagementPage = lazy(loadMenuManagementPage)
 const OrdersPage = lazy(loadOrdersPage)
 const PaymentsPage = lazy(loadPaymentsPage)
 const PromotionsPage = lazy(loadPromotionsPage)
-const QrOrderPage = lazy(loadQrOrderPage)
 const ReservationsPage = lazy(loadReservationsPage)
 const RestaurantSettingsPage = lazy(loadRestaurantSettingsPage)
 const RevenueReportsPage = lazy(loadRevenueReportsPage)
@@ -237,13 +235,42 @@ function ModuleLoading({ label }: { label: string }) {
   )
 }
 
-function QrOrderLoading() {
+function getCustomerWebsiteQrUrl(token: string) {
+  const configuredUrl = (
+    import.meta.env.VITE_CUSTOMER_APP_URL as string | undefined
+  )?.trim()
+  const isLocal = window.location.hostname === 'localhost'
+    || window.location.hostname === '127.0.0.1'
+  const baseUrl = configuredUrl
+    || (isLocal
+      ? `${window.location.protocol}//${window.location.hostname}:5174`
+      : '')
+
+  if (!baseUrl) return null
+  return `${baseUrl.replace(/\/+$/, '')}/qr-order/${encodeURIComponent(token)}`
+}
+
+function CustomerWebsiteRedirect({ token }: { token: string }) {
+  const destination = getCustomerWebsiteQrUrl(token)
+
+  useEffect(() => {
+    if (destination) window.location.replace(destination)
+  }, [destination])
+
   return (
     <main className="qr-order-page qr-order-state-page">
       <div className="qr-order-state-card" role="status">
         <span className="qr-order-spinner" />
-        <h1>Đang mở trang gọi món…</h1>
-        <p>Vui lòng chờ trong giây lát.</p>
+        <h1>
+          {destination
+            ? 'Đang mở website khách hàng…'
+            : 'Chưa cấu hình website khách hàng'}
+        </h1>
+        <p>
+          {destination
+            ? 'Trang gọi món được phục vụ trên website riêng dành cho khách.'
+            : 'Hãy cấu hình VITE_CUSTOMER_APP_URL cho cổng quản trị.'}
+        </p>
       </div>
     </main>
   )
@@ -349,11 +376,7 @@ export default function App() {
   }, [acceptAuthentication, clearSession, qrOrderToken, result?.refreshToken, result?.token])
 
   if (qrOrderToken) {
-    return (
-      <Suspense fallback={<QrOrderLoading />}>
-        <QrOrderPage token={qrOrderToken} />
-      </Suspense>
-    )
+    return <CustomerWebsiteRedirect token={qrOrderToken} />
   }
 
   async function handleLogout() {

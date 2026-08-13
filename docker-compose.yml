@@ -45,6 +45,7 @@ services:
       ASPNETCORE_HTTP_PORTS: "8080"
       Hosting__DisableHttpsRedirection: "true"
       Cors__AllowedOrigins__0: "${FRONTEND_ORIGIN:-http://localhost:5173}"
+      Cors__AllowedOrigins__1: "${CUSTOMER_FRONTEND_ORIGIN:-http://localhost:5174}"
       Database__ApplyMigrationsOnStartup: "true"
       Database__SyncPermissionCatalogOnStartup: "true"
       ConnectionStrings__DefaultConnection: >-
