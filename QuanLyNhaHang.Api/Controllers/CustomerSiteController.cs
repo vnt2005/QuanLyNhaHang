@@ -49,7 +49,8 @@ public sealed class CustomerSiteController : ControllerBase
                 NumberOfGuests = request.NumberOfGuests,
                 ReservationTime = request.ReservationTime,
                 DepositAmount = 0,
-                Note = request.Note
+                Note = request.Note,
+                IsCustomerRequest = true
             },
             cancellationToken);
 

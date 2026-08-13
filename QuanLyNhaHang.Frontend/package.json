@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@microsoft/signalr": "latest",
     "@vitejs/plugin-react": "latest",
     "qrcode": "latest",
     "vite": "latest",
@@ -20,5 +21,8 @@
     "@types/qrcode": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest"
+  },
+  "overrides": {
+    "nanoid": "3.3.18"
   }
 }

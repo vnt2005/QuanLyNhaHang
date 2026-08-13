@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using System.Text.Json.Serialization;
+using MediatR;
 using QuanLyNhaHang.Application.Features.Reservations.DTOs;
 
 namespace QuanLyNhaHang.Application.Features.Reservations.Commands.Create;
@@ -20,4 +21,7 @@ public class CreateReservationCommand : IRequest<ReservationDto>
     public decimal DepositAmount { get; set; }
 
     public string? Note { get; set; }
+
+    [JsonIgnore]
+    public bool IsCustomerRequest { get; set; }
 }

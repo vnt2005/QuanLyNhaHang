@@ -9,6 +9,7 @@ import {
 } from './api/auth'
 import AuthPage from './pages/AuthPage'
 import { ConfirmDialogHost } from './design-system/confirmDialog'
+import NotificationCenter from './components/NotificationCenter'
 
 const loadAccessManagementPage = () => import('./pages/AccessManagementPage')
 const loadAccountSecurityPage = () => import('./pages/AccountSecurityPage')
@@ -549,6 +550,7 @@ export default function App() {
             <h1>{currentItem}</h1>
           </div>
           <div className="topbar-actions">
+            <NotificationCenter onNavigate={navigateTo} />
             <button
               type="button"
               className={`profile profile-button${

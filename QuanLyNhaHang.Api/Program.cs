@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using QuanLyNhaHang.Api.Health;
+using QuanLyNhaHang.Api.Hubs;
 using QuanLyNhaHang.Api.Serialization;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
@@ -43,7 +44,8 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -53,7 +55,13 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddSignalR();
+
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+builder.Services.AddSingleton<
+    IAdminNotificationPublisher,
+    SignalRAdminNotificationPublisher>();
 
 builder.Services
     .AddControllers()
@@ -108,6 +116,20 @@ builder.Services.AddAuthentication(options =>
 
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"]
+                .ToString();
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) &&
+                path.StartsWithSegments("/hubs/admin-notifications"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        },
         OnTokenValidated = async context =>
         {
             var userIdValue = context.Principal?
@@ -344,6 +366,10 @@ app.MapHealthChecks(
     });
 
 app.MapControllers();
+
+app.MapHub<AdminNotificationHub>(
+    "/hubs/admin-notifications",
+    options => options.CloseOnAuthenticationExpiration = true);
 
 app.Run();
 

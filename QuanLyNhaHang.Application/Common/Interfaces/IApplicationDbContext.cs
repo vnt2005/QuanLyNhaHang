@@ -34,5 +34,6 @@ public interface IApplicationDbContext
     DbSet<Ingredient> Ingredients { get; }
     DbSet<InventoryTransaction> InventoryTransactions { get; }
     DbSet<ActivityLog> ActivityLogs { get; }
+    DbSet<Notification> Notifications { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
