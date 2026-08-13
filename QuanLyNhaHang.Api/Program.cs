@@ -55,10 +55,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddSignalR(options =>
-{
-    options.CloseOnAuthenticationExpiration = true;
-});
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
@@ -370,7 +367,9 @@ app.MapHealthChecks(
 
 app.MapControllers();
 
-app.MapHub<AdminNotificationHub>("/hubs/admin-notifications");
+app.MapHub<AdminNotificationHub>(
+    "/hubs/admin-notifications",
+    options => options.CloseOnAuthenticationExpiration = true);
 
 app.Run();
 
