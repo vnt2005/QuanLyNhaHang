@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@microsoft/signalr": "latest",
     "@vitejs/plugin-react": "latest",
     "qrcode": "latest",
     "vite": "latest",
