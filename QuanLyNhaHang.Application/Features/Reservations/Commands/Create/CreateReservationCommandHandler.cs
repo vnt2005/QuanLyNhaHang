@@ -2,6 +2,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Notifications;
+using QuanLyNhaHang.Application.Features.Notifications.DTOs;
 using QuanLyNhaHang.Application.Features.Reservations.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -11,10 +13,14 @@ public class CreateReservationCommandHandler
     : IRequestHandler<CreateReservationCommand, ReservationDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IAdminNotificationPublisher _notificationPublisher;
 
-    public CreateReservationCommandHandler(IApplicationDbContext context)
+    public CreateReservationCommandHandler(
+        IApplicationDbContext context,
+        IAdminNotificationPublisher notificationPublisher)
     {
         _context = context;
+        _notificationPublisher = notificationPublisher;
     }
 
     public async Task<ReservationDto> Handle(
@@ -69,7 +75,45 @@ public class CreateReservationCommandHandler
 
         await _context.Reservations.AddAsync(reservation, cancellationToken);
 
+        var notifications = new List<Notification>();
+
+        if (request.IsCustomerRequest)
+        {
+            var recipientUserIds = await _context.Users
+                .AsNoTracking()
+                .Where(user =>
+                    user.IsActive &&
+                    user.IsEmailVerified &&
+                    AdminNotificationAudience.OrderAndReservationRoles
+                        .Contains(user.Role))
+                .Select(user => user.Id)
+                .ToListAsync(cancellationToken);
+
+            notifications = recipientUserIds
+                .Select(userId => new Notification(
+                    userId,
+                    "Reservation.CreatedFromCustomer",
+                    "Yêu cầu đặt bàn mới",
+                    $"{reservation.CustomerName} vừa yêu cầu đặt " +
+                    $"{table.Name} cho {reservation.NumberOfGuests} khách.",
+                    "warning",
+                    "Đặt bàn",
+                    reservation.Id))
+                .ToList();
+
+            if (notifications.Count > 0)
+            {
+                await _context.Notifications.AddRangeAsync(
+                    notifications,
+                    cancellationToken);
+            }
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        await _notificationPublisher.PublishAsync(
+            notifications.Select(NotificationDto.FromEntity).ToArray(),
+            cancellationToken);
 
         return new ReservationDto
         {

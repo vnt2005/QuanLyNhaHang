@@ -17,6 +17,9 @@ public sealed class CustomerSiteWorkflowTests
     {
         using var factory = new ApiWebApplicationFactory();
         using var client = factory.CreateHttpsClient();
+        var adminUserId = await factory.SeedUserAsync(
+            $"customer-site-admin-{Guid.NewGuid():N}@example.com",
+            "Password123!");
         var scenario = await SeedCustomerSiteAsync(factory);
 
         using var bootstrapResponse = await client.GetAsync(
@@ -70,6 +73,16 @@ public sealed class CustomerSiteWorkflowTests
 
         Assert.Equal(0m, persisted.DepositAmount);
         Assert.Equal(scenario.TableId, persisted.RestaurantTableId);
+
+        var notification = await context.Notifications
+            .AsNoTracking()
+            .SingleAsync(item => item.UserId == adminUserId);
+
+        Assert.Equal(
+            "Reservation.CreatedFromCustomer",
+            notification.Type);
+        Assert.Equal(persisted.Id, notification.EntityId);
+        Assert.False(notification.IsRead);
     }
 
     private static async Task<CustomerSiteScenario> SeedCustomerSiteAsync(

@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Notifications;
+using QuanLyNhaHang.Application.Features.Notifications.DTOs;
 using QuanLyNhaHang.Application.Features.QrOrders.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -12,10 +14,14 @@ public class CreateQrOrderCommandHandler
     : IRequestHandler<CreateQrOrderCommand, QrOrderDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IAdminNotificationPublisher _notificationPublisher;
 
-    public CreateQrOrderCommandHandler(IApplicationDbContext context)
+    public CreateQrOrderCommandHandler(
+        IApplicationDbContext context,
+        IAdminNotificationPublisher notificationPublisher)
     {
         _context = context;
+        _notificationPublisher = notificationPublisher;
     }
 
     public async Task<QrOrderDto> Handle(
@@ -140,7 +146,40 @@ public class CreateQrOrderCommandHandler
 
         await _context.OrderItems.AddRangeAsync(orderItems, cancellationToken);
 
+        var recipientUserIds = await _context.Users
+            .AsNoTracking()
+            .Where(user =>
+                user.IsActive &&
+                user.IsEmailVerified &&
+                AdminNotificationAudience.OrderAndReservationRoles
+                    .Contains(user.Role))
+            .Select(user => user.Id)
+            .ToListAsync(cancellationToken);
+
+        var notifications = recipientUserIds
+            .Select(userId => new Notification(
+                userId,
+                "Order.CreatedFromCustomer",
+                "Đơn gọi món mới",
+                $"{table.Name} vừa gửi {order.OrderCode} với " +
+                $"{orderItems.Sum(item => item.Quantity)} món.",
+                "info",
+                "Đơn hàng",
+                order.Id))
+            .ToList();
+
+        if (notifications.Count > 0)
+        {
+            await _context.Notifications.AddRangeAsync(
+                notifications,
+                cancellationToken);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        await _notificationPublisher.PublishAsync(
+            notifications.Select(NotificationDto.FromEntity).ToArray(),
+            cancellationToken);
 
         return new QrOrderDto
         {

@@ -9,6 +9,9 @@ public static class SystemRoles
     public const string Staff = "Staff";
     public const string Customer = "Customer";
 
+    public const string AdminPortalRoles =
+        "Admin,Manager,Cashier,Kitchen,Staff";
+
     public static string NormalizeEmployeeRole(string? role)
     {
         if (string.IsNullOrWhiteSpace(role))

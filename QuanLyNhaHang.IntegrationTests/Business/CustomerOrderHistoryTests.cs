@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Domain.Entities;
@@ -29,6 +30,9 @@ public sealed class CustomerOrderHistoryTests
     {
         const string password = "Password123!";
         using var factory = new ApiWebApplicationFactory();
+        var adminUserId = await factory.SeedUserAsync(
+            $"customer-order-admin-{Guid.NewGuid():N}@example.com",
+            password);
         var scenario = await SeedQrScenarioAsync(factory);
 
         using var customerClient = factory.CreateHttpsClient();
@@ -77,6 +81,21 @@ public sealed class CustomerOrderHistoryTests
             .EnumerateArray())
             .GetProperty("quantity")
             .GetInt32());
+
+        using (var notificationScope = factory.Services.CreateScope())
+        {
+            var context = notificationScope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+            var notification = await context.Notifications
+                .AsNoTracking()
+                .SingleAsync(item => item.UserId == adminUserId);
+
+            Assert.Equal(
+                "Order.CreatedFromCustomer",
+                notification.Type);
+            Assert.Equal(orderId, notification.EntityId);
+            Assert.False(notification.IsRead);
+        }
 
         using var otherCustomerClient = factory.CreateHttpsClient();
         await AuthenticateCustomerAsync(
