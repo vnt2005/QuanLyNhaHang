@@ -226,6 +226,7 @@ public sealed class ReservationWorkflowTests
 
         Assert.Equal(customerEmail, reservation.Email);
         Assert.Equal("Đặt bàn đã được xác nhận", notification.Title);
+        Assert.Equal("/reservation", notification.Target);
         Assert.False(notification.IsRead);
     }
 
