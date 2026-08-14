@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock3, Phone } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import type { CustomerSession } from '../api/customerAuth'
 import {
   createCustomerReservation,
   type CustomerReservationResult,
@@ -16,7 +17,13 @@ function tomorrow() {
   return `${year}-${month}-${day}`
 }
 
-export default function ReservationPage({ data }: { data: CustomerSiteBootstrap }) {
+export default function ReservationPage({
+  data,
+  session,
+}: {
+  data: CustomerSiteBootstrap
+  session: CustomerSession | null
+}) {
   const [customerName, setCustomerName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [email, setEmail] = useState('')
@@ -40,6 +47,13 @@ export default function ReservationPage({ data }: { data: CustomerSiteBootstrap 
     }
   }, [eligibleTables, tableId])
 
+  useEffect(() => {
+    if (!session) return
+    setCustomerName(current => current || [session.ho, session.ten].filter(Boolean).join(' '))
+    setPhoneNumber(current => current || session.phoneNumber || '')
+    setEmail(current => current || session.email)
+  }, [session])
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy || !tableId) return
@@ -56,7 +70,7 @@ export default function ReservationPage({ data }: { data: CustomerSiteBootstrap 
         numberOfGuests,
         reservationTime,
         note: note.trim() || null,
-      })
+      }, session?.token)
       setResult(response.data)
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không gửi được yêu cầu đặt bàn.')
