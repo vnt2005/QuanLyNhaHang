@@ -221,7 +221,7 @@ public sealed class ReservationWorkflowTests
             .AsNoTracking()
             .SingleAsync(x =>
                 x.UserId == customerId &&
-                x.RelatedEntityId == reservationId &&
+                x.EntityId == reservationId &&
                 x.Type == "Reservation.Confirmed");
 
         Assert.Equal(customerEmail, reservation.Email);
