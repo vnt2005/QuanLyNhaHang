@@ -1,3 +1,16 @@
+.site-header-actions {
+  justify-self: end;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.site-header-actions .account-link {
+  justify-self: auto;
+}
+
 .customer-notification-center {
   position: relative;
   display: flex;
@@ -375,6 +388,15 @@
 }
 
 @media (max-width: 760px) {
+  .site-header-actions {
+    margin-left: auto;
+    gap: 4px;
+  }
+
+  .site-header-actions .account-link span {
+    display: none;
+  }
+
   .customer-notification-panel {
     position: fixed;
     top: 70px;
