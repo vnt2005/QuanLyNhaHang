@@ -1,8 +1,12 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Notifications;
+using QuanLyNhaHang.Application.Features.Notifications.DTOs;
 using QuanLyNhaHang.Application.Features.Reservations.DTOs;
+using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Reservations.Commands.Update;
 
@@ -10,10 +14,14 @@ public class UpdateReservationStatusCommandHandler
     : IRequestHandler<UpdateReservationStatusCommand, ReservationDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IAdminNotificationPublisher _notificationPublisher;
 
-    public UpdateReservationStatusCommandHandler(IApplicationDbContext context)
+    public UpdateReservationStatusCommandHandler(
+        IApplicationDbContext context,
+        IAdminNotificationPublisher notificationPublisher)
     {
         _context = context;
+        _notificationPublisher = notificationPublisher;
     }
 
     public async Task<ReservationDto> Handle(
@@ -132,7 +140,26 @@ public class UpdateReservationStatusCommandHandler
                     "Trạng thái đặt bàn không hợp lệ.");
         }
 
+        var customerNotification = await CreateCustomerNotificationAsync(
+            reservation,
+            table.Name,
+            cancellationToken);
+
+        if (customerNotification != null)
+        {
+            await _context.Notifications.AddAsync(
+                customerNotification,
+                cancellationToken);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (customerNotification != null)
+        {
+            await _notificationPublisher.PublishAsync(
+                new[] { NotificationDto.FromEntity(customerNotification) },
+                cancellationToken);
+        }
 
         return new ReservationDto
         {
@@ -155,6 +182,71 @@ public class UpdateReservationStatusCommandHandler
             CancelledAt = reservation.CancelledAt,
             UpdatedAt = reservation.UpdatedAt
         };
+    }
+
+    private async Task<Notification?> CreateCustomerNotificationAsync(
+        Reservation reservation,
+        string tableName,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(reservation.Email))
+        {
+            return null;
+        }
+
+        var normalizedEmail = reservation.Email.Trim().ToLowerInvariant();
+        var customerUserId = await _context.Users
+            .AsNoTracking()
+            .Where(user =>
+                user.IsActive &&
+                user.Role == SystemRoles.Customer &&
+                user.Email == normalizedEmail)
+            .Select(user => (Guid?)user.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (!customerUserId.HasValue)
+        {
+            return null;
+        }
+
+        var (title, message, severity) = reservation.Status switch
+        {
+            "Confirmed" => (
+                "Đặt bàn đã được xác nhận",
+                $"Yêu cầu {reservation.ReservationCode} tại {tableName} đã được nhà hàng xác nhận.",
+                "success"),
+            "CheckedIn" => (
+                "Đã nhận bàn",
+                $"Đặt bàn {reservation.ReservationCode} tại {tableName} đã được ghi nhận nhận bàn.",
+                "info"),
+            "Completed" => (
+                "Đặt bàn đã hoàn tất",
+                $"Đặt bàn {reservation.ReservationCode} tại {tableName} đã hoàn tất.",
+                "success"),
+            "Cancelled" => (
+                "Đặt bàn đã bị hủy",
+                $"Đặt bàn {reservation.ReservationCode} tại {tableName} đã bị hủy.",
+                "warning"),
+            "NoShow" => (
+                "Đặt bàn được ghi nhận vắng mặt",
+                $"Đặt bàn {reservation.ReservationCode} tại {tableName} được ghi nhận là không đến.",
+                "warning"),
+            _ => (string.Empty, string.Empty, string.Empty)
+        };
+
+        if (string.IsNullOrEmpty(title))
+        {
+            return null;
+        }
+
+        return new Notification(
+            customerUserId.Value,
+            $"Reservation.{reservation.Status}",
+            title,
+            message,
+            severity,
+            "Đặt bàn",
+            reservation.Id);
     }
 
     private static void EnsureTableIsActive(bool isActive)
