@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Notifications;
@@ -14,13 +15,16 @@ public class CreateReservationCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IAdminNotificationPublisher _notificationPublisher;
+    private readonly ICurrentUserService _currentUserService;
 
     public CreateReservationCommandHandler(
         IApplicationDbContext context,
-        IAdminNotificationPublisher notificationPublisher)
+        IAdminNotificationPublisher notificationPublisher,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _notificationPublisher = notificationPublisher;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ReservationDto> Handle(
@@ -63,11 +67,29 @@ public class CreateReservationCommandHandler
             throw new InvalidOperationException(
                 "Bàn này đã có lịch đặt trong khoảng thời gian gần đó.");
 
+        var reservationEmail = request.Email;
+        if (request.IsCustomerRequest && _currentUserService.UserId.HasValue)
+        {
+            var customerEmail = await _context.Users
+                .AsNoTracking()
+                .Where(user =>
+                    user.Id == _currentUserService.UserId.Value &&
+                    user.IsActive &&
+                    user.Role == SystemRoles.Customer)
+                .Select(user => user.Email)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(customerEmail))
+            {
+                reservationEmail = customerEmail;
+            }
+        }
+
         var reservation = new Reservation(
             request.RestaurantTableId,
             request.CustomerName,
             request.PhoneNumber,
-            request.Email,
+            reservationEmail,
             request.NumberOfGuests,
             request.ReservationTime,
             request.DepositAmount,
