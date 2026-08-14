@@ -245,7 +245,7 @@ public class UpdateReservationStatusCommandHandler
             title,
             message,
             severity,
-            "Đặt bàn",
+            "/reservation",
             reservation.Id);
     }
 
