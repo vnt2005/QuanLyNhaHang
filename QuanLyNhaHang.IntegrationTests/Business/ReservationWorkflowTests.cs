@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Domain.Entities;
 using QuanLyNhaHang.Infrastructure.Persistence;
 using QuanLyNhaHang.IntegrationTests.Infrastructure;
@@ -165,14 +166,89 @@ public sealed class ReservationWorkflowTests
         Assert.Equal("Confirmed", finalReservation.Status);
     }
 
+    [Fact]
+    public async Task CustomerReservation_WhenConfirmed_CreatesNotificationForCustomer()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var customerClient = factory.CreateHttpsClient();
+        using var adminClient = factory.CreateHttpsClient();
+
+        var customerEmail = $"reservation-customer-{Guid.NewGuid():N}@example.com";
+        var customerId = await AuthenticateAsync(
+            factory,
+            customerClient,
+            customerEmail,
+            SystemRoles.Customer);
+        await AuthenticateAdminAsync(factory, adminClient);
+
+        var scenario = await SeedTableAsync(factory, capacity: 4);
+        using var createResponse = await customerClient.PostAsJsonAsync(
+            "/api/customer-site/reservations",
+            new
+            {
+                restaurantTableId = scenario.TableId,
+                customerName = "Khách CustomerWeb",
+                phoneNumber = "0900000099",
+                email = "email-thay-doi@example.com",
+                numberOfGuests = 2,
+                reservationTime = DateTime.UtcNow.AddDays(2),
+                note = "Kiểm tra notification xác nhận"
+            });
+
+        Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
+
+        using var createJson = await ReadJsonAsync(createResponse);
+        var reservationId = createJson.RootElement
+            .GetProperty("data")
+            .GetProperty("id")
+            .GetGuid();
+
+        using var confirmResponse = await ChangeReservationStatusAsync(
+            adminClient,
+            reservationId,
+            "Confirmed");
+
+        Assert.Equal(HttpStatusCode.OK, confirmResponse.StatusCode);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+
+        var reservation = await context.Reservations
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == reservationId);
+        var notification = await context.Notifications
+            .AsNoTracking()
+            .SingleAsync(x =>
+                x.UserId == customerId &&
+                x.RelatedEntityId == reservationId &&
+                x.Type == "Reservation.Confirmed");
+
+        Assert.Equal(customerEmail, reservation.Email);
+        Assert.Equal("Đặt bàn đã được xác nhận", notification.Title);
+        Assert.False(notification.IsRead);
+    }
+
     private static async Task AuthenticateAdminAsync(
         ApiWebApplicationFactory factory,
         HttpClient client)
     {
         var email = $"reservation-{Guid.NewGuid():N}@example.com";
+        await AuthenticateAsync(factory, client, email, SystemRoles.Admin);
+    }
+
+    private static async Task<Guid> AuthenticateAsync(
+        ApiWebApplicationFactory factory,
+        HttpClient client,
+        string email,
+        string role)
+    {
         const string password = "Password123!";
 
-        await factory.SeedUserAsync(email, password);
+        var userId = await factory.SeedUserAsync(
+            email,
+            password,
+            role: role);
 
         using var response = await client.PostAsJsonAsync(
             "/api/auth/login",
@@ -190,6 +266,7 @@ public sealed class ReservationWorkflowTests
 
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
+        return userId;
     }
 
     private static async Task<TableScenario> SeedTableAsync(
