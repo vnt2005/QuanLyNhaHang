@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Notifications.Commands.MarkAllAsRead;
 using QuanLyNhaHang.Application.Features.Notifications.Commands.MarkAsRead;
 using QuanLyNhaHang.Application.Features.Notifications.Queries.GetFeed;
@@ -10,7 +9,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 
 [ApiController]
 [Route("api/notifications")]
-[Authorize(Roles = SystemRoles.AdminPortalRoles)]
+[Authorize]
 public sealed class NotificationsController : ControllerBase
 {
     private readonly IMediator _mediator;

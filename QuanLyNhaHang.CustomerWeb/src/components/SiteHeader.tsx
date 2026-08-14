@@ -3,6 +3,7 @@ import { useState, type MouseEvent } from 'react'
 import type { CustomerSession } from '../api/customerAuth'
 import type { PublicRestaurant } from '../api/customerSite'
 import { navigate } from '../navigation'
+import NotificationCenter from './NotificationCenter'
 
 const links = [
   { label: 'Trang chủ', path: '/' },
@@ -66,10 +67,13 @@ export default function SiteHeader({
           })}
         </nav>
 
-        <a className="account-link" href={accountPath} onClick={event => follow(event, accountPath)}>
-          <UserRound aria-hidden="true" />
-          <span>{accountLabel}</span>
-        </a>
+        <div className="site-header-actions">
+          {session ? <NotificationCenter session={session} /> : null}
+          <a className="account-link" href={accountPath} onClick={event => follow(event, accountPath)}>
+            <UserRound aria-hidden="true" />
+            <span>{accountLabel}</span>
+          </a>
+        </div>
 
         <button
           className="mobile-menu-button"

@@ -102,15 +102,63 @@ public sealed class AdminNotificationWorkflowTests
     }
 
     [Fact]
-    public async Task Customer_CannotAccessAdminNotificationFeed()
+    public async Task Customer_CanReadOnlyOwnNotificationFeed()
     {
         using var factory = new ApiWebApplicationFactory();
         using var client = factory.CreateHttpsClient();
-        await AuthenticateAsync(factory, client, SystemRoles.Customer);
+        var customerId = await AuthenticateAsync(
+            factory,
+            client,
+            SystemRoles.Customer);
+        var otherCustomerId = await factory.SeedUserAsync(
+            $"notification-other-customer-{Guid.NewGuid():N}@example.com",
+            "Password123!",
+            role: SystemRoles.Customer);
 
-        using var response = await client.GetAsync("/api/notifications");
+        Guid ownNotificationId;
 
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+
+            var ownNotification = new Notification(
+                customerId,
+                "Order.StatusChanged",
+                "Đơn hàng đã cập nhật",
+                "Đơn hàng của bạn đang được chế biến.",
+                "info",
+                "Đơn hàng",
+                Guid.NewGuid());
+            var otherNotification = new Notification(
+                otherCustomerId,
+                "Order.StatusChanged",
+                "Đơn hàng đã cập nhật",
+                "Đơn hàng của khách khác đã thay đổi trạng thái.",
+                "info",
+                "Đơn hàng",
+                Guid.NewGuid());
+
+            ownNotificationId = ownNotification.Id;
+            context.Notifications.AddRange(
+                ownNotification,
+                otherNotification);
+            await context.SaveChangesAsync();
+        }
+
+        using var response = await client.GetAsync(
+            "/api/notifications?limit=20");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var json = await ReadJsonAsync(response);
+        Assert.Equal(
+            1,
+            json.RootElement.GetProperty("unreadCount").GetInt32());
+        var item = Assert.Single(
+            json.RootElement.GetProperty("items").EnumerateArray());
+        Assert.Equal(
+            ownNotificationId,
+            item.GetProperty("id").GetGuid());
     }
 
     private static async Task<Guid> AuthenticateAsync(
