@@ -66,7 +66,10 @@ export function getCustomerSiteBootstrap() {
   return apiRequest<CustomerSiteBootstrap>('/api/customer-site/bootstrap')
 }
 
-export async function createCustomerReservation(input: CustomerReservationInput) {
+export async function createCustomerReservation(
+  input: CustomerReservationInput,
+  accessToken?: string | null,
+) {
   const response = await apiRequest<{
     success: boolean
     message: string
@@ -74,7 +77,7 @@ export async function createCustomerReservation(input: CustomerReservationInput)
   }>('/api/customer-site/reservations', {
     method: 'POST',
     body: JSON.stringify(input),
-  })
+  }, accessToken)
 
   return response
 }

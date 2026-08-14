@@ -115,7 +115,7 @@ export default function App() {
     }
     if (pathname === '/') return <HomePage data={data} />
     if (pathname === '/menu') return <MenuPage data={data} />
-    if (pathname === '/reservation') return <ReservationPage data={data} />
+    if (pathname === '/reservation') return <ReservationPage data={data} session={session} />
     if (pathname === '/orders' || pathname === '/account' || pathname === '/login') {
       return <AccountPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
     }
