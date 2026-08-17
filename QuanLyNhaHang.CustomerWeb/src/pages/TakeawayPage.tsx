@@ -7,6 +7,7 @@ import {
   type TakeawayOrderResult,
 } from '../api/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
+import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../navigation'
 import {
   clearTakeawayCart,
@@ -111,9 +112,11 @@ export default function TakeawayPage({
           <h1>Đã nhận đơn mang về</h1>
           <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. Nhà hàng sẽ chuẩn bị món theo yêu cầu.</p>
           {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể.</p>}
+          <p>Bạn có thể thanh toán online ngay. Số tiền cuối cùng sẽ do máy chủ tính lại theo món, khuyến mãi và VAT hiện hành trước khi mở cổng thanh toán.</p>
+          <PayOnlineButton orderId={result.id} accessToken={session?.token} />
           <div>
             <button className="secondary-button" type="button" onClick={() => { setResult(null); navigate('/menu') }}>Đặt thêm món</button>
-            {session ? <button className="primary-button" type="button" onClick={() => navigate('/orders')}>Xem Đơn của tôi</button> : <button className="primary-button" type="button" onClick={signIn}>Đăng nhập cho lần sau</button>}
+            {session ? <button className="secondary-button" type="button" onClick={() => navigate('/orders')}>Xem Đơn của tôi</button> : <button className="secondary-button" type="button" onClick={signIn}>Đăng nhập cho lần sau</button>}
           </div>
         </section>
       </main>
