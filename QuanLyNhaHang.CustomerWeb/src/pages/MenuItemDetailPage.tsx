@@ -60,7 +60,7 @@ export default function MenuItemDetailPage({
                 <button className="secondary-button" type="button" onClick={() => addToTakeaway(false)}><ShoppingBag /> Thêm vào giỏ</button>
                 <button className="primary-button" type="button" onClick={() => addToTakeaway(true)}>Đặt mang về ngay</button>
               </div>
-              {message ? <p className="menu-detail-added" role="status">{message} <button type="button" className="text-link" onClick={() => navigate('/takeaway')}>Xem giỏ</button></p> : null}
+              {message ? <p className="menu-detail-added" role="status"><span>{message}</span> <button type="button" className="text-link" onClick={() => navigate('/takeaway')}>Xem giỏ</button></p> : null}
             </div>
           ) : null}
 
