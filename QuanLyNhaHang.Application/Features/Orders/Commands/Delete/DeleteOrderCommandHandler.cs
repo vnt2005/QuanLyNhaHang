@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
@@ -21,24 +21,10 @@ public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, boo
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         if (order == null)
-        {
             return false;
-        }
 
         if (order.Status == "Completed")
-        {
             throw new Exception("Không thể xóa order đã hoàn tất.");
-        }
-
-        var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(
-                x => x.Id == order.RestaurantTableId,
-                cancellationToken);
-
-        if (table == null)
-        {
-            throw new Exception("Bàn của order không tồn tại.");
-        }
 
         var orderItems = await _context.OrderItems
             .Where(x => x.OrderId == order.Id)
@@ -48,14 +34,20 @@ public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, boo
         order.Deactivate();
 
         foreach (var item in orderItems)
-        {
             item.Cancel();
+
+        if (order.RestaurantTableId.HasValue)
+        {
+            var table = await _context.RestaurantTables
+                .FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId.Value, cancellationToken);
+
+            if (table == null)
+                throw new Exception("Bàn của order không tồn tại.");
+
+            table.MarkAvailable();
         }
 
-        table.MarkAvailable();
-
         await _context.SaveChangesAsync(cancellationToken);
-
         return true;
     }
 }

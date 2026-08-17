@@ -1,6 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7134'
 
-export type OrderStatus = 'Pending' | 'Cooking' | 'Served' | 'Completed' | 'Cancelled'
+export type OrderStatus = 'Pending' | 'Cooking' | 'Ready' | 'Served' | 'Completed' | 'Cancelled'
 export type OrderItemStatus = 'Pending' | 'Cooking' | 'Ready' | 'Served' | 'Cancelled'
 
 export type OrderItem = {
@@ -19,8 +19,12 @@ export type OrderItem = {
 
 export type Order = {
   id: string
-  restaurantTableId: string
+  restaurantTableId?: string | null
   restaurantTableName: string
+  orderType: 'DineIn' | 'Takeaway'
+  customerName?: string | null
+  customerPhoneNumber?: string | null
+  pickupTime?: string | null
   orderCode: string
   status: OrderStatus
   totalAmount: number

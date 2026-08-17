@@ -168,7 +168,30 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: QuanLyNhaHang.E2ETests
-        run: npm test
+        shell: bash
+        run: |
+          set +e
+          npm test 2>&1 | tee /tmp/playwright-e2e.log
+          test_status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "${test_status}" -ne 0 ]; then
+            echo '::group::Playwright failure tail'
+            tail -n 160 /tmp/playwright-e2e.log || true
+            echo '::endgroup::'
+
+            failure_summary=$(grep -E '(^|[[:space:]])[0-9]+\)|Error:|TimeoutError:|expect\(' /tmp/playwright-e2e.log \
+              | tail -n 12 \
+              | tr '\n' ' ' \
+              | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g; s/::/%3A%3A/g')
+
+            if [ -z "${failure_summary}" ]; then
+              failure_summary='Playwright tests failed. See the Run Playwright tests step output.'
+            fi
+
+            echo "::error title=Playwright E2E failed::${failure_summary}"
+            exit "${test_status}"
+          fi
 
       - name: Show Docker logs on failure
         if: failure()
@@ -184,7 +207,7 @@ jobs:
             QuanLyNhaHang.E2ETests/playwright-report
             QuanLyNhaHang.E2ETests/test-results
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 7
 
       - name: Stop full-stack services
         if: always()

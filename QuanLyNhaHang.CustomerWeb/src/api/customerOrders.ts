@@ -17,8 +17,12 @@ export type OrderItem = {
 
 export type CustomerOrder = {
   id: string
-  restaurantTableId: string
+  restaurantTableId?: string | null
   restaurantTableName: string
+  orderType: 'DineIn' | 'Takeaway'
+  customerName?: string | null
+  customerPhoneNumber?: string | null
+  pickupTime?: string | null
   orderCode: string
   status: string
   totalAmount: number

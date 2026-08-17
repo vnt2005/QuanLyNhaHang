@@ -685,6 +685,14 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("CustomerPhoneNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<Guid?>("CustomerUserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -700,7 +708,15 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("RestaurantTableId")
+                    b.Property<string>("OrderType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("PickupTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("RestaurantTableId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")

@@ -13,9 +13,22 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.RestaurantTableId)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(x => x.CustomerUserId)
+            .IsRequired(false);
+
+        builder.Property(x => x.OrderType)
+            .IsRequired()
+            .HasMaxLength(20);
+
+        builder.Property(x => x.CustomerName)
+            .HasMaxLength(150);
+
+        builder.Property(x => x.CustomerPhoneNumber)
+            .HasMaxLength(30);
+
+        builder.Property(x => x.PickupTime)
             .IsRequired(false);
 
         builder.HasIndex(x => new

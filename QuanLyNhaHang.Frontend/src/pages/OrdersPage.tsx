@@ -22,7 +22,8 @@ import {
 const statuses: { value: OrderStatus; label: string }[] = [
   { value: 'Pending', label: 'Chờ xử lý' },
   { value: 'Cooking', label: 'Đang nấu' },
-  { value: 'Served', label: 'Đã phục vụ' },
+  { value: 'Ready', label: 'Sẵn sàng' },
+  { value: 'Served', label: 'Đã phục vụ / giao' },
   { value: 'Completed', label: 'Hoàn tất' },
   { value: 'Cancelled', label: 'Đã hủy' },
 ]
@@ -33,6 +34,15 @@ const emptyForm: CreateOrderForm = {
   items: [{ menuItemId: '', quantity: 1, note: '' }],
 }
 const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
+
+function orderContext(order: Order) {
+  if (order.orderType !== 'Takeaway') return order.restaurantTableName
+  const parts = ['Mang về']
+  if (order.customerName) parts.push(order.customerName)
+  if (order.customerPhoneNumber) parts.push(order.customerPhoneNumber)
+  if (order.pickupTime) parts.push(`nhận ${new Date(order.pickupTime).toLocaleString('vi-VN')}`)
+  return parts.join(' • ')
+}
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -218,32 +228,32 @@ export default function OrdersPage() {
   const summary = useMemo(() => ({
     pending: orders.filter(x => x.status === 'Pending').length,
     cooking: orders.filter(x => x.status === 'Cooking').length,
-    served: orders.filter(x => x.status === 'Served').length,
+    ready: orders.filter(x => x.status === 'Ready').length,
   }), [orders])
 
   return <section className="orders-page">
-    <div className="page-toolbar"><div><h2>Quản lý đơn hàng</h2><p>Tạo đơn, theo dõi món và cập nhật tiến trình phục vụ.</p></div><button className="primary-button" onClick={() => void openCreate()}>+ Tạo đơn hàng</button></div>
+    <div className="page-toolbar"><div><h2>Quản lý đơn hàng</h2><p>Tạo đơn, theo dõi món tại bàn và đơn mang về.</p></div><button className="primary-button" onClick={() => void openCreate()}>+ Tạo đơn hàng</button></div>
 
     <div className="order-summary">
       <article><span>Tổng đơn phù hợp</span><strong>{totalCount}</strong></article>
       <article><span>Chờ xử lý trên trang</span><strong>{summary.pending}</strong></article>
       <article><span>Đang nấu trên trang</span><strong>{summary.cooking}</strong></article>
-      <article><span>Đã phục vụ trên trang</span><strong>{summary.served}</strong></article>
+      <article><span>Sẵn sàng trên trang</span><strong>{summary.ready}</strong></article>
     </div>
 
     {message && <div className="inline-alert success">{message}</div>}
     {error && <div className="inline-alert error">{error}</div>}
 
     <form className="order-filters" onSubmit={event => { event.preventDefault(); void loadOrders(1) }}>
-      <input value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm mã đơn, bàn hoặc ghi chú..." />
-      <select value={tableFilter} onChange={event => setTableFilter(event.target.value)}><option value="">Tất cả bàn</option>{tables.map(table => <option key={table.id} value={table.id}>{table.name}</option>)}</select>
+      <input value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm mã đơn, bàn, khách mang về hoặc ghi chú..." />
+      <select value={tableFilter} onChange={event => setTableFilter(event.target.value)}><option value="">Tất cả bàn + mang về</option>{tables.map(table => <option key={table.id} value={table.id}>{table.name}</option>)}</select>
       <select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="">Tất cả trạng thái</option>{statuses.map(status => <option key={status.value} value={status.value}>{status.label}</option>)}</select>
       <button type="submit">Lọc</button>
     </form>
 
     <div className="order-list">
       {loading ? <div className="empty-order-state">Đang tải đơn hàng...</div> : orders.length === 0 ? <div className="empty-order-state">Không có đơn hàng phù hợp.</div> : orders.map(order => <article className="order-card" key={order.id}>
-        <div className="order-card-head"><div><strong>{order.orderCode}</strong><span>{order.restaurantTableName} • {new Date(order.createdAt).toLocaleString('vi-VN')}</span></div><span className={`order-status ${order.status.toLowerCase()}`}>{statuses.find(x => x.value === order.status)?.label ?? order.status}</span></div>
+        <div className="order-card-head"><div><strong>{order.orderCode}</strong><span>{orderContext(order)} • {new Date(order.createdAt).toLocaleString('vi-VN')}</span></div><span className={`order-status ${order.status.toLowerCase()}`}>{statuses.find(x => x.value === order.status)?.label ?? order.status}</span></div>
         <div className="order-card-body"><p>{order.note || 'Không có ghi chú.'}</p><div><span>{order.items?.filter(x => x.status !== 'Cancelled').length ?? 0} món</span><strong>{money(order.totalAmount)}</strong></div></div>
         <div className="order-card-actions"><button onClick={() => void openDetail(order)}>Chi tiết</button><select value={order.status} disabled={saving || order.status === 'Completed' || order.status === 'Cancelled'} onChange={event => void setStatus(order, event.target.value as OrderStatus)}>{statuses.map(status => <option key={status.value} value={status.value}>{status.label}</option>)}</select>{order.status !== 'Completed' && <button className="danger" onClick={() => void removeOrder(order)}>Xóa</button>}</div>
       </article>)}
@@ -258,7 +268,7 @@ export default function OrdersPage() {
       <div className="order-lines"><div className="line-heading"><strong>Món trong đơn</strong><button type="button" onClick={addCreateLine}>+ Thêm món</button></div>{createForm.items.map((line, index) => <div className="order-line" key={index}><select required value={line.menuItemId} onChange={event => updateCreateLine(index,{menuItemId:event.target.value})}><option value="">Chọn món</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input type="number" min={1} value={line.quantity} onChange={event => updateCreateLine(index,{quantity:Number(event.target.value)})}/><input value={line.note} onChange={event => updateCreateLine(index,{note:event.target.value})} placeholder="Ghi chú món"/><button type="button" className="danger" onClick={() => setCreateForm({...createForm, items:createForm.items.filter((_, i) => i !== index)})}>×</button></div>)}</div>
     </form><div className="modal-actions modal-footer"><button type="button" onClick={() => setCreateOpen(false)}>Hủy</button><button type="submit" form="create-order-form" className="primary-button" disabled={saving}>{saving ? 'Đang tạo...' : 'Tạo đơn'}</button></div></div></div>}
 
-    {detailOpen && selectedOrder && <div className="modal-backdrop" onMouseDown={() => !saving && setDetailOpen(false)}><div className="employee-modal order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="order-detail-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">CHI TIẾT ĐƠN HÀNG</span><h2 id="order-detail-title">{selectedOrder.orderCode}</h2><p>{selectedOrder.restaurantTableName} • Tổng tiền {money(selectedOrder.totalAmount)}</p></div><button type="button" aria-label="Đóng" onClick={() => setDetailOpen(false)}>×</button></div>
+    {detailOpen && selectedOrder && <div className="modal-backdrop" onMouseDown={() => !saving && setDetailOpen(false)}><div className="employee-modal order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="order-detail-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">CHI TIẾT ĐƠN HÀNG</span><h2 id="order-detail-title">{selectedOrder.orderCode}</h2><p>{orderContext(selectedOrder)} • Tổng tiền {money(selectedOrder.totalAmount)}</p></div><button type="button" aria-label="Đóng" onClick={() => setDetailOpen(false)}>×</button></div>
       <div className="order-detail-content">{error && <div className="modal-alert error" role="alert">{error}</div>}<section className="order-detail-section"><div className="order-detail-section-heading"><div><span>GHI CHÚ</span><h3>Ghi chú đơn hàng</h3></div><small>Lưu thông tin phục vụ hoặc yêu cầu của khách.</small></div><div className="detail-note"><textarea value={noteDraft} onChange={event => setNoteDraft(event.target.value)} placeholder="Nhập ghi chú đơn hàng"/><button type="button" onClick={() => void saveNote()} disabled={saving}>Lưu ghi chú</button></div></section>
       <section className="order-detail-section"><div className="order-detail-section-heading"><div><span>MÓN TRONG ĐƠN</span><h3>{selectedOrder.items.length} món đã thêm</h3></div><small>Có thể chỉnh số lượng với món chưa phục vụ.</small></div><div className="detail-items">{selectedOrder.items.map(item => <div className={`detail-item ${item.status.toLowerCase()}`} key={item.id}><div><strong>{item.menuItemName}</strong><span>{money(item.unitPrice)} • {item.note || 'Không ghi chú'}</span></div><div className="detail-item-actions"><span className={`order-item-status ${item.status.toLowerCase()}`}>{statuses.find(status => status.value === item.status)?.label ?? item.status}</span><label>Số lượng<input type="number" min={1} defaultValue={item.quantity} disabled={item.status === 'Cancelled' || item.status === 'Served'} onBlur={event => Number(event.target.value) !== item.quantity && void changeQuantity(item.id, Number(event.target.value))}/></label>{item.status !== 'Cancelled' && item.status !== 'Served' && <button type="button" className="danger" onClick={() => void removeItem(item.id)}>Hủy món</button>}</div></div>)}</div></section>
       <section className="order-detail-section add-item-section"><div className="order-detail-section-heading"><div><span>BỔ SUNG</span><h3>Thêm món vào đơn</h3></div></div><div className="add-order-item"><select aria-label="Chọn món thêm" value={newItem.menuItemId} onChange={event => setNewItem({...newItem,menuItemId:event.target.value})}><option value="">Chọn món thêm</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input aria-label="Số lượng" type="number" min={1} value={newItem.quantity} onChange={event => setNewItem({...newItem,quantity:Number(event.target.value)})}/><input aria-label="Ghi chú món" value={newItem.note} onChange={event => setNewItem({...newItem,note:event.target.value})} placeholder="Ghi chú món"/><button type="button" onClick={() => void addItem()} disabled={saving}>Thêm món</button></div></section></div>

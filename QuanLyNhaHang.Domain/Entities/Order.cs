@@ -4,9 +4,17 @@ public class Order
 {
     public Guid Id { get; private set; }
 
-    public Guid RestaurantTableId { get; private set; }
+    public Guid? RestaurantTableId { get; private set; }
 
     public Guid? CustomerUserId { get; private set; }
+
+    public string OrderType { get; private set; } = "DineIn";
+
+    public string? CustomerName { get; private set; }
+
+    public string? CustomerPhoneNumber { get; private set; }
+
+    public DateTime? PickupTime { get; private set; }
 
     public string OrderCode { get; private set; } = string.Empty;
 
@@ -37,10 +45,36 @@ public class Order
         SetOrderCode(orderCode);
         SetNote(note);
 
+        OrderType = "DineIn";
         Status = "Pending";
         TotalAmount = 0;
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
+    }
+
+    public static Order CreateTakeaway(
+        string orderCode,
+        string customerName,
+        string customerPhoneNumber,
+        DateTime? pickupTime,
+        string? note)
+    {
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
+            OrderType = "Takeaway",
+            Status = "Pending",
+            TotalAmount = 0,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        order.SetOrderCode(orderCode);
+        order.SetTakeawayCustomer(customerName, customerPhoneNumber);
+        order.SetPickupTime(pickupTime);
+        order.SetNote(note);
+
+        return order;
     }
 
     public void AssignCustomer(Guid customerUserId)
@@ -65,13 +99,16 @@ public class Order
     public void UpdateInfo(string? note)
     {
         SetNote(note);
-
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void ChangeRestaurantTable(Guid restaurantTableId)
     {
         SetRestaurantTableId(restaurantTableId);
+        OrderType = "DineIn";
+        CustomerName = null;
+        CustomerPhoneNumber = null;
+        PickupTime = null;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -93,6 +130,12 @@ public class Order
     public void MarkCooking()
     {
         Status = "Cooking";
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void MarkReady()
+    {
+        Status = "Ready";
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -126,6 +169,25 @@ public class Order
             throw new ArgumentException("Bàn không hợp lệ.");
 
         RestaurantTableId = restaurantTableId;
+    }
+
+    private void SetTakeawayCustomer(
+        string customerName,
+        string customerPhoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(customerName))
+            throw new ArgumentException("Tên khách nhận món không được để trống.");
+
+        if (string.IsNullOrWhiteSpace(customerPhoneNumber))
+            throw new ArgumentException("Số điện thoại nhận món không được để trống.");
+
+        CustomerName = customerName.Trim();
+        CustomerPhoneNumber = customerPhoneNumber.Trim();
+    }
+
+    private void SetPickupTime(DateTime? pickupTime)
+    {
+        PickupTime = pickupTime?.ToUniversalTime();
     }
 
     private void SetOrderCode(string orderCode)

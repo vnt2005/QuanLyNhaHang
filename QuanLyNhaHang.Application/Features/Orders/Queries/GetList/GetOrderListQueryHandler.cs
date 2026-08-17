@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Orders.DTOs;
@@ -20,14 +20,19 @@ public class GetOrderListQueryHandler : IRequestHandler<GetOrderListQuery, List<
     {
         var orders = await (
             from order in _context.Orders
-            join table in _context.RestaurantTables
-                on order.RestaurantTableId equals table.Id
+            join tableRow in _context.RestaurantTables
+                on order.RestaurantTableId equals (Guid?)tableRow.Id into tableRows
+            from table in tableRows.DefaultIfEmpty()
             orderby order.CreatedAt descending
             select new OrderDto
             {
                 Id = order.Id,
                 RestaurantTableId = order.RestaurantTableId,
-                RestaurantTableName = table.Name,
+                RestaurantTableName = table != null ? table.Name : "Mang về",
+                OrderType = order.OrderType,
+                CustomerName = order.CustomerName,
+                CustomerPhoneNumber = order.CustomerPhoneNumber,
+                PickupTime = order.PickupTime,
                 OrderCode = order.OrderCode,
                 Status = order.Status,
                 TotalAmount = order.TotalAmount,

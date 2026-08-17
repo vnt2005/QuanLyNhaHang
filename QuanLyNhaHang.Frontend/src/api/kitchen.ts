@@ -20,8 +20,11 @@ export type KitchenOrderItem = {
 export type KitchenOrder = {
   orderId: string
   orderCode: string
-  restaurantTableId: string
+  restaurantTableId?: string | null
   restaurantTableName: string
+  orderType: 'DineIn' | 'Takeaway'
+  customerName?: string | null
+  pickupTime?: string | null
   orderStatus: string
   createdAt: string
   items: KitchenOrderItem[]

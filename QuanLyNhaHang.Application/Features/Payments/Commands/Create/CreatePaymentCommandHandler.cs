@@ -20,62 +20,25 @@ public class CreatePaymentCommandHandler
         CreatePaymentCommand request,
         CancellationToken cancellationToken)
     {
-        var order = await _context.Orders
-            .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+        if (order == null) throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
+        if (order.Status == "Completed") throw new InvalidOperationException("Đơn hàng này đã hoàn tất thanh toán.");
+        if (order.Status == "Cancelled") throw new InvalidOperationException("Đơn hàng đã hủy, không thể thanh toán.");
 
-        if (order == null)
-            throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
+        var existedPayment = await _context.Payments.AnyAsync(x => x.OrderId == request.OrderId && x.Status == "Paid", cancellationToken);
+        if (existedPayment) throw new InvalidOperationException("Đơn hàng này đã được thanh toán.");
 
-        if (order.Status == "Completed")
-            throw new InvalidOperationException("Đơn hàng này đã hoàn tất thanh toán.");
-
-        if (order.Status == "Cancelled")
-            throw new InvalidOperationException("Đơn hàng đã hủy, không thể thanh toán.");
-
-        var existedPayment = await _context.Payments
-            .AnyAsync(x =>
-                x.OrderId == request.OrderId &&
-                x.Status == "Paid",
-                cancellationToken);
-
-        if (existedPayment)
-            throw new InvalidOperationException("Đơn hàng này đã được thanh toán.");
-
-        var orderItems = await _context.OrderItems
-            .Where(x =>
-                x.OrderId == request.OrderId &&
-                x.Status != "Cancelled")
-            .ToListAsync(cancellationToken);
-
-        if (!orderItems.Any())
-            throw new InvalidOperationException("Đơn hàng chưa có món để thanh toán.");
-
-        var hasUnfinishedItems = orderItems.Any(x =>
-            x.Status == "Pending" ||
-            x.Status == "Cooking");
-
-        if (hasUnfinishedItems)
-            throw new InvalidOperationException(
-                "Đơn hàng còn món chưa hoàn thành, chưa thể thanh toán.");
+        var orderItems = await _context.OrderItems.Where(x => x.OrderId == request.OrderId && x.Status != "Cancelled").ToListAsync(cancellationToken);
+        if (!orderItems.Any()) throw new InvalidOperationException("Đơn hàng chưa có món để thanh toán.");
+        if (orderItems.Any(x => x.Status == "Pending" || x.Status == "Cooking"))
+            throw new InvalidOperationException("Đơn hàng còn món chưa hoàn thành, chưa thể thanh toán.");
 
         foreach (var item in orderItems)
-        {
-            if (item.Status == "Ready")
-            {
-                item.MarkServed();
-            }
-        }
+            if (item.Status == "Ready") item.MarkServed();
 
         var totalAmount = orderItems.Sum(x => x.TotalPrice);
-
-        var appliedPromotionUsage = await _context.PromotionUsages
-            .FirstOrDefaultAsync(x =>
-                x.OrderId == request.OrderId &&
-                x.Status == "Applied",
-                cancellationToken);
-
-        var discountAmount = appliedPromotionUsage?.DiscountAmount
-            ?? request.DiscountAmount;
+        var appliedPromotionUsage = await _context.PromotionUsages.FirstOrDefaultAsync(x => x.OrderId == request.OrderId && x.Status == "Applied", cancellationToken);
+        var discountAmount = appliedPromotionUsage?.DiscountAmount ?? request.DiscountAmount;
 
         var payment = new Payment(
             request.OrderId,
@@ -88,43 +51,30 @@ public class CreatePaymentCommandHandler
             request.ServiceChargeAmount);
 
         await _context.Payments.AddAsync(payment, cancellationToken);
-
-        if (appliedPromotionUsage != null)
-        {
-            appliedPromotionUsage.SetPayment(payment.Id);
-        }
+        if (appliedPromotionUsage != null) appliedPromotionUsage.SetPayment(payment.Id);
 
         order.UpdateTotalAmount(totalAmount);
         order.MarkCompleted();
 
-        var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId, cancellationToken);
-
-        if (table != null)
+        RestaurantTable? table = null;
+        if (order.RestaurantTableId.HasValue)
         {
-            table.MarkAvailable();
+            table = await _context.RestaurantTables.FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId.Value, cancellationToken);
+            table?.MarkAvailable();
         }
 
-        // Nếu IssueInvoice = true thì thanh toán xong tự động tạo hóa đơn.
         if (request.IssueInvoice)
         {
-            if (table == null)
-                throw new KeyNotFoundException("Không tìm thấy bàn để xuất hóa đơn.");
+            if (table == null || !order.RestaurantTableId.HasValue)
+                throw new KeyNotFoundException("Đơn mang về hiện chưa hỗ trợ xuất hóa đơn gắn với bàn.");
 
-            var existedInvoice = await _context.Invoices
-                .AnyAsync(x =>
-                    (x.OrderId == order.Id || x.PaymentId == payment.Id) &&
-                    x.Status != "Cancelled",
-                    cancellationToken);
-
-            if (existedInvoice)
-                throw new InvalidOperationException(
-                    "Đơn hàng hoặc thanh toán này đã có hóa đơn.");
+            var existedInvoice = await _context.Invoices.AnyAsync(x => (x.OrderId == order.Id || x.PaymentId == payment.Id) && x.Status != "Cancelled", cancellationToken);
+            if (existedInvoice) throw new InvalidOperationException("Đơn hàng hoặc thanh toán này đã có hóa đơn.");
 
             var invoice = new Invoice(
                 order.Id,
                 payment.Id,
-                order.RestaurantTableId,
+                order.RestaurantTableId.Value,
                 order.OrderCode,
                 payment.PaymentCode,
                 table.Name,
@@ -138,17 +88,8 @@ public class CreatePaymentCommandHandler
                 request.Note ?? "Xuất hóa đơn tự động sau thanh toán");
 
             await _context.Invoices.AddAsync(invoice, cancellationToken);
-
             var invoiceItems = orderItems.Select(item => new InvoiceItem(
-                invoice.Id,
-                item.Id,
-                item.MenuItemId,
-                item.MenuItemName,
-                item.Quantity,
-                item.UnitPrice,
-                item.TotalPrice,
-                item.Note)).ToList();
-
+                invoice.Id, item.Id, item.MenuItemId, item.MenuItemName, item.Quantity, item.UnitPrice, item.TotalPrice, item.Note)).ToList();
             await _context.InvoiceItems.AddRangeAsync(invoiceItems, cancellationToken);
         }
 

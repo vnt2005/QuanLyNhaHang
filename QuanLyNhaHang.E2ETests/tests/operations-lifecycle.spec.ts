@@ -163,7 +163,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
   expect(createOrderResponse.ok()).toBeTruthy()
   const createdOrder = await createOrderResponse.json() as { id: string }
 
-  const orderSearch = page.getByPlaceholder('Tìm mã đơn, bàn hoặc ghi chú...')
+  const orderSearch = page.getByPlaceholder(/Tìm mã đơn, bàn.*ghi chú/)
   await orderSearch.fill(orderNote)
   await page.getByRole('button', { name: 'Lọc', exact: true }).click()
 
@@ -208,7 +208,7 @@ test('Đơn hàng → bếp → thanh toán → hóa đơn → báo cáo doanh t
     .toContainText('Đã phục vụ')
 
   await openAdminModule(page, 'Đơn hàng')
-  await page.getByPlaceholder('Tìm mã đơn, bàn hoặc ghi chú...').fill(orderCode)
+  await page.getByPlaceholder(/Tìm mã đơn, bàn.*ghi chú/).fill(orderCode)
   await page.getByRole('button', { name: 'Lọc', exact: true }).click()
   orderCard = page.locator('.order-card').filter({ hasText: orderCode })
   await expect(orderCard).toContainText('Đã phục vụ')
