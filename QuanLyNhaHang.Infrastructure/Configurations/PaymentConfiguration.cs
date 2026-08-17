@@ -69,5 +69,12 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .IsUnique();
 
         builder.HasIndex(x => x.OrderId);
+
+        // Keep cancelled/history rows, but the database must never accept two
+        // simultaneously-paid records for one order. This is the last line of
+        // defense when two valid gateway webhooks arrive at the same time.
+        builder.HasIndex(x => new { x.OrderId, x.Status })
+            .IsUnique()
+            .HasFilter("[Status] = 'Paid'");
     }
 }
