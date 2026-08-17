@@ -63,6 +63,10 @@ services:
       Email__Username: "${EMAIL_USERNAME:-}"
       Email__Password: "${EMAIL_PASSWORD:-}"
       Email__From: "${EMAIL_FROM:-noreply@quanlynhahang.local}"
+      PayOS__ClientId: "${PAYOS_CLIENT_ID:-}"
+      PayOS__ApiKey: "${PAYOS_API_KEY:-}"
+      PayOS__ChecksumKey: "${PAYOS_CHECKSUM_KEY:-}"
+      PayOS__CustomerWebBaseUrl: "${PAYOS_CUSTOMER_WEB_BASE_URL:-http://localhost:5174}"
     ports:
       - "${API_PORT:-8080}:8080"
     depends_on:
