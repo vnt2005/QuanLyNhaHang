@@ -145,7 +145,7 @@ public class PaymentAttempt
 
     public void MarkExpired()
     {
-        if (Status is PaidStatus or RequiresReviewStatus)
+        if (Status == PaidStatus || Status == RequiresReviewStatus)
             return;
 
         Status = ExpiredStatus;
@@ -155,7 +155,7 @@ public class PaymentAttempt
 
     public void MarkCancelled(string? reason = null)
     {
-        if (Status is PaidStatus or RequiresReviewStatus)
+        if (Status == PaidStatus || Status == RequiresReviewStatus)
             return;
 
         Status = CancelledStatus;
@@ -169,7 +169,7 @@ public class PaymentAttempt
         if (string.IsNullOrWhiteSpace(reason))
             throw new ArgumentException("Lý do lỗi không được để trống.", nameof(reason));
 
-        if (Status is PaidStatus or RequiresReviewStatus)
+        if (Status == PaidStatus || Status == RequiresReviewStatus)
             return;
 
         Status = FailedStatus;
