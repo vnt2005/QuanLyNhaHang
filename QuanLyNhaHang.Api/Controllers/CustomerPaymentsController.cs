@@ -1,4 +1,5 @@
-using System.Text.Json;
+using System.Globalization;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -13,13 +14,13 @@ namespace QuanLyNhaHang.Api.Controllers;
 [Route("api/customer-payments")]
 public sealed class CustomerPaymentsController : ControllerBase
 {
-    private const string PayOsProvider = "payOS";
-    private static readonly TimeSpan PaymentLinkLifetime = TimeSpan.FromMinutes(15);
+    private const string SePayProvider = "SePay";
+    private static readonly TimeSpan PaymentRequestLifetime = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan CreatingAttemptGracePeriod = TimeSpan.FromMinutes(1);
 
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly PayOsPaymentService _payOs;
+    private readonly SePayPaymentService _sePay;
 
     public CustomerPaymentsController(
         IApplicationDbContext context,
@@ -28,22 +29,22 @@ public sealed class CustomerPaymentsController : ControllerBase
     {
         _context = context;
         _currentUserService = currentUserService;
-        _payOs = new PayOsPaymentService(configuration);
+        _sePay = new SePayPaymentService(configuration);
     }
 
     [AllowAnonymous]
     [EnableRateLimiting("QrCreate")]
-    [HttpPost("orders/{orderId:guid}/payos-link")]
-    public async Task<IActionResult> CreatePayOsLink(
+    [HttpPost("orders/{orderId:guid}/sepay-qr")]
+    public async Task<IActionResult> CreateSePayQr(
         Guid orderId,
         [FromBody] CreateCustomerPaymentRequest? request,
         CancellationToken cancellationToken)
     {
-        if (!_payOs.IsConfigured)
+        if (!_sePay.IsConfigured)
         {
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new
             {
-                message = "Thanh toán online chưa được cấu hình trên máy chủ."
+                message = "Thanh toán SePay chưa được cấu hình đầy đủ trên máy chủ."
             });
         }
 
@@ -92,62 +93,22 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (reconciliation != null)
             return reconciliation;
 
-        var payOsOrderCode = await CreateProviderOrderCodeAsync(cancellationToken);
-        var expiresAt = DateTime.UtcNow.Add(PaymentLinkLifetime);
+        var providerOrderCode = await CreateProviderOrderCodeAsync(cancellationToken);
+        var expiresAt = DateTime.UtcNow.Add(PaymentRequestLifetime);
+        var instruction = _sePay.CreatePaymentInstruction(providerOrderCode, quote.FinalAmount);
         var attempt = new PaymentAttempt(
             order.Id,
-            PayOsProvider,
-            payOsOrderCode,
+            SePayProvider,
+            providerOrderCode,
             quote.FinalAmount,
             expiresAt);
 
+        attempt.AttachPaymentRequest(
+            instruction.PaymentCode,
+            instruction.QrCodeUrl,
+            "PENDING");
+
         await _context.PaymentAttempts.AddAsync(attempt, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        var description = $"DH{payOsOrderCode % 10_000_000:D7}";
-        var encodedOrderId = Uri.EscapeDataString(order.Id.ToString());
-        var encodedAttemptId = Uri.EscapeDataString(attempt.Id.ToString());
-        var returnUrl =
-            $"{_payOs.CustomerWebBaseUrl}/payment-result?result=success&orderId={encodedOrderId}&attemptId={encodedAttemptId}";
-        var cancelUrl =
-            $"{_payOs.CustomerWebBaseUrl}/payment-result?result=cancel&orderId={encodedOrderId}&attemptId={encodedAttemptId}";
-
-        PayOsPaymentLink paymentLink;
-        try
-        {
-            paymentLink = await _payOs.CreatePaymentLinkAsync(
-                payOsOrderCode,
-                quote.FinalAmount,
-                description,
-                returnUrl,
-                cancelUrl,
-                expiresAt,
-                cancellationToken);
-        }
-        catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException or TaskCanceledException)
-        {
-            attempt.MarkFailed($"Không tạo được payment link: {exception.Message}");
-            await _context.SaveChangesAsync(cancellationToken);
-            return StatusCode(StatusCodes.Status502BadGateway, new
-            {
-                message = "Không kết nối được cổng thanh toán. Vui lòng thử lại."
-            });
-        }
-
-        if (paymentLink.OrderCode != payOsOrderCode || paymentLink.Amount != quote.FinalAmount)
-        {
-            attempt.MarkFailed("payOS trả về mã giao dịch hoặc số tiền không khớp yêu cầu.");
-            await _context.SaveChangesAsync(cancellationToken);
-            return StatusCode(StatusCodes.Status502BadGateway, new
-            {
-                message = "Cổng thanh toán trả về dữ liệu không khớp đơn hàng."
-            });
-        }
-
-        attempt.AttachPaymentLink(
-            paymentLink.PaymentLinkId,
-            paymentLink.CheckoutUrl,
-            paymentLink.Status);
         await _context.SaveChangesAsync(cancellationToken);
 
         return Ok(new
@@ -159,34 +120,29 @@ public sealed class CustomerPaymentsController : ControllerBase
             attemptId = attempt.Id,
             attemptStatus = attempt.Status,
             expiresAt = attempt.ExpiresAt,
-            checkoutUrl = paymentLink.CheckoutUrl,
-            qrCode = paymentLink.QrCode,
+            qrCode = instruction.QrCodeUrl,
+            transferContent = instruction.PaymentCode,
+            bankCode = instruction.BankCode,
+            accountNumber = instruction.AccountNumber,
+            accountHolder = instruction.AccountHolder,
             amount = quote.FinalAmount,
             subtotal = quote.Subtotal,
             discountAmount = quote.DiscountAmount,
             serviceChargeAmount = quote.ServiceChargeAmount,
             vatAmount = quote.VatAmount,
-            paymentMethod = PayOsProvider
+            paymentMethod = SePayProvider
         });
     }
 
     [AllowAnonymous]
     [EnableRateLimiting("QrCreate")]
     [HttpPost("orders/{orderId:guid}/attempts/{attemptId:guid}/cancel")]
-    public async Task<IActionResult> CancelPayOsAttempt(
+    public async Task<IActionResult> CancelPaymentAttempt(
         Guid orderId,
         Guid attemptId,
         [FromBody] CreateCustomerPaymentRequest? request,
         CancellationToken cancellationToken)
     {
-        if (!_payOs.IsConfigured)
-        {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
-            {
-                message = "Thanh toán online chưa được cấu hình trên máy chủ."
-            });
-        }
-
         var order = await GetAccessibleOrderAsync(orderId, request?.QrToken, cancellationToken);
         if (order == null)
             return NotFound(new { message = "Không tìm thấy đơn hàng." });
@@ -195,7 +151,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             .FirstOrDefaultAsync(
                 item => item.Id == attemptId &&
                         item.OrderId == order.Id &&
-                        item.Provider == PayOsProvider,
+                        item.Provider == SePayProvider,
                 cancellationToken);
 
         if (attempt == null)
@@ -221,63 +177,8 @@ public sealed class CustomerPaymentsController : ControllerBase
             return Ok(new { success = true, attemptStatus = attempt.Status });
         }
 
-        if (!string.IsNullOrWhiteSpace(attempt.ProviderPaymentLinkId))
-        {
-            PayOsPaymentLinkStatus providerStatus;
-            try
-            {
-                providerStatus = await _payOs.GetPaymentLinkStatusAsync(
-                    attempt.ProviderPaymentLinkId,
-                    cancellationToken);
-            }
-            catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException or TaskCanceledException)
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, new
-                {
-                    message = "Không kiểm tra được trạng thái thanh toán với payOS. Vui lòng thử lại."
-                });
-            }
-
-            switch (providerStatus.Status.ToUpperInvariant())
-            {
-                case "PAID":
-                    return Conflict(new
-                    {
-                        message = "payOS đã ghi nhận giao dịch. Hệ thống đang chờ webhook xác nhận."
-                    });
-                case "EXPIRED":
-                    attempt.MarkExpired();
-                    await _context.SaveChangesAsync(cancellationToken);
-                    return Ok(new { success = true, attemptStatus = attempt.Status });
-                case "CANCELLED":
-                    attempt.MarkCancelled("Khách hàng đã hủy thanh toán trên payOS.");
-                    await _context.SaveChangesAsync(cancellationToken);
-                    return Ok(new { success = true, attemptStatus = attempt.Status });
-                case "PENDING":
-                    try
-                    {
-                        await _payOs.CancelPaymentLinkAsync(
-                            attempt.ProviderPaymentLinkId,
-                            "Customer cancelled payment",
-                            cancellationToken);
-                    }
-                    catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException or TaskCanceledException)
-                    {
-                        return StatusCode(StatusCodes.Status502BadGateway, new
-                        {
-                            message = "Không hủy được payment link trên payOS. Vui lòng thử lại."
-                        });
-                    }
-                    break;
-                default:
-                    return StatusCode(StatusCodes.Status502BadGateway, new
-                    {
-                        message = $"Trạng thái payment link payOS chưa xác định: {providerStatus.Status}."
-                    });
-            }
-        }
-
-        attempt.MarkCancelled("Khách hàng hủy thanh toán.");
+        attempt.MarkCancelled(
+            "Khách hàng hủy phiên thanh toán. QR chuyển khoản cũ không còn được tự động ghi nhận vào đơn.");
         await _context.SaveChangesAsync(cancellationToken);
         return Ok(new { success = true, attemptStatus = attempt.Status });
     }
@@ -301,7 +202,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             .FirstOrDefaultAsync(cancellationToken);
 
         var latestAttempt = await _context.PaymentAttempts
-            .Where(item => item.OrderId == order.Id && item.Provider == PayOsProvider)
+            .Where(item => item.OrderId == order.Id && item.Provider == SePayProvider)
             .OrderByDescending(item => item.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -314,6 +215,8 @@ public sealed class CustomerPaymentsController : ControllerBase
             await _context.SaveChangesAsync(cancellationToken);
         }
 
+        var instruction = BuildInstruction(latestAttempt);
+
         return Ok(new
         {
             orderId = order.Id,
@@ -321,7 +224,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             orderStatus = order.Status,
             paid = payment != null,
             paymentCode = payment?.PaymentCode,
-            amount = payment?.FinalAmount,
+            amount = payment?.FinalAmount ?? latestAttempt?.Amount,
             paidAt = payment?.PaidAt,
             paymentMethod = payment?.PaymentMethod,
             attemptId = latestAttempt?.Id,
@@ -330,37 +233,58 @@ public sealed class CustomerPaymentsController : ControllerBase
             reviewReason = latestAttempt?.ReviewReason,
             expectedAmount = latestAttempt?.Amount,
             receivedAmount = latestAttempt?.ReceivedAmount,
-            expiresAt = latestAttempt?.ExpiresAt
+            expiresAt = latestAttempt?.ExpiresAt,
+            qrCode = instruction?.QrCodeUrl,
+            transferContent = instruction?.PaymentCode,
+            bankCode = instruction?.BankCode,
+            accountNumber = instruction?.AccountNumber,
+            accountHolder = instruction?.AccountHolder
         });
     }
 
     [AllowAnonymous]
-    [HttpPost("payos/webhook")]
-    public async Task<IActionResult> PayOsWebhook(
-        [FromBody] JsonElement payload,
+    [HttpPost("sepay/webhook")]
+    public async Task<IActionResult> SePayWebhook(
+        [FromBody] SePayWebhookTransaction webhook,
         CancellationToken cancellationToken)
     {
-        PayOsWebhookPayment webhook;
-        try
+        if (!_sePay.IsConfigured)
         {
-            webhook = _payOs.VerifyWebhook(payload);
-        }
-        catch (InvalidOperationException exception)
-        {
-            return BadRequest(new { message = exception.Message });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                success = false,
+                message = "SePay chưa được cấu hình trên máy chủ."
+            });
         }
 
-        if (!webhook.Success || webhook.Code != "00")
-            return Ok(new { success = true });
+        if (!_sePay.IsWebhookAuthorized(Request.Headers["Authorization"].ToString()))
+        {
+            return Unauthorized(new
+            {
+                success = false,
+                message = "Webhook SePay không có thông tin xác thực hợp lệ."
+            });
+        }
+
+        if (!string.Equals(webhook.TransferType, "in", StringComparison.OrdinalIgnoreCase))
+            return Ok(new { success = true, ignored = true });
+
+        if (!_sePay.IsExpectedAccount(webhook.AccountNumber))
+            return Ok(new { success = true, ignored = true });
+
+        if (webhook.Id <= 0 || webhook.TransferAmount <= 0)
+            return BadRequest(new { success = false, message = "Dữ liệu giao dịch SePay không hợp lệ." });
+
+        var paymentCode = _sePay.ExtractPaymentCode(webhook);
+        if (string.IsNullOrWhiteSpace(paymentCode))
+            return Ok(new { success = true, ignored = true });
 
         var attempt = await _context.PaymentAttempts
             .FirstOrDefaultAsync(
-                item => item.Provider == PayOsProvider &&
-                        item.ProviderOrderCode == webhook.OrderCode,
+                item => item.Provider == SePayProvider &&
+                        item.ProviderPaymentLinkId == paymentCode,
                 cancellationToken);
 
-        // payOS sends a signed sample transaction while a webhook URL is being
-        // confirmed. It intentionally has no matching local payment attempt.
         if (attempt == null)
             return Ok(new { success = true, ignored = true });
 
@@ -369,6 +293,14 @@ public sealed class CustomerPaymentsController : ControllerBase
         {
             return Ok(new { success = true });
         }
+
+        if (attempt.Status == PaymentAttempt.PendingStatus &&
+            attempt.ExpiresAt <= DateTime.UtcNow)
+        {
+            attempt.MarkExpired();
+        }
+
+        var transactionId = webhook.Id.ToString(CultureInfo.InvariantCulture);
 
         if (attempt.Status == PaymentAttempt.CancelledStatus ||
             attempt.Status == PaymentAttempt.ExpiredStatus ||
@@ -384,33 +316,21 @@ public sealed class CustomerPaymentsController : ControllerBase
             };
 
             attempt.MarkRequiresReview(
-                webhook.Amount,
-                webhook.Reference,
-                reason);
+                webhook.TransferAmount,
+                transactionId,
+                reason,
+                "PAID");
             await _context.SaveChangesAsync(cancellationToken);
             return Ok(new { success = true, requiresReview = true });
         }
 
-        if (!string.IsNullOrWhiteSpace(attempt.ProviderPaymentLinkId) &&
-            !string.Equals(
-                attempt.ProviderPaymentLinkId,
-                webhook.PaymentLinkId,
-                StringComparison.Ordinal))
+        if (attempt.Amount != webhook.TransferAmount)
         {
             attempt.MarkRequiresReview(
-                webhook.Amount,
-                webhook.Reference,
-                "ProviderPaymentLinkIdMismatch");
-            await _context.SaveChangesAsync(cancellationToken);
-            return Ok(new { success = true, requiresReview = true });
-        }
-
-        if (attempt.Amount != webhook.Amount)
-        {
-            attempt.MarkRequiresReview(
-                webhook.Amount,
-                webhook.Reference,
-                "AmountMismatch");
+                webhook.TransferAmount,
+                transactionId,
+                "AmountMismatch",
+                "PAID");
             await _context.SaveChangesAsync(cancellationToken);
             return Ok(new { success = true, requiresReview = true });
         }
@@ -421,9 +341,10 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (order == null)
         {
             attempt.MarkRequiresReview(
-                webhook.Amount,
-                webhook.Reference,
-                "OrderMissing");
+                webhook.TransferAmount,
+                transactionId,
+                "OrderMissing",
+                "PAID");
             await _context.SaveChangesAsync(cancellationToken);
             return Ok(new { success = true, requiresReview = true });
         }
@@ -431,9 +352,10 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (!order.IsActive || order.Status == "Cancelled")
         {
             attempt.MarkRequiresReview(
-                webhook.Amount,
-                webhook.Reference,
-                "PaidAfterOrderCancellation");
+                webhook.TransferAmount,
+                transactionId,
+                "PaidAfterOrderCancellation",
+                "PAID");
             await _context.SaveChangesAsync(cancellationToken);
             return Ok(new { success = true, requiresReview = true });
         }
@@ -446,9 +368,10 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (existingPayment != null)
         {
             attempt.MarkRequiresReview(
-                webhook.Amount,
-                webhook.Reference,
-                "DuplicatePaymentAfterOrderAlreadyPaid");
+                webhook.TransferAmount,
+                transactionId,
+                "DuplicatePaymentAfterOrderAlreadyPaid",
+                "PAID");
             await _context.SaveChangesAsync(cancellationToken);
             return Ok(new { success = true, requiresReview = true });
         }
@@ -461,9 +384,10 @@ public sealed class CustomerPaymentsController : ControllerBase
         catch (InvalidOperationException exception)
         {
             attempt.MarkRequiresReview(
-                webhook.Amount,
-                webhook.Reference,
-                $"QuoteUnavailable: {exception.Message}");
+                webhook.TransferAmount,
+                transactionId,
+                $"QuoteUnavailable: {exception.Message}",
+                "PAID");
             await _context.SaveChangesAsync(cancellationToken);
             return Ok(new { success = true, requiresReview = true });
         }
@@ -471,12 +395,20 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (quote.FinalAmount != attempt.Amount)
         {
             attempt.MarkRequiresReview(
-                webhook.Amount,
-                webhook.Reference,
-                "OrderAmountChangedAfterPaymentLinkCreation");
+                webhook.TransferAmount,
+                transactionId,
+                "OrderAmountChangedAfterPaymentRequestCreation",
+                "PAID");
             await _context.SaveChangesAsync(cancellationToken);
             return Ok(new { success = true, requiresReview = true });
         }
+
+        var bankReference = string.IsNullOrWhiteSpace(webhook.ReferenceCode)
+            ? "n/a"
+            : webhook.ReferenceCode.Trim();
+        var gateway = string.IsNullOrWhiteSpace(webhook.Gateway)
+            ? _sePay.BankCode
+            : webhook.Gateway.Trim();
 
         var payment = new Payment(
             order.Id,
@@ -485,14 +417,14 @@ public sealed class CustomerPaymentsController : ControllerBase
             quote.VatAmount,
             quote.FinalAmount,
             "BankTransfer",
-            $"payOS | ref={webhook.Reference} | link={webhook.PaymentLinkId} | attempt={attempt.Id}",
+            $"SePay | transactionId={webhook.Id} | reference={bankReference} | gateway={gateway} | attempt={attempt.Id}",
             quote.ServiceChargeAmount);
 
         await _context.Payments.AddAsync(payment, cancellationToken);
         attempt.MarkPaid(
             payment.Id,
-            webhook.Amount,
-            webhook.Reference,
+            webhook.TransferAmount,
+            transactionId,
             "PAID");
 
         var promotionUsage = await _context.PromotionUsages
@@ -513,7 +445,7 @@ public sealed class CustomerPaymentsController : ControllerBase
         var now = DateTime.UtcNow;
         var attempts = await _context.PaymentAttempts
             .Where(item => item.OrderId == order.Id &&
-                           item.Provider == PayOsProvider &&
+                           item.Provider == SePayProvider &&
                            (item.Status == PaymentAttempt.CreatingStatus ||
                             item.Status == PaymentAttempt.PendingStatus))
             .OrderByDescending(item => item.CreatedAt)
@@ -544,84 +476,33 @@ public sealed class CustomerPaymentsController : ControllerBase
                     });
                 }
 
-                attempt.MarkFailed("Payment link creation was interrupted before receiving a provider link.");
+                attempt.MarkFailed("Payment instruction creation was interrupted.");
                 changed = true;
                 continue;
             }
 
             if (string.IsNullOrWhiteSpace(attempt.ProviderPaymentLinkId))
             {
-                attempt.MarkFailed("Payment attempt is pending but has no provider payment link id.");
+                attempt.MarkFailed("Payment attempt is pending but has no transfer content.");
                 changed = true;
                 continue;
             }
 
-            PayOsPaymentLinkStatus providerStatus;
-            try
-            {
-                providerStatus = await _payOs.GetPaymentLinkStatusAsync(
+            var instruction = _sePay.CreatePaymentInstruction(
+                attempt.ProviderOrderCode,
+                checked((int)attempt.Amount));
+
+            if (!string.Equals(
+                    instruction.PaymentCode,
                     attempt.ProviderPaymentLinkId,
-                    cancellationToken);
-            }
-            catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException or TaskCanceledException)
+                    StringComparison.OrdinalIgnoreCase))
             {
-                if (changed)
-                    await _context.SaveChangesAsync(cancellationToken);
-
-                return StatusCode(StatusCodes.Status502BadGateway, new
-                {
-                    message = "Không đối chiếu được payment link cũ với payOS. Vui lòng thử lại."
-                });
-            }
-
-            var normalizedStatus = providerStatus.Status.ToUpperInvariant();
-            if (normalizedStatus == "PAID")
-            {
-                if (changed)
-                    await _context.SaveChangesAsync(cancellationToken);
-
-                return Conflict(new
-                {
-                    message = "payOS đã ghi nhận giao dịch trước đó. Hệ thống đang chờ webhook xác nhận.",
-                    attemptId = attempt.Id,
-                    attemptStatus = "AwaitingWebhook"
-                });
-            }
-
-            if (normalizedStatus == "CANCELLED")
-            {
-                attempt.MarkCancelled("payOS reports payment link as CANCELLED.");
+                attempt.MarkCancelled("Payment prefix configuration changed; a new QR is required.");
                 changed = true;
                 continue;
             }
 
-            if (normalizedStatus == "EXPIRED")
-            {
-                attempt.MarkExpired();
-                changed = true;
-                continue;
-            }
-
-            if (normalizedStatus != "PENDING")
-            {
-                if (changed)
-                    await _context.SaveChangesAsync(cancellationToken);
-
-                return StatusCode(StatusCodes.Status502BadGateway, new
-                {
-                    message = $"Trạng thái payment link payOS chưa xác định: {providerStatus.Status}."
-                });
-            }
-
-            if (providerStatus.Amount != attempt.Amount)
-            {
-                attempt.MarkFailed("Provider amount differs from the persisted payment attempt amount.");
-                changed = true;
-                continue;
-            }
-
-            if (attempt.Amount == quote.FinalAmount &&
-                !string.IsNullOrWhiteSpace(attempt.CheckoutUrl))
+            if (attempt.Amount == quote.FinalAmount)
             {
                 if (changed)
                     await _context.SaveChangesAsync(cancellationToken);
@@ -636,35 +517,22 @@ public sealed class CustomerPaymentsController : ControllerBase
                     attemptId = attempt.Id,
                     attemptStatus = attempt.Status,
                     expiresAt = attempt.ExpiresAt,
-                    checkoutUrl = attempt.CheckoutUrl,
+                    qrCode = instruction.QrCodeUrl,
+                    transferContent = instruction.PaymentCode,
+                    bankCode = instruction.BankCode,
+                    accountNumber = instruction.AccountNumber,
+                    accountHolder = instruction.AccountHolder,
                     amount = quote.FinalAmount,
                     subtotal = quote.Subtotal,
                     discountAmount = quote.DiscountAmount,
                     serviceChargeAmount = quote.ServiceChargeAmount,
                     vatAmount = quote.VatAmount,
-                    paymentMethod = PayOsProvider
+                    paymentMethod = SePayProvider
                 });
             }
 
-            try
-            {
-                await _payOs.CancelPaymentLinkAsync(
-                    attempt.ProviderPaymentLinkId,
-                    "Order amount changed",
-                    cancellationToken);
-            }
-            catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException or TaskCanceledException)
-            {
-                if (changed)
-                    await _context.SaveChangesAsync(cancellationToken);
-
-                return StatusCode(StatusCodes.Status502BadGateway, new
-                {
-                    message = "Tổng tiền đơn đã thay đổi nhưng chưa hủy được payment link cũ. Vui lòng thử lại."
-                });
-            }
-
-            attempt.MarkCancelled("Payment link was superseded because the order amount changed.");
+            attempt.MarkCancelled(
+                "Payment QR was superseded because the order amount changed.");
             changed = true;
         }
 
@@ -672,6 +540,29 @@ public sealed class CustomerPaymentsController : ControllerBase
             await _context.SaveChangesAsync(cancellationToken);
 
         return null;
+    }
+
+    private SePayPaymentInstruction? BuildInstruction(PaymentAttempt? attempt)
+    {
+        if (attempt == null ||
+            !_sePay.IsConfigured ||
+            attempt.Status != PaymentAttempt.PendingStatus ||
+            attempt.Amount is <= 0 or > int.MaxValue ||
+            string.IsNullOrWhiteSpace(attempt.ProviderPaymentLinkId))
+        {
+            return null;
+        }
+
+        var instruction = _sePay.CreatePaymentInstruction(
+            attempt.ProviderOrderCode,
+            checked((int)attempt.Amount));
+
+        return string.Equals(
+            instruction.PaymentCode,
+            attempt.ProviderPaymentLinkId,
+            StringComparison.OrdinalIgnoreCase)
+            ? instruction
+            : null;
     }
 
     private async Task<Order?> GetAccessibleOrderAsync(
@@ -775,16 +666,13 @@ public sealed class CustomerPaymentsController : ControllerBase
 
     private async Task<long> CreateProviderOrderCodeAsync(CancellationToken cancellationToken)
     {
-        for (var attempt = 0; attempt < 8; attempt++)
+        for (var attempt = 0; attempt < 12; attempt++)
         {
-            var code = checked(
-                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000L +
-                Random.Shared.Next(100, 1000));
-
+            var code = RandomNumberGenerator.GetInt32(1_000_000, 10_000_000);
             var exists = await _context.PaymentAttempts
                 .AsNoTracking()
                 .AnyAsync(
-                    item => item.Provider == PayOsProvider &&
+                    item => item.Provider == SePayProvider &&
                             item.ProviderOrderCode == code,
                     cancellationToken);
 

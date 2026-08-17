@@ -1,6 +1,6 @@
 import { apiRequest } from './client'
 
-export type CustomerPaymentLink = {
+export type CustomerPaymentInstruction = {
   success: boolean
   alreadyPaid: boolean
   reused?: boolean
@@ -9,8 +9,11 @@ export type CustomerPaymentLink = {
   attemptId?: string
   attemptStatus?: string
   expiresAt?: string
-  checkoutUrl?: string
   qrCode?: string
+  transferContent?: string
+  bankCode?: string
+  accountNumber?: string
+  accountHolder?: string
   paymentCode?: string
   amount: number
   subtotal?: number
@@ -36,15 +39,20 @@ export type CustomerPaymentStatus = {
   expectedAmount?: number | null
   receivedAmount?: number | null
   expiresAt?: string | null
+  qrCode?: string | null
+  transferContent?: string | null
+  bankCode?: string | null
+  accountNumber?: string | null
+  accountHolder?: string | null
 }
 
-export function createCustomerPaymentLink(
+export function createCustomerPaymentQr(
   orderId: string,
   qrToken?: string | null,
   accessToken?: string | null,
 ) {
-  return apiRequest<CustomerPaymentLink>(
-    `/api/customer-payments/orders/${encodeURIComponent(orderId)}/payos-link`,
+  return apiRequest<CustomerPaymentInstruction>(
+    `/api/customer-payments/orders/${encodeURIComponent(orderId)}/sepay-qr`,
     {
       method: 'POST',
       body: JSON.stringify({ qrToken: qrToken || null }),

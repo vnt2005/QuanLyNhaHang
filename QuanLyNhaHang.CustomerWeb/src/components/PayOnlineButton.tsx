@@ -1,7 +1,7 @@
-import { CheckCircle2, CreditCard } from 'lucide-react'
+import { CheckCircle2, QrCode } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import {
-  createCustomerPaymentLink,
+  createCustomerPaymentQr,
   getCustomerPaymentStatus,
 } from '../api/customerPayments'
 import { navigate } from '../navigation'
@@ -36,19 +36,25 @@ export default function PayOnlineButton({
     setLoading(true)
     setError('')
     try {
-      const result = await createCustomerPaymentLink(orderId, qrToken, accessToken)
+      const result = await createCustomerPaymentQr(orderId, qrToken, accessToken)
       if (result.alreadyPaid) {
         setPaid(true)
-        navigate(`/payment-result?result=success&orderId=${encodeURIComponent(orderId)}`)
+        navigate(`/payment-result?orderId=${encodeURIComponent(orderId)}`)
         return
       }
-      if (!result.checkoutUrl) throw new Error('Cổng thanh toán chưa trả về liên kết thanh toán.')
+
+      if (!result.attemptId || !result.qrCode || !result.transferContent) {
+        throw new Error('SePay chưa trả về đầy đủ thông tin QR thanh toán.')
+      }
 
       if (qrToken) localStorage.setItem(`customerPaymentQrToken:${orderId}`, qrToken)
       localStorage.setItem('customerPaymentReturnPath', window.location.pathname)
-      window.location.assign(result.checkoutUrl)
+      navigate(
+        `/payment-result?orderId=${encodeURIComponent(orderId)}` +
+        `&attemptId=${encodeURIComponent(result.attemptId)}`,
+      )
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : 'Không mở được cổng thanh toán.')
+      setError(exception instanceof Error ? exception.message : 'Không tạo được mã QR thanh toán.')
       setLoading(false)
     }
   }
@@ -56,8 +62,8 @@ export default function PayOnlineButton({
   return (
     <div className="customer-online-payment-action">
       <button className={className} type="button" disabled={loading || paid} onClick={() => void pay()}>
-        {paid ? <CheckCircle2 /> : <CreditCard />}
-        {paid ? 'Đã thanh toán' : loading ? 'Đang mở thanh toán…' : 'Thanh toán online'}
+        {paid ? <CheckCircle2 /> : <QrCode />}
+        {paid ? 'Đã thanh toán' : loading ? 'Đang tạo mã QR…' : 'Thanh toán online'}
       </button>
       {error ? <small className="payment-inline-error" role="alert">{error}</small> : null}
     </div>

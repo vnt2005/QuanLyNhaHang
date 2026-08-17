@@ -81,19 +81,19 @@ public class PaymentAttempt
         CreatedAt = now;
     }
 
-    public void AttachPaymentLink(
-        string paymentLinkId,
-        string checkoutUrl,
+    public void AttachPaymentRequest(
+        string providerPaymentReference,
+        string qrCodeUrl,
         string? providerStatus)
     {
-        if (string.IsNullOrWhiteSpace(paymentLinkId))
-            throw new ArgumentException("Payment link id không được để trống.", nameof(paymentLinkId));
+        if (string.IsNullOrWhiteSpace(providerPaymentReference))
+            throw new ArgumentException("Mã thanh toán không được để trống.", nameof(providerPaymentReference));
 
-        if (!Uri.TryCreate(checkoutUrl, UriKind.Absolute, out _))
-            throw new ArgumentException("Checkout URL không hợp lệ.", nameof(checkoutUrl));
+        if (!Uri.TryCreate(qrCodeUrl, UriKind.Absolute, out _))
+            throw new ArgumentException("URL mã QR không hợp lệ.", nameof(qrCodeUrl));
 
-        ProviderPaymentLinkId = paymentLinkId.Trim();
-        CheckoutUrl = checkoutUrl.Trim();
+        ProviderPaymentLinkId = providerPaymentReference.Trim();
+        CheckoutUrl = qrCodeUrl.Trim();
         ProviderStatus = Normalize(providerStatus);
         Status = PendingStatus;
         ReviewReason = null;
