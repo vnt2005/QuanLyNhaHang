@@ -19,6 +19,7 @@ import {
   type QrMenuItem,
   type QrOrderTable,
 } from '../api/qrOrders'
+import PayOnlineButton from '../components/PayOnlineButton'
 import StatusPanel from '../components/StatusPanel'
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import { navigate } from '../navigation'
@@ -219,7 +220,8 @@ export default function QrOrderPage({
           <header><div><small>Mã đơn</small><h2>{currentOrder.orderCode}</h2></div><span className={`order-status status-${currentOrder.status.toLocaleLowerCase()}`}>{statusLabels[currentOrder.status] || currentOrder.status}</span><button type="button" disabled={refreshing} onClick={() => void refreshOrder()}><RefreshCw className={refreshing ? 'spin' : ''} /> Cập nhật</button></header>
           <div className="order-progress">{['Pending', 'Preparing', 'Ready', 'Served'].map((step, index) => { const statusOrder = ['Pending', 'Confirmed', 'Preparing', 'Cooking', 'Ready', 'Served', 'Completed']; const activeIndex = statusOrder.indexOf(currentOrder.status); const threshold = [0, 2, 4, 5][index]; return <div className={activeIndex >= threshold ? 'done' : ''} key={step}><span>{activeIndex >= threshold ? '✓' : index + 1}</span><strong>{statusLabels[step]}</strong></div> })}</div>
           <div className="current-order-lines">{currentOrder.items.map(item => <div key={item.id}><span><strong>{item.menuItemName}</strong><small>{item.note || statusLabels[item.status] || item.status}</small></span><span>{item.quantity}</span><strong>{formatMoney(item.totalPrice)}</strong></div>)}</div>
-          <footer><span>Tổng tiền</span><strong>{formatMoney(currentOrder.totalAmount)}</strong></footer>
+          <footer><span>Tạm tính món</span><strong>{formatMoney(currentOrder.totalAmount)}</strong></footer>
+          {currentOrder.status !== 'Cancelled' ? <PayOnlineButton orderId={currentOrder.id} qrToken={token} accessToken={session?.token} className="primary-button full" /> : null}
           {!terminalStatuses.has(currentOrder.status) ? <button className="secondary-button" type="button" onClick={() => setView('menu')}>Gọi thêm món</button> : null}
         </section>
       ) : (
