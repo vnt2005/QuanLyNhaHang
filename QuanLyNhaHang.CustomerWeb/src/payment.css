@@ -1,0 +1,95 @@
+.customer-online-payment-action {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: stretch;
+}
+
+.customer-online-payment-action > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.customer-online-payment-action > button svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.payment-inline-error {
+  max-width: 30rem;
+  color: #b42318;
+  line-height: 1.45;
+}
+
+.payment-result-page {
+  display: grid;
+  place-items: center;
+  min-height: 62vh;
+}
+
+.payment-result-card {
+  width: min(100%, 620px);
+  display: grid;
+  justify-items: center;
+  gap: 0.9rem;
+  padding: clamp(1.5rem, 5vw, 3.25rem);
+  text-align: center;
+  background: #fff;
+  border: 1px solid rgba(26, 32, 27, 0.1);
+  border-radius: 1.5rem;
+  box-shadow: 0 24px 70px rgba(30, 42, 34, 0.1);
+}
+
+.payment-result-card > svg {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.payment-result-card.paid > svg {
+  color: #177245;
+}
+
+.payment-result-card.cancelled > svg {
+  color: #b42318;
+}
+
+.payment-result-card.pending > svg {
+  color: #9a6700;
+}
+
+.payment-result-card h1,
+.payment-result-card p {
+  margin: 0;
+}
+
+.payment-result-card p {
+  max-width: 520px;
+  color: #5c655f;
+  line-height: 1.65;
+}
+
+.payment-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.payment-result-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 560px) {
+  .payment-result-actions {
+    width: 100%;
+  }
+
+  .payment-result-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
