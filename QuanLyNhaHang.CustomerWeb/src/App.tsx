@@ -21,6 +21,7 @@ const TakeawayPage = lazy(() => import('./pages/TakeawayPage'))
 const ReservationPage = lazy(() => import('./pages/ReservationPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const QrOrderPage = lazy(() => import('./pages/QrOrderPage'))
+const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage'))
 
 const emptyData: CustomerSiteBootstrap = {
   restaurant: null,
@@ -87,13 +88,15 @@ export default function App() {
             ? 'Đặt món mang về'
             : pathname === '/reservation'
               ? 'Đặt bàn'
-              : pathname === '/orders' || pathname === '/account'
-                ? 'Tài khoản của tôi'
-                : pathname === '/login'
-                  ? 'Đăng nhập'
-                  : pathname === '/'
-                    ? 'Trang chủ'
-                    : 'Không tìm thấy trang'
+              : pathname === '/payment-result'
+                ? 'Kết quả thanh toán'
+                : pathname === '/orders' || pathname === '/account'
+                  ? 'Tài khoản của tôi'
+                  : pathname === '/login'
+                    ? 'Đăng nhập'
+                    : pathname === '/'
+                      ? 'Trang chủ'
+                      : 'Không tìm thấy trang'
     document.title = `${pageName} | ${restaurantName}`
   }, [data.menuItems, data.restaurant?.restaurantName, menuItemId, pathname])
 
@@ -114,6 +117,7 @@ export default function App() {
   const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/reservation' || Boolean(menuItemId)
 
   function content() {
+    if (pathname === '/payment-result') return <PaymentResultPage session={session} />
     if (qrToken) return <QrOrderPage token={qrToken} session={session} />
     if (loadingData && isPublicDataRoute) return <PageLoading />
     if (dataError && isPublicDataRoute) return <main className="page-section"><StatusPanel kind="error" title="Chưa kết nối được với nhà hàng" message={dataError} onRetry={() => void loadData()} /></main>
