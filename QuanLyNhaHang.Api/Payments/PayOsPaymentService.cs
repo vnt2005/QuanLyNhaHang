@@ -84,22 +84,13 @@ public sealed class PayOsPaymentService
             signature = Sign(signatureData)
         };
 
-        using var request = new HttpRequestMessage(
+        using var request = CreateAuthorizedRequest(
             HttpMethod.Post,
-            $"{_baseUrl}/v2/payment-requests")
-        {
-            Content = JsonContent.Create(requestBody)
-        };
-        request.Headers.Add("x-client-id", _clientId);
-        request.Headers.Add("x-api-key", _apiKey);
+            $"{_baseUrl}/v2/payment-requests",
+            JsonContent.Create(requestBody));
 
-        using var response = await HttpClient.SendAsync(
-            request,
-            cancellationToken);
-
-        var json = await response.Content.ReadAsStringAsync(cancellationToken);
-        using var document = JsonDocument.Parse(json);
-        var root = document.RootElement;
+        using var response = await HttpClient.SendAsync(request, cancellationToken);
+        var root = await ReadResponseAsync(response, cancellationToken);
         var code = root.TryGetProperty("code", out var codeElement)
             ? codeElement.GetString()
             : null;
@@ -125,6 +116,39 @@ public sealed class PayOsPaymentService
             data.TryGetProperty("qrCode", out var qrCode)
                 ? qrCode.GetString() ?? string.Empty
                 : string.Empty);
+    }
+
+    public async Task CancelPaymentLinkAsync(
+        string paymentLinkId,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        EnsureConfigured();
+
+        if (string.IsNullOrWhiteSpace(paymentLinkId))
+            throw new ArgumentException("Payment link id không hợp lệ.", nameof(paymentLinkId));
+
+        using var request = CreateAuthorizedRequest(
+            HttpMethod.Post,
+            $"{_baseUrl}/v2/payment-requests/{Uri.EscapeDataString(paymentLinkId.Trim())}/cancel",
+            JsonContent.Create(new { cancellationReason = reason }));
+
+        using var response = await HttpClient.SendAsync(request, cancellationToken);
+        var root = await ReadResponseAsync(response, cancellationToken);
+        var code = root.TryGetProperty("code", out var codeElement)
+            ? codeElement.GetString()
+            : null;
+        var descriptionFromGateway = root.TryGetProperty("desc", out var descElement)
+            ? descElement.GetString()
+            : null;
+
+        if (!response.IsSuccessStatusCode || code != "00")
+        {
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(descriptionFromGateway)
+                    ? "Không hủy được liên kết thanh toán payOS cũ."
+                    : $"payOS: {descriptionFromGateway}");
+        }
     }
 
     public PayOsWebhookPayment VerifyWebhook(JsonElement payload)
@@ -166,6 +190,29 @@ public sealed class PayOsPaymentService
                 ? paymentLinkId.GetString() ?? string.Empty
                 : string.Empty,
             success);
+    }
+
+    private HttpRequestMessage CreateAuthorizedRequest(
+        HttpMethod method,
+        string url,
+        HttpContent? content = null)
+    {
+        var request = new HttpRequestMessage(method, url)
+        {
+            Content = content
+        };
+        request.Headers.Add("x-client-id", _clientId);
+        request.Headers.Add("x-api-key", _apiKey);
+        return request;
+    }
+
+    private static async Task<JsonElement> ReadResponseAsync(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken)
+    {
+        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+        using var document = JsonDocument.Parse(json);
+        return document.RootElement.Clone();
     }
 
     private void EnsureConfigured()
