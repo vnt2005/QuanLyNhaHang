@@ -1,9 +1,13 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using QuanLyNhaHang.Infrastructure.Persistence;
 
 #nullable disable
 
 namespace QuanLyNhaHang.Infrastructure.Migrations;
 
+[DbContext(typeof(ApplicationDbContext))]
+[Migration("20260817153000_AddPaymentAttempts")]
 public partial class AddPaymentAttempts : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
