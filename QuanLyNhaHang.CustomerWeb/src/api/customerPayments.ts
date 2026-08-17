@@ -3,8 +3,12 @@ import { apiRequest } from './client'
 export type CustomerPaymentLink = {
   success: boolean
   alreadyPaid: boolean
+  reused?: boolean
   orderId?: string
   orderCode?: string
+  attemptId?: string
+  attemptStatus?: string
+  expiresAt?: string
   checkoutUrl?: string
   qrCode?: string
   paymentCode?: string
@@ -25,6 +29,13 @@ export type CustomerPaymentStatus = {
   amount?: number | null
   paidAt?: string | null
   paymentMethod?: string | null
+  attemptId?: string | null
+  attemptStatus?: string | null
+  requiresReview?: boolean
+  reviewReason?: string | null
+  expectedAmount?: number | null
+  receivedAmount?: number | null
+  expiresAt?: string | null
 }
 
 export function createCustomerPaymentLink(
@@ -34,6 +45,22 @@ export function createCustomerPaymentLink(
 ) {
   return apiRequest<CustomerPaymentLink>(
     `/api/customer-payments/orders/${encodeURIComponent(orderId)}/payos-link`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ qrToken: qrToken || null }),
+    },
+    accessToken,
+  )
+}
+
+export function cancelCustomerPaymentAttempt(
+  orderId: string,
+  attemptId: string,
+  qrToken?: string | null,
+  accessToken?: string | null,
+) {
+  return apiRequest<{ success: boolean; attemptStatus?: string; requiresReview?: boolean }>(
+    `/api/customer-payments/orders/${encodeURIComponent(orderId)}/attempts/${encodeURIComponent(attemptId)}/cancel`,
     {
       method: 'POST',
       body: JSON.stringify({ qrToken: qrToken || null }),
