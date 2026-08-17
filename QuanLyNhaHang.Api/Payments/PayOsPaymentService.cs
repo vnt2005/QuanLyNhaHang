@@ -1,26 +1,9 @@
-using System.Globalization;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
 namespace QuanLyNhaHang.Api.Payments;
-
-public interface IPayOsPaymentService
-{
-    bool IsConfigured { get; }
-    string CustomerWebBaseUrl { get; }
-
-    Task<PayOsPaymentLink> CreatePaymentLinkAsync(
-        long orderCode,
-        int amount,
-        string description,
-        string returnUrl,
-        string cancelUrl,
-        CancellationToken cancellationToken);
-
-    PayOsWebhookPayment VerifyWebhook(JsonElement payload);
-}
 
 public sealed record PayOsPaymentLink(
     long OrderCode,
@@ -38,12 +21,17 @@ public sealed record PayOsWebhookPayment(
     string PaymentLinkId,
     bool Success);
 
-public sealed class PayOsPaymentService : IPayOsPaymentService
+public sealed class PayOsPaymentService
 {
-    private readonly HttpClient _httpClient;
+    private static readonly HttpClient HttpClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(15)
+    };
+
     private readonly string _clientId;
     private readonly string _apiKey;
     private readonly string _checksumKey;
+    private readonly string _baseUrl;
 
     public bool IsConfigured =>
         !string.IsNullOrWhiteSpace(_clientId) &&
@@ -53,21 +41,15 @@ public sealed class PayOsPaymentService : IPayOsPaymentService
 
     public string CustomerWebBaseUrl { get; }
 
-    public PayOsPaymentService(
-        HttpClient httpClient,
-        IConfiguration configuration)
+    public PayOsPaymentService(IConfiguration configuration)
     {
-        _httpClient = httpClient;
         _clientId = configuration["PayOS:ClientId"]?.Trim() ?? string.Empty;
         _apiKey = configuration["PayOS:ApiKey"]?.Trim() ?? string.Empty;
         _checksumKey = configuration["PayOS:ChecksumKey"]?.Trim() ?? string.Empty;
         CustomerWebBaseUrl = (configuration["PayOS:CustomerWebBaseUrl"] ??
                               "http://localhost:5174").Trim().TrimEnd('/');
-
-        var baseUrl = (configuration["PayOS:BaseUrl"] ??
-                       "https://api-merchant.payos.vn").Trim().TrimEnd('/');
-        _httpClient.BaseAddress = new Uri($"{baseUrl}/");
-        _httpClient.Timeout = TimeSpan.FromSeconds(15);
+        _baseUrl = (configuration["PayOS:BaseUrl"] ??
+                    "https://api-merchant.payos.vn").Trim().TrimEnd('/');
     }
 
     public async Task<PayOsPaymentLink> CreatePaymentLinkAsync(
@@ -96,14 +78,14 @@ public sealed class PayOsPaymentService : IPayOsPaymentService
 
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            "v2/payment-requests")
+            $"{_baseUrl}/v2/payment-requests")
         {
             Content = JsonContent.Create(requestBody)
         };
         request.Headers.Add("x-client-id", _clientId);
         request.Headers.Add("x-api-key", _apiKey);
 
-        using var response = await _httpClient.SendAsync(
+        using var response = await HttpClient.SendAsync(
             request,
             cancellationToken);
 
