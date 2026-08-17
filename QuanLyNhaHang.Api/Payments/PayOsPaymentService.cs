@@ -13,6 +13,14 @@ public sealed record PayOsPaymentLink(
     string CheckoutUrl,
     string QrCode);
 
+public sealed record PayOsPaymentLinkStatus(
+    string PaymentLinkId,
+    long OrderCode,
+    int Amount,
+    int AmountPaid,
+    int AmountRemaining,
+    string Status);
+
 public sealed record PayOsWebhookPayment(
     long OrderCode,
     int Amount,
@@ -91,21 +99,7 @@ public sealed class PayOsPaymentService
 
         using var response = await HttpClient.SendAsync(request, cancellationToken);
         var root = await ReadResponseAsync(response, cancellationToken);
-        var code = root.TryGetProperty("code", out var codeElement)
-            ? codeElement.GetString()
-            : null;
-        var descriptionFromGateway = root.TryGetProperty("desc", out var descElement)
-            ? descElement.GetString()
-            : null;
-
-        if (!response.IsSuccessStatusCode || code != "00" ||
-            !root.TryGetProperty("data", out var data))
-        {
-            throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(descriptionFromGateway)
-                    ? "Không tạo được liên kết thanh toán payOS."
-                    : $"payOS: {descriptionFromGateway}");
-        }
+        var data = GetSuccessfulData(response, root, "Không tạo được liên kết thanh toán payOS.");
 
         return new PayOsPaymentLink(
             data.GetProperty("orderCode").GetInt64(),
@@ -116,6 +110,38 @@ public sealed class PayOsPaymentService
             data.TryGetProperty("qrCode", out var qrCode)
                 ? qrCode.GetString() ?? string.Empty
                 : string.Empty);
+    }
+
+    public async Task<PayOsPaymentLinkStatus> GetPaymentLinkStatusAsync(
+        string paymentLinkId,
+        CancellationToken cancellationToken)
+    {
+        EnsureConfigured();
+
+        if (string.IsNullOrWhiteSpace(paymentLinkId))
+            throw new ArgumentException("Payment link id không hợp lệ.", nameof(paymentLinkId));
+
+        using var request = CreateAuthorizedRequest(
+            HttpMethod.Get,
+            $"{_baseUrl}/v2/payment-requests/{Uri.EscapeDataString(paymentLinkId.Trim())}");
+
+        using var response = await HttpClient.SendAsync(request, cancellationToken);
+        var root = await ReadResponseAsync(response, cancellationToken);
+        var data = GetSuccessfulData(response, root, "Không lấy được trạng thái payment link payOS.");
+
+        return new PayOsPaymentLinkStatus(
+            data.TryGetProperty("id", out var id)
+                ? id.GetString() ?? paymentLinkId
+                : paymentLinkId,
+            data.GetProperty("orderCode").GetInt64(),
+            data.GetProperty("amount").GetInt32(),
+            data.TryGetProperty("amountPaid", out var amountPaid)
+                ? amountPaid.GetInt32()
+                : 0,
+            data.TryGetProperty("amountRemaining", out var amountRemaining)
+                ? amountRemaining.GetInt32()
+                : 0,
+            data.GetProperty("status").GetString() ?? string.Empty);
     }
 
     public async Task CancelPaymentLinkAsync(
@@ -135,20 +161,7 @@ public sealed class PayOsPaymentService
 
         using var response = await HttpClient.SendAsync(request, cancellationToken);
         var root = await ReadResponseAsync(response, cancellationToken);
-        var code = root.TryGetProperty("code", out var codeElement)
-            ? codeElement.GetString()
-            : null;
-        var descriptionFromGateway = root.TryGetProperty("desc", out var descElement)
-            ? descElement.GetString()
-            : null;
-
-        if (!response.IsSuccessStatusCode || code != "00")
-        {
-            throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(descriptionFromGateway)
-                    ? "Không hủy được liên kết thanh toán payOS cũ."
-                    : $"payOS: {descriptionFromGateway}");
-        }
+        _ = GetSuccessfulData(response, root, "Không hủy được liên kết thanh toán payOS cũ.");
     }
 
     public PayOsWebhookPayment VerifyWebhook(JsonElement payload)
@@ -190,6 +203,30 @@ public sealed class PayOsPaymentService
                 ? paymentLinkId.GetString() ?? string.Empty
                 : string.Empty,
             success);
+    }
+
+    private static JsonElement GetSuccessfulData(
+        HttpResponseMessage response,
+        JsonElement root,
+        string fallbackMessage)
+    {
+        var code = root.TryGetProperty("code", out var codeElement)
+            ? codeElement.GetString()
+            : null;
+        var descriptionFromGateway = root.TryGetProperty("desc", out var descElement)
+            ? descElement.GetString()
+            : null;
+
+        if (!response.IsSuccessStatusCode || code != "00" ||
+            !root.TryGetProperty("data", out var data))
+        {
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(descriptionFromGateway)
+                    ? fallbackMessage
+                    : $"payOS: {descriptionFromGateway}");
+        }
+
+        return data;
     }
 
     private HttpRequestMessage CreateAuthorizedRequest(
