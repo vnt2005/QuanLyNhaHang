@@ -1,0 +1,62 @@
+name: Regenerate payment migration snapshot
+
+on:
+  push:
+    branches:
+      - feat/customer-online-payment
+    paths:
+      - .github/workflows/regenerate-payment-migration.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: feat/customer-online-payment
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef --version 10.0.10
+
+      - name: Regenerate AddPaymentAttempts migration and snapshot
+        env:
+          ConnectionStrings__DefaultConnection: Server=localhost;Database=QuanLyNhaHang;User Id=sa;Password=MigrationOnly-2026!Aa1;TrustServerCertificate=True;Encrypt=False
+        run: |
+          rm -f QuanLyNhaHang.Infrastructure/Migrations/20260817153000_AddPaymentAttempts.cs
+
+          dotnet ef migrations add AddPaymentAttempts \
+            --project QuanLyNhaHang.Infrastructure/QuanLyNhaHang.Infrastructure.csproj \
+            --startup-project QuanLyNhaHang.Api/QuanLyNhaHang.Api.csproj \
+            --output-dir Migrations
+
+          dotnet ef migrations has-pending-model-changes \
+            --project QuanLyNhaHang.Infrastructure/QuanLyNhaHang.Infrastructure.csproj \
+            --startup-project QuanLyNhaHang.Api/QuanLyNhaHang.Api.csproj
+
+      - name: Commit generated EF migration files
+        run: |
+          rm -f .github/workflows/regenerate-payment-migration.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No generated changes found."
+            exit 1
+          fi
+
+          git commit -m "fix(database): regenerate payOS migration snapshot"
+          git push origin HEAD:feat/customer-online-payment
