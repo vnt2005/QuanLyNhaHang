@@ -78,10 +78,21 @@ public partial class AddPaymentAttempts : Migration
             name: "IX_PaymentAttempts_Status",
             table: "PaymentAttempts",
             column: "Status");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Payments_OrderId_Status",
+            table: "Payments",
+            columns: new[] { "OrderId", "Status" },
+            unique: true,
+            filter: "[Status] = 'Paid'");
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
+        migrationBuilder.DropIndex(
+            name: "IX_Payments_OrderId_Status",
+            table: "Payments");
+
         migrationBuilder.DropTable(name: "PaymentAttempts");
     }
 }
