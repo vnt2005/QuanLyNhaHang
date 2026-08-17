@@ -17,6 +17,7 @@ import { getQrToken, navigate } from './navigation'
 const HomePage = lazy(() => import('./pages/HomePage'))
 const MenuPage = lazy(() => import('./pages/MenuPage'))
 const MenuItemDetailPage = lazy(() => import('./pages/MenuItemDetailPage'))
+const TakeawayPage = lazy(() => import('./pages/TakeawayPage'))
 const ReservationPage = lazy(() => import('./pages/ReservationPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const QrOrderPage = lazy(() => import('./pages/QrOrderPage'))
@@ -31,19 +32,11 @@ const emptyData: CustomerSiteBootstrap = {
 function getMenuItemId(pathname: string) {
   const match = pathname.match(/^\/menu\/([^/]+)\/?$/i)
   if (!match?.[1]) return null
-  try {
-    return decodeURIComponent(match[1])
-  } catch {
-    return match[1]
-  }
+  try { return decodeURIComponent(match[1]) } catch { return match[1] }
 }
 
 function PageLoading() {
-  return (
-    <main className="page-section">
-      <StatusPanel kind="loading" title="Đang mở trang…" message="Nội dung đang được chuẩn bị cho bạn." />
-    </main>
-  )
+  return <main className="page-section"><StatusPanel kind="loading" title="Đang mở trang…" message="Nội dung đang được chuẩn bị cho bạn." /></main>
 }
 
 export default function App() {
@@ -64,13 +57,9 @@ export default function App() {
   async function loadData() {
     setLoadingData(true)
     setDataError('')
-    try {
-      setData(await getCustomerSiteBootstrap())
-    } catch (exception) {
-      setDataError(exception instanceof Error ? exception.message : 'Không tải được thông tin nhà hàng.')
-    } finally {
-      setLoadingData(false)
-    }
+    try { setData(await getCustomerSiteBootstrap()) }
+    catch (exception) { setDataError(exception instanceof Error ? exception.message : 'Không tải được thông tin nhà hàng.') }
+    finally { setLoadingData(false) }
   }
 
   useEffect(() => { void loadData() }, [])
@@ -87,24 +76,24 @@ export default function App() {
 
   useEffect(() => {
     const restaurantName = data.restaurant?.restaurantName || 'Nhà Hàng'
-    const menuItemName = menuItemId
-      ? data.menuItems.find(item => item.id === menuItemId)?.name
-      : null
+    const menuItemName = menuItemId ? data.menuItems.find(item => item.id === menuItemId)?.name : null
     const pageName = getQrToken(pathname)
       ? 'Gọi món tại bàn'
       : menuItemId
         ? menuItemName || 'Chi tiết món'
         : pathname === '/menu'
           ? 'Thực đơn'
-          : pathname === '/reservation'
-            ? 'Đặt bàn'
-            : pathname === '/orders' || pathname === '/account'
-              ? 'Tài khoản của tôi'
-              : pathname === '/login'
-                ? 'Đăng nhập'
-                : pathname === '/'
-                  ? 'Trang chủ'
-                  : 'Không tìm thấy trang'
+          : pathname === '/takeaway'
+            ? 'Đặt món mang về'
+            : pathname === '/reservation'
+              ? 'Đặt bàn'
+              : pathname === '/orders' || pathname === '/account'
+                ? 'Tài khoản của tôi'
+                : pathname === '/login'
+                  ? 'Đăng nhập'
+                  : pathname === '/'
+                    ? 'Trang chủ'
+                    : 'Không tìm thấy trang'
     document.title = `${pageName} | ${restaurantName}`
   }, [data.menuItems, data.restaurant?.restaurantName, menuItemId, pathname])
 
@@ -122,28 +111,19 @@ export default function App() {
   }
 
   const qrToken = getQrToken(pathname)
-  const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/reservation' || Boolean(menuItemId)
+  const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/reservation' || Boolean(menuItemId)
 
   function content() {
     if (qrToken) return <QrOrderPage token={qrToken} session={session} />
     if (loadingData && isPublicDataRoute) return <PageLoading />
-    if (dataError && isPublicDataRoute) {
-      return <main className="page-section"><StatusPanel kind="error" title="Chưa kết nối được với nhà hàng" message={dataError} onRetry={() => void loadData()} /></main>
-    }
+    if (dataError && isPublicDataRoute) return <main className="page-section"><StatusPanel kind="error" title="Chưa kết nối được với nhà hàng" message={dataError} onRetry={() => void loadData()} /></main>
     if (pathname === '/') return <HomePage data={data} />
     if (pathname === '/menu') return <MenuPage data={data} />
     if (menuItemId) return <MenuItemDetailPage data={data} itemId={menuItemId} />
+    if (pathname === '/takeaway') return <TakeawayPage data={data} session={session} />
     if (pathname === '/reservation') return <ReservationPage data={data} session={session} />
-    if (pathname === '/orders' || pathname === '/account' || pathname === '/login') {
-      return <AccountPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
-    }
-    return (
-      <main className="not-found page-section">
-        <h1>Không tìm thấy trang</h1>
-        <p>Đường dẫn này không tồn tại hoặc đã được thay đổi.</p>
-        <button className="primary-button" type="button" onClick={() => navigate('/')}>Về trang chủ</button>
-      </main>
-    )
+    if (pathname === '/orders' || pathname === '/account' || pathname === '/login') return <AccountPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
+    return <main className="not-found page-section"><h1>Không tìm thấy trang</h1><p>Đường dẫn này không tồn tại hoặc đã được thay đổi.</p><button className="primary-button" type="button" onClick={() => navigate('/')}>Về trang chủ</button></main>
   }
 
   return (

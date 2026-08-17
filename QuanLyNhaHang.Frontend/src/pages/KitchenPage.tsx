@@ -17,7 +17,7 @@ const activeStatuses: { value: KitchenItemStatus; label: string }[] = [
 ]
 
 const historyStatuses: { value: KitchenItemStatus; label: string }[] = [
-  { value: 'Served', label: 'Đã phục vụ' },
+  { value: 'Served', label: 'Đã phục vụ / giao' },
   { value: 'Cancelled', label: 'Đã hủy' },
 ]
 
@@ -33,6 +33,14 @@ function itemTime(item: KitchenOrderItem) {
   if (item.status === 'Cooking' && item.startedAt) return `Đang nấu ${minutesSince(item.startedAt)}`
   if (item.status === 'Ready' && item.completedAt) return `Xong ${minutesSince(item.completedAt)} trước`
   return `Chờ ${minutesSince(item.createdAt)}`
+}
+
+function orderLocation(order: KitchenOrder) {
+  if (order.orderType !== 'Takeaway') return order.restaurantTableName
+  const parts = ['Mang về']
+  if (order.customerName) parts.push(order.customerName)
+  if (order.pickupTime) parts.push(`nhận ${new Date(order.pickupTime).toLocaleString('vi-VN')}`)
+  return parts.join(' • ')
 }
 
 export default function KitchenPage() {
@@ -88,7 +96,9 @@ export default function KitchenPage() {
   const source = view === 'board' ? orders : history
   const tables = useMemo(() => {
     const map = new Map<string, string>()
-    ;[...orders, ...history].forEach(order => map.set(order.restaurantTableId, order.restaurantTableName))
+    ;[...orders, ...history].forEach(order => {
+      if (order.restaurantTableId) map.set(order.restaurantTableId, order.restaurantTableName)
+    })
     return Array.from(map.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, 'vi'))
   }, [orders, history])
 
@@ -96,7 +106,7 @@ export default function KitchenPage() {
     .map(order => ({
       ...order,
       items: order.items.filter(item => {
-        const text = `${order.orderCode} ${order.restaurantTableName} ${item.menuItemName} ${item.note ?? ''}`.toLowerCase()
+        const text = `${order.orderCode} ${orderLocation(order)} ${order.customerName ?? ''} ${item.menuItemName} ${item.note ?? ''}`.toLowerCase()
         return (!keyword.trim() || text.includes(keyword.trim().toLowerCase())) &&
           (!tableFilter || order.restaurantTableId === tableFilter)
       }),
@@ -119,7 +129,7 @@ export default function KitchenPage() {
 
   return <section className="kitchen-page">
     <div className="page-toolbar kitchen-toolbar">
-      <div><h2>Màn hình bếp</h2><p>Theo dõi và xử lý món theo đúng thứ tự phục vụ.</p></div>
+      <div><h2>Màn hình bếp</h2><p>Theo dõi và xử lý món tại bàn lẫn đơn mang về.</p></div>
       <div className="kitchen-toolbar-actions"><span>{lastUpdated ? `Cập nhật ${lastUpdated.toLocaleTimeString('vi-VN')}` : 'Chưa cập nhật'}</span><button onClick={() => void loadData()} disabled={loading}>↻ Làm mới</button></div>
     </div>
 
@@ -135,26 +145,26 @@ export default function KitchenPage() {
 
     <div className="kitchen-controls">
       <div className="kitchen-tabs"><button className={view === 'board' ? 'active' : ''} onClick={() => setView('board')}>Đang xử lý</button><button className={view === 'history' ? 'active' : ''} onClick={() => setView('history')}>Lịch sử</button></div>
-      <input value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm mã đơn, bàn hoặc món..." />
-      <select value={tableFilter} onChange={event => setTableFilter(event.target.value)}><option value="">Tất cả bàn</option>{tables.map(table => <option key={table.id} value={table.id}>{table.name}</option>)}</select>
+      <input value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm mã đơn, bàn, khách mang về hoặc món..." />
+      <select value={tableFilter} onChange={event => setTableFilter(event.target.value)}><option value="">Tất cả bàn + mang về</option>{tables.map(table => <option key={table.id} value={table.id}>{table.name}</option>)}</select>
     </div>
 
     {loading ? <div className="kitchen-empty">Đang tải dữ liệu bếp...</div> : view === 'board' ? <div className="kitchen-board">
       {columns.map(column => <section className={`kitchen-column ${column.value.toLowerCase()}`} key={column.value}>
         <header><div><h3>{column.label}</h3><span>{column.cards.length} món</span></div></header>
         <div className="kitchen-column-body">{column.cards.length === 0 ? <div className="kitchen-empty small">Không có món.</div> : column.cards.map(({ order, item }) => <article className={`kitchen-ticket ${Date.now() - new Date(item.createdAt).getTime() >= 15 * 60000 && item.status === 'Pending' ? 'late' : ''}`} key={item.orderItemId}>
-          <div className="ticket-head"><div><strong>{order.orderCode}</strong><span>{order.restaurantTableName}</span></div><span className="ticket-time">{itemTime(item)}</span></div>
+          <div className="ticket-head"><div><strong>{order.orderCode}</strong><span>{orderLocation(order)}</span></div><span className="ticket-time">{itemTime(item)}</span></div>
           <div className="ticket-dish"><strong>{item.quantity} × {item.menuItemName}</strong>{item.note && <p>Ghi chú: {item.note}</p>}</div>
           <div className="ticket-actions">
             {item.status === 'Pending' && <><button className="primary-button" disabled={savingId === item.orderItemId} onClick={() => void changeStatus(item, 'Cooking')}>Bắt đầu nấu</button><button className="danger" disabled={savingId === item.orderItemId} onClick={() => void changeStatus(item, 'Cancelled')}>Hủy món</button></>}
             {item.status === 'Cooking' && <><button className="primary-button" disabled={savingId === item.orderItemId} onClick={() => void changeStatus(item, 'Ready')}>Hoàn thành</button><button disabled={savingId === item.orderItemId} onClick={() => void changeStatus(item, 'Pending')}>Trả về chờ</button></>}
-            {item.status === 'Ready' && <button className="served-button" disabled={savingId === item.orderItemId} onClick={() => void changeStatus(item, 'Served')}>Đã giao món</button>}
+            {item.status === 'Ready' && <button className="served-button" disabled={savingId === item.orderItemId} onClick={() => void changeStatus(item, 'Served')}>{order.orderType === 'Takeaway' ? 'Đã giao khách' : 'Đã giao món'}</button>}
           </div>
         </article>)}</div>
       </section>)}
     </div> : <div className="kitchen-history">
       {filtered.length === 0 ? <div className="kitchen-empty">Không có lịch sử phù hợp.</div> : filtered.map(order => <article className="history-order" key={order.orderId}>
-        <header><div><strong>{order.orderCode}</strong><span>{order.restaurantTableName} • {new Date(order.createdAt).toLocaleString('vi-VN')}</span></div></header>
+        <header><div><strong>{order.orderCode}</strong><span>{orderLocation(order)} • {new Date(order.createdAt).toLocaleString('vi-VN')}</span></div></header>
         <div>{order.items.map(item => <div className="history-item" key={item.orderItemId}><div><strong>{item.quantity} × {item.menuItemName}</strong><span>{item.note || 'Không ghi chú'}</span></div><span className={`history-status ${item.status.toLowerCase()}`}>{historyStatuses.find(x => x.value === item.status)?.label ?? item.status}</span></div>)}</div>
       </article>)}
     </div>}

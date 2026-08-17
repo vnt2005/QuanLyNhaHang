@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Application.Features.Kitchen.Dtos;
+namespace QuanLyNhaHang.Application.Features.Kitchen.Dtos;
 
 public class KitchenOrderDto
 {
@@ -6,9 +6,15 @@ public class KitchenOrderDto
 
     public string OrderCode { get; set; } = string.Empty;
 
-    public Guid RestaurantTableId { get; set; }
+    public Guid? RestaurantTableId { get; set; }
 
     public string RestaurantTableName { get; set; } = string.Empty;
+
+    public string OrderType { get; set; } = "DineIn";
+
+    public string? CustomerName { get; set; }
+
+    public DateTime? PickupTime { get; set; }
 
     public string OrderStatus { get; set; } = string.Empty;
 

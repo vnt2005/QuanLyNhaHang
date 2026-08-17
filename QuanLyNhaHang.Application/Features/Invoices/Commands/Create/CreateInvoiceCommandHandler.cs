@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Invoices.DTOs;
@@ -20,55 +20,31 @@ public class CreateInvoiceCommandHandler
         CreateInvoiceCommand request,
         CancellationToken cancellationToken)
     {
-        var payment = await _context.Payments
-            .FirstOrDefaultAsync(x => x.Id == request.PaymentId, cancellationToken);
+        var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == request.PaymentId, cancellationToken);
+        if (payment == null) throw new Exception("Không tìm thấy thanh toán.");
+        if (payment.Status != "Paid") throw new Exception("Chỉ thanh toán đã Paid mới được xuất hóa đơn.");
 
-        if (payment == null)
-            throw new Exception("Không tìm thấy thanh toán.");
-
-        if (payment.Status != "Paid")
-            throw new Exception("Chỉ thanh toán đã Paid mới được xuất hóa đơn.");
-
-        var existedInvoice = await _context.Invoices
-            .AnyAsync(x => x.PaymentId == request.PaymentId && x.Status != "Cancelled", cancellationToken);
-
-        if (existedInvoice)
+        if (await _context.Invoices.AnyAsync(x => x.PaymentId == request.PaymentId && x.Status != "Cancelled", cancellationToken))
             throw new Exception("Thanh toán này đã có hóa đơn.");
 
-        // THÊM MỚI:
-        // Chặn trường hợp một order bị xuất nhiều hóa đơn
-        var existedInvoiceByOrder = await _context.Invoices
-            .AnyAsync(x =>
-        x.OrderId == payment.OrderId &&
-        x.Status != "Cancelled",
-        cancellationToken);
-
-        if (existedInvoiceByOrder)
+        if (await _context.Invoices.AnyAsync(x => x.OrderId == payment.OrderId && x.Status != "Cancelled", cancellationToken))
             throw new Exception("Đơn hàng này đã được xuất hóa đơn.");
 
-        var order = await _context.Orders
-            .FirstOrDefaultAsync(x => x.Id == payment.OrderId, cancellationToken);
+        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == payment.OrderId, cancellationToken);
+        if (order == null) throw new Exception("Không tìm thấy order.");
+        if (!order.RestaurantTableId.HasValue)
+            throw new Exception("Đơn mang về hiện chưa hỗ trợ hóa đơn gắn với bàn.");
 
-        if (order == null)
-            throw new Exception("Không tìm thấy order.");
+        var table = await _context.RestaurantTables.FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId.Value, cancellationToken);
+        if (table == null) throw new Exception("Không tìm thấy bàn.");
 
-        var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId, cancellationToken);
-
-        if (table == null)
-            throw new Exception("Không tìm thấy bàn.");
-
-        var orderItems = await _context.OrderItems
-            .Where(x => x.OrderId == order.Id && x.Status != "Cancelled")
-            .ToListAsync(cancellationToken);
-
-        if (!orderItems.Any())
-            throw new Exception("Order chưa có món để xuất hóa đơn.");
+        var orderItems = await _context.OrderItems.Where(x => x.OrderId == order.Id && x.Status != "Cancelled").ToListAsync(cancellationToken);
+        if (!orderItems.Any()) throw new Exception("Order chưa có món để xuất hóa đơn.");
 
         var invoice = new Invoice(
             order.Id,
             payment.Id,
-            order.RestaurantTableId,
+            order.RestaurantTableId.Value,
             order.OrderCode,
             payment.PaymentCode,
             table.Name,
@@ -82,7 +58,6 @@ public class CreateInvoiceCommandHandler
             request.Note);
 
         await _context.Invoices.AddAsync(invoice, cancellationToken);
-
         var invoiceItems = orderItems.Select(item => new InvoiceItem(
             invoice.Id,
             item.Id,
@@ -94,7 +69,6 @@ public class CreateInvoiceCommandHandler
             item.Note)).ToList();
 
         await _context.InvoiceItems.AddRangeAsync(invoiceItems, cancellationToken);
-
         await _context.SaveChangesAsync(cancellationToken);
 
         return new InvoiceDto

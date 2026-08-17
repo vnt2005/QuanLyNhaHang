@@ -62,6 +62,33 @@ export type CustomerReservationResult = {
   status: string
 }
 
+export type TakeawayOrderInput = {
+  customerName: string
+  phoneNumber: string
+  pickupTime?: string | null
+  note?: string | null
+  items: Array<{
+    menuItemId: string
+    quantity: number
+    note?: string | null
+  }>
+}
+
+export type TakeawayOrderResult = {
+  id: string
+  restaurantTableId?: string | null
+  restaurantTableName: string
+  orderType: 'Takeaway'
+  customerName?: string | null
+  customerPhoneNumber?: string | null
+  pickupTime?: string | null
+  orderCode: string
+  status: string
+  totalAmount: number
+  note?: string | null
+  createdAt: string
+}
+
 export function getCustomerSiteBootstrap() {
   return apiRequest<CustomerSiteBootstrap>('/api/customer-site/bootstrap')
 }
@@ -70,7 +97,7 @@ export async function createCustomerReservation(
   input: CustomerReservationInput,
   accessToken?: string | null,
 ) {
-  const response = await apiRequest<{
+  return apiRequest<{
     success: boolean
     message: string
     data: CustomerReservationResult
@@ -78,6 +105,18 @@ export async function createCustomerReservation(
     method: 'POST',
     body: JSON.stringify(input),
   }, accessToken)
+}
 
-  return response
+export function createTakeawayOrder(
+  input: TakeawayOrderInput,
+  accessToken?: string | null,
+) {
+  return apiRequest<{
+    success: boolean
+    message: string
+    data: TakeawayOrderResult
+  }>('/api/customer-site/takeaway-orders', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  }, accessToken)
 }

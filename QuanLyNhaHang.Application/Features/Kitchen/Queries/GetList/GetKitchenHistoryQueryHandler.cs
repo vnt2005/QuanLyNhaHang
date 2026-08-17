@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Kitchen.Dtos;
@@ -23,8 +23,9 @@ public class GetKitchenHistoryQueryHandler
 
         var rows = await (
             from order in _context.Orders.AsNoTracking()
-            join table in _context.RestaurantTables.AsNoTracking()
-                on order.RestaurantTableId equals table.Id
+            join tableRow in _context.RestaurantTables.AsNoTracking()
+                on order.RestaurantTableId equals (Guid?)tableRow.Id into tableRows
+            from table in tableRows.DefaultIfEmpty()
             join orderItem in _context.OrderItems.AsNoTracking()
                 on order.Id equals orderItem.OrderId
             where historyStatuses.Contains(orderItem.Status)
@@ -34,10 +35,12 @@ public class GetKitchenHistoryQueryHandler
                 OrderId = order.Id,
                 order.OrderCode,
                 order.RestaurantTableId,
-                RestaurantTableName = table.Name,
+                RestaurantTableName = table != null ? table.Name : "Mang về",
+                order.OrderType,
+                order.CustomerName,
+                order.PickupTime,
                 OrderStatus = order.Status,
                 OrderCreatedAt = order.CreatedAt,
-
                 OrderItemId = orderItem.Id,
                 orderItem.MenuItemId,
                 orderItem.MenuItemName,
@@ -50,16 +53,18 @@ public class GetKitchenHistoryQueryHandler
                 orderItem.UpdatedAt,
                 orderItem.StartedAt,
                 orderItem.CompletedAt
-            }
-        ).ToListAsync(cancellationToken);
+            }).ToListAsync(cancellationToken);
 
-        var result = rows
+        return rows
             .GroupBy(x => new
             {
                 x.OrderId,
                 x.OrderCode,
                 x.RestaurantTableId,
                 x.RestaurantTableName,
+                x.OrderType,
+                x.CustomerName,
+                x.PickupTime,
                 x.OrderStatus,
                 x.OrderCreatedAt
             })
@@ -69,9 +74,11 @@ public class GetKitchenHistoryQueryHandler
                 OrderCode = g.Key.OrderCode,
                 RestaurantTableId = g.Key.RestaurantTableId,
                 RestaurantTableName = g.Key.RestaurantTableName,
+                OrderType = g.Key.OrderType,
+                CustomerName = g.Key.CustomerName,
+                PickupTime = g.Key.PickupTime,
                 OrderStatus = g.Key.OrderStatus,
                 CreatedAt = g.Key.OrderCreatedAt,
-
                 Items = g.Select(i => new KitchenOrderItemDto
                 {
                     OrderItemId = i.OrderItemId,
@@ -89,7 +96,5 @@ public class GetKitchenHistoryQueryHandler
                 }).ToList()
             })
             .ToList();
-
-        return result;
     }
 }

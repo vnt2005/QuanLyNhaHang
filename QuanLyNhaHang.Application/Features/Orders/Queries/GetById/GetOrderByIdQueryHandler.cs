@@ -1,7 +1,8 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Orders.DTOs;
+
 namespace QuanLyNhaHang.Application.Features.Orders.Queries.GetById;
 
 public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, OrderDto?>
@@ -19,14 +20,19 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
     {
         var order = await (
             from o in _context.Orders
-            join table in _context.RestaurantTables
-                on o.RestaurantTableId equals table.Id
+            join tableRow in _context.RestaurantTables
+                on o.RestaurantTableId equals (Guid?)tableRow.Id into tableRows
+            from table in tableRows.DefaultIfEmpty()
             where o.Id == request.Id
             select new OrderDto
             {
                 Id = o.Id,
                 RestaurantTableId = o.RestaurantTableId,
-                RestaurantTableName = table.Name,
+                RestaurantTableName = table != null ? table.Name : "Mang về",
+                OrderType = o.OrderType,
+                CustomerName = o.CustomerName,
+                CustomerPhoneNumber = o.CustomerPhoneNumber,
+                PickupTime = o.PickupTime,
                 OrderCode = o.OrderCode,
                 Status = o.Status,
                 TotalAmount = o.TotalAmount,
@@ -38,9 +44,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
             .FirstOrDefaultAsync(cancellationToken);
 
         if (order == null)
-        {
             return null;
-        }
 
         order.Items = await _context.OrderItems
             .Where(x => x.OrderId == order.Id)
