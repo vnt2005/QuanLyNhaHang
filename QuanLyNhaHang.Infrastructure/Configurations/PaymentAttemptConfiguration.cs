@@ -67,6 +67,7 @@ public sealed class PaymentAttemptConfiguration : IEntityTypeConfiguration<Payme
             .IsUnique();
 
         builder.HasIndex(x => x.ProviderPaymentLinkId)
+            .IsUnique()
             .HasFilter("[ProviderPaymentLinkId] IS NOT NULL");
 
         builder.HasIndex(x => x.OrderId);
