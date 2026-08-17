@@ -15,20 +15,20 @@ public sealed class CustomerPaymentsController : ControllerBase
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IPayOsPaymentService _payOs;
+    private readonly PayOsPaymentService _payOs;
 
     public CustomerPaymentsController(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IPayOsPaymentService payOs)
+        IConfiguration configuration)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _payOs = payOs;
+        _payOs = new PayOsPaymentService(configuration);
     }
 
     [AllowAnonymous]
-    [EnableRateLimiting("CustomerPayment")]
+    [EnableRateLimiting("QrCreate")]
     [HttpPost("orders/{orderId:guid}/payos-link")]
     public async Task<IActionResult> CreatePayOsLink(
         Guid orderId,
@@ -150,8 +150,6 @@ public sealed class CustomerPaymentsController : ControllerBase
             return BadRequest(new { message = exception.Message });
         }
 
-        // payOS also sends a signed sample payload while a webhook URL is being
-        // configured. A valid but non-success event is acknowledged and ignored.
         if (!webhook.Success || webhook.Code != "00")
             return Ok(new { success = true });
 
@@ -313,9 +311,6 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (digits.Length < 14)
             throw new InvalidOperationException("Mã đơn hàng không phù hợp để thanh toán online.");
 
-        // Last 14 digits are yMMddHHmmssfff for the current ORD timestamp format.
-        // The final digit is a payment attempt discriminator. Dividing by 10 in
-        // the webhook restores the suffix needed to find the original order.
         var suffix = digits[^14..];
         var baseCode = long.Parse(suffix);
         var attempt = DateTime.UtcNow.Millisecond % 9 + 1;
