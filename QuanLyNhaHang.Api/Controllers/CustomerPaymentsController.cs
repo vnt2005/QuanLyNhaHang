@@ -159,8 +159,13 @@ public sealed class CustomerPaymentsController : ControllerBase
             .Take(2)
             .ToListAsync(cancellationToken);
 
-        if (orders.Count != 1)
-            return BadRequest(new { message = "Không đối chiếu được đơn hàng từ webhook payOS." });
+        // payOS sends a signed sample transaction while a webhook URL is being
+        // confirmed. It has no matching local order and must still receive 2xx.
+        if (orders.Count == 0)
+            return Ok(new { success = true, ignored = true });
+
+        if (orders.Count > 1)
+            return BadRequest(new { message = "Không đối chiếu duy nhất được đơn hàng từ webhook payOS." });
 
         var order = orders[0];
         if (order.Status == "Cancelled")
