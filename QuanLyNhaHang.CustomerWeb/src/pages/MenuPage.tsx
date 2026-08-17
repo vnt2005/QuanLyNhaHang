@@ -111,7 +111,13 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
             <>
               <div className="menu-grid" aria-live="polite">
                 {visibleItems.map((item, index) => (
-                  <article className="menu-card" key={item.id}>
+                  <button
+                    type="button"
+                    className="menu-card menu-card-button"
+                    key={item.id}
+                    onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
+                    aria-label={`Xem chi tiết ${item.name}`}
+                  >
                     <div className="menu-card-media">
                       {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : <img className={`fallback-crop crop-${index % 3 + 1}`} src={heroImage} alt={item.name} />}
                     </div>
@@ -121,7 +127,7 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
                       <p>{item.description || 'Món ăn được chế biến tươi mới trong ngày.'}</p>
                       <div><strong>{currency(item.price, data.restaurant?.currency || 'VND')}</strong><small className={item.isAvailable ? 'available' : 'unavailable'}>{item.isAvailable ? 'Còn món' : 'Hết món'}</small></div>
                     </div>
-                  </article>
+                  </button>
                 ))}
               </div>
 
