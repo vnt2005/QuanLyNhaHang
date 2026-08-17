@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { CustomerSession } from '../api/customerAuth'
 import { getCustomerPaymentStatus, type CustomerPaymentStatus } from '../api/customerPayments'
 import { navigate } from '../navigation'
+import '../payment.css'
 
 function money(value?: number | null) {
   if (value == null) return ''
