@@ -58,9 +58,16 @@ public sealed class PayOsPaymentService
         string description,
         string returnUrl,
         string cancelUrl,
+        DateTime expiresAtUtc,
         CancellationToken cancellationToken)
     {
         EnsureConfigured();
+
+        if (expiresAtUtc <= DateTime.UtcNow)
+            throw new ArgumentException("Thời gian hết hạn payment link phải nằm trong tương lai.", nameof(expiresAtUtc));
+
+        var expiredAt = checked((int)new DateTimeOffset(
+            DateTime.SpecifyKind(expiresAtUtc, DateTimeKind.Utc)).ToUnixTimeSeconds());
 
         var signatureData =
             $"amount={amount}&cancelUrl={cancelUrl}&description={description}" +
@@ -73,6 +80,7 @@ public sealed class PayOsPaymentService
             description,
             cancelUrl,
             returnUrl,
+            expiredAt,
             signature = Sign(signatureData)
         };
 
