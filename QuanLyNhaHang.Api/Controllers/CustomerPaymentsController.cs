@@ -214,8 +214,9 @@ public sealed class CustomerPaymentsController : ControllerBase
             });
         }
 
-        if (attempt.Status is PaymentAttempt.CancelledStatus or
-            PaymentAttempt.ExpiredStatus or PaymentAttempt.FailedStatus)
+        if (attempt.Status == PaymentAttempt.CancelledStatus ||
+            attempt.Status == PaymentAttempt.ExpiredStatus ||
+            attempt.Status == PaymentAttempt.FailedStatus)
         {
             return Ok(new { success = true, attemptStatus = attempt.Status });
         }
@@ -305,7 +306,8 @@ public sealed class CustomerPaymentsController : ControllerBase
             .FirstOrDefaultAsync(cancellationToken);
 
         if (latestAttempt != null &&
-            latestAttempt.Status is PaymentAttempt.CreatingStatus or PaymentAttempt.PendingStatus &&
+            (latestAttempt.Status == PaymentAttempt.CreatingStatus ||
+             latestAttempt.Status == PaymentAttempt.PendingStatus) &&
             latestAttempt.ExpiresAt <= DateTime.UtcNow)
         {
             latestAttempt.MarkExpired();
@@ -362,8 +364,32 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (attempt == null)
             return Ok(new { success = true, ignored = true });
 
-        if (attempt.Status is PaymentAttempt.PaidStatus or PaymentAttempt.RequiresReviewStatus)
+        if (attempt.Status == PaymentAttempt.PaidStatus ||
+            attempt.Status == PaymentAttempt.RequiresReviewStatus)
+        {
             return Ok(new { success = true });
+        }
+
+        if (attempt.Status == PaymentAttempt.CancelledStatus ||
+            attempt.Status == PaymentAttempt.ExpiredStatus ||
+            attempt.Status == PaymentAttempt.FailedStatus ||
+            attempt.Status == PaymentAttempt.CreatingStatus)
+        {
+            var reason = attempt.Status switch
+            {
+                PaymentAttempt.CancelledStatus => "PaidAfterPaymentCancellation",
+                PaymentAttempt.ExpiredStatus => "PaidAfterPaymentExpiry",
+                PaymentAttempt.FailedStatus => "PaidAfterPaymentAttemptFailure",
+                _ => "PaymentWebhookBeforeAttemptActivated"
+            };
+
+            attempt.MarkRequiresReview(
+                webhook.Amount,
+                webhook.Reference,
+                reason);
+            await _context.SaveChangesAsync(cancellationToken);
+            return Ok(new { success = true, requiresReview = true });
+        }
 
         if (!string.IsNullOrWhiteSpace(attempt.ProviderPaymentLinkId) &&
             !string.Equals(
