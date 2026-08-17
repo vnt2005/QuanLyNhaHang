@@ -67,6 +67,7 @@ public partial class AddPaymentAttempts : Migration
             name: "IX_PaymentAttempts_ProviderPaymentLinkId",
             table: "PaymentAttempts",
             column: "ProviderPaymentLinkId",
+            unique: true,
             filter: "[ProviderPaymentLinkId] IS NOT NULL");
 
         migrationBuilder.CreateIndex(
