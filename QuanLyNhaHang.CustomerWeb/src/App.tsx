@@ -16,6 +16,7 @@ import { getQrToken, navigate } from './navigation'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
 const MenuPage = lazy(() => import('./pages/MenuPage'))
+const MenuItemDetailPage = lazy(() => import('./pages/MenuItemDetailPage'))
 const ReservationPage = lazy(() => import('./pages/ReservationPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const QrOrderPage = lazy(() => import('./pages/QrOrderPage'))
@@ -25,6 +26,16 @@ const emptyData: CustomerSiteBootstrap = {
   menuCategories: [],
   menuItems: [],
   reservationTables: [],
+}
+
+function getMenuItemId(pathname: string) {
+  const match = pathname.match(/^\/menu\/([^/]+)\/?$/i)
+  if (!match?.[1]) return null
+  try {
+    return decodeURIComponent(match[1])
+  } catch {
+    return match[1]
+  }
 }
 
 function PageLoading() {
@@ -42,6 +53,7 @@ export default function App() {
   const [dataError, setDataError] = useState('')
   const [session, setSession] = useState<CustomerSession | null>(null)
   const [sessionMessage, setSessionMessage] = useState('')
+  const menuItemId = getMenuItemId(pathname)
 
   useEffect(() => {
     const update = () => setPathname(window.location.pathname)
@@ -75,21 +87,26 @@ export default function App() {
 
   useEffect(() => {
     const restaurantName = data.restaurant?.restaurantName || 'Nhà Hàng'
+    const menuItemName = menuItemId
+      ? data.menuItems.find(item => item.id === menuItemId)?.name
+      : null
     const pageName = getQrToken(pathname)
       ? 'Gọi món tại bàn'
-      : pathname === '/menu'
-        ? 'Thực đơn'
-        : pathname === '/reservation'
-          ? 'Đặt bàn'
-          : pathname === '/orders' || pathname === '/account'
-            ? 'Tài khoản của tôi'
-            : pathname === '/login'
-              ? 'Đăng nhập'
-              : pathname === '/'
-                ? 'Trang chủ'
-                : 'Không tìm thấy trang'
+      : menuItemId
+        ? menuItemName || 'Chi tiết món'
+        : pathname === '/menu'
+          ? 'Thực đơn'
+          : pathname === '/reservation'
+            ? 'Đặt bàn'
+            : pathname === '/orders' || pathname === '/account'
+              ? 'Tài khoản của tôi'
+              : pathname === '/login'
+                ? 'Đăng nhập'
+                : pathname === '/'
+                  ? 'Trang chủ'
+                  : 'Không tìm thấy trang'
     document.title = `${pageName} | ${restaurantName}`
-  }, [data.restaurant?.restaurantName, pathname])
+  }, [data.menuItems, data.restaurant?.restaurantName, menuItemId, pathname])
 
   function handleSessionChanged(nextSession: CustomerSession | null) {
     setSession(nextSession)
@@ -105,7 +122,7 @@ export default function App() {
   }
 
   const qrToken = getQrToken(pathname)
-  const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/reservation'
+  const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/reservation' || Boolean(menuItemId)
 
   function content() {
     if (qrToken) return <QrOrderPage token={qrToken} session={session} />
@@ -115,6 +132,7 @@ export default function App() {
     }
     if (pathname === '/') return <HomePage data={data} />
     if (pathname === '/menu') return <MenuPage data={data} />
+    if (menuItemId) return <MenuItemDetailPage data={data} itemId={menuItemId} />
     if (pathname === '/reservation') return <ReservationPage data={data} session={session} />
     if (pathname === '/orders' || pathname === '/account' || pathname === '/login') {
       return <AccountPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
