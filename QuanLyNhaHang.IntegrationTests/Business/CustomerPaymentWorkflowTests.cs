@@ -194,7 +194,7 @@ public sealed class CustomerPaymentWorkflowTests
             .SingleAsync(item => item.Id == scenario.AttemptId);
         Assert.Equal(PaymentAttempt.RequiresReviewStatus, attempt.Status);
         Assert.Equal("PaidAfterOrderCancellation", attempt.ReviewReason);
-        Assert.Equal(expectedAmount, attempt.ReceivedAmount);
+        Assert.Equal((decimal)expectedAmount, attempt.ReceivedAmount);
         Assert.Equal("LATE-PAYMENT-REF", attempt.ProviderReference);
 
         using var statusResponse = await client.GetAsync(
@@ -205,7 +205,63 @@ public sealed class CustomerPaymentWorkflowTests
         Assert.False(status!.Paid);
         Assert.True(status.RequiresReview);
         Assert.Equal(PaymentAttempt.RequiresReviewStatus, status.AttemptStatus);
-        Assert.Equal(expectedAmount, status.ReceivedAmount);
+        Assert.Equal((decimal)expectedAmount, status.ReceivedAmount);
+    }
+
+    [Fact]
+    public async Task ValidWebhook_AfterPaymentAttemptWasCancelled_IsHeldForReview()
+    {
+        using var factory = CreatePayOsFactory();
+        using var client = CreateHttpsClient(factory);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            "plink-cancelled-attempt",
+            cancelOrder: false);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var attempt = await context.PaymentAttempts
+                .SingleAsync(item => item.Id == scenario.AttemptId);
+            attempt.MarkCancelled("Test cancellation before late webhook.");
+            await context.SaveChangesAsync();
+        }
+
+        const int expectedAmount = 216_000;
+        var signature = SignWebhook(
+            expectedAmount,
+            scenario.ProviderOrderCode,
+            "plink-cancelled-attempt",
+            "CANCELLED-LATE-REF");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/customer-payments/payos/webhook",
+            new
+            {
+                success = true,
+                data = new
+                {
+                    orderCode = scenario.ProviderOrderCode,
+                    amount = expectedAmount,
+                    code = "00",
+                    reference = "CANCELLED-LATE-REF",
+                    paymentLinkId = "plink-cancelled-attempt"
+                },
+                signature
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var verifyScope = factory.Services.CreateScope();
+        var verifyContext = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.False(await verifyContext.Payments.AnyAsync(
+            payment => payment.OrderId == scenario.OrderId));
+        var persistedAttempt = await verifyContext.PaymentAttempts
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == scenario.AttemptId);
+        Assert.Equal(PaymentAttempt.RequiresReviewStatus, persistedAttempt.Status);
+        Assert.Equal("PaidAfterPaymentCancellation", persistedAttempt.ReviewReason);
+        Assert.Equal((decimal)expectedAmount, persistedAttempt.ReceivedAmount);
     }
 
     [Fact]
