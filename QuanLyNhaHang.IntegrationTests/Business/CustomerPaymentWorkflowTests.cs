@@ -20,16 +20,18 @@ public sealed class CustomerPaymentWorkflowTests
         "customer-payment-integration-test-checksum-key-0123456789";
 
     [Fact]
-    public async Task ValidPayOsWebhook_RecordsPaymentOnce_AndKeepsKitchenLifecycle()
+    public async Task ValidPayOsWebhook_RecordsPaymentOnce_AndMarksAttemptPaid()
     {
         using var factory = CreatePayOsFactory();
         using var client = CreateHttpsClient(factory);
-        var scenario = await SeedTakeawayOrderAsync(factory);
-        var payOsOrderCode = ToPayOsOrderCode(scenario.OrderCode);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            "plink-test",
+            cancelOrder: false);
         const int expectedAmount = 216_000;
         var signature = SignWebhook(
             expectedAmount,
-            payOsOrderCode,
+            scenario.ProviderOrderCode,
             "plink-test",
             "TEST-REF");
 
@@ -38,7 +40,7 @@ public sealed class CustomerPaymentWorkflowTests
             success = true,
             data = new
             {
-                orderCode = payOsOrderCode,
+                orderCode = scenario.ProviderOrderCode,
                 amount = expectedAmount,
                 code = "00",
                 reference = "TEST-REF",
@@ -63,6 +65,9 @@ public sealed class CustomerPaymentWorkflowTests
             .AsNoTracking()
             .Where(payment => payment.OrderId == scenario.OrderId)
             .ToListAsync();
+        var persistedAttempt = await context.PaymentAttempts
+            .AsNoTracking()
+            .SingleAsync(attempt => attempt.Id == scenario.AttemptId);
         var persistedOrder = await context.Orders
             .AsNoTracking()
             .SingleAsync(order => order.Id == scenario.OrderId);
@@ -76,6 +81,12 @@ public sealed class CustomerPaymentWorkflowTests
         Assert.Equal(216_000m, payment.FinalAmount);
         Assert.Contains("TEST-REF", payment.Note);
 
+        Assert.Equal(PaymentAttempt.PaidStatus, persistedAttempt.Status);
+        Assert.Equal(payment.Id, persistedAttempt.PaymentId);
+        Assert.Equal(216_000m, persistedAttempt.ReceivedAmount);
+        Assert.Equal("TEST-REF", persistedAttempt.ProviderReference);
+        Assert.NotNull(persistedAttempt.PaidAt);
+
         // Online payment confirms money independently from kitchen/order progress.
         Assert.Equal("Pending", persistedOrder.Status);
 
@@ -87,19 +98,23 @@ public sealed class CustomerPaymentWorkflowTests
         Assert.True(status!.Paid);
         Assert.Equal(payment.PaymentCode, status.PaymentCode);
         Assert.Equal(216_000m, status.Amount);
+        Assert.Equal(PaymentAttempt.PaidStatus, status.AttemptStatus);
+        Assert.False(status.RequiresReview);
     }
 
     [Fact]
-    public async Task SignedWebhook_WithWrongAmount_IsRejected()
+    public async Task SignedWebhook_WithWrongAmount_IsAcknowledgedAndRequiresReview()
     {
         using var factory = CreatePayOsFactory();
         using var client = CreateHttpsClient(factory);
-        var scenario = await SeedTakeawayOrderAsync(factory);
-        var payOsOrderCode = ToPayOsOrderCode(scenario.OrderCode);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            "plink-wrong-amount",
+            cancelOrder: false);
         const int wrongAmount = 215_000;
         var signature = SignWebhook(
             wrongAmount,
-            payOsOrderCode,
+            scenario.ProviderOrderCode,
             "plink-wrong-amount",
             "WRONG-AMOUNT-REF");
 
@@ -110,7 +125,7 @@ public sealed class CustomerPaymentWorkflowTests
                 success = true,
                 data = new
                 {
-                    orderCode = payOsOrderCode,
+                    orderCode = scenario.ProviderOrderCode,
                     amount = wrongAmount,
                     code = "00",
                     reference = "WRONG-AMOUNT-REF",
@@ -119,12 +134,123 @@ public sealed class CustomerPaymentWorkflowTests
                 signature
             });
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Assert.False(await context.Payments.AnyAsync(
             payment => payment.OrderId == scenario.OrderId));
+
+        var attempt = await context.PaymentAttempts
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == scenario.AttemptId);
+        Assert.Equal(PaymentAttempt.RequiresReviewStatus, attempt.Status);
+        Assert.Equal("AmountMismatch", attempt.ReviewReason);
+        Assert.Equal(215_000m, attempt.ReceivedAmount);
+        Assert.Equal("WRONG-AMOUNT-REF", attempt.ProviderReference);
+    }
+
+    [Fact]
+    public async Task ValidWebhook_AfterOrderCancellation_IsHeldForReviewWithoutPayment()
+    {
+        using var factory = CreatePayOsFactory();
+        using var client = CreateHttpsClient(factory);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            "plink-late-payment",
+            cancelOrder: true);
+        const int expectedAmount = 216_000;
+        var signature = SignWebhook(
+            expectedAmount,
+            scenario.ProviderOrderCode,
+            "plink-late-payment",
+            "LATE-PAYMENT-REF");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/customer-payments/payos/webhook",
+            new
+            {
+                success = true,
+                data = new
+                {
+                    orderCode = scenario.ProviderOrderCode,
+                    amount = expectedAmount,
+                    code = "00",
+                    reference = "LATE-PAYMENT-REF",
+                    paymentLinkId = "plink-late-payment"
+                },
+                signature
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.False(await context.Payments.AnyAsync(
+            payment => payment.OrderId == scenario.OrderId));
+
+        var attempt = await context.PaymentAttempts
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == scenario.AttemptId);
+        Assert.Equal(PaymentAttempt.RequiresReviewStatus, attempt.Status);
+        Assert.Equal("PaidAfterOrderCancellation", attempt.ReviewReason);
+        Assert.Equal(expectedAmount, attempt.ReceivedAmount);
+        Assert.Equal("LATE-PAYMENT-REF", attempt.ProviderReference);
+
+        using var statusResponse = await client.GetAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/status");
+        Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
+        var status = await statusResponse.Content.ReadFromJsonAsync<PaymentStatusResponse>();
+        Assert.NotNull(status);
+        Assert.False(status!.Paid);
+        Assert.True(status.RequiresReview);
+        Assert.Equal(PaymentAttempt.RequiresReviewStatus, status.AttemptStatus);
+        Assert.Equal(expectedAmount, status.ReceivedAmount);
+    }
+
+    [Fact]
+    public async Task Webhook_WithDifferentPaymentLinkId_IsHeldForReview()
+    {
+        using var factory = CreatePayOsFactory();
+        using var client = CreateHttpsClient(factory);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            "plink-original",
+            cancelOrder: false);
+        const int expectedAmount = 216_000;
+        var signature = SignWebhook(
+            expectedAmount,
+            scenario.ProviderOrderCode,
+            "plink-other",
+            "MISMATCH-LINK-REF");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/customer-payments/payos/webhook",
+            new
+            {
+                success = true,
+                data = new
+                {
+                    orderCode = scenario.ProviderOrderCode,
+                    amount = expectedAmount,
+                    code = "00",
+                    reference = "MISMATCH-LINK-REF",
+                    paymentLinkId = "plink-other"
+                },
+                signature
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.False(await context.Payments.AnyAsync(
+            payment => payment.OrderId == scenario.OrderId));
+        var attempt = await context.PaymentAttempts
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == scenario.AttemptId);
+        Assert.Equal(PaymentAttempt.RequiresReviewStatus, attempt.Status);
+        Assert.Equal("ProviderPaymentLinkIdMismatch", attempt.ReviewReason);
     }
 
     private static WebApplicationFactory<Program> CreatePayOsFactory()
@@ -151,8 +277,10 @@ public sealed class CustomerPaymentWorkflowTests
             AllowAutoRedirect = false
         });
 
-    private static async Task<PaymentScenario> SeedTakeawayOrderAsync(
-        WebApplicationFactory<Program> factory)
+    private static async Task<PaymentScenario> SeedTakeawayOrderWithAttemptAsync(
+        WebApplicationFactory<Program> factory,
+        string paymentLinkId,
+        bool cancelOrder)
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -199,21 +327,40 @@ public sealed class CustomerPaymentWorkflowTests
             null);
         order.UpdateTotalAmount(orderItem.TotalPrice);
 
+        if (cancelOrder)
+            order.Cancel();
+
+        var providerOrderCode = CreateProviderOrderCode();
+        var paymentAttempt = new PaymentAttempt(
+            order.Id,
+            "payOS",
+            providerOrderCode,
+            216_000m,
+            DateTime.UtcNow.AddMinutes(15));
+        paymentAttempt.AttachPaymentLink(
+            paymentLinkId,
+            $"https://pay.example.test/{paymentLinkId}",
+            "PENDING");
+
         context.RestaurantSettings.Add(setting);
         context.MenuCategories.Add(category);
         context.MenuItems.Add(menuItem);
         context.Orders.Add(order);
         context.OrderItems.Add(orderItem);
+        context.PaymentAttempts.Add(paymentAttempt);
         await context.SaveChangesAsync();
 
-        return new PaymentScenario(order.Id, order.OrderCode);
+        return new PaymentScenario(
+            order.Id,
+            order.OrderCode,
+            paymentAttempt.Id,
+            providerOrderCode);
     }
 
-    private static long ToPayOsOrderCode(string orderCode)
-    {
-        var digits = new string(orderCode.Where(char.IsDigit).ToArray());
-        return checked(long.Parse(digits[^14..]) * 10 + 1);
-    }
+    private static long CreateProviderOrderCode()
+        => checked(
+            DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000L +
+            Random.Shared.Next(100, 1000));
 
     private static string SignWebhook(
         int amount,
@@ -230,12 +377,19 @@ public sealed class CustomerPaymentWorkflowTests
             .ToLowerInvariant();
     }
 
-    private sealed record PaymentScenario(Guid OrderId, string OrderCode);
+    private sealed record PaymentScenario(
+        Guid OrderId,
+        string OrderCode,
+        Guid AttemptId,
+        long ProviderOrderCode);
 
     private sealed class PaymentStatusResponse
     {
         public bool Paid { get; set; }
         public string? PaymentCode { get; set; }
         public decimal? Amount { get; set; }
+        public string? AttemptStatus { get; set; }
+        public bool RequiresReview { get; set; }
+        public decimal? ReceivedAmount { get; set; }
     }
 }
