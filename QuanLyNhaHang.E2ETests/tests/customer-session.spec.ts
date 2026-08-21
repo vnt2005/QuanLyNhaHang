@@ -1,4 +1,7 @@
-import { expect, test } from './fixtures'
+// These regression tests deliberately inject 401/429/503 responses. Import
+// Playwright directly because the shared fixture correctly treats every API
+// error response as an unexpected failure for normal end-to-end scenarios.
+import { expect, test } from '@playwright/test'
 
 const apiURL = (process.env.E2E_API_URL ?? 'http://localhost:8080')
   .replace(/\/$/, '')
