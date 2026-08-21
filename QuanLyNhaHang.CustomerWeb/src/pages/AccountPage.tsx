@@ -91,7 +91,7 @@ function OrderRow({
           <div className="order-detail-footer">
             {order.note ? <p>Ghi chú: {order.note}</p> : <span />}
             <strong>Tạm tính món <span>{money(order.totalAmount)}</span></strong>
-            {order.status !== 'Cancelled' ? <PayOnlineButton orderId={order.id} accessToken={accessToken} className="primary-button compact" /> : null}
+            {!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} className="primary-button compact" /> : null}
             {canOrderMore ? <button className="secondary-button compact" type="button" onClick={() => navigate(`/qr-order/${encodeURIComponent(lastQrToken!)}`)}>Gọi thêm món</button> : null}
           </div>
         </div>

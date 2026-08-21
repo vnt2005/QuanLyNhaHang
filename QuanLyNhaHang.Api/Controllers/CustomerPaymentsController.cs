@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Api.Payments;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Features.Notifications.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Api.Controllers;
@@ -20,15 +21,18 @@ public sealed class CustomerPaymentsController : ControllerBase
 
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IAdminNotificationPublisher _notificationPublisher;
     private readonly SePayPaymentService _sePay;
 
     public CustomerPaymentsController(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
+        IAdminNotificationPublisher notificationPublisher,
         IConfiguration configuration)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _notificationPublisher = notificationPublisher;
         _sePay = new SePayPaymentService(configuration);
     }
 
@@ -143,19 +147,23 @@ public sealed class CustomerPaymentsController : ControllerBase
         [FromBody] CreateCustomerPaymentRequest? request,
         CancellationToken cancellationToken)
     {
-        var order = await GetAccessibleOrderAsync(orderId, request?.QrToken, cancellationToken);
-        if (order == null)
-            return NotFound(new { message = "Không tìm thấy đơn hàng." });
-
         var attempt = await _context.PaymentAttempts
             .FirstOrDefaultAsync(
                 item => item.Id == attemptId &&
-                        item.OrderId == order.Id &&
+                        item.OrderId == orderId &&
                         item.Provider == SePayProvider,
                 cancellationToken);
 
         if (attempt == null)
             return NotFound(new { message = "Không tìm thấy phiên thanh toán." });
+
+        var order = await GetAccessibleOrderAsync(
+            orderId,
+            request?.QrToken,
+            cancellationToken,
+            hasPaymentAttemptAccess: true);
+        if (order == null)
+            return NotFound(new { message = "Không tìm thấy đơn hàng." });
 
         if (attempt.Status == PaymentAttempt.PaidStatus)
             return Conflict(new { message = "Giao dịch đã được thanh toán." });
@@ -189,9 +197,23 @@ public sealed class CustomerPaymentsController : ControllerBase
     public async Task<IActionResult> GetStatus(
         Guid orderId,
         [FromQuery] string? qrToken,
+        [FromQuery] Guid? attemptId,
         CancellationToken cancellationToken)
     {
-        var order = await GetAccessibleOrderAsync(orderId, qrToken, cancellationToken);
+        var requestedAttempt = attemptId.HasValue
+            ? await _context.PaymentAttempts
+                .FirstOrDefaultAsync(
+                    item => item.Id == attemptId.Value &&
+                            item.OrderId == orderId &&
+                            item.Provider == SePayProvider,
+                    cancellationToken)
+            : null;
+
+        var order = await GetAccessibleOrderAsync(
+            orderId,
+            qrToken,
+            cancellationToken,
+            hasPaymentAttemptAccess: requestedAttempt != null);
         if (order == null)
             return NotFound(new { message = "Không tìm thấy đơn hàng." });
 
@@ -201,7 +223,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             .OrderByDescending(item => item.PaidAt)
             .FirstOrDefaultAsync(cancellationToken);
 
-        var latestAttempt = await _context.PaymentAttempts
+        var latestAttempt = requestedAttempt ?? await _context.PaymentAttempts
             .Where(item => item.OrderId == order.Id && item.Provider == SePayProvider)
             .OrderByDescending(item => item.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
@@ -267,17 +289,17 @@ public sealed class CustomerPaymentsController : ControllerBase
         }
 
         if (!string.Equals(webhook.TransferType, "in", StringComparison.OrdinalIgnoreCase))
-            return Ok(new { success = true, ignored = true });
+            return SePayAcknowledged();
 
         if (!_sePay.IsExpectedAccount(webhook.AccountNumber))
-            return Ok(new { success = true, ignored = true });
+            return SePayAcknowledged();
 
         if (webhook.Id <= 0 || webhook.TransferAmount <= 0)
             return BadRequest(new { success = false, message = "Dữ liệu giao dịch SePay không hợp lệ." });
 
         var paymentCode = _sePay.ExtractPaymentCode(webhook);
         if (string.IsNullOrWhiteSpace(paymentCode))
-            return Ok(new { success = true, ignored = true });
+            return SePayAcknowledged();
 
         var attempt = await _context.PaymentAttempts
             .FirstOrDefaultAsync(
@@ -286,16 +308,18 @@ public sealed class CustomerPaymentsController : ControllerBase
                 cancellationToken);
 
         if (attempt == null)
-            return Ok(new { success = true, ignored = true });
+            return SePayAcknowledged();
 
         if (attempt.Status == PaymentAttempt.PaidStatus ||
             attempt.Status == PaymentAttempt.RequiresReviewStatus)
         {
-            return Ok(new { success = true });
+            return SePayAcknowledged();
         }
 
-        if (attempt.Status == PaymentAttempt.PendingStatus &&
-            attempt.ExpiresAt <= DateTime.UtcNow)
+        var transactionOccurredAtUtc = _sePay.GetTransactionUtc(webhook.TransactionDate)
+            ?? DateTime.UtcNow;
+        var transactionWasAfterExpiry = attempt.ExpiresAt < transactionOccurredAtUtc;
+        if (attempt.Status == PaymentAttempt.PendingStatus && transactionWasAfterExpiry)
         {
             attempt.MarkExpired();
         }
@@ -303,7 +327,7 @@ public sealed class CustomerPaymentsController : ControllerBase
         var transactionId = webhook.Id.ToString(CultureInfo.InvariantCulture);
 
         if (attempt.Status == PaymentAttempt.CancelledStatus ||
-            attempt.Status == PaymentAttempt.ExpiredStatus ||
+            (attempt.Status == PaymentAttempt.ExpiredStatus && transactionWasAfterExpiry) ||
             attempt.Status == PaymentAttempt.FailedStatus ||
             attempt.Status == PaymentAttempt.CreatingStatus)
         {
@@ -321,7 +345,7 @@ public sealed class CustomerPaymentsController : ControllerBase
                 reason,
                 "PAID");
             await _context.SaveChangesAsync(cancellationToken);
-            return Ok(new { success = true, requiresReview = true });
+            return SePayAcknowledged();
         }
 
         if (attempt.Amount != webhook.TransferAmount)
@@ -332,7 +356,7 @@ public sealed class CustomerPaymentsController : ControllerBase
                 "AmountMismatch",
                 "PAID");
             await _context.SaveChangesAsync(cancellationToken);
-            return Ok(new { success = true, requiresReview = true });
+            return SePayAcknowledged();
         }
 
         var order = await _context.Orders
@@ -346,7 +370,7 @@ public sealed class CustomerPaymentsController : ControllerBase
                 "OrderMissing",
                 "PAID");
             await _context.SaveChangesAsync(cancellationToken);
-            return Ok(new { success = true, requiresReview = true });
+            return SePayAcknowledged();
         }
 
         if (!order.IsActive || order.Status == "Cancelled")
@@ -357,7 +381,7 @@ public sealed class CustomerPaymentsController : ControllerBase
                 "PaidAfterOrderCancellation",
                 "PAID");
             await _context.SaveChangesAsync(cancellationToken);
-            return Ok(new { success = true, requiresReview = true });
+            return SePayAcknowledged();
         }
 
         var existingPayment = await _context.Payments
@@ -373,7 +397,7 @@ public sealed class CustomerPaymentsController : ControllerBase
                 "DuplicatePaymentAfterOrderAlreadyPaid",
                 "PAID");
             await _context.SaveChangesAsync(cancellationToken);
-            return Ok(new { success = true, requiresReview = true });
+            return SePayAcknowledged();
         }
 
         CustomerPaymentQuote quote;
@@ -389,7 +413,7 @@ public sealed class CustomerPaymentsController : ControllerBase
                 $"QuoteUnavailable: {exception.Message}",
                 "PAID");
             await _context.SaveChangesAsync(cancellationToken);
-            return Ok(new { success = true, requiresReview = true });
+            return SePayAcknowledged();
         }
 
         if (quote.FinalAmount != attempt.Amount)
@@ -400,7 +424,7 @@ public sealed class CustomerPaymentsController : ControllerBase
                 "OrderAmountChangedAfterPaymentRequestCreation",
                 "PAID");
             await _context.SaveChangesAsync(cancellationToken);
-            return Ok(new { success = true, requiresReview = true });
+            return SePayAcknowledged();
         }
 
         var bankReference = string.IsNullOrWhiteSpace(webhook.ReferenceCode)
@@ -433,9 +457,47 @@ public sealed class CustomerPaymentsController : ControllerBase
                 cancellationToken);
         promotionUsage?.SetPayment(payment.Id);
 
+        order.UpdateTotalAmount(quote.Subtotal);
+        if (order.Status == "Served")
+        {
+            order.MarkCompleted();
+            if (order.RestaurantTableId.HasValue)
+            {
+                var table = await _context.RestaurantTables.FirstOrDefaultAsync(
+                    item => item.Id == order.RestaurantTableId.Value,
+                    cancellationToken);
+                table?.MarkAvailable();
+            }
+        }
+
+        Notification? customerNotification = null;
+        if (order.CustomerUserId.HasValue)
+        {
+            customerNotification = new Notification(
+                order.CustomerUserId.Value,
+                "Payment.Paid",
+                "Thanh toán thành công",
+                $"Đơn {order.OrderCode} đã thanh toán " +
+                $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua SePay.",
+                "success",
+                "/orders",
+                order.Id);
+            await _context.Notifications.AddAsync(customerNotification, cancellationToken);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
-        return Ok(new { success = true });
+        if (customerNotification != null)
+        {
+            await _notificationPublisher.PublishAsync(
+                [NotificationDto.FromEntity(customerNotification)],
+                cancellationToken);
+        }
+
+        return SePayAcknowledged();
     }
+
+    private IActionResult SePayAcknowledged()
+        => Ok(new { success = true });
 
     private async Task<IActionResult?> ReconcileOpenAttemptsAsync(
         Order order,
@@ -568,13 +630,17 @@ public sealed class CustomerPaymentsController : ControllerBase
     private async Task<Order?> GetAccessibleOrderAsync(
         Guid orderId,
         string? qrToken,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool hasPaymentAttemptAccess = false)
     {
         var order = await _context.Orders
             .FirstOrDefaultAsync(item => item.Id == orderId && item.IsActive, cancellationToken);
 
         if (order == null)
             return null;
+
+        if (hasPaymentAttemptAccess)
+            return order;
 
         if (order.CustomerUserId.HasValue)
         {

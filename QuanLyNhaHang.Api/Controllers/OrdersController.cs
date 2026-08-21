@@ -62,6 +62,7 @@ public class OrdersController : ControllerBase
         [FromQuery] Guid? restaurantTableId,
         [FromQuery] string? status,
         [FromQuery] bool? isActive,
+        [FromQuery] bool? onlyUnpaid,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
@@ -72,6 +73,7 @@ public class OrdersController : ControllerBase
             RestaurantTableId = restaurantTableId,
             Status = status,
             IsActive = isActive,
+            OnlyUnpaid = onlyUnpaid,
             PageNumber = pageNumber,
             PageSize = pageSize
         };

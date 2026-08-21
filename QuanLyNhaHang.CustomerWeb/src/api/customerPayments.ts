@@ -81,8 +81,12 @@ export function getCustomerPaymentStatus(
   orderId: string,
   qrToken?: string | null,
   accessToken?: string | null,
+  attemptId?: string | null,
 ) {
-  const query = qrToken ? `?qrToken=${encodeURIComponent(qrToken)}` : ''
+  const params = new URLSearchParams()
+  if (qrToken) params.set('qrToken', qrToken)
+  if (attemptId) params.set('attemptId', attemptId)
+  const query = params.size > 0 ? `?${params}` : ''
   return apiRequest<CustomerPaymentStatus>(
     `/api/customer-payments/orders/${encodeURIComponent(orderId)}/status${query}`,
     undefined,

@@ -221,7 +221,7 @@ export default function QrOrderPage({
           <div className="order-progress">{['Pending', 'Preparing', 'Ready', 'Served'].map((step, index) => { const statusOrder = ['Pending', 'Confirmed', 'Preparing', 'Cooking', 'Ready', 'Served', 'Completed']; const activeIndex = statusOrder.indexOf(currentOrder.status); const threshold = [0, 2, 4, 5][index]; return <div className={activeIndex >= threshold ? 'done' : ''} key={step}><span>{activeIndex >= threshold ? '✓' : index + 1}</span><strong>{statusLabels[step]}</strong></div> })}</div>
           <div className="current-order-lines">{currentOrder.items.map(item => <div key={item.id}><span><strong>{item.menuItemName}</strong><small>{item.note || statusLabels[item.status] || item.status}</small></span><span>{item.quantity}</span><strong>{formatMoney(item.totalPrice)}</strong></div>)}</div>
           <footer><span>Tạm tính món</span><strong>{formatMoney(currentOrder.totalAmount)}</strong></footer>
-          {currentOrder.status !== 'Cancelled' ? <PayOnlineButton orderId={currentOrder.id} qrToken={token} accessToken={session?.token} className="primary-button full" /> : null}
+          {!terminalStatuses.has(currentOrder.status) ? <PayOnlineButton orderId={currentOrder.id} qrToken={token} accessToken={session?.token} className="primary-button full" /> : null}
           {!terminalStatuses.has(currentOrder.status) ? <button className="secondary-button" type="button" onClick={() => setView('menu')}>Gọi thêm món</button> : null}
         </section>
       ) : (

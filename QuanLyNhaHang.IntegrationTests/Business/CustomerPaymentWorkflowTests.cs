@@ -1,10 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MediatR;
+using QuanLyNhaHang.Application.Features.Orders.Queries.GetWithPaginatedList;
 using QuanLyNhaHang.Domain.Entities;
 using QuanLyNhaHang.Infrastructure.Persistence;
 using QuanLyNhaHang.IntegrationTests.Infrastructure;
@@ -41,8 +44,8 @@ public sealed class CustomerPaymentWorkflowTests
         Assert.Equal(AccountHolder, result.AccountHolder);
         Assert.Equal(scenario.PaymentCode, result.TransferContent);
         Assert.Equal(216_000m, result.Amount);
-        Assert.Contains("vietqr.app/img", result.QrCode);
-        Assert.Contains($"des={scenario.PaymentCode}", result.QrCode);
+        Assert.Contains("img.vietqr.io/image", result.QrCode);
+        Assert.Contains($"addInfo={scenario.PaymentCode}", result.QrCode);
     }
 
     [Fact]
@@ -50,7 +53,10 @@ public sealed class CustomerPaymentWorkflowTests
     {
         using var factory = CreateSePayFactory();
         using var client = CreateHttpsClient(factory);
-        var scenario = await SeedTakeawayOrderWithAttemptAsync(factory, cancelOrder: false);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            cancelOrder: false,
+            assignCustomer: true);
         const decimal expectedAmount = 216_000m;
         const long transactionId = 9_270_401;
         var payload = CreateWebhookPayload(
@@ -63,8 +69,8 @@ public sealed class CustomerPaymentWorkflowTests
         using var firstResponse = await PostSePayWebhookAsync(client, payload);
         using var duplicateResponse = await PostSePayWebhookAsync(client, payload);
 
-        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, duplicateResponse.StatusCode);
+        await AssertSePayAcknowledgedAsync(firstResponse);
+        await AssertSePayAcknowledgedAsync(duplicateResponse);
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -95,10 +101,19 @@ public sealed class CustomerPaymentWorkflowTests
         Assert.Equal(transactionId.ToString(), persistedAttempt.ProviderReference);
         Assert.NotNull(persistedAttempt.PaidAt);
 
-        Assert.Equal("Pending", persistedOrder.Status);
+        Assert.Equal("Completed", persistedOrder.Status);
+
+        var notification = await context.Notifications
+            .AsNoTracking()
+            .SingleAsync(item =>
+                item.UserId == scenario.CustomerUserId &&
+                item.Type == "Payment.Paid" &&
+                item.EntityId == scenario.OrderId);
+        Assert.Equal("Thanh toán thành công", notification.Title);
 
         using var statusResponse = await client.GetAsync(
-            $"/api/customer-payments/orders/{scenario.OrderId}/status");
+            $"/api/customer-payments/orders/{scenario.OrderId}/status" +
+            $"?attemptId={scenario.AttemptId}");
         Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
         var status = await statusResponse.Content.ReadFromJsonAsync<PaymentStatusResponse>();
         Assert.NotNull(status);
@@ -148,7 +163,7 @@ public sealed class CustomerPaymentWorkflowTests
                 AccountNumber,
                 "WRONG-AMOUNT-REF"));
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertSePayAcknowledgedAsync(response);
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -180,7 +195,7 @@ public sealed class CustomerPaymentWorkflowTests
                 AccountNumber,
                 "LATE-PAYMENT-REF"));
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertSePayAcknowledgedAsync(response);
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -219,7 +234,7 @@ public sealed class CustomerPaymentWorkflowTests
                 AccountNumber,
                 "CANCELLED-LATE-REF"));
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertSePayAcknowledgedAsync(response);
 
         using var verifyScope = factory.Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -248,7 +263,7 @@ public sealed class CustomerPaymentWorkflowTests
                 "9999999999",
                 "OTHER-ACCOUNT-REF"));
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertSePayAcknowledgedAsync(response);
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -257,6 +272,162 @@ public sealed class CustomerPaymentWorkflowTests
             .AsNoTracking()
             .SingleAsync(item => item.Id == scenario.AttemptId);
         Assert.Equal(PaymentAttempt.PendingStatus, attempt.Status);
+    }
+
+    [Fact]
+    public async Task WebhookRetry_AfterAttemptExpiry_UsesBankTransactionTime()
+    {
+        using var factory = CreateSePayFactory();
+        using var client = CreateHttpsClient(factory);
+        var expiredAtUtc = DateTime.UtcNow.AddMinutes(-2);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            cancelOrder: false,
+            forcedExpiryUtc: expiredAtUtc);
+
+        // Simulate the customer page observing the wall-clock expiry before
+        // SePay retries a transfer that actually happened while the QR was valid.
+        using (var expiredStatusResponse = await client.GetAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/status"))
+        {
+            Assert.Equal(HttpStatusCode.OK, expiredStatusResponse.StatusCode);
+        }
+
+        using var response = await PostSePayWebhookAsync(
+            client,
+            CreateWebhookPayload(
+                scenario.PaymentCode,
+                216_000m,
+                9_270_407,
+                AccountNumber,
+                "DELAYED-DELIVERY-REF",
+                expiredAtUtc.AddMinutes(-1)));
+
+        await AssertSePayAcknowledgedAsync(response);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.True(await context.Payments.AnyAsync(
+            payment => payment.OrderId == scenario.OrderId && payment.Status == "Paid"));
+        var attempt = await context.PaymentAttempts
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == scenario.AttemptId);
+        Assert.Equal(PaymentAttempt.PaidStatus, attempt.Status);
+    }
+
+    [Fact]
+    public async Task WebhookTransaction_AfterAttemptExpiry_IsHeldForReview()
+    {
+        using var factory = CreateSePayFactory();
+        using var client = CreateHttpsClient(factory);
+        var expiredAtUtc = DateTime.UtcNow.AddMinutes(-2);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            cancelOrder: false,
+            forcedExpiryUtc: expiredAtUtc);
+
+        using var response = await PostSePayWebhookAsync(
+            client,
+            CreateWebhookPayload(
+                scenario.PaymentCode,
+                216_000m,
+                9_270_408,
+                AccountNumber,
+                "AFTER-EXPIRY-REF",
+                expiredAtUtc.AddMinutes(1)));
+
+        await AssertSePayAcknowledgedAsync(response);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.False(await context.Payments.AnyAsync(
+            payment => payment.OrderId == scenario.OrderId));
+        var attempt = await context.PaymentAttempts
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == scenario.AttemptId);
+        Assert.Equal(PaymentAttempt.RequiresReviewStatus, attempt.Status);
+        Assert.Equal("PaidAfterPaymentExpiry", attempt.ReviewReason);
+    }
+
+    [Fact]
+    public async Task CreateSePayQr_AfterWebhookPayment_DoesNotIssueSecondQr()
+    {
+        using var factory = CreateSePayFactory();
+        using var client = CreateHttpsClient(factory);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(factory, cancelOrder: false);
+
+        using (var webhookResponse = await PostSePayWebhookAsync(
+            client,
+            CreateWebhookPayload(
+                scenario.PaymentCode,
+                216_000m,
+                9_270_409,
+                AccountNumber,
+                "PAID-ONCE-REF")))
+        {
+            await AssertSePayAcknowledgedAsync(webhookResponse);
+        }
+
+        using var response = await client.PostAsJsonAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/sepay-qr",
+            new { qrToken = (string?)null });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<PaymentInstructionResponse>();
+        Assert.NotNull(result);
+        Assert.True(result!.AlreadyPaid);
+        Assert.Null(result.AttemptId);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Equal(1, await context.PaymentAttempts.CountAsync(
+            item => item.OrderId == scenario.OrderId));
+        Assert.Equal(1, await context.Payments.CountAsync(
+            item => item.OrderId == scenario.OrderId && item.Status == "Paid"));
+    }
+
+    [Fact]
+    public async Task PaidOrder_IsExcludedFromAdminUnpaidOrderQuery()
+    {
+        using var factory = CreateSePayFactory();
+        using var client = CreateHttpsClient(factory);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            cancelOrder: false,
+            markServed: false);
+
+        using (var response = await PostSePayWebhookAsync(
+            client,
+            CreateWebhookPayload(
+                scenario.PaymentCode,
+                216_000m,
+                9_270_410,
+                AccountNumber,
+                "ADMIN-UNPAID-FILTER-REF")))
+        {
+            await AssertSePayAcknowledgedAsync(response);
+        }
+
+        using var scope = factory.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var allPending = await mediator.Send(new GetOrdersWithPaginatedListQuery
+        {
+            Status = "Pending",
+            IsActive = true,
+            PageNumber = 1,
+            PageSize = 100
+        });
+        var unpaidPending = await mediator.Send(new GetOrdersWithPaginatedListQuery
+        {
+            Status = "Pending",
+            IsActive = true,
+            OnlyUnpaid = true,
+            PageNumber = 1,
+            PageSize = 100
+        });
+
+        Assert.Contains(allPending.Items, item => item.Id == scenario.OrderId);
+        Assert.DoesNotContain(unpaidPending.Items, item => item.Id == scenario.OrderId);
     }
 
     private static WebApplicationFactory<Program> CreateSePayFactory()
@@ -298,17 +469,36 @@ public sealed class CustomerPaymentWorkflowTests
         return await client.SendAsync(request);
     }
 
+    private static async Task AssertSePayAcknowledgedAsync(
+        HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var properties = json.RootElement.EnumerateObject().ToList();
+        var success = Assert.Single(properties);
+        Assert.Equal("success", success.Name);
+        Assert.True(success.Value.GetBoolean());
+    }
+
     private static object CreateWebhookPayload(
         string paymentCode,
         decimal amount,
         long transactionId,
         string accountNumber,
-        string referenceCode)
-        => new
+        string referenceCode,
+        DateTime? transactionOccurredAtUtc = null)
+    {
+        var transactionDate = new DateTimeOffset(
+                transactionOccurredAtUtc ?? DateTime.UtcNow)
+            .ToOffset(TimeSpan.FromHours(7))
+            .ToString("yyyy-MM-dd HH:mm:ss");
+
+        return new
         {
             id = transactionId,
             gateway = "HDBank",
-            transactionDate = "2026-08-18 01:30:00",
+            transactionDate,
             accountNumber,
             subAccount = "",
             code = paymentCode,
@@ -319,10 +509,14 @@ public sealed class CustomerPaymentWorkflowTests
             accumulated = 1_000_000m,
             referenceCode
         };
+    }
 
     private static async Task<PaymentScenario> SeedTakeawayOrderWithAttemptAsync(
         WebApplicationFactory<Program> factory,
-        bool cancelOrder)
+        bool cancelOrder,
+        bool assignCustomer = false,
+        DateTime? forcedExpiryUtc = null,
+        bool markServed = true)
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -368,6 +562,26 @@ public sealed class CustomerPaymentWorkflowTests
             menuItem.Price,
             null);
         order.UpdateTotalAmount(orderItem.TotalPrice);
+        if (markServed)
+        {
+            orderItem.MarkReady();
+            orderItem.MarkServed();
+            order.MarkServed();
+        }
+
+        User? customer = null;
+        if (assignCustomer)
+        {
+            customer = new User(
+                "Khách",
+                "Payment",
+                $"payment-{Guid.NewGuid():N}@example.com",
+                "0900000012",
+                "integration-test-password-hash",
+                "Customer");
+            customer.MarkEmailVerified();
+            order.AssignCustomer(customer.Id);
+        }
 
         if (cancelOrder)
             order.Cancel();
@@ -382,15 +596,24 @@ public sealed class CustomerPaymentWorkflowTests
             DateTime.UtcNow.AddMinutes(15));
         paymentAttempt.AttachPaymentRequest(
             paymentCode,
-            $"https://vietqr.app/img?acc={AccountNumber}&bank=HDBank&amount=216000&des={paymentCode}",
+            $"https://img.vietqr.io/image/HDBank-{AccountNumber}-compact2.png" +
+            $"?amount=216000&addInfo={paymentCode}",
             "PENDING");
 
         context.RestaurantSettings.Add(setting);
         context.MenuCategories.Add(category);
         context.MenuItems.Add(menuItem);
+        if (customer != null)
+            context.Users.Add(customer);
         context.Orders.Add(order);
         context.OrderItems.Add(orderItem);
         context.PaymentAttempts.Add(paymentAttempt);
+        if (forcedExpiryUtc.HasValue)
+        {
+            context.Entry(paymentAttempt)
+                .Property(item => item.ExpiresAt)
+                .CurrentValue = forcedExpiryUtc.Value;
+        }
         await context.SaveChangesAsync();
 
         return new PaymentScenario(
@@ -398,7 +621,8 @@ public sealed class CustomerPaymentWorkflowTests
             order.OrderCode,
             paymentAttempt.Id,
             providerOrderCode,
-            paymentCode);
+            paymentCode,
+            customer?.Id);
     }
 
     private sealed record PaymentScenario(
@@ -406,7 +630,8 @@ public sealed class CustomerPaymentWorkflowTests
         string OrderCode,
         Guid AttemptId,
         long ProviderOrderCode,
-        string PaymentCode);
+        string PaymentCode,
+        Guid? CustomerUserId);
 
     private sealed class PaymentInstructionResponse
     {

@@ -91,6 +91,7 @@ export function getOrders(
   status = '',
   pageNumber = 1,
   pageSize = 10,
+  onlyUnpaid = false,
 ) {
   const params = new URLSearchParams({
     pageNumber: String(pageNumber),
@@ -100,6 +101,7 @@ export function getOrders(
   if (keyword.trim()) params.set('keyword', keyword.trim())
   if (restaurantTableId) params.set('restaurantTableId', restaurantTableId)
   if (status) params.set('status', status)
+  if (onlyUnpaid) params.set('onlyUnpaid', 'true')
   return request<PaginatedOrders>(`/api/Orders/paginated?${params}`)
 }
 

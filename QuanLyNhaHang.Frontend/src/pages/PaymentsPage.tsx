@@ -94,7 +94,7 @@ export default function PaymentsPage() {
 
   async function loadEligibleOrders() {
     try {
-      const result = await getOrders('', '', 'Served', 1, 100)
+      const result = await getOrders('', '', 'Served', 1, 100, true)
       setEligibleOrders(result.items ?? [])
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không tải được đơn chờ thanh toán.')

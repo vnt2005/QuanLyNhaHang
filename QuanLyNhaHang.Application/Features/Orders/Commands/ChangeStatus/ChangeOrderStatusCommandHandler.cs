@@ -61,6 +61,7 @@ public class ChangeOrderStatusCommandHandler
             throw new ArgumentException("Trạng thái order không được để trống.");
 
         var status = request.Status.Trim();
+        var effectiveStatus = status;
 
         switch (status)
         {
@@ -91,6 +92,18 @@ public class ChangeOrderStatusCommandHandler
                 table?.MarkOccupied();
                 foreach (var item in orderItems.Where(x => x.Status == "Ready"))
                     item.MarkServed();
+
+                var alreadyPaid = await _context.Payments
+                    .AsNoTracking()
+                    .AnyAsync(
+                        payment => payment.OrderId == order.Id && payment.Status == "Paid",
+                        cancellationToken);
+                if (alreadyPaid)
+                {
+                    order.MarkCompleted();
+                    table?.MarkAvailable();
+                    effectiveStatus = "Completed";
+                }
                 break;
 
             case "Completed":
@@ -115,10 +128,10 @@ public class ChangeOrderStatusCommandHandler
         Notification? customerNotification = null;
         if (order.CustomerUserId.HasValue)
         {
-            var (title, message, severity) = CustomerStatusNotification(order, status);
+            var (title, message, severity) = CustomerStatusNotification(order, effectiveStatus);
             customerNotification = new Notification(
                 order.CustomerUserId.Value,
-                $"Order.{status}",
+                $"Order.{effectiveStatus}",
                 title,
                 message,
                 severity,

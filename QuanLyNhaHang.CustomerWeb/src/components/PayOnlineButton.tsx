@@ -17,6 +17,7 @@ export default function PayOnlineButton({
   accessToken?: string | null
   className?: string
 }) {
+  const [checking, setChecking] = useState(true)
   const [loading, setLoading] = useState(false)
   const [paid, setPaid] = useState(false)
   const [error, setError] = useState('')
@@ -24,16 +25,26 @@ export default function PayOnlineButton({
 
   useEffect(() => {
     let active = true
+    setChecking(true)
+    setError('')
     void getCustomerPaymentStatus(orderId, qrToken, accessToken)
       .then(status => {
         if (active) setPaid(status.paid)
       })
-      .catch(() => undefined)
+      .catch(exception => {
+        if (!active) return
+        setError(exception instanceof Error
+          ? exception.message
+          : 'Không kiểm tra được trạng thái thanh toán.')
+      })
+      .finally(() => {
+        if (active) setChecking(false)
+      })
     return () => { active = false }
   }, [accessToken, orderId, qrToken])
 
   async function pay() {
-    if (payingRef.current || loading || paid) return
+    if (payingRef.current || checking || loading || paid) return
     payingRef.current = true
     setLoading(true)
     setError('')
@@ -66,9 +77,15 @@ export default function PayOnlineButton({
 
   return (
     <div className="customer-online-payment-action">
-      <button className={className} type="button" disabled={loading || paid} onClick={() => void pay()}>
+      <button className={className} type="button" disabled={checking || loading || paid} onClick={() => void pay()}>
         {paid ? <CheckCircle2 /> : <QrCode />}
-        {paid ? 'Đã thanh toán' : loading ? 'Đang tạo mã QR…' : 'Thanh toán online'}
+        {paid
+          ? 'Đã thanh toán'
+          : checking
+            ? 'Đang kiểm tra…'
+            : loading
+              ? 'Đang tạo mã QR…'
+              : 'Thanh toán online'}
       </button>
       {error ? <small className="payment-inline-error" role="alert">{error}</small> : null}
     </div>

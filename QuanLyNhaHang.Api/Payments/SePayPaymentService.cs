@@ -30,6 +30,7 @@ public sealed class SePayWebhookTransaction
 
 public sealed class SePayPaymentService
 {
+    private static readonly TimeSpan VietnamUtcOffset = TimeSpan.FromHours(7);
     private readonly string _webhookApiKey;
     private readonly Regex _paymentCodeRegex;
 
@@ -71,21 +72,22 @@ public sealed class SePayPaymentService
             throw new ArgumentOutOfRangeException(nameof(amount));
 
         var paymentCode = GetPaymentCode(providerOrderCode);
+        var imagePath = string.Join('-', new[]
+        {
+            Encode(BankCode),
+            Encode(AccountNumber),
+            "compact2.png"
+        });
         var query = string.Join('&', new[]
         {
-            $"acc={Encode(AccountNumber)}",
-            $"bank={Encode(BankCode)}",
             $"amount={amount.ToString(CultureInfo.InvariantCulture)}",
-            $"des={Encode(paymentCode)}",
-            "template=compact",
-            "showinfo=true",
-            "fullacc=true",
-            $"holder={Encode(AccountHolder)}"
+            $"addInfo={Encode(paymentCode)}",
+            $"accountName={Encode(AccountHolder)}"
         });
 
         return new SePayPaymentInstruction(
             paymentCode,
-            $"https://vietqr.app/img?{query}",
+            $"https://img.vietqr.io/image/{imagePath}?{query}",
             BankCode,
             AccountNumber,
             AccountHolder);
@@ -119,6 +121,24 @@ public sealed class SePayPaymentService
                NormalizeAccountNumber(accountNumber),
                AccountNumber,
                StringComparison.Ordinal);
+
+    public DateTime? GetTransactionUtc(string? transactionDate)
+    {
+        if (!DateTime.TryParseExact(
+                transactionDate?.Trim(),
+                "yyyy-MM-dd HH:mm:ss",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces,
+                out var vietnamLocalTime))
+        {
+            return null;
+        }
+
+        return new DateTimeOffset(
+                DateTime.SpecifyKind(vietnamLocalTime, DateTimeKind.Unspecified),
+                VietnamUtcOffset)
+            .UtcDateTime;
+    }
 
     public bool IsWebhookAuthorized(string? authorizationHeader)
     {

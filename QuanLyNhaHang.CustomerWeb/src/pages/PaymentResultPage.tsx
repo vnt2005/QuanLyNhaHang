@@ -38,7 +38,12 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
     if (showLoading) setLoading(true)
     setError('')
     try {
-      setStatus(await getCustomerPaymentStatus(orderId, qrToken, session?.token))
+      setStatus(await getCustomerPaymentStatus(
+        orderId,
+        qrToken,
+        session?.token,
+        requestedAttemptId,
+      ))
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không kiểm tra được trạng thái thanh toán.')
     } finally {
@@ -48,7 +53,7 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
 
   useEffect(() => {
     void loadStatus()
-  }, [orderId, session?.token])
+  }, [orderId, requestedAttemptId, session?.token])
 
   const paid = status?.paid === true
   const requiresReview = status?.requiresReview === true
