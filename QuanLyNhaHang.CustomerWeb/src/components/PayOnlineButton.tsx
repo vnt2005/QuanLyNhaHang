@@ -1,5 +1,5 @@
 import { CheckCircle2, QrCode } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   createCustomerPaymentQr,
   getCustomerPaymentStatus,
@@ -20,6 +20,7 @@ export default function PayOnlineButton({
   const [loading, setLoading] = useState(false)
   const [paid, setPaid] = useState(false)
   const [error, setError] = useState('')
+  const payingRef = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -32,9 +33,11 @@ export default function PayOnlineButton({
   }, [accessToken, orderId, qrToken])
 
   async function pay() {
-    if (loading || paid) return
+    if (payingRef.current || loading || paid) return
+    payingRef.current = true
     setLoading(true)
     setError('')
+
     try {
       const result = await createCustomerPaymentQr(orderId, qrToken, accessToken)
       if (result.alreadyPaid) {
@@ -55,6 +58,8 @@ export default function PayOnlineButton({
       )
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không tạo được mã QR thanh toán.')
+    } finally {
+      payingRef.current = false
       setLoading(false)
     }
   }
