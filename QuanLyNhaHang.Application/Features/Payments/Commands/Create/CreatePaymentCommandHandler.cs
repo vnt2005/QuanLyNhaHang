@@ -40,15 +40,33 @@ public class CreatePaymentCommandHandler
         var appliedPromotionUsage = await _context.PromotionUsages.FirstOrDefaultAsync(x => x.OrderId == request.OrderId && x.Status == "Applied", cancellationToken);
         var discountAmount = appliedPromotionUsage?.DiscountAmount ?? request.DiscountAmount;
 
+        var serviceChargeAmount = request.ServiceChargeAmount;
+        var vatAmount = request.VatAmount;
+        if (order.OrderType == "Takeaway")
+        {
+            var settings = await _context.RestaurantSettings
+                .AsNoTracking()
+                .Where(item => item.IsActive)
+                .OrderByDescending(item => item.UpdatedAt ?? item.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+            var afterDiscount = Math.Max(0, totalAmount - discountAmount);
+
+            serviceChargeAmount = 0;
+            vatAmount = decimal.Round(
+                afterDiscount * (settings?.DefaultVatPercent ?? 0) / 100m,
+                0,
+                MidpointRounding.AwayFromZero);
+        }
+
         var payment = new Payment(
             request.OrderId,
             totalAmount,
             discountAmount,
-            request.VatAmount,
+            vatAmount,
             request.CustomerPaid,
             request.PaymentMethod,
             request.Note,
-            request.ServiceChargeAmount);
+            serviceChargeAmount);
 
         await _context.Payments.AddAsync(payment, cancellationToken);
         if (appliedPromotionUsage != null) appliedPromotionUsage.SetPayment(payment.Id);

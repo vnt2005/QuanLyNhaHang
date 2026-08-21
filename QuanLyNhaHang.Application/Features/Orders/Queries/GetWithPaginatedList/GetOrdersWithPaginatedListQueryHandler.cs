@@ -54,6 +54,12 @@ public class GetOrdersWithPaginatedListQueryHandler
         if (request.IsActive.HasValue)
             query = query.Where(x => x.Order.IsActive == request.IsActive.Value);
 
+        if (request.OnlyUnpaid == true)
+        {
+            query = query.Where(x => !_context.Payments.Any(payment =>
+                payment.OrderId == x.Order.Id && payment.Status == "Paid"));
+        }
+
         var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
         var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
         var totalCount = await query.CountAsync(cancellationToken);

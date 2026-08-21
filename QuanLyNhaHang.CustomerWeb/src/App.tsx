@@ -1,10 +1,12 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import {
   clearCustomerSession,
+  CustomerSessionRefreshSupersededError,
   hasCustomerSession,
   restoreCustomerSession,
   type CustomerSession,
 } from './api/customerAuth'
+import { accessTokenRefreshDelay } from './api/accessToken'
 import {
   getCustomerSiteBootstrap,
   type CustomerSiteBootstrap,
@@ -21,6 +23,7 @@ const TakeawayPage = lazy(() => import('./pages/TakeawayPage'))
 const ReservationPage = lazy(() => import('./pages/ReservationPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const QrOrderPage = lazy(() => import('./pages/QrOrderPage'))
+const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage'))
 
 const emptyData: CustomerSiteBootstrap = {
   restaurant: null,
@@ -64,15 +67,37 @@ export default function App() {
 
   useEffect(() => { void loadData() }, [])
 
-  useEffect(() => {
-    if (!hasCustomerSession()) return
-    void restoreCustomerSession()
-      .then(setSession)
-      .catch(() => {
-        clearCustomerSession()
-        setSessionMessage('Phiên đăng nhập trước đã hết hạn. Vui lòng đăng nhập lại.')
-      })
+  const refreshCustomerSession = useCallback(async () => {
+    try {
+      const nextSession = await restoreCustomerSession()
+      setSession(nextSession)
+      setSessionMessage('')
+      return nextSession
+    } catch (exception) {
+      if (exception instanceof CustomerSessionRefreshSupersededError) return null
+      clearCustomerSession()
+      setSession(null)
+      setSessionMessage('Phiên đăng nhập trước đã hết hạn. Vui lòng đăng nhập lại.')
+      return null
+    }
   }, [])
+
+  useEffect(() => {
+    if (hasCustomerSession()) void refreshCustomerSession()
+  }, [refreshCustomerSession])
+
+  useEffect(() => {
+    if (!session?.token) return
+
+    const delay = accessTokenRefreshDelay(session.token)
+    if (delay == null) return
+
+    const timer = window.setTimeout(
+      () => void refreshCustomerSession(),
+      Math.min(delay, 2_147_483_647),
+    )
+    return () => window.clearTimeout(timer)
+  }, [refreshCustomerSession, session?.token])
 
   useEffect(() => {
     const restaurantName = data.restaurant?.restaurantName || 'Nhà Hàng'
@@ -87,17 +112,19 @@ export default function App() {
             ? 'Đặt món mang về'
             : pathname === '/reservation'
               ? 'Đặt bàn'
-              : pathname === '/orders' || pathname === '/account'
-                ? 'Tài khoản của tôi'
-                : pathname === '/login'
-                  ? 'Đăng nhập'
-                  : pathname === '/'
-                    ? 'Trang chủ'
-                    : 'Không tìm thấy trang'
+              : pathname === '/payment-result'
+                ? 'Kết quả thanh toán'
+                : pathname === '/orders' || pathname === '/account'
+                  ? 'Tài khoản của tôi'
+                  : pathname === '/login'
+                    ? 'Đăng nhập'
+                    : pathname === '/'
+                      ? 'Trang chủ'
+                      : 'Không tìm thấy trang'
     document.title = `${pageName} | ${restaurantName}`
   }, [data.menuItems, data.restaurant?.restaurantName, menuItemId, pathname])
 
-  function handleSessionChanged(nextSession: CustomerSession | null) {
+  const handleSessionChanged = useCallback((nextSession: CustomerSession | null) => {
     setSession(nextSession)
     if (!nextSession) return
     setSessionMessage('')
@@ -108,12 +135,13 @@ export default function App() {
     } else if (pathname === '/login') {
       navigate('/orders')
     }
-  }
+  }, [pathname])
 
   const qrToken = getQrToken(pathname)
   const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/reservation' || Boolean(menuItemId)
 
   function content() {
+    if (pathname === '/payment-result') return <PaymentResultPage session={session} />
     if (qrToken) return <QrOrderPage token={qrToken} session={session} />
     if (loadingData && isPublicDataRoute) return <PageLoading />
     if (dataError && isPublicDataRoute) return <main className="page-section"><StatusPanel kind="error" title="Chưa kết nối được với nhà hàng" message={dataError} onRetry={() => void loadData()} /></main>
@@ -128,7 +156,12 @@ export default function App() {
 
   return (
     <div className="customer-site">
-      <SiteHeader restaurant={data.restaurant} session={session} pathname={pathname} />
+      <SiteHeader
+        restaurant={data.restaurant}
+        session={session}
+        pathname={pathname}
+        onSessionRefresh={refreshCustomerSession}
+      />
       <Suspense fallback={<PageLoading />}>{content()}</Suspense>
       <SiteFooter restaurant={data.restaurant} />
     </div>

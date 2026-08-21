@@ -21,6 +21,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<PaymentAttempt> PaymentAttempts => Set<PaymentAttempt>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
@@ -41,6 +42,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
     public DbSet<Notification> Notifications => Set<Notification>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

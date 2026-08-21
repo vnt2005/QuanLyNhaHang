@@ -20,6 +20,7 @@ import {
   type CustomerOrderHistory,
 } from '../api/customerOrders'
 import AuthPanel from '../components/AuthPanel'
+import PayOnlineButton from '../components/PayOnlineButton'
 import reservationImage from '../assets/reservation-dining-room.webp'
 import { navigate } from '../navigation'
 
@@ -56,10 +57,12 @@ function dateTime(value: string) {
 function OrderRow({
   order,
   expanded,
+  accessToken,
   onToggle,
 }: {
   order: CustomerOrder
   expanded: boolean
+  accessToken: string
   onToggle: () => void
 }) {
   const lastQrToken = localStorage.getItem('customerLastQrToken')
@@ -87,8 +90,9 @@ function OrderRow({
           ))}
           <div className="order-detail-footer">
             {order.note ? <p>Ghi chú: {order.note}</p> : <span />}
-            <strong>Tổng tiền <span>{money(order.totalAmount)}</span></strong>
-            {canOrderMore ? <button className="primary-button compact" type="button" onClick={() => navigate(`/qr-order/${encodeURIComponent(lastQrToken!)}`)}>Gọi thêm món</button> : null}
+            <strong>Tạm tính món <span>{money(order.totalAmount)}</span></strong>
+            {!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} className="primary-button compact" /> : null}
+            {canOrderMore ? <button className="secondary-button compact" type="button" onClick={() => navigate(`/qr-order/${encodeURIComponent(lastQrToken!)}`)}>Gọi thêm món</button> : null}
           </div>
         </div>
       ) : null}
@@ -200,7 +204,7 @@ export default function AccountPage({
             {history?.items.length ? (
               <div className="orders-table">
                 <div className="orders-table-heading"><span>Mã đơn</span><span>Ngày đặt</span><span>Bàn</span><span>Tổng tiền</span><span>Trạng thái</span></div>
-                {history.items.map(order => <OrderRow key={order.id} order={order} expanded={expandedId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} />)}
+                {history.items.map(order => <OrderRow key={order.id} order={order} accessToken={session.token} expanded={expandedId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} />)}
                 {history.totalPages > 1 ? <div className="pagination"><button type="button" disabled={!history.hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trang trước</button><span>Trang {history.pageNumber}/{history.totalPages}</span><button type="button" disabled={!history.hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Trang sau</button></div> : null}
               </div>
             ) : history && !loading ? (

@@ -14,6 +14,8 @@ public class GetOrdersWithPaginatedListQuery : IRequest<PaginatedList<OrderDto>>
 
     public bool? IsActive { get; set; }
 
+    public bool? OnlyUnpaid { get; set; }
+
     public int PageNumber { get; set; } = 1;
 
     public int PageSize { get; set; } = 10;

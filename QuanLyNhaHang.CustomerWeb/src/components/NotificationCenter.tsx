@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react'
 import type { CustomerSession } from '../api/customerAuth'
+import { ApiError } from '../api/client'
 import {
   connectCustomerNotificationStream,
   getCustomerNotificationFeed,
@@ -15,6 +16,8 @@ import {
 } from '../api/notifications'
 import { navigate } from '../navigation'
 import './NotificationCenter.css'
+
+const REALTIME_REFRESH_COOLDOWN_MS = 60_000
 
 type RealtimeState = 'connected' | 'reconnecting' | 'offline'
 
@@ -57,8 +60,10 @@ function statusLabel(type: string) {
 
 export default function NotificationCenter({
   session,
+  onSessionRefresh,
 }: {
   session: CustomerSession
+  onSessionRefresh: () => Promise<CustomerSession | null>
 }) {
   const [items, setItems] = useState<CustomerNotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -71,6 +76,37 @@ export default function NotificationCenter({
   const [toast, setToast] = useState<CustomerNotification | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const knownIdsRef = useRef(new Set<string>())
+  const refreshRequestRef = useRef<Promise<CustomerSession | null> | null>(null)
+  const realtimeRefreshAtRef = useRef(0)
+
+  const refreshSession = useCallback(() => {
+    if (!refreshRequestRef.current) {
+      const request = onSessionRefresh().finally(() => {
+        if (refreshRequestRef.current === request) {
+          refreshRequestRef.current = null
+        }
+      })
+      refreshRequestRef.current = request
+    }
+
+    return refreshRequestRef.current
+  }, [onSessionRefresh])
+
+  const requestWithRefresh = useCallback(async <T,>(
+    request: (accessToken: string) => Promise<T>,
+  ) => {
+    try {
+      return await request(session.token)
+    } catch (exception) {
+      if (!(exception instanceof ApiError) || exception.status !== 401) {
+        throw exception
+      }
+
+      const refreshedSession = await refreshSession()
+      if (!refreshedSession) throw exception
+      return request(refreshedSession.token)
+    }
+  }, [refreshSession, session.token])
 
   const applyFeed = useCallback((feed: {
     items: CustomerNotification[]
@@ -86,7 +122,7 @@ export default function NotificationCenter({
     setLoading(true)
     setError('')
 
-    void getCustomerNotificationFeed(session.token)
+    void requestWithRefresh(getCustomerNotificationFeed)
       .then(feed => {
         if (active) applyFeed(feed)
       })
@@ -103,7 +139,7 @@ export default function NotificationCenter({
     return () => {
       active = false
     }
-  }, [applyFeed, session.token])
+  }, [applyFeed, requestWithRefresh])
 
   useEffect(() => {
     let disconnect: (() => void) | undefined
@@ -128,7 +164,18 @@ export default function NotificationCenter({
         }
       },
       state => {
-        if (active) setRealtimeState(state)
+        if (!active) return
+        if (state === 'connected') realtimeRefreshAtRef.current = 0
+        setRealtimeState(state)
+      },
+      async () => {
+        const now = Date.now()
+        if (now - realtimeRefreshAtRef.current < REALTIME_REFRESH_COOLDOWN_MS) {
+          return null
+        }
+
+        realtimeRefreshAtRef.current = now
+        return (await refreshSession())?.token ?? null
       },
     ).then(cleanup => {
       if (!active) cleanup()
@@ -139,7 +186,7 @@ export default function NotificationCenter({
       active = false
       disconnect?.()
     }
-  }, [session.token, session.userId])
+  }, [refreshSession, session.token, session.userId])
 
   useEffect(() => {
     if (!open) return
@@ -171,9 +218,11 @@ export default function NotificationCenter({
   ) => {
     if (!notification.isRead) {
       try {
-        const updated = await markCustomerNotificationRead(
-          notification.id,
-          session.token,
+        const updated = await requestWithRefresh(
+          accessToken => markCustomerNotificationRead(
+            notification.id,
+            accessToken,
+          ),
         )
         setItems(current => current.map(item =>
           item.id === notification.id
@@ -191,7 +240,7 @@ export default function NotificationCenter({
     setOpen(false)
     setToast(current => current?.id === notification.id ? null : current)
     if (notification.target) navigate(notification.target)
-  }, [session.token])
+  }, [requestWithRefresh])
 
   async function markAllRead() {
     if (!unreadCount || markingAll) return
@@ -199,7 +248,7 @@ export default function NotificationCenter({
     setMarkingAll(true)
     setError('')
     try {
-      await markAllCustomerNotificationsRead(session.token)
+      await requestWithRefresh(markAllCustomerNotificationsRead)
       setUnreadCount(0)
       setItems(current => current.map(item => ({ ...item, isRead: true })))
     } catch (exception) {

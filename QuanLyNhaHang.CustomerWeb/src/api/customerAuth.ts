@@ -51,6 +51,13 @@ export type RegisterCustomerInput = {
 
 let refreshRequest: Promise<CustomerSession> | null = null
 
+export class CustomerSessionRefreshSupersededError extends Error {
+  constructor() {
+    super('Phiên làm mới đã được thay thế bởi lần đăng nhập mới.')
+    this.name = 'CustomerSessionRefreshSupersededError'
+  }
+}
+
 function unwrap(envelope: ApiEnvelope<CustomerAuthResult>) {
   return {
     ...(envelope.data ?? {}),
@@ -132,6 +139,11 @@ export function hasCustomerSession() {
 export function clearCustomerSession() {
   sessionStorage.removeItem(ACCESS_TOKEN_KEY)
   localStorage.removeItem(REFRESH_TOKEN_KEY)
+}
+
+function clearCustomerSessionIfCurrent(refreshToken: string) {
+  if (localStorage.getItem(REFRESH_TOKEN_KEY) !== refreshToken) return
+  clearCustomerSession()
 }
 
 export async function loginCustomer(email: string, password: string) {
@@ -252,10 +264,18 @@ export function restoreCustomerSession() {
     .then(unwrap)
     .then(async result => {
       await rejectEmployeeSession(result)
+      if (localStorage.getItem(REFRESH_TOKEN_KEY) !== refreshToken) {
+        throw new CustomerSessionRefreshSupersededError()
+      }
       return toSession(result)
     })
     .catch(error => {
-      clearCustomerSession()
+      if (localStorage.getItem(REFRESH_TOKEN_KEY) !== refreshToken) {
+        throw error instanceof CustomerSessionRefreshSupersededError
+          ? error
+          : new CustomerSessionRefreshSupersededError()
+      }
+      clearCustomerSessionIfCurrent(refreshToken)
       throw error
     })
     .finally(() => {

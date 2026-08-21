@@ -254,12 +254,14 @@ builder.Services.AddRateLimiter(options =>
         var ip = context.Connection.RemoteIpAddress?.ToString()
                  ?? "unknown";
 
-        var token =
+        var routeResource =
             Convert.ToString(context.Request.RouteValues["token"])
+            ?? Convert.ToString(context.Request.RouteValues["orderId"])
+            ?? context.Request.Path.Value
             ?? "unknown";
 
         return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: $"{ip}:{token}",
+            partitionKey: $"{ip}:{routeResource}",
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
