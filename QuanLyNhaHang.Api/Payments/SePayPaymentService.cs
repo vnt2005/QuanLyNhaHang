@@ -47,7 +47,7 @@ public sealed class SePayPaymentService
 
     public SePayPaymentService(IConfiguration configuration)
     {
-        BankCode = (configuration["SePay:BankCode"] ?? "HDBank").Trim();
+        BankCode = (configuration["SePay:BankCode"] ?? "TPBank").Trim();
         AccountNumber = NormalizeAccountNumber(configuration["SePay:AccountNumber"]);
         AccountHolder = (configuration["SePay:AccountHolder"] ?? string.Empty).Trim();
         _webhookApiKey = (configuration["SePay:WebhookApiKey"] ?? string.Empty).Trim();
