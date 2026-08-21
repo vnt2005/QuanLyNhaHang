@@ -63,7 +63,7 @@ services:
       Email__Username: "${EMAIL_USERNAME:-}"
       Email__Password: "${EMAIL_PASSWORD:-}"
       Email__From: "${EMAIL_FROM:-noreply@quanlynhahang.local}"
-      SePay__BankCode: "${SEPAY_BANK_CODE:-HDBank}"
+      SePay__BankCode: "${SEPAY_BANK_CODE:-TPBank}"
       SePay__AccountNumber: "${SEPAY_ACCOUNT_NUMBER:-}"
       SePay__AccountHolder: "${SEPAY_ACCOUNT_HOLDER:-}"
       SePay__WebhookApiKey: "${SEPAY_WEBHOOK_API_KEY:-}"
