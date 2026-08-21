@@ -56,6 +56,11 @@ EMAIL_USE_AUTHENTICATION=false
 EMAIL_USERNAME=
 EMAIL_PASSWORD=
 EMAIL_FROM=noreply@quanlynhahang.local
+SEPAY_BANK_CODE=TPBank
+SEPAY_ACCOUNT_NUMBER=<tpbank-account-number>
+SEPAY_ACCOUNT_HOLDER=<account-holder-without-diacritics>
+SEPAY_WEBHOOK_API_KEY=<same-api-key-configured-in-sepay>
+SEPAY_PAYMENT_PREFIX=DH
 ```
 
 Khởi động SQL Server và hộp thư local khi phát triển bằng Visual Studio:
@@ -80,7 +85,7 @@ Trong Visual Studio:
 
 1. Nhấp chuột phải `QuanLyNhaHang.Api`.
 2. Chọn **Manage User Secrets**.
-3. Giữ lại cấu hình database/JWT hiện có và đặt mục `Email` như sau.
+3. Giữ lại cấu hình database/JWT hiện có và đặt mục `Email`, `SePay` như sau.
 
 ```json
 {
@@ -105,6 +110,13 @@ Trong Visual Studio:
     "EnableSsl": "false",
     "UseAuthentication": "false",
     "From": "noreply@quanlynhahang.local"
+  },
+  "SePay": {
+    "BankCode": "TPBank",
+    "AccountNumber": "<tpbank-account-number>",
+    "AccountHolder": "<account-holder-without-diacritics>",
+    "WebhookApiKey": "<same-api-key-configured-in-sepay>",
+    "PaymentPrefix": "DH"
   }
 }
 ```
@@ -201,7 +213,39 @@ Docker API dùng `mailpit:1025`, còn Visual Studio API dùng `localhost:1025`.
 Docker Compose đang bật tự động migration cho API container. EF Core chỉ áp
 dụng migration chưa có trong `__EFMigrationsHistory`.
 
-## 7. Kiểm tra đúng database
+## 7. Mở webhook SePay từ máy local
+
+Cloudflare Quick Tunnel chỉ chuyển tiếp tới API đang chạy. Script dưới đây kiểm
+tra `/health/live` trước khi tạo tunnel, nhờ vậy sai cổng hoặc API chưa chạy sẽ
+được báo ngay thay vì để SePay nhận lỗi `502 Bad Gateway`.
+
+Khi chạy API bằng Visual Studio tại `https://localhost:7134`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-sepay-webhook-tunnel.ps1
+```
+
+Khi chạy API bằng Docker Compose tại `http://localhost:8080`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-sepay-webhook-tunnel.ps1 `
+  -ApiBaseUrl http://localhost:8080
+```
+
+Sau khi cloudflared in ra URL mới, ghép thêm đường dẫn:
+
+```text
+https://<ten-tunnel>.trycloudflare.com/api/customer-payments/sepay/webhook
+```
+
+Đặt URL đầy đủ này vào webhook **Có tiền vào** của SePay và giữ cửa sổ
+PowerShell chạy cloudflared luôn mở. Quick Tunnel tạo URL tạm; nếu khởi động
+lại tunnel và URL thay đổi thì phải cập nhật URL trong SePay.
+
+Không đưa `SEPAY_WEBHOOK_API_KEY` vào URL. SePay gửi khóa này qua header
+`Authorization: Apikey ...` theo cấu hình xác thực API Key.
+
+## 8. Kiểm tra đúng database
 
 Trong SSMS, kết nối:
 
@@ -229,7 +273,7 @@ FROM dbo.AuthSessions
 ORDER BY CreatedAt DESC;
 ```
 
-## 8. Xoay bí mật đã từng hiển thị
+## 9. Xoay bí mật đã từng hiển thị
 
 Nếu một bí mật đã xuất hiện trong ảnh, video, log hoặc tin nhắn, coi bí mật đó
 là đã lộ và tạo giá trị mới:

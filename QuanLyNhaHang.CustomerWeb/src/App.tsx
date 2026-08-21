@@ -1,10 +1,11 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import {
   clearCustomerSession,
   hasCustomerSession,
   restoreCustomerSession,
   type CustomerSession,
 } from './api/customerAuth'
+import { accessTokenRefreshDelay } from './api/accessToken'
 import {
   getCustomerSiteBootstrap,
   type CustomerSiteBootstrap,
@@ -65,15 +66,36 @@ export default function App() {
 
   useEffect(() => { void loadData() }, [])
 
-  useEffect(() => {
-    if (!hasCustomerSession()) return
-    void restoreCustomerSession()
-      .then(setSession)
-      .catch(() => {
-        clearCustomerSession()
-        setSessionMessage('Phiên đăng nhập trước đã hết hạn. Vui lòng đăng nhập lại.')
-      })
+  const refreshCustomerSession = useCallback(async () => {
+    try {
+      const nextSession = await restoreCustomerSession()
+      setSession(nextSession)
+      setSessionMessage('')
+      return nextSession
+    } catch {
+      clearCustomerSession()
+      setSession(null)
+      setSessionMessage('Phiên đăng nhập trước đã hết hạn. Vui lòng đăng nhập lại.')
+      return null
+    }
   }, [])
+
+  useEffect(() => {
+    if (hasCustomerSession()) void refreshCustomerSession()
+  }, [refreshCustomerSession])
+
+  useEffect(() => {
+    if (!session?.token) return
+
+    const delay = accessTokenRefreshDelay(session.token)
+    if (delay == null) return
+
+    const timer = window.setTimeout(
+      () => void refreshCustomerSession(),
+      Math.min(delay, 2_147_483_647),
+    )
+    return () => window.clearTimeout(timer)
+  }, [refreshCustomerSession, session?.token])
 
   useEffect(() => {
     const restaurantName = data.restaurant?.restaurantName || 'Nhà Hàng'
@@ -100,7 +122,7 @@ export default function App() {
     document.title = `${pageName} | ${restaurantName}`
   }, [data.menuItems, data.restaurant?.restaurantName, menuItemId, pathname])
 
-  function handleSessionChanged(nextSession: CustomerSession | null) {
+  const handleSessionChanged = useCallback((nextSession: CustomerSession | null) => {
     setSession(nextSession)
     if (!nextSession) return
     setSessionMessage('')
@@ -111,7 +133,7 @@ export default function App() {
     } else if (pathname === '/login') {
       navigate('/orders')
     }
-  }
+  }, [pathname])
 
   const qrToken = getQrToken(pathname)
   const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/reservation' || Boolean(menuItemId)
@@ -132,7 +154,12 @@ export default function App() {
 
   return (
     <div className="customer-site">
-      <SiteHeader restaurant={data.restaurant} session={session} pathname={pathname} />
+      <SiteHeader
+        restaurant={data.restaurant}
+        session={session}
+        pathname={pathname}
+        onSessionRefresh={refreshCustomerSession}
+      />
       <Suspense fallback={<PageLoading />}>{content()}</Suspense>
       <SiteFooter restaurant={data.restaurant} />
     </div>

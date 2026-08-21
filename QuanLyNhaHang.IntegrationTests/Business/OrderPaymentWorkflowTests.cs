@@ -245,6 +245,102 @@ public sealed class OrderPaymentWorkflowTests
     }
 
     [Fact]
+    public async Task CreatePayment_ForTakeaway_DoesNotChargeServiceFee()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        Guid orderId;
+        using (var seedScope = factory.Services.CreateScope())
+        {
+            var context = seedScope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+            await context.Database.EnsureCreatedAsync();
+
+            var setting = new RestaurantSetting(
+                "Nhà hàng Takeaway Test",
+                "1 Nguyễn Huệ",
+                "0900000010",
+                null,
+                null,
+                null,
+                null,
+                10m,
+                10m,
+                "VND",
+                "08:00",
+                "22:00",
+                null,
+                null);
+            var category = new MenuCategory(
+                $"Takeaway category {Guid.NewGuid():N}",
+                null,
+                1);
+            var menuItem = new MenuItem(
+                category.Id,
+                "Món mang về",
+                null,
+                10_000m,
+                null);
+            var order = Order.CreateTakeaway(
+                $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}",
+                "Khách mang về",
+                "0900000011",
+                null,
+                null);
+            var orderItem = new OrderItem(
+                order.Id,
+                menuItem.Id,
+                menuItem.Name,
+                1,
+                menuItem.Price,
+                null);
+
+            orderItem.MarkCooking();
+            orderItem.MarkReady();
+            orderItem.MarkServed();
+            order.UpdateTotalAmount(orderItem.TotalPrice);
+            order.MarkServed();
+
+            context.RestaurantSettings.Add(setting);
+            context.MenuCategories.Add(category);
+            context.MenuItems.Add(menuItem);
+            context.Orders.Add(order);
+            context.OrderItems.Add(orderItem);
+            await context.SaveChangesAsync();
+            orderId = order.Id;
+        }
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/payments",
+            new
+            {
+                orderId,
+                discountAmount = 0m,
+                serviceChargeAmount = 1_000m,
+                vatAmount = 1_100m,
+                customerPaid = 12_100m,
+                paymentMethod = "Cash",
+                note = "Không thu phí phục vụ cho đơn mang về",
+                issueInvoice = false
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        var payment = json.RootElement.GetProperty("data");
+
+        Assert.Equal(0m,
+            payment.GetProperty("serviceChargeAmount").GetDecimal());
+        Assert.Equal(1_000m,
+            payment.GetProperty("vatAmount").GetDecimal());
+        Assert.Equal(11_000m,
+            payment.GetProperty("finalAmount").GetDecimal());
+        Assert.Equal(1_100m,
+            payment.GetProperty("changeAmount").GetDecimal());
+    }
+
+    [Fact]
     public async Task UpdatePayment_SynchronizesActiveInvoiceSnapshot()
     {
         using var factory = new ApiWebApplicationFactory();

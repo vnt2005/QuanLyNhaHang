@@ -18,10 +18,12 @@ export default function SiteHeader({
   restaurant,
   session,
   pathname,
+  onSessionRefresh,
 }: {
   restaurant: PublicRestaurant | null
   session: CustomerSession | null
   pathname: string
+  onSessionRefresh: () => Promise<CustomerSession | null>
 }) {
   const [open, setOpen] = useState(false)
   const [cartCount, setCartCount] = useState(() => takeawayCartCount())
@@ -69,7 +71,12 @@ export default function SiteHeader({
             <ShoppingBag aria-hidden="true" />
             {cartCount ? <span>{cartCount > 99 ? '99+' : cartCount}</span> : null}
           </a>
-          {session ? <NotificationCenter session={session} /> : null}
+          {session
+            ? <NotificationCenter
+                session={session}
+                onSessionRefresh={onSessionRefresh}
+              />
+            : null}
           <a className="account-link" href={accountPath} onClick={event => follow(event, accountPath)}><UserRound aria-hidden="true" /><span>{accountLabel}</span></a>
         </div>
 

@@ -105,11 +105,14 @@ export async function connectCustomerNotificationStream(
   accessToken: string,
   onNotification: (notification: CustomerNotification) => void,
   onStateChange: (state: 'connected' | 'reconnecting' | 'offline') => void,
+  refreshAccessToken: () => Promise<string | null>,
 ) {
   let disposed = false
   let socket: WebSocket | null = null
   let retryTimer: number | undefined
   let retryDelay = 1_000
+  let currentAccessToken = accessToken
+  let authRefreshAttempted = false
 
   async function start() {
     if (disposed) return
@@ -118,8 +121,28 @@ export async function connectCustomerNotificationStream(
     try {
       const negotiate = await fetch(`${API_BASE_URL}${HUB_PATH}/negotiate?negotiateVersion=1`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${currentAccessToken}` },
       })
+
+      if (negotiate.status === 401) {
+        if (authRefreshAttempted) {
+          onStateChange('offline')
+          return
+        }
+
+        authRefreshAttempted = true
+        const refreshedAccessToken = await refreshAccessToken()
+        if (disposed || !refreshedAccessToken) {
+          onStateChange('offline')
+          return
+        }
+
+        currentAccessToken = refreshedAccessToken
+        retryDelay = 1_000
+        void start()
+        return
+      }
+
       if (!negotiate.ok) throw new Error('Không thể thương lượng kết nối realtime.')
       const payload = await negotiate.json() as { connectionToken?: string }
       if (!payload.connectionToken) throw new Error('Máy chủ không trả về mã kết nối realtime.')
@@ -127,12 +150,13 @@ export async function connectCustomerNotificationStream(
       const url = hubUrl(HUB_PATH)
       url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
       url.searchParams.set('id', payload.connectionToken)
-      url.searchParams.set('access_token', accessToken)
+      url.searchParams.set('access_token', currentAccessToken)
 
       socket = new WebSocket(url.toString())
 
       socket.onopen = () => {
         retryDelay = 1_000
+        authRefreshAttempted = false
         socket?.send(JSON.stringify({ protocol: 'json', version: 1 }) + RECORD_SEPARATOR)
       }
 
