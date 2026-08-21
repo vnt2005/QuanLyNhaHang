@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import {
   clearCustomerSession,
+  CustomerSessionRefreshSupersededError,
   hasCustomerSession,
   restoreCustomerSession,
   type CustomerSession,
@@ -72,7 +73,8 @@ export default function App() {
       setSession(nextSession)
       setSessionMessage('')
       return nextSession
-    } catch {
+    } catch (exception) {
+      if (exception instanceof CustomerSessionRefreshSupersededError) return null
       clearCustomerSession()
       setSession(null)
       setSessionMessage('Phiên đăng nhập trước đã hết hạn. Vui lòng đăng nhập lại.')

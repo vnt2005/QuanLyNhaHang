@@ -17,6 +17,8 @@ import {
 import { navigate } from '../navigation'
 import './NotificationCenter.css'
 
+const REALTIME_REFRESH_COOLDOWN_MS = 60_000
+
 type RealtimeState = 'connected' | 'reconnecting' | 'offline'
 
 const MAX_VISIBLE_NOTIFICATIONS = 20
@@ -75,6 +77,7 @@ export default function NotificationCenter({
   const rootRef = useRef<HTMLDivElement>(null)
   const knownIdsRef = useRef(new Set<string>())
   const refreshRequestRef = useRef<Promise<CustomerSession | null> | null>(null)
+  const realtimeRefreshAtRef = useRef(0)
 
   const refreshSession = useCallback(() => {
     if (!refreshRequestRef.current) {
@@ -161,9 +164,19 @@ export default function NotificationCenter({
         }
       },
       state => {
-        if (active) setRealtimeState(state)
+        if (!active) return
+        if (state === 'connected') realtimeRefreshAtRef.current = 0
+        setRealtimeState(state)
       },
-      async () => (await refreshSession())?.token ?? null,
+      async () => {
+        const now = Date.now()
+        if (now - realtimeRefreshAtRef.current < REALTIME_REFRESH_COOLDOWN_MS) {
+          return null
+        }
+
+        realtimeRefreshAtRef.current = now
+        return (await refreshSession())?.token ?? null
+      },
     ).then(cleanup => {
       if (!active) cleanup()
       else disconnect = cleanup

@@ -1,6 +1,5 @@
-import { apiRequest } from './client'
+import { API_BASE_URL, apiRequest } from './client'
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7134').replace(/\/+$/, '')
 const HUB_PATH = '/hubs/admin-notifications'
 const RECORD_SEPARATOR = '\u001e'
 
