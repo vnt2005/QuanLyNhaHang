@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import {
   clearCustomerSession,
   CustomerSessionRefreshSupersededError,
@@ -56,6 +56,10 @@ export default function App() {
     window.addEventListener('popstate', update)
     return () => window.removeEventListener('popstate', update)
   }, [])
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [pathname])
 
   async function loadData() {
     setLoadingData(true)
