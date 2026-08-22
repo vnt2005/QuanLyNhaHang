@@ -467,7 +467,7 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("RestaurantTableId")
+                    b.Property<Guid?>("RestaurantTableId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("RestaurantTableName")

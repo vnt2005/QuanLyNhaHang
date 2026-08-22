@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MediatR;
+using QuanLyNhaHang.Application.Common.Constants;
+using QuanLyNhaHang.Application.Features.RevenueReports.Queries.GetSummary;
 using QuanLyNhaHang.Application.Features.Orders.Queries.GetWithPaginatedList;
 using QuanLyNhaHang.Domain.Entities;
 using QuanLyNhaHang.Infrastructure.Persistence;
@@ -135,6 +137,25 @@ public sealed class CustomerPaymentWorkflowTests
     {
         using var factory = CreateSePayFactory();
         using var client = CreateHttpsClient(factory);
+        Guid adminUserId;
+        using (var adminScope = factory.Services.CreateScope())
+        {
+            var adminContext = adminScope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+            await adminContext.Database.EnsureCreatedAsync();
+
+            var admin = new User(
+                "Admin",
+                "Payment",
+                $"payment-notification-admin-{Guid.NewGuid():N}@example.com",
+                "0900000013",
+                "integration-test-password-hash",
+                SystemRoles.Admin);
+            admin.MarkEmailVerified();
+            adminContext.Users.Add(admin);
+            await adminContext.SaveChangesAsync();
+            adminUserId = admin.Id;
+        }
         var scenario = await SeedTakeawayOrderWithAttemptAsync(
             factory,
             cancelOrder: false,
@@ -192,6 +213,39 @@ public sealed class CustomerPaymentWorkflowTests
                 item.Type == "Payment.Paid" &&
                 item.EntityId == scenario.OrderId);
         Assert.Equal("Thanh toán thành công", notification.Title);
+
+        var invoice = await context.Invoices
+            .AsNoTracking()
+            .SingleAsync(item => item.PaymentId == payment.Id);
+        var invoiceItemCount = await context.InvoiceItems
+            .AsNoTracking()
+            .CountAsync(item => item.InvoiceId == invoice.Id);
+
+        Assert.Null(invoice.RestaurantTableId);
+        Assert.Equal("Mang về", invoice.RestaurantTableName);
+        Assert.Equal("BankTransfer", invoice.PaymentMethod);
+        Assert.Equal(payment.FinalAmount, invoice.FinalAmount);
+        Assert.Equal(1, invoiceItemCount);
+
+        var adminNotification = await context.Notifications
+            .AsNoTracking()
+            .SingleAsync(item =>
+                item.UserId == adminUserId &&
+                item.Type == "Payment.PaidFromCustomer" &&
+                item.EntityId == scenario.OrderId);
+        Assert.Equal("Đã nhận chuyển khoản QR", adminNotification.Title);
+
+        var summaryHandler = new GetRevenueReportSummaryQueryHandler(context);
+        var summary = await summaryHandler.Handle(
+            new GetRevenueReportSummaryQuery(),
+            CancellationToken.None);
+
+        Assert.Equal(1, summary.TotalInvoices);
+        Assert.Equal(payment.FinalAmount, summary.TotalRevenue);
+        var paymentMethod = Assert.Single(summary.PaymentMethods);
+        Assert.Equal("BankTransfer", paymentMethod.PaymentMethod);
+        Assert.Equal(1, paymentMethod.PaymentCount);
+        Assert.Equal(payment.FinalAmount, paymentMethod.TotalAmount);
 
         using var statusResponse = await client.GetAsync(
             $"/api/customer-payments/orders/{scenario.OrderId}/status" +

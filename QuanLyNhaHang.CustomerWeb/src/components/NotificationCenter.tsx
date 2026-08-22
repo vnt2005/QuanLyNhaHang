@@ -165,7 +165,14 @@ export default function NotificationCenter({
       },
       state => {
         if (!active) return
-        if (state === 'connected') realtimeRefreshAtRef.current = 0
+        if (state === 'connected') {
+          realtimeRefreshAtRef.current = 0
+          void requestWithRefresh(getCustomerNotificationFeed)
+            .then(applyFeed)
+            .catch(() => {
+              // The next realtime event or reconciliation tick retries.
+            })
+        }
         setRealtimeState(state)
       },
       async () => {
@@ -186,7 +193,43 @@ export default function NotificationCenter({
       active = false
       disconnect?.()
     }
-  }, [refreshSession, session.token, session.userId])
+  }, [
+    applyFeed,
+    refreshSession,
+    requestWithRefresh,
+    session.token,
+    session.userId,
+  ])
+
+  useEffect(() => {
+    let active = true
+
+    const reconcile = async () => {
+      try {
+        const feed = await requestWithRefresh(getCustomerNotificationFeed)
+        if (active) applyFeed(feed)
+      } catch {
+        // Keep the current feed and retry on the next resume/tick.
+      }
+    }
+
+    const reconcileWhenVisible = () => {
+      if (document.visibilityState === 'visible') void reconcile()
+    }
+
+    const interval = window.setInterval(() => void reconcile(), 30_000)
+    window.addEventListener('focus', reconcileWhenVisible)
+    window.addEventListener('online', reconcileWhenVisible)
+    document.addEventListener('visibilitychange', reconcileWhenVisible)
+
+    return () => {
+      active = false
+      window.clearInterval(interval)
+      window.removeEventListener('focus', reconcileWhenVisible)
+      window.removeEventListener('online', reconcileWhenVisible)
+      document.removeEventListener('visibilitychange', reconcileWhenVisible)
+    }
+  }, [applyFeed, requestWithRefresh])
 
   useEffect(() => {
     if (!open) return

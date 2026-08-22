@@ -5,6 +5,8 @@ const API_BASE_URL = (
 export const NOTIFICATIONS_HUB_URL =
   `${API_BASE_URL}/hubs/admin-notifications`
 
+export const ADMIN_NOTIFICATION_EVENT = 'vnt:admin-notification'
+
 export type AdminNotification = {
   id: string
   userId: string

@@ -53,6 +53,30 @@ public sealed class InvoiceTests
     }
 
     [Fact]
+    public void TakeawayInvoice_AllowsMissingRestaurantTable()
+    {
+        var invoice = new Invoice(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            null,
+            "ORD-TAKEAWAY",
+            "PAY-TAKEAWAY",
+            "Mang về",
+            100_000m,
+            0,
+            8_000m,
+            108_000m,
+            108_000m,
+            0,
+            "BankTransfer",
+            null);
+
+        Assert.Null(invoice.RestaurantTableId);
+        Assert.Equal("Mang về", invoice.RestaurantTableName);
+        Assert.Equal("BankTransfer", invoice.PaymentMethod);
+    }
+
+    [Fact]
     public void UpdatePaymentSnapshot_RejectsCancelledInvoice()
     {
         var invoice = CreateInvoice();

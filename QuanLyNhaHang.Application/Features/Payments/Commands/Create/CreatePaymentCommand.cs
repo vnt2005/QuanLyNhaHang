@@ -19,8 +19,7 @@ public class CreatePaymentCommand : IRequest<PaymentDto>
 
     public string? Note { get; set; }
 
-    // THÊM MỚI:
-    // true  = Thanh toán xong tự động xuất hóa đơn
-    // false = Chỉ thanh toán, chưa xuất hóa đơn
+    // Giữ lại để tương thích với các client cũ. Mọi thanh toán Paid
+    // đều được phát hành hóa đơn tự động.
     public bool IssueInvoice { get; set; } = true;
 }

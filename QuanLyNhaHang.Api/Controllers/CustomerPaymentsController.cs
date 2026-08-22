@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Api.Payments;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Notifications;
+using QuanLyNhaHang.Application.Common.Payments;
 using QuanLyNhaHang.Application.Features.Notifications.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -516,10 +518,17 @@ public sealed class CustomerPaymentsController : ControllerBase
             }
         }
 
-        Notification? customerNotification = null;
+        await PaidOrderInvoiceIssuer.IssueAsync(
+            _context,
+            order,
+            payment,
+            "Phát hành tự động từ thanh toán chuyển khoản QR qua SePay",
+            cancellationToken);
+
+        var notifications = new List<Notification>();
         if (order.CustomerUserId.HasValue)
         {
-            customerNotification = new Notification(
+            notifications.Add(new Notification(
                 order.CustomerUserId.Value,
                 "Payment.Paid",
                 "Thanh toán thành công",
@@ -527,17 +536,40 @@ public sealed class CustomerPaymentsController : ControllerBase
                 $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua SePay.",
                 "success",
                 "/orders",
-                order.Id);
-            await _context.Notifications.AddAsync(customerNotification, cancellationToken);
+                order.Id));
+        }
+
+        var adminUserIds = await _context.Users
+            .AsNoTracking()
+            .Where(user =>
+                user.IsActive &&
+                user.IsEmailVerified &&
+                AdminNotificationAudience.OrderAndReservationRoles
+                    .Contains(user.Role))
+            .Select(user => user.Id)
+            .ToListAsync(cancellationToken);
+
+        notifications.AddRange(adminUserIds.Select(userId => new Notification(
+            userId,
+            "Payment.PaidFromCustomer",
+            "Đã nhận chuyển khoản QR",
+            $"Đơn {order.OrderCode} vừa thanh toán " +
+            $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua SePay.",
+            "success",
+            "Hóa đơn",
+            order.Id)));
+
+        if (notifications.Count > 0)
+        {
+            await _context.Notifications.AddRangeAsync(
+                notifications,
+                cancellationToken);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
-        if (customerNotification != null)
-        {
-            await _notificationPublisher.PublishAsync(
-                [NotificationDto.FromEntity(customerNotification)],
-                cancellationToken);
-        }
+        await _notificationPublisher.PublishAsync(
+            notifications.Select(NotificationDto.FromEntity).ToArray(),
+            cancellationToken);
 
         return SePayAcknowledged();
     }

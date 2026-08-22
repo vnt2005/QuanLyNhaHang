@@ -42,6 +42,12 @@ export type RevenueSummaryItem = {
   totalRevenue: number
 }
 
+export type RevenuePaymentMethodSummary = {
+  paymentMethod: string
+  paymentCount: number
+  totalAmount: number
+}
+
 export type RevenueSummary = {
   fromDate: string
   toDate: string
@@ -54,6 +60,7 @@ export type RevenueSummary = {
   totalCustomerPaid: number
   totalChangeAmount: number
   averageRevenuePerInvoice: number
+  paymentMethods: RevenuePaymentMethodSummary[]
   items: RevenueSummaryItem[]
 }
 

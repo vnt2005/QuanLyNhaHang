@@ -1,6 +1,6 @@
 import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import { confirmAction } from '../design-system/confirmDialog'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   cancelRevenueReport,
   createRevenueReport,
@@ -11,12 +11,26 @@ import {
   type RevenueReport,
   type RevenueSummary,
 } from '../api/revenueReports'
+import {
+  ADMIN_NOTIFICATION_EVENT,
+  type AdminNotification,
+} from '../api/notifications'
 
 const statusLabels: Record<string, string> = {
   Generated: 'Đã tạo',
   Exported: 'Đã xuất',
   Printed: 'Đã in',
   Cancelled: 'Đã hủy',
+}
+
+const paymentMethodLabels: Record<string, string> = {
+  Cash: 'Tiền mặt',
+  BankTransfer: 'Chuyển khoản QR/ngân hàng',
+  Card: 'Thẻ',
+  EWallet: 'Ví điện tử',
+  Momo: 'MoMo',
+  ZaloPay: 'ZaloPay',
+  Other: 'Khác',
 }
 
 const money = (value: number) =>
@@ -119,6 +133,7 @@ export default function RevenueReportsPage() {
   const [formFrom, setFormFrom] = useState(defaultRange.fromDate)
   const [formTo, setFormTo] = useState(defaultRange.toDate)
   const [note, setNote] = useState('')
+  const realtimeRefreshRef = useRef<() => void>(() => undefined)
 
   function validateRange(fromDate: string, toDate: string, required = true) {
     if (required && (!fromDate || !toDate)) {
@@ -195,6 +210,26 @@ export default function RevenueReportsPage() {
   useEffect(() => {
     setError('')
     void Promise.all([loadSummary(defaultRange.fromDate, defaultRange.toDate), loadReports(1)])
+  }, [])
+
+  realtimeRefreshRef.current = () => {
+    void Promise.all([
+      loadSummary(summaryFrom, summaryTo),
+      loadReports(page),
+    ])
+  }
+
+  useEffect(() => {
+    const refreshRevenue = (event: Event) => {
+      const notification = (event as CustomEvent<AdminNotification>).detail
+      if (!notification?.type.startsWith('Payment.')) return
+      realtimeRefreshRef.current()
+    }
+
+    window.addEventListener(ADMIN_NOTIFICATION_EVENT, refreshRevenue)
+    return () => {
+      window.removeEventListener(ADMIN_NOTIFICATION_EVENT, refreshRevenue)
+    }
   }, [])
 
   const topItems = useMemo(
@@ -377,7 +412,7 @@ export default function RevenueReportsPage() {
         <div>
           <span className="eyebrow">SỐ LIỆU THỜI GIAN THỰC</span>
           <h3>Khoảng phân tích</h3>
-          <p>Số liệu được tổng hợp trực tiếp từ các hóa đơn chưa hủy.</p>
+          <p>Số liệu được tổng hợp trực tiếp từ các giao dịch đã thanh toán.</p>
         </div>
         <label>
           Từ ngày
@@ -413,14 +448,14 @@ export default function RevenueReportsPage() {
           </small>
         </article>
         <article className="revenue-summary-card">
-          <span>Hóa đơn hợp lệ</span>
+          <span>Giao dịch đã thanh toán</span>
           <strong>{summaryLoading ? '—' : summary?.totalInvoices ?? 0}</strong>
           <small>{summary?.totalOrders ?? 0} đơn hàng</small>
         </article>
         <article className="revenue-summary-card">
-          <span>Trung bình / hóa đơn</span>
+          <span>Trung bình / giao dịch</span>
           <strong>{summaryLoading ? '—' : money(summary?.averageRevenuePerInvoice ?? 0)}</strong>
-          <small>Giá trị trung bình mỗi hóa đơn</small>
+          <small>Giá trị trung bình mỗi giao dịch</small>
         </article>
         <article className="revenue-summary-card">
           <span>Tổng giảm giá</span>
@@ -492,13 +527,24 @@ export default function RevenueReportsPage() {
               <strong>{money(summary?.totalRevenue ?? 0)}</strong>
             </div>
             <div>
-              <span>Khách đã đưa</span>
+              <span>Tổng khách thanh toán</span>
               <strong>{money(summary?.totalCustomerPaid ?? 0)}</strong>
             </div>
             <div>
-              <span>Tiền đã thối</span>
+              <span>Tiền thừa hoàn lại</span>
               <strong>{money(summary?.totalChangeAmount ?? 0)}</strong>
             </div>
+            {(summary?.paymentMethods ?? []).map(paymentMethod => (
+              <div key={paymentMethod.paymentMethod}>
+                <span>
+                  {paymentMethodLabels[paymentMethod.paymentMethod]
+                    ?? paymentMethod.paymentMethod}
+                  {' · '}
+                  {paymentMethod.paymentCount} giao dịch
+                </span>
+                <strong>{money(paymentMethod.totalAmount)}</strong>
+              </div>
+            ))}
           </div>
         </article>
       </div>

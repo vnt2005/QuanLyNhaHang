@@ -8,7 +8,7 @@ public class Invoice
 
     public Guid PaymentId { get; private set; }
 
-    public Guid RestaurantTableId { get; private set; }
+    public Guid? RestaurantTableId { get; private set; }
 
     public string InvoiceCode { get; private set; } = string.Empty;
 
@@ -52,7 +52,7 @@ public class Invoice
     public Invoice(
         Guid orderId,
         Guid paymentId,
-        Guid restaurantTableId,
+        Guid? restaurantTableId,
         string orderCode,
         string paymentCode,
         string restaurantTableName,
@@ -149,7 +149,7 @@ public class Invoice
         PaymentId = paymentId;
     }
 
-    private void SetRestaurantTableId(Guid restaurantTableId)
+    private void SetRestaurantTableId(Guid? restaurantTableId)
     {
         if (restaurantTableId == Guid.Empty)
             throw new ArgumentException("Bàn không hợp lệ.");

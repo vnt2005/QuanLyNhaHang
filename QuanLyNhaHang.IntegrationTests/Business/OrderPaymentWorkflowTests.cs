@@ -338,6 +338,17 @@ public sealed class OrderPaymentWorkflowTests
             payment.GetProperty("finalAmount").GetDecimal());
         Assert.Equal(1_100m,
             payment.GetProperty("changeAmount").GetDecimal());
+
+        using var verificationScope = factory.Services.CreateScope();
+        var verificationContext = verificationScope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+        var invoice = await verificationContext.Invoices
+            .AsNoTracking()
+            .SingleAsync(item => item.OrderId == orderId);
+
+        Assert.Null(invoice.RestaurantTableId);
+        Assert.Equal("Mang về", invoice.RestaurantTableName);
+        Assert.Equal("Cash", invoice.PaymentMethod);
     }
 
     [Fact]

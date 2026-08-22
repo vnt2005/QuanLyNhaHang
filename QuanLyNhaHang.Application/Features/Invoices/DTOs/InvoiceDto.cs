@@ -8,7 +8,7 @@ public class InvoiceDto
 
     public Guid PaymentId { get; set; }
 
-    public Guid RestaurantTableId { get; set; }
+    public Guid? RestaurantTableId { get; set; }
 
     public string InvoiceCode { get; set; } = string.Empty;
 

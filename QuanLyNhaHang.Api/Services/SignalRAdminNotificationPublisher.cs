@@ -30,7 +30,7 @@ public sealed class SignalRAdminNotificationPublisher
         {
             await Task.WhenAll(notifications.Select(notification =>
                 _hubContext.Clients
-                    .User(notification.UserId.ToString())
+                    .Group(AdminNotificationHub.UserGroup(notification.UserId))
                     .SendAsync(
                         AdminNotificationHub.ReceiveEvent,
                         notification,

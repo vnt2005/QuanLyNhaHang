@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Time;
@@ -28,55 +28,74 @@ public class GetRevenueReportSummaryQueryHandler
 
         var utcRange = RestaurantTime.GetUtcRange(fromDate, toDate);
 
-        var invoices = await _context.Invoices
-            .Where(x =>
-                x.Status != "Cancelled" &&
-                x.IssuedAt >= utcRange.StartUtc &&
-                x.IssuedAt < utcRange.EndUtc)
+        var payments = await _context.Payments
+            .AsNoTracking()
+            .Where(payment =>
+                payment.Status == "Paid" &&
+                payment.PaidAt >= utcRange.StartUtc &&
+                payment.PaidAt < utcRange.EndUtc)
             .ToListAsync(cancellationToken);
 
-        var invoiceIds = invoices.Select(x => x.Id).ToList();
-
-        var invoiceItems = await _context.InvoiceItems
-            .Where(x => invoiceIds.Contains(x.InvoiceId))
-            .ToListAsync(cancellationToken);
-
-        var summaryItems = invoiceItems
-            .GroupBy(x => new
-            {
-                x.MenuItemId,
-                x.MenuItemName,
-                x.UnitPrice
-            })
-            .Select(g => new RevenueReportSummaryItemDto
-            {
-                MenuItemId = g.Key.MenuItemId,
-                MenuItemName = g.Key.MenuItemName,
-                UnitPrice = g.Key.UnitPrice,
-                Quantity = g.Sum(x => x.Quantity),
-                TotalRevenue = g.Sum(x => x.TotalPrice)
-            })
-            .OrderByDescending(x => x.TotalRevenue)
+        var orderIds = payments
+            .Select(payment => payment.OrderId)
+            .Distinct()
             .ToList();
 
-        var totalInvoices = invoices.Count;
-        var totalRevenue = invoices.Sum(x => x.FinalAmount);
+        var orderItems = await _context.OrderItems
+            .AsNoTracking()
+            .Where(item =>
+                orderIds.Contains(item.OrderId) &&
+                item.Status != "Cancelled")
+            .ToListAsync(cancellationToken);
+
+        var summaryItems = orderItems
+            .GroupBy(item => new
+            {
+                item.MenuItemId,
+                item.MenuItemName,
+                item.UnitPrice
+            })
+            .Select(group => new RevenueReportSummaryItemDto
+            {
+                MenuItemId = group.Key.MenuItemId,
+                MenuItemName = group.Key.MenuItemName,
+                UnitPrice = group.Key.UnitPrice,
+                Quantity = group.Sum(item => item.Quantity),
+                TotalRevenue = group.Sum(item => item.TotalPrice)
+            })
+            .OrderByDescending(item => item.TotalRevenue)
+            .ToList();
+
+        var paymentMethods = payments
+            .GroupBy(payment => payment.PaymentMethod)
+            .Select(group => new RevenuePaymentMethodSummaryDto
+            {
+                PaymentMethod = group.Key,
+                PaymentCount = group.Count(),
+                TotalAmount = group.Sum(payment => payment.FinalAmount)
+            })
+            .OrderByDescending(item => item.TotalAmount)
+            .ToList();
+
+        var totalPayments = payments.Count;
+        var totalRevenue = payments.Sum(payment => payment.FinalAmount);
 
         return new RevenueReportSummaryDto
         {
             FromDate = fromDate,
             ToDate = toDate,
-            TotalInvoices = totalInvoices,
-            TotalOrders = invoices.Select(x => x.OrderId).Distinct().Count(),
-            TotalAmount = invoices.Sum(x => x.TotalAmount),
-            TotalDiscountAmount = invoices.Sum(x => x.DiscountAmount),
-            TotalVatAmount = invoices.Sum(x => x.VatAmount),
+            TotalInvoices = totalPayments,
+            TotalOrders = orderIds.Count,
+            TotalAmount = payments.Sum(payment => payment.TotalAmount),
+            TotalDiscountAmount = payments.Sum(payment => payment.DiscountAmount),
+            TotalVatAmount = payments.Sum(payment => payment.VatAmount),
             TotalRevenue = totalRevenue,
-            TotalCustomerPaid = invoices.Sum(x => x.CustomerPaid),
-            TotalChangeAmount = invoices.Sum(x => x.ChangeAmount),
-            AverageRevenuePerInvoice = totalInvoices == 0
+            TotalCustomerPaid = payments.Sum(payment => payment.CustomerPaid),
+            TotalChangeAmount = payments.Sum(payment => payment.ChangeAmount),
+            AverageRevenuePerInvoice = totalPayments == 0
                 ? 0
-                : totalRevenue / totalInvoices,
+                : totalRevenue / totalPayments,
+            PaymentMethods = paymentMethods,
             Items = summaryItems
         };
     }

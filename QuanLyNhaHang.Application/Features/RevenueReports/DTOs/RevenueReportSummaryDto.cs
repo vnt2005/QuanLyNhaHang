@@ -24,5 +24,7 @@ public class RevenueReportSummaryDto
 
     public decimal AverageRevenuePerInvoice { get; set; }
 
+    public List<RevenuePaymentMethodSummaryDto> PaymentMethods { get; set; } = new();
+
     public List<RevenueReportSummaryItemDto> Items { get; set; } = new();
 }

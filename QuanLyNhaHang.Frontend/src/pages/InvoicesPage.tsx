@@ -1,7 +1,11 @@
 import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
 import { confirmAction } from '../design-system/confirmDialog'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { getPayments, type Payment } from '../api/payments'
+import {
+  ADMIN_NOTIFICATION_EVENT,
+  type AdminNotification,
+} from '../api/notifications'
 import {
   cancelInvoice,
   createInvoice,
@@ -12,12 +16,34 @@ import {
   type InvoiceStatus,
 } from '../api/invoices'
 
-const methods = ['Cash', 'BankTransfer', 'Card', 'EWallet']
+const methods = [
+  'BankTransfer',
+  'Cash',
+  'Card',
+  'EWallet',
+  'Momo',
+  'ZaloPay',
+  'Other',
+]
 const methodLabels: Record<string, string> = {
   Cash: 'Tiền mặt',
-  BankTransfer: 'Chuyển khoản',
+  BankTransfer: 'Chuyển khoản QR/ngân hàng',
   Card: 'Thẻ',
   EWallet: 'Ví điện tử',
+  Momo: 'MoMo',
+  ZaloPay: 'ZaloPay',
+  Other: 'Khác',
+}
+
+function paidAmountLabel(paymentMethod: string) {
+  if (paymentMethod === 'Cash') return 'Khách đưa'
+  if (paymentMethod === 'BankTransfer') return 'Đã chuyển khoản'
+  if (paymentMethod === 'Card') return 'Đã thanh toán thẻ'
+  return 'Đã thanh toán'
+}
+
+function changeAmountLabel(paymentMethod: string) {
+  return paymentMethod === 'Cash' ? 'Tiền thối' : 'Tiền hoàn lại'
 }
 const statusLabels: Record<string, string> = {
   Issued: 'Đã phát hành',
@@ -45,6 +71,7 @@ export default function InvoicesPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [paymentId, setPaymentId] = useState('')
   const [note, setNote] = useState('')
+  const realtimeRefreshRef = useRef<() => void>(() => undefined)
 
   async function loadInvoices(targetPage = page) {
     setLoading(true); setError('')
@@ -73,6 +100,23 @@ export default function InvoicesPage() {
   }
 
   useEffect(() => { void Promise.all([loadInvoices(1), loadEligiblePayments()]) }, [])
+
+  realtimeRefreshRef.current = () => {
+    void Promise.all([loadInvoices(page), loadEligiblePayments()])
+  }
+
+  useEffect(() => {
+    const refreshPaidInvoices = (event: Event) => {
+      const notification = (event as CustomEvent<AdminNotification>).detail
+      if (!notification?.type.startsWith('Payment.')) return
+      realtimeRefreshRef.current()
+    }
+
+    window.addEventListener(ADMIN_NOTIFICATION_EVENT, refreshPaidInvoices)
+    return () => {
+      window.removeEventListener(ADMIN_NOTIFICATION_EVENT, refreshPaidInvoices)
+    }
+  }, [])
 
   const summary = useMemo(() => ({
     issued: invoices.filter(x => x.status === 'Issued').length,
@@ -155,7 +199,7 @@ export default function InvoicesPage() {
   function printInvoice(invoice: Invoice) {
     const popup = window.open('', '_blank', 'width=900,height=700')
     if (!popup) { setError('Trình duyệt đang chặn cửa sổ in.'); return }
-    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${invoice.invoiceCode}</title><style>body{font-family:Arial,sans-serif;max-width:720px;margin:32px auto;color:#111}h1{text-align:center}table{width:100%;border-collapse:collapse;margin:24px 0}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}.right{text-align:right}.total{font-size:20px;font-weight:700}.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}.note{margin-top:24px}@media print{button{display:none}}</style></head><body><h1>HÓA ĐƠN THANH TOÁN</h1><div class="meta"><div>Mã hóa đơn: <strong>${invoice.invoiceCode}</strong></div><div>Ngày: ${new Date(invoice.issuedAt).toLocaleString('vi-VN')}</div><div>Mã đơn: ${invoice.orderCode}</div><div>Bàn: ${invoice.restaurantTableName}</div><div>Mã thanh toán: ${invoice.paymentCode}</div><div>Phương thức: ${methodLabels[invoice.paymentMethod] ?? invoice.paymentMethod}</div></div><table><thead><tr><th>Món</th><th>SL</th><th class="right">Đơn giá</th><th class="right">Thành tiền</th></tr></thead><tbody>${invoice.items.map(item => `<tr><td>${item.menuItemName}${item.note ? `<br><small>${item.note}</small>` : ''}</td><td>${item.quantity}</td><td class="right">${money(item.unitPrice)}</td><td class="right">${money(item.totalPrice)}</td></tr>`).join('')}</tbody></table><p>Tổng tiền: <strong>${money(invoice.totalAmount)}</strong></p><p>Giảm giá: -${money(invoice.discountAmount)}</p><p>Phí phục vụ: +${money(invoice.serviceChargeAmount)}</p><p>VAT: +${money(invoice.vatAmount)}</p><p class="total">Thanh toán: ${money(invoice.finalAmount)}</p><p>Khách đưa: ${money(invoice.customerPaid)} — Tiền thối: ${money(invoice.changeAmount)}</p>${invoice.note ? `<p class="note">Ghi chú: ${invoice.note}</p>` : ''}<button onclick="window.print()">In hóa đơn</button><script>window.onload=()=>window.print()</script></body></html>`)
+    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${invoice.invoiceCode}</title><style>body{font-family:Arial,sans-serif;max-width:720px;margin:32px auto;color:#111}h1{text-align:center}table{width:100%;border-collapse:collapse;margin:24px 0}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}.right{text-align:right}.total{font-size:20px;font-weight:700}.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}.note{margin-top:24px}@media print{button{display:none}}</style></head><body><h1>HÓA ĐƠN THANH TOÁN</h1><div class="meta"><div>Mã hóa đơn: <strong>${invoice.invoiceCode}</strong></div><div>Ngày: ${new Date(invoice.issuedAt).toLocaleString('vi-VN')}</div><div>Mã đơn: ${invoice.orderCode}</div><div>Bàn: ${invoice.restaurantTableName}</div><div>Mã thanh toán: ${invoice.paymentCode}</div><div>Phương thức: ${methodLabels[invoice.paymentMethod] ?? invoice.paymentMethod}</div></div><table><thead><tr><th>Món</th><th>SL</th><th class="right">Đơn giá</th><th class="right">Thành tiền</th></tr></thead><tbody>${invoice.items.map(item => `<tr><td>${item.menuItemName}${item.note ? `<br><small>${item.note}</small>` : ''}</td><td>${item.quantity}</td><td class="right">${money(item.unitPrice)}</td><td class="right">${money(item.totalPrice)}</td></tr>`).join('')}</tbody></table><p>Tổng tiền: <strong>${money(invoice.totalAmount)}</strong></p><p>Giảm giá: -${money(invoice.discountAmount)}</p><p>Phí phục vụ: +${money(invoice.serviceChargeAmount)}</p><p>VAT: +${money(invoice.vatAmount)}</p><p class="total">Thanh toán: ${money(invoice.finalAmount)}</p><p>${paidAmountLabel(invoice.paymentMethod)}: ${money(invoice.customerPaid)} — ${changeAmountLabel(invoice.paymentMethod)}: ${money(invoice.changeAmount)}</p>${invoice.note ? `<p class="note">Ghi chú: ${invoice.note}</p>` : ''}<button onclick="window.print()">In hóa đơn</button><script>window.onload=()=>window.print()</script></body></html>`)
     popup.document.close()
   }
 
@@ -192,7 +236,7 @@ export default function InvoicesPage() {
 
     <div className="pagination"><span>Trang {page}/{totalPages} • {totalCount} hóa đơn</span><div><button disabled={page <= 1 || loading} onClick={() => void loadInvoices(page - 1)}>Trước</button><button disabled={page >= totalPages || loading} onClick={() => void loadInvoices(page + 1)}>Sau</button></div></div>
 
-    {detail && <div className="modal-backdrop" onMouseDown={() => setDetail(null)}><div className="invoice-detail-modal" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><h2>{detail.invoiceCode}</h2><p>{detail.orderCode} • {detail.restaurantTableName}</p></div><button onClick={() => setDetail(null)}>×</button></div><div className="invoice-paper"><div className="invoice-meta"><span>Thanh toán: <strong>{detail.paymentCode}</strong></span><span>Ngày: {new Date(detail.issuedAt).toLocaleString('vi-VN')}</span><span>Phương thức: {methodLabels[detail.paymentMethod] ?? detail.paymentMethod}</span><span>Trạng thái: {statusLabels[detail.status] ?? detail.status}</span></div><table><thead><tr><th>Món</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>{detail.items.map(item => <tr key={item.id}><td><strong>{item.menuItemName}</strong>{item.note && <small>{item.note}</small>}</td><td>{item.quantity}</td><td>{money(item.unitPrice)}</td><td>{money(item.totalPrice)}</td></tr>)}</tbody></table><div className="invoice-totals"><span>Tổng tiền <strong>{money(detail.totalAmount)}</strong></span><span>Giảm giá <strong>-{money(detail.discountAmount)}</strong></span><span>Phí phục vụ <strong>+{money(detail.serviceChargeAmount)}</strong></span><span>VAT <strong>+{money(detail.vatAmount)}</strong></span><span className="final">Thanh toán <strong>{money(detail.finalAmount)}</strong></span><span>Khách đưa <strong>{money(detail.customerPaid)}</strong></span><span>Tiền thối <strong>{money(detail.changeAmount)}</strong></span></div>{detail.note && <p className="invoice-note">Ghi chú: {detail.note}</p>}</div><div className="modal-actions"><button onClick={() => setDetail(null)}>Đóng</button><button onClick={() => printInvoice(detail)}>In hóa đơn</button><button className="primary-button" disabled={detail.status === 'Cancelled'} onClick={() => void markPrinted(detail)}>Đánh dấu đã in</button></div></div></div>}
+    {detail && <div className="modal-backdrop" onMouseDown={() => setDetail(null)}><div className="invoice-detail-modal" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><h2>{detail.invoiceCode}</h2><p>{detail.orderCode} • {detail.restaurantTableName}</p></div><button onClick={() => setDetail(null)}>×</button></div><div className="invoice-paper"><div className="invoice-meta"><span>Thanh toán: <strong>{detail.paymentCode}</strong></span><span>Ngày: {new Date(detail.issuedAt).toLocaleString('vi-VN')}</span><span>Phương thức: {methodLabels[detail.paymentMethod] ?? detail.paymentMethod}</span><span>Trạng thái: {statusLabels[detail.status] ?? detail.status}</span></div><table><thead><tr><th>Món</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>{detail.items.map(item => <tr key={item.id}><td><strong>{item.menuItemName}</strong>{item.note && <small>{item.note}</small>}</td><td>{item.quantity}</td><td>{money(item.unitPrice)}</td><td>{money(item.totalPrice)}</td></tr>)}</tbody></table><div className="invoice-totals"><span>Tổng tiền <strong>{money(detail.totalAmount)}</strong></span><span>Giảm giá <strong>-{money(detail.discountAmount)}</strong></span><span>Phí phục vụ <strong>+{money(detail.serviceChargeAmount)}</strong></span><span>VAT <strong>+{money(detail.vatAmount)}</strong></span><span className="final">Thanh toán <strong>{money(detail.finalAmount)}</strong></span><span>{paidAmountLabel(detail.paymentMethod)} <strong>{money(detail.customerPaid)}</strong></span><span>{changeAmountLabel(detail.paymentMethod)} <strong>{money(detail.changeAmount)}</strong></span></div>{detail.note && <p className="invoice-note">Ghi chú: {detail.note}</p>}</div><div className="modal-actions"><button onClick={() => setDetail(null)}>Đóng</button><button onClick={() => printInvoice(detail)}>In hóa đơn</button><button className="primary-button" disabled={detail.status === 'Cancelled'} onClick={() => void markPrinted(detail)}>Đánh dấu đã in</button></div></div></div>}
 
     {createOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setCreateOpen(false)}><div className="employee-modal invoice-form-modal" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><h2>Tạo hóa đơn</h2><p>Chọn thanh toán Paid chưa có hóa đơn hiệu lực.</p></div><button onClick={() => setCreateOpen(false)}>×</button></div><form className="invoice-form" onSubmit={submitCreate}><label>Thanh toán<select required value={paymentId} onChange={event => setPaymentId(event.target.value)}><option value="">Chọn thanh toán</option>{payments.map(payment => <option key={payment.id} value={payment.id}>{payment.paymentCode} • {money(payment.finalAmount)}</option>)}</select></label><label>Ghi chú<textarea value={note} onChange={event => setNote(event.target.value)} /></label><div className="modal-actions"><button type="button" onClick={() => setCreateOpen(false)}>Đóng</button><button className="primary-button" disabled={saving}>{saving ? 'Đang tạo...' : 'Tạo hóa đơn'}</button></div></form></div></div>}
 
