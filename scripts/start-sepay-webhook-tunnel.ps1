@@ -163,15 +163,27 @@ try {
         }
     }
 
+    Write-Host ''
+    Write-Host 'Tunnel đã tạo; thanh toán QR vẫn đang bị khóa.' -ForegroundColor Yellow
+    Write-Host 'Cập nhật webhook Có tiền vào trên SePay bằng đúng URL:' -ForegroundColor Yellow
+    Write-Host $webhookUrl -ForegroundColor Yellow
+    Write-Host ''
+    $confirmation = Read-Host (
+        'Sau khi đã LƯU URL trên SePay, nhập OK để kiểm tra và mở thanh toán'
+    )
+    if (-not [string]::Equals(
+            $confirmation.Trim(),
+            'OK',
+            [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Chưa xác nhận đã cập nhật URL webhook trên SePay. Thanh toán tiếp tục bị khóa.'
+    }
+
     if (-not (Send-ReadinessHeartbeat)) {
         throw 'Tunnel đã tạo nhưng heartbeat công khai chưa tới được API.'
     }
 
     Write-Host ''
-    Write-Host 'Kênh webhook đã sẵn sàng.' -ForegroundColor Green
-    Write-Host 'Cấu hình webhook Có tiền vào trên SePay bằng URL:' -ForegroundColor Yellow
-    Write-Host $webhookUrl -ForegroundColor Yellow
-    Write-Host ''
+    Write-Host 'Kênh webhook đã sẵn sàng; thanh toán QR đã được mở.' -ForegroundColor Green
     Write-Host (
         "Script sẽ gửi heartbeat mỗi $HeartbeatSeconds giây. " +
         'Nếu đóng cửa sổ này, ứng dụng sẽ tự ẩn và khóa QR sau tối đa khoảng 35 giây.'

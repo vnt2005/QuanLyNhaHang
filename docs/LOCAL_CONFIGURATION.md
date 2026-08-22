@@ -239,10 +239,12 @@ Khi chạy API bằng Docker Compose tại `http://localhost:8080`:
 powershell -ExecutionPolicy Bypass -File .\scripts\start-sepay-webhook-tunnel.ps1 -ApiBaseUrl http://localhost:8080
 ```
 
-Script tự kiểm tra `/health/live`, tạo Quick Tunnel, lấy URL
-`https://<ten-tunnel>.trycloudflare.com` và gửi heartbeat mỗi 10 giây. Sau khi
-dòng **Kênh webhook đã sẵn sàng** xuất hiện, sao chép URL webhook mà script in ra
-vào webhook **Có tiền vào** của SePay.
+Script tự kiểm tra `/health/live`, tạo Quick Tunnel và lấy URL
+`https://<ten-tunnel>.trycloudflare.com`. Script sẽ in URL webhook nhưng vẫn giữ
+thanh toán ở trạng thái khóa. Hãy sao chép URL đó vào webhook **Có tiền vào**
+của SePay, bấm lưu rồi nhập `OK` trong PowerShell. Chỉ sau khi heartbeat công
+khai thành công và dòng **Kênh webhook đã sẵn sàng; thanh toán QR đã được mở**
+hiện ra thì khách mới có thể lấy QR. Sau đó script gửi heartbeat mỗi 10 giây.
 
 Giữ cửa sổ PowerShell này mở trong suốt lúc nhận thanh toán. Khi đóng cửa sổ,
 heartbeat hết hạn sau tối đa khoảng 35 giây và ứng dụng tự khóa QR. Quick Tunnel
