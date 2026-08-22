@@ -14,6 +14,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 [ApiController]
 [Route("api/payments")]
 [Authorize]
+[AtomicRequest]
 public class PaymentsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -78,6 +79,8 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("PaymentMutation")]
+    [IdempotentRequest("admin-payment-create")]
     [HasPermission(PermissionCodes.PaymentsCreate)]
     public async Task<IActionResult> Create([FromBody] CreatePaymentCommand command)
     {
@@ -92,6 +95,8 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [EnableRateLimiting("PaymentMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.PaymentsUpdate)]
     public async Task<IActionResult> Update(
         Guid id,
@@ -110,6 +115,8 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [EnableRateLimiting("PaymentMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.PaymentsCancel)]
     public async Task<IActionResult> Delete(Guid id)
     {

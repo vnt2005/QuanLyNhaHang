@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Exceptions;
 
 namespace QuanLyNhaHang.Api.Middlewares;
@@ -92,6 +93,16 @@ public class ExceptionHandlingMiddleware
                 (int)HttpStatusCode.Unauthorized,
                 "Chưa được phép truy cập",
                 exception.Message),
+            DbUpdateConcurrencyException => new ErrorDescriptor(
+                (int)HttpStatusCode.Conflict,
+                "Dữ liệu vừa được cập nhật",
+                "Dữ liệu đã thay đổi bởi một thao tác khác. " +
+                "Vui lòng tải lại trạng thái mới nhất rồi thử lại."),
+            DbUpdateException => new ErrorDescriptor(
+                (int)HttpStatusCode.Conflict,
+                "Xung đột dữ liệu",
+                "Thao tác xung đột với ràng buộc dữ liệu hiện tại. " +
+                "Vui lòng tải lại và kiểm tra trước khi thử lại."),
             _ => new ErrorDescriptor(
                 (int)HttpStatusCode.InternalServerError,
                 "Đã xảy ra lỗi nội bộ",

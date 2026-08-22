@@ -8,7 +8,15 @@ public sealed class PaymentAttemptConfiguration : IEntityTypeConfiguration<Payme
 {
     public void Configure(EntityTypeBuilder<PaymentAttempt> builder)
     {
-        builder.ToTable("PaymentAttempts");
+        builder.ToTable("PaymentAttempts", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_PaymentAttempts_Amount_Positive",
+                "[Amount] > 0");
+            table.HasCheckConstraint(
+                "CK_PaymentAttempts_ReceivedAmount_Positive",
+                "[ReceivedAmount] IS NULL OR [ReceivedAmount] > 0");
+        });
 
         builder.HasKey(x => x.Id);
 
@@ -63,6 +71,9 @@ public sealed class PaymentAttemptConfiguration : IEntityTypeConfiguration<Payme
         builder.Property(x => x.PaidAt)
             .IsRequired(false);
 
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
         builder.HasIndex(x => new { x.Provider, x.ProviderOrderCode })
             .IsUnique();
 
@@ -72,6 +83,18 @@ public sealed class PaymentAttemptConfiguration : IEntityTypeConfiguration<Payme
 
         builder.HasIndex(x => x.OrderId);
         builder.HasIndex(x => x.Status);
+
+        builder.HasIndex(x => new { x.OrderId, x.Provider })
+            .IsUnique()
+            .HasDatabaseName(
+                "UX_PaymentAttempts_Order_Provider_Open")
+            .HasFilter("[Status] IN ('Creating', 'Pending')");
+
+        builder.HasIndex(x => new { x.Provider, x.ProviderReference })
+            .IsUnique()
+            .HasDatabaseName(
+                "UX_PaymentAttempts_Provider_ProviderReference")
+            .HasFilter("[ProviderReference] IS NOT NULL");
 
         builder.HasOne<Order>()
             .WithMany()

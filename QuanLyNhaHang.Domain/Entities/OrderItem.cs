@@ -24,6 +24,8 @@ public class OrderItem
 
     public DateTime? UpdatedAt { get; private set; }
 
+    public byte[] RowVersion { get; private set; } = [];
+
     public DateTime? StartedAt { get; private set; }
 
     public DateTime? CompletedAt { get; private set; }
@@ -156,8 +158,11 @@ public class OrderItem
 
     private void SetQuantity(int quantity)
     {
-        if (quantity <= 0)
-            throw new ArgumentException("Số lượng món phải lớn hơn 0.");
+        if (quantity is <= 0 or > 99)
+        {
+            throw new ArgumentException(
+                "Số lượng mỗi món phải từ 1 đến 99.");
+        }
 
         Quantity = quantity;
     }

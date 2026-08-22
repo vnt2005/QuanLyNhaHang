@@ -14,6 +14,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 [ApiController]
 [Route("api/invoices")]
 [Authorize]
+[AtomicRequest]
 public class InvoicesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -75,6 +76,8 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("PaymentMutation")]
+    [IdempotentRequest("admin-invoice-create")]
     [HasPermission(PermissionCodes.InvoicesManage)]
     public async Task<IActionResult> Create([FromBody] CreateInvoiceCommand command)
     {

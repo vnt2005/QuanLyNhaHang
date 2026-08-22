@@ -13,6 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 [ApiController]
 [Route("api/inventory-transactions")]
 [Authorize]
+[AtomicRequest]
 public class InventoryTransactionsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -89,6 +90,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpPost("import")]
+    [IdempotentRequest("inventory-import")]
     [HasPermission(PermissionCodes.InventoryTransact)]
     public async Task<IActionResult> Import([FromBody] ImportInventoryTransactionCommand command)
     {
@@ -103,6 +105,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpPost("export")]
+    [IdempotentRequest("inventory-export")]
     [HasPermission(PermissionCodes.InventoryTransact)]
     public async Task<IActionResult> Export([FromBody] ExportInventoryTransactionCommand command)
     {
@@ -117,6 +120,7 @@ public class InventoryTransactionsController : ControllerBase
     }
 
     [HttpPost("adjust")]
+    [IdempotentRequest("inventory-adjust")]
     [HasPermission(PermissionCodes.InventoryAdjust)]
     public async Task<IActionResult> Adjust([FromBody] AdjustInventoryTransactionCommand command)
     {

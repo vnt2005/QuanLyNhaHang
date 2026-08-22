@@ -42,6 +42,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords =>
+        Set<IdempotencyRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -8,7 +8,12 @@ public class RestaurantTableConfiguration : IEntityTypeConfiguration<RestaurantT
 {
     public void Configure(EntityTypeBuilder<RestaurantTable> builder)
     {
-        builder.ToTable("RestaurantTables");
+        builder.ToTable("RestaurantTables", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_RestaurantTables_Capacity_Positive",
+                "[Capacity] > 0");
+        });
 
         builder.HasKey(x => x.Id);
 
@@ -37,5 +42,15 @@ public class RestaurantTableConfiguration : IEntityTypeConfiguration<RestaurantT
 
         builder.Property(x => x.UpdatedAt)
             .IsRequired(false);
+
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
+        builder.HasIndex(x => x.AreaId);
+
+        builder.HasOne<Area>()
+            .WithMany()
+            .HasForeignKey(x => x.AreaId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

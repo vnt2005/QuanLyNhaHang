@@ -1,4 +1,5 @@
 import { restaurantDateTimeInputToIso } from '../utils/dateTime'
+import { getRequestProtectionHeaders } from './requestProtection'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7134'
 
@@ -76,6 +77,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...getRequestProtectionHeaders(path, init),
       ...init?.headers,
     },
   })

@@ -30,6 +30,8 @@ public class Order
 
     public DateTime? UpdatedAt { get; private set; }
 
+    public byte[] RowVersion { get; private set; } = [];
+
     protected Order()
     {
     }
