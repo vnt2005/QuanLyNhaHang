@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param(
     [string]$ApiBaseUrl = 'http://localhost:8080',
-    [string]$ExistingTunnelUrl,
     [string]$WebhookApiKey = $env:SEPAY_WEBHOOK_API_KEY,
     [ValidateRange(5, 60)]
     [int]$HeartbeatSeconds = 10
@@ -20,23 +19,6 @@ function Normalize-Url {
     $uri = [Uri]$normalized
     if ($uri.Scheme -notin @('http', 'https')) {
         throw 'URL API phải dùng giao thức http hoặc https.'
-    }
-
-    return $normalized
-}
-
-function Normalize-QuickTunnelUrl {
-    param([Parameter(Mandatory)][string]$Url)
-
-    $normalized = Normalize-Url $Url
-    $uri = [Uri]$normalized
-    if ($uri.Scheme -ne 'https' -or
-        -not $uri.Host.EndsWith('.trycloudflare.com', [StringComparison]::OrdinalIgnoreCase)) {
-        throw 'ExistingTunnelUrl phải là URL HTTPS của Cloudflare Quick Tunnel (*.trycloudflare.com).'
-    }
-
-    if ($uri.AbsolutePath -ne '/') {
-        throw 'ExistingTunnelUrl chỉ được chứa URL gốc của tunnel, không kèm đường dẫn webhook.'
     }
 
     return $normalized
@@ -83,6 +65,11 @@ if ([string]::IsNullOrWhiteSpace($WebhookApiKey)) {
     throw 'Thiếu SEPAY_WEBHOOK_API_KEY. Hãy đặt khóa trong .env hoặc truyền -WebhookApiKey.'
 }
 
+$cloudflared = Get-Command cloudflared -ErrorAction SilentlyContinue
+if (-not $cloudflared) {
+    throw 'Không tìm thấy cloudflared. Hãy cài cloudflared rồi mở PowerShell mới.'
+}
+
 $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
 if (-not $curl) {
     throw 'Không tìm thấy curl.exe để kiểm tra API local.'
@@ -106,73 +93,56 @@ if ($LASTEXITCODE -ne 0) {
     throw "API chưa sẵn sàng tại $ApiBaseUrl. Hãy chạy API đúng cổng rồi thử lại."
 }
 
+$logFile = Join-Path ([IO.Path]::GetTempPath()) (
+    "quanlynhahang-cloudflared-$([Guid]::NewGuid().ToString('N')).log")
+$tunnelArguments = @(
+    'tunnel',
+    '--url',
+    $ApiBaseUrl,
+    '--loglevel',
+    'info',
+    '--logfile',
+    ('"' + $logFile + '"')
+)
+if ($ApiBaseUrl.StartsWith('https://', [StringComparison]::OrdinalIgnoreCase)) {
+    $tunnelArguments += '--no-tls-verify'
+}
+
 $process = $null
-$ownsTunnel = $false
-$logFile = $null
-$tunnelUrl = $null
-
 try {
-    if (-not [string]::IsNullOrWhiteSpace($ExistingTunnelUrl)) {
-        $tunnelUrl = Normalize-QuickTunnelUrl $ExistingTunnelUrl
-        Write-Host ''
-        Write-Host 'Đang dùng Cloudflare Quick Tunnel đã chạy sẵn:' -ForegroundColor Green
-        Write-Host $tunnelUrl -ForegroundColor Green
-    }
-    else {
-        $cloudflared = Get-Command cloudflared -ErrorAction SilentlyContinue
-        if (-not $cloudflared) {
-            throw 'Không tìm thấy cloudflared. Hãy cài cloudflared rồi mở PowerShell mới.'
-        }
+    Write-Host ''
+    Write-Host 'API đã sẵn sàng. Đang tạo Cloudflare Quick Tunnel...' -ForegroundColor Green
+    $process = Start-Process -FilePath $cloudflared.Source -ArgumentList $tunnelArguments -NoNewWindow -PassThru
 
-        $logFile = Join-Path ([IO.Path]::GetTempPath()) (
-            "quanlynhahang-cloudflared-$([Guid]::NewGuid().ToString('N')).log")
-        $tunnelArguments = @(
-            'tunnel',
-            '--url',
-            $ApiBaseUrl,
-            '--loglevel',
-            'info',
-            '--logfile',
-            ('"' + $logFile + '"')
-        )
-        if ($ApiBaseUrl.StartsWith('https://', [StringComparison]::OrdinalIgnoreCase)) {
-            $tunnelArguments += '--no-tls-verify'
-        }
-
-        Write-Host ''
-        Write-Host 'API đã sẵn sàng. Đang tạo Cloudflare Quick Tunnel...' -ForegroundColor Green
-        $process = Start-Process -FilePath $cloudflared.Source -ArgumentList $tunnelArguments -NoNewWindow -PassThru
-        $ownsTunnel = $true
-
-        $deadline = [DateTime]::UtcNow.AddSeconds(35)
-        while (-not $process.HasExited -and
-               [DateTime]::UtcNow -lt $deadline -and
-               [string]::IsNullOrWhiteSpace($tunnelUrl)) {
-            if (Test-Path -LiteralPath $logFile) {
-                $logContent = Get-Content -LiteralPath $logFile -Raw -ErrorAction SilentlyContinue
-                if (-not [string]::IsNullOrWhiteSpace($logContent)) {
-                    $match = [Regex]::Match(
-                        $logContent,
-                        'https://[a-z0-9-]+\.trycloudflare\.com',
-                        [Text.RegularExpressions.RegexOptions]::IgnoreCase)
-                    if ($match.Success) {
-                        $tunnelUrl = $match.Value.TrimEnd('/')
-                    }
+    $deadline = [DateTime]::UtcNow.AddSeconds(35)
+    $tunnelUrl = $null
+    while (-not $process.HasExited -and
+           [DateTime]::UtcNow -lt $deadline -and
+           [string]::IsNullOrWhiteSpace($tunnelUrl)) {
+        if (Test-Path -LiteralPath $logFile) {
+            $logContent = Get-Content -LiteralPath $logFile -Raw -ErrorAction SilentlyContinue
+            if (-not [string]::IsNullOrWhiteSpace($logContent)) {
+                $match = [Regex]::Match(
+                    $logContent,
+                    'https://[a-z0-9-]+\.trycloudflare\.com',
+                    [Text.RegularExpressions.RegexOptions]::IgnoreCase)
+                if ($match.Success) {
+                    $tunnelUrl = $match.Value.TrimEnd('/')
                 }
             }
-
-            if ([string]::IsNullOrWhiteSpace($tunnelUrl)) {
-                Start-Sleep -Milliseconds 500
-            }
-        }
-
-        if ($process.HasExited) {
-            throw "cloudflared đã dừng với mã $($process.ExitCode)."
         }
 
         if ([string]::IsNullOrWhiteSpace($tunnelUrl)) {
-            throw 'Không lấy được URL Quick Tunnel sau 35 giây.'
+            Start-Sleep -Milliseconds 500
         }
+    }
+
+    if ($process.HasExited) {
+        throw "cloudflared đã dừng với mã $($process.ExitCode)."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($tunnelUrl)) {
+        throw 'Không lấy được URL Quick Tunnel sau 35 giây.'
     }
 
     $webhookUrl = "$tunnelUrl$webhookPath"
@@ -196,8 +166,8 @@ try {
     }
 
     Write-Host ''
-    Write-Host 'Thanh toán QR vẫn đang bị khóa cho tới khi heartbeat được xác nhận.' -ForegroundColor Yellow
-    Write-Host 'Webhook Có tiền vào trên SePay phải dùng đúng URL:' -ForegroundColor Yellow
+    Write-Host 'Tunnel đã tạo; thanh toán QR vẫn đang bị khóa.' -ForegroundColor Yellow
+    Write-Host 'Cập nhật webhook Có tiền vào trên SePay bằng đúng URL:' -ForegroundColor Yellow
     Write-Host $webhookUrl -ForegroundColor Yellow
     Write-Host ''
     $confirmation = Read-Host (
@@ -211,43 +181,35 @@ try {
     }
 
     if (-not (Send-ReadinessHeartbeat)) {
-        throw 'Tunnel đang chạy nhưng heartbeat công khai chưa tới được API.'
+        throw 'Tunnel đã tạo nhưng heartbeat công khai chưa tới được API.'
     }
 
     Write-Host ''
     Write-Host 'Kênh webhook đã sẵn sàng; thanh toán QR đã được mở.' -ForegroundColor Green
     Write-Host (
         "Script sẽ gửi heartbeat mỗi $HeartbeatSeconds giây. " +
-        'Nếu dừng tunnel hoặc đóng cửa sổ heartbeat, ứng dụng sẽ tự khóa QR sau tối đa khoảng 35 giây.'
+        'Nếu đóng cửa sổ này, ứng dụng sẽ tự ẩn và khóa QR sau tối đa khoảng 35 giây.'
     ) -ForegroundColor Cyan
-    if ($ownsTunnel) {
-        Write-Host 'Quick Tunnel đổi URL sau mỗi lần chạy; nhớ cập nhật lại URL trên SePay.' -ForegroundColor Yellow
-    }
-    else {
-        Write-Host 'Đang gắn heartbeat vào tunnel có sẵn; giữ cả hai cửa sổ PowerShell mở.' -ForegroundColor Yellow
-    }
+    Write-Host 'Quick Tunnel đổi URL sau mỗi lần chạy; nhớ cập nhật lại URL trên SePay.' -ForegroundColor Yellow
     Write-Host ''
 
-    while ($true) {
+    while (-not $process.HasExited) {
         Start-Sleep -Seconds $HeartbeatSeconds
-
-        if ($ownsTunnel -and $process.HasExited) {
-            break
+        if (-not $process.HasExited) {
+            [void](Send-ReadinessHeartbeat)
         }
-
-        [void](Send-ReadinessHeartbeat)
     }
 
-    if ($ownsTunnel -and $process.ExitCode -ne 0) {
+    if ($process.ExitCode -ne 0) {
         throw "cloudflared đã dừng với mã $($process.ExitCode)."
     }
 }
 finally {
-    if ($ownsTunnel -and $process -and -not $process.HasExited) {
+    if ($process -and -not $process.HasExited) {
         Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
     }
 
-    if ($logFile -and (Test-Path -LiteralPath $logFile)) {
+    if (Test-Path -LiteralPath $logFile) {
         Remove-Item -LiteralPath $logFile -Force -ErrorAction SilentlyContinue
     }
 }
