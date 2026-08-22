@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Time;
@@ -30,39 +30,43 @@ public class CreateRevenueReportCommandHandler
         var utcRange = RestaurantTime.GetUtcRange(fromDate, toDate);
 
         var existedReport = await _context.RevenueReports
-            .AnyAsync(x =>
-                x.FromDate == fromDate &&
-                x.ToDate == toDate &&
-                x.Status != "Cancelled",
+            .AnyAsync(report =>
+                report.FromDate == fromDate &&
+                report.ToDate == toDate &&
+                report.Status != "Cancelled",
                 cancellationToken);
 
         if (existedReport)
             throw new Exception("Khoảng thời gian này đã có báo cáo doanh thu.");
 
-        var invoices = await _context.Invoices
+        var payments = await _context.Payments
             .AsNoTracking()
-            .Where(x =>
-                x.IssuedAt >= utcRange.StartUtc &&
-                x.IssuedAt < utcRange.EndUtc &&
-                (x.Status == "Issued" || x.Status == "Printed"))
+            .Where(payment =>
+                payment.Status == "Paid" &&
+                payment.PaidAt >= utcRange.StartUtc &&
+                payment.PaidAt < utcRange.EndUtc)
             .ToListAsync(cancellationToken);
 
-        if (!invoices.Any())
-            throw new Exception("Không có hóa đơn hợp lệ trong khoảng thời gian này.");
+        if (payments.Count == 0)
+            throw new Exception(
+                "Không có giao dịch đã thanh toán trong khoảng thời gian này.");
 
-        var totalInvoices = invoices.Count;
-        var totalOrders = invoices.Select(x => x.OrderId).Distinct().Count();
-        var totalAmount = invoices.Sum(x => x.TotalAmount);
-        var totalDiscountAmount = invoices.Sum(x => x.DiscountAmount);
-        var totalVatAmount = invoices.Sum(x => x.VatAmount);
-        var totalRevenue = invoices.Sum(x => x.FinalAmount);
-        var totalCustomerPaid = invoices.Sum(x => x.CustomerPaid);
-        var totalChangeAmount = invoices.Sum(x => x.ChangeAmount);
+        var totalPayments = payments.Count;
+        var totalOrders = payments
+            .Select(payment => payment.OrderId)
+            .Distinct()
+            .Count();
+        var totalAmount = payments.Sum(payment => payment.TotalAmount);
+        var totalDiscountAmount = payments.Sum(payment => payment.DiscountAmount);
+        var totalVatAmount = payments.Sum(payment => payment.VatAmount);
+        var totalRevenue = payments.Sum(payment => payment.FinalAmount);
+        var totalCustomerPaid = payments.Sum(payment => payment.CustomerPaid);
+        var totalChangeAmount = payments.Sum(payment => payment.ChangeAmount);
 
         var report = new RevenueReport(
             fromDate,
             toDate,
-            totalInvoices,
+            totalPayments,
             totalOrders,
             totalAmount,
             totalDiscountAmount,
@@ -74,28 +78,35 @@ public class CreateRevenueReportCommandHandler
 
         await _context.RevenueReports.AddAsync(report, cancellationToken);
 
-        var invoiceIds = invoices.Select(x => x.Id).ToList();
-
-        var invoiceItems = await _context.InvoiceItems
-            .AsNoTracking()
-            .Where(x => invoiceIds.Contains(x.InvoiceId))
-            .ToListAsync(cancellationToken);
-
-        var reportItems = invoiceItems
-            .GroupBy(x => new
-            {
-                x.MenuItemId,
-                x.MenuItemName
-            })
-            .Select(g => new RevenueReportItem(
-                report.Id,
-                g.Key.MenuItemId,
-                g.Key.MenuItemName,
-                g.Sum(x => x.Quantity),
-                g.Sum(x => x.TotalPrice)))
+        var orderIds = payments
+            .Select(payment => payment.OrderId)
+            .Distinct()
             .ToList();
 
-        await _context.RevenueReportItems.AddRangeAsync(reportItems, cancellationToken);
+        var orderItems = await _context.OrderItems
+            .AsNoTracking()
+            .Where(item =>
+                orderIds.Contains(item.OrderId) &&
+                item.Status != "Cancelled")
+            .ToListAsync(cancellationToken);
+
+        var reportItems = orderItems
+            .GroupBy(item => new
+            {
+                item.MenuItemId,
+                item.MenuItemName
+            })
+            .Select(group => new RevenueReportItem(
+                report.Id,
+                group.Key.MenuItemId,
+                group.Key.MenuItemName,
+                group.Sum(item => item.Quantity),
+                group.Sum(item => item.TotalPrice)))
+            .ToList();
+
+        await _context.RevenueReportItems.AddRangeAsync(
+            reportItems,
+            cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -119,15 +130,15 @@ public class CreateRevenueReportCommandHandler
             GeneratedAt = report.GeneratedAt,
             CreatedAt = report.CreatedAt,
             UpdatedAt = report.UpdatedAt,
-            Items = reportItems.Select(x => new RevenueReportItemDto
+            Items = reportItems.Select(item => new RevenueReportItemDto
             {
-                Id = x.Id,
-                RevenueReportId = x.RevenueReportId,
-                MenuItemId = x.MenuItemId,
-                MenuItemName = x.MenuItemName,
-                QuantitySold = x.QuantitySold,
-                TotalRevenue = x.TotalRevenue,
-                CreatedAt = x.CreatedAt
+                Id = item.Id,
+                RevenueReportId = item.RevenueReportId,
+                MenuItemId = item.MenuItemId,
+                MenuItemName = item.MenuItemName,
+                QuantitySold = item.QuantitySold,
+                TotalRevenue = item.TotalRevenue,
+                CreatedAt = item.CreatedAt
             }).ToList()
         };
     }

@@ -19,7 +19,7 @@ export type Invoice = {
   id: string
   orderId: string
   paymentId: string
-  restaurantTableId: string
+  restaurantTableId: string | null
   invoiceCode: string
   orderCode: string
   paymentCode: string

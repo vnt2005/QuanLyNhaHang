@@ -18,7 +18,7 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
         builder.Property(x => x.PaymentId).IsRequired();
 
-        builder.Property(x => x.RestaurantTableId).IsRequired();
+        builder.Property(x => x.RestaurantTableId).IsRequired(false);
 
         builder.Property(x => x.InvoiceCode)
             .IsRequired()

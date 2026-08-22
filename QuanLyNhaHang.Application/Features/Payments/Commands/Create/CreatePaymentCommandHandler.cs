@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Payments;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -81,35 +82,12 @@ public class CreatePaymentCommandHandler
             table?.MarkAvailable();
         }
 
-        if (request.IssueInvoice)
-        {
-            if (table == null || !order.RestaurantTableId.HasValue)
-                throw new KeyNotFoundException("Đơn mang về hiện chưa hỗ trợ xuất hóa đơn gắn với bàn.");
-
-            var existedInvoice = await _context.Invoices.AnyAsync(x => (x.OrderId == order.Id || x.PaymentId == payment.Id) && x.Status != "Cancelled", cancellationToken);
-            if (existedInvoice) throw new InvalidOperationException("Đơn hàng hoặc thanh toán này đã có hóa đơn.");
-
-            var invoice = new Invoice(
-                order.Id,
-                payment.Id,
-                order.RestaurantTableId.Value,
-                order.OrderCode,
-                payment.PaymentCode,
-                table.Name,
-                payment.TotalAmount,
-                payment.DiscountAmount,
-                payment.VatAmount,
-                payment.FinalAmount,
-                payment.CustomerPaid,
-                payment.ChangeAmount,
-                payment.PaymentMethod,
-                request.Note ?? "Xuất hóa đơn tự động sau thanh toán");
-
-            await _context.Invoices.AddAsync(invoice, cancellationToken);
-            var invoiceItems = orderItems.Select(item => new InvoiceItem(
-                invoice.Id, item.Id, item.MenuItemId, item.MenuItemName, item.Quantity, item.UnitPrice, item.TotalPrice, item.Note)).ToList();
-            await _context.InvoiceItems.AddRangeAsync(invoiceItems, cancellationToken);
-        }
+        await PaidOrderInvoiceIssuer.IssueAsync(
+            _context,
+            order,
+            payment,
+            request.Note ?? "Phát hành tự động sau thanh toán",
+            cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
 

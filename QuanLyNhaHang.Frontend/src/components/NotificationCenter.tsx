@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react'
 import {
+  ADMIN_NOTIFICATION_EVENT,
   getNotificationFeed,
   markAllNotificationsRead,
   markNotificationRead,
@@ -161,6 +162,7 @@ export default function NotificationCenter({
         }
         retryDelay = 1_000
         setRealtimeState('connected')
+        await refreshFeed()
       } catch {
         if (disposed) return
         setRealtimeState('offline')
@@ -186,6 +188,11 @@ export default function NotificationCenter({
         setUnreadCount(current => current + 1)
         setToast(notification)
       }
+
+      window.dispatchEvent(new CustomEvent(
+        ADMIN_NOTIFICATION_EVENT,
+        { detail: notification },
+      ))
     })
 
     connection.onreconnecting(() => setRealtimeState('reconnecting'))
@@ -207,6 +214,39 @@ export default function NotificationCenter({
       window.clearTimeout(startRetry)
       connection.off('NotificationReceived')
       void connection.stop()
+    }
+  }, [applyFeed])
+
+  useEffect(() => {
+    let disposed = false
+
+    const reconcile = async () => {
+      try {
+        const feed = await getNotificationFeed({
+          limit: MAX_VISIBLE_NOTIFICATIONS,
+          unreadOnly: unreadOnlyRef.current,
+        })
+        if (!disposed) applyFeed(feed)
+      } catch {
+        // SignalR keeps delivering when available; retry on the next resume/tick.
+      }
+    }
+
+    const reconcileWhenVisible = () => {
+      if (document.visibilityState === 'visible') void reconcile()
+    }
+
+    const interval = window.setInterval(() => void reconcile(), 30_000)
+    window.addEventListener('focus', reconcileWhenVisible)
+    window.addEventListener('online', reconcileWhenVisible)
+    document.addEventListener('visibilitychange', reconcileWhenVisible)
+
+    return () => {
+      disposed = true
+      window.clearInterval(interval)
+      window.removeEventListener('focus', reconcileWhenVisible)
+      window.removeEventListener('online', reconcileWhenVisible)
+      document.removeEventListener('visibilitychange', reconcileWhenVisible)
     }
   }, [applyFeed])
 
