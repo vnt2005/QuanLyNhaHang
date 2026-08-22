@@ -8,7 +8,18 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 {
     public void Configure(EntityTypeBuilder<OrderItem> builder)
     {
-        builder.ToTable("OrderItems");
+        builder.ToTable("OrderItems", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_OrderItems_Quantity_Range",
+                "[Quantity] >= 1 AND [Quantity] <= 99");
+            table.HasCheckConstraint(
+                "CK_OrderItems_Amounts_NonNegative",
+                "[UnitPrice] >= 0 AND [TotalPrice] >= 0");
+            table.HasCheckConstraint(
+                "CK_OrderItems_TotalPrice",
+                "[TotalPrice] = [UnitPrice] * [Quantity]");
+        });
 
         builder.HasKey(x => x.Id);
 
@@ -51,5 +62,21 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.Property(x => x.CompletedAt)
             .IsRequired(false);
+
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
+        builder.HasIndex(x => x.OrderId);
+        builder.HasIndex(x => x.MenuItemId);
+
+        builder.HasOne<Order>()
+            .WithMany()
+            .HasForeignKey(x => x.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<MenuItem>()
+            .WithMany()
+            .HasForeignKey(x => x.MenuItemId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

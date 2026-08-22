@@ -89,7 +89,8 @@ public class QrOrdersController : ControllerBase
     }
 
     [AllowAnonymous]
-    [EnableRateLimiting("QrCreate")]
+    [EnableRateLimiting("OrderCreate")]
+    [IdempotentRequest("qr-order-create")]
     [HttpPost("{token}/orders")]
     public async Task<IActionResult> CreateOrder(
         string token,

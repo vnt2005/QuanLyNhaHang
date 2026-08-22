@@ -19,6 +19,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
+[AtomicRequest]
 public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -107,6 +108,8 @@ public class OrdersController : ControllerBase
 
     // POST: api/orders
     [HttpPost]
+    [EnableRateLimiting("OrderCreate")]
+    [IdempotentRequest("admin-order-create")]
     [HasPermission(PermissionCodes.OrdersCreate)]
     public async Task<IActionResult> Create(
         [FromBody] CreateOrderCommand command,
@@ -126,6 +129,8 @@ public class OrdersController : ControllerBase
 
     // PUT: api/orders/{id}
     [HttpPut("{id:guid}")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> Update(
         Guid id,
@@ -158,6 +163,8 @@ public class OrdersController : ControllerBase
 
     // DELETE: api/orders/{id}
     [HttpDelete("{id:guid}")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.OrdersDelete)]
     public async Task<IActionResult> Delete(
         Guid id,
@@ -183,6 +190,8 @@ public class OrdersController : ControllerBase
 
     // PATCH: api/orders/{id}/status
     [HttpPatch("{id:guid}/status")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> ChangeStatus(
         Guid id,
@@ -215,6 +224,8 @@ public class OrdersController : ControllerBase
 
     // POST: api/orders/{id}/items
     [HttpPost("{id:guid}/items")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [IdempotentRequest("admin-order-item-create")]
     [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> AddOrderItem(
         Guid id,
@@ -247,6 +258,8 @@ public class OrdersController : ControllerBase
 
     // PUT: api/orders/{id}/items/{orderItemId}
     [HttpPut("{id:guid}/items/{orderItemId:guid}")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> UpdateOrderItemQuantity(
         Guid id,
@@ -288,6 +301,8 @@ public class OrdersController : ControllerBase
 
     // DELETE: api/orders/{id}/items/{orderItemId}
     [HttpDelete("{id:guid}/items/{orderItemId:guid}")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.OrdersUpdate)]
     public async Task<IActionResult> CancelOrderItem(
         Guid id,

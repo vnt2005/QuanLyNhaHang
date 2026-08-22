@@ -39,7 +39,8 @@ public sealed class CustomerSiteController : ControllerBase
     }
 
     [AllowAnonymous]
-    [EnableRateLimiting("CustomerReservation")]
+    [EnableRateLimiting("ReservationCreate")]
+    [IdempotentRequest("customer-reservation-create")]
     [HttpPost("reservations")]
     public async Task<IActionResult> CreateReservation(
         [FromBody] CreateCustomerReservationRequest request,
@@ -69,7 +70,8 @@ public sealed class CustomerSiteController : ControllerBase
     }
 
     [AllowAnonymous]
-    [EnableRateLimiting("QrCreate")]
+    [EnableRateLimiting("OrderCreate")]
+    [IdempotentRequest("customer-takeaway-create")]
     [HttpPost("takeaway-orders")]
     public async Task<IActionResult> CreateTakeawayOrder(
         [FromBody] CreateTakeawayOrderCommand command,

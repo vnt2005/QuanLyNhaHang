@@ -15,6 +15,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 [ApiController]
 [Route("api/table-operations")]
 [Authorize]
+[AtomicRequest]
 public class TableOperationsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -79,6 +80,8 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpPost("transfer")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [IdempotentRequest("table-operation-transfer")]
     [HasPermission(PermissionCodes.TableOperationsTransfer)]
     public async Task<IActionResult> TransferTable([FromBody] TransferTableCommand command)
     {
@@ -93,6 +96,8 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpPost("merge")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [IdempotentRequest("table-operation-merge")]
     [HasPermission(PermissionCodes.TableOperationsMerge)]
     public async Task<IActionResult> MergeTables([FromBody] MergeTablesCommand command)
     {
@@ -107,6 +112,8 @@ public class TableOperationsController : ControllerBase
     }
 
     [HttpPost("split")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [IdempotentRequest("table-operation-split")]
     [HasPermission(PermissionCodes.TableOperationsSplit)]
     public async Task<IActionResult> SplitTable([FromBody] SplitTableCommand command)
     {

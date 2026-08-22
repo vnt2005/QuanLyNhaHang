@@ -2,6 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Globalization;
+using System.Text.Json;
 using QuanLyNhaHang.Api.Health;
 using QuanLyNhaHang.Api.Hubs;
 using QuanLyNhaHang.Api.Payments;
@@ -12,6 +14,11 @@ using QuanLyNhaHang.Application.Features.Roles.Commands.SyncSystem;
 using QuanLyNhaHang.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 1_048_576;
+});
 
 const string frontendCorsPolicy = "Frontend";
 
@@ -65,6 +72,8 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<
     IAdminNotificationPublisher,
     SignalRAdminNotificationPublisher>();
+
+builder.Services.AddHostedService<IdempotencyCleanupService>();
 
 builder.Services
     .AddControllers()
@@ -176,10 +185,102 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+static string ResolveRateLimitActor(HttpContext context)
+{
+    var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (!string.IsNullOrWhiteSpace(userId))
+        return $"user:{userId}";
+
+    var clientId = context.Request.Headers["X-Client-Id"]
+        .ToString()
+        .Trim();
+    if (clientId.Length is >= 8 and <= 128 &&
+        clientId.All(character =>
+            char.IsAsciiLetterOrDigit(character) ||
+            character is '-' or '_' or '.'))
+    {
+        return $"client:{clientId}";
+    }
+
+    return $"ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+}
+
+static SlidingWindowRateLimiterOptions SlidingWindow(
+    int permitLimit,
+    TimeSpan window,
+    int segmentsPerWindow)
+{
+    return new SlidingWindowRateLimiterOptions
+    {
+        PermitLimit = permitLimit,
+        Window = window,
+        SegmentsPerWindow = segmentsPerWindow,
+        QueueLimit = 0,
+        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+        AutoReplenishment = true
+    };
+}
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode =
         StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = PartitionedRateLimiter.CreateChained(
+        PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            RateLimitPartition.GetSlidingWindowLimiter(
+                partitionKey:
+                    $"global-ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
+                factory: _ => SlidingWindow(
+                    300,
+                    TimeSpan.FromMinutes(1),
+                    6))),
+        PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            RateLimitPartition.GetConcurrencyLimiter(
+                partitionKey:
+                    $"concurrency-ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
+                factory: _ => new ConcurrencyLimiterOptions
+                {
+                    PermitLimit = 50,
+                    QueueLimit = 0,
+                    QueueProcessingOrder =
+                        QueueProcessingOrder.OldestFirst
+                })));
+
+    options.OnRejected = async (rejected, cancellationToken) =>
+    {
+        var response = rejected.HttpContext.Response;
+        response.StatusCode = StatusCodes.Status429TooManyRequests;
+        response.ContentType = "application/problem+json; charset=utf-8";
+
+        var retryAfterSeconds = 60;
+        if (rejected.Lease.TryGetMetadata(
+                MetadataName.RetryAfter,
+                out var retryAfter))
+        {
+            retryAfterSeconds = Math.Max(
+                1,
+                (int)Math.Ceiling(retryAfter.TotalSeconds));
+        }
+
+        response.Headers["Retry-After"] =
+            retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
+
+        await JsonSerializer.SerializeAsync(
+            response.Body,
+            new
+            {
+                type = "about:blank",
+                title = "Thao tác quá nhanh",
+                status = StatusCodes.Status429TooManyRequests,
+                detail = "Bạn đã thực hiện quá nhiều thao tác. " +
+                         $"Vui lòng thử lại sau {retryAfterSeconds} giây.",
+                message = "Bạn thao tác quá nhanh. Vui lòng thử lại sau.",
+                retryAfterSeconds,
+                traceId = rejected.HttpContext.TraceIdentifier
+            },
+            cancellationToken: cancellationToken);
+    };
 
     options.AddPolicy("AuthLogin", context =>
     {
@@ -220,19 +321,12 @@ builder.Services.AddRateLimiter(options =>
     });
 
     options.AddPolicy("QrBrowse", context =>
-    RateLimitPartition.GetFixedWindowLimiter(
-        partitionKey:
-            context.Connection.RemoteIpAddress?.ToString()
-            ?? "unknown",
-        factory: _ => new FixedWindowRateLimiterOptions
-        {
-            PermitLimit = 60,
-            Window = TimeSpan.FromMinutes(1),
-            QueueLimit = 0,
-            QueueProcessingOrder =
-                QueueProcessingOrder.OldestFirst,
-            AutoReplenishment = true
-        }));
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: $"browse:{ResolveRateLimitActor(context)}",
+            factory: _ => SlidingWindow(
+                60,
+                TimeSpan.FromMinutes(1),
+                6)));
 
     options.AddPolicy("CustomerReservation", context =>
     {
@@ -251,6 +345,55 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true
             });
     });
+
+    options.AddPolicy("OrderCreate", context =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: $"order-create:{ResolveRateLimitActor(context)}",
+            factory: _ => SlidingWindow(
+                context.User.Identity?.IsAuthenticated == true ? 30 : 6,
+                TimeSpan.FromMinutes(1),
+                6)));
+
+    options.AddPolicy("OrderItemMutation", context =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: $"order-item:{ResolveRateLimitActor(context)}",
+            factory: _ => SlidingWindow(
+                context.User.Identity?.IsAuthenticated == true ? 60 : 15,
+                TimeSpan.FromMinutes(1),
+                6)));
+
+    options.AddPolicy("ReservationCreate", context =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: $"reservation:{ResolveRateLimitActor(context)}",
+            factory: _ => SlidingWindow(
+                context.User.Identity?.IsAuthenticated == true ? 30 : 3,
+                TimeSpan.FromMinutes(10),
+                10)));
+
+    options.AddPolicy("ReservationMutation", context =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: $"reservation-mutation:{ResolveRateLimitActor(context)}",
+            factory: _ => SlidingWindow(
+                context.User.Identity?.IsAuthenticated == true ? 60 : 6,
+                TimeSpan.FromMinutes(1),
+                6)));
+
+    options.AddPolicy("PaymentMutation", context =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: $"payment:{ResolveRateLimitActor(context)}",
+            factory: _ => SlidingWindow(
+                context.User.Identity?.IsAuthenticated == true ? 20 : 5,
+                TimeSpan.FromMinutes(5),
+                10)));
+
+    options.AddPolicy("PaymentWebhook", context =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey:
+                $"payment-webhook:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
+            factory: _ => SlidingWindow(
+                240,
+                TimeSpan.FromMinutes(1),
+                6)));
 
     options.AddPolicy("QrCreate", context =>
     {
@@ -337,11 +480,13 @@ app.UseRouting();
 
 app.UseCors(frontendCorsPolicy);
 
-app.UseRateLimiter();
-
 app.UseAuthentication();
 
+app.UseRateLimiter();
+
 app.UseAuthorization();
+
+app.UseMiddleware<AtomicRequestMiddleware>();
 
 app.MapHealthChecks(
     "/health",

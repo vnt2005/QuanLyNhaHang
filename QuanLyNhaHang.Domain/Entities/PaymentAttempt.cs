@@ -44,6 +44,8 @@ public class PaymentAttempt
 
     public DateTime? PaidAt { get; private set; }
 
+    public byte[] RowVersion { get; private set; } = [];
+
     protected PaymentAttempt()
     {
     }

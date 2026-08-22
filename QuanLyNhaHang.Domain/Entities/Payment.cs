@@ -35,6 +35,8 @@ public class Payment
 
     public DateTime? UpdatedAt { get; private set; }
 
+    public byte[] RowVersion { get; private set; } = [];
+
     protected Payment()
     {
     }
@@ -188,6 +190,7 @@ public class Payment
 
     private static string GeneratePaymentCode()
     {
-        return $"PAY-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        return $"PAY-{DateTime.UtcNow:yyyyMMddHHmmssfff}-" +
+               Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
     }
 }

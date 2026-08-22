@@ -8,7 +8,20 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
     public void Configure(EntityTypeBuilder<Payment> builder)
     {
-        builder.ToTable("Payments");
+        builder.ToTable("Payments", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_Payments_Amounts_NonNegative",
+                "[TotalAmount] >= 0 AND [DiscountAmount] >= 0 " +
+                "AND [VatAmount] >= 0 AND [FinalAmount] >= 0 " +
+                "AND [CustomerPaid] >= 0 AND [ChangeAmount] >= 0 " +
+                "AND [DiscountAmount] <= [TotalAmount] " +
+                "AND [FinalAmount] > 0 " +
+                "AND [CustomerPaid] >= [FinalAmount] " +
+                "AND [ChangeAmount] = [CustomerPaid] - [FinalAmount] " +
+                "AND [FinalAmount] - [TotalAmount] + [DiscountAmount] " +
+                "- [VatAmount] >= 0");
+        });
 
         builder.HasKey(x => x.Id);
 
@@ -65,6 +78,9 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(x => x.UpdatedAt)
             .IsRequired(false);
 
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
         builder.HasIndex(x => x.PaymentCode)
             .IsUnique();
 
@@ -76,5 +92,10 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasIndex(x => new { x.OrderId, x.Status })
             .IsUnique()
             .HasFilter("[Status] = 'Paid'");
+
+        builder.HasOne<Order>()
+            .WithMany()
+            .HasForeignKey(x => x.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

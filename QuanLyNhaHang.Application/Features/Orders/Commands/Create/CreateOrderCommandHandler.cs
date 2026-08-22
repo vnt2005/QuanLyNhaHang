@@ -24,6 +24,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Gui
             throw new Exception("Order phải có ít nhất một món.");
         }
 
+        if (request.Items.Count > 50)
+            throw new ArgumentException("Một order không được vượt quá 50 dòng món.");
+
         var table = await _context.RestaurantTables
             .WhereSelectableForOrder(_context)
             .FirstOrDefaultAsync(
@@ -36,7 +39,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Gui
                 "Bàn không tồn tại, đã ngừng hoạt động, đang vệ sinh hoặc đã có đơn chưa hoàn tất.");
         }
 
-        var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        var orderCode = GenerateOrderCode();
 
         var order = new Order(
             request.RestaurantTableId,
@@ -47,9 +50,10 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Gui
 
         foreach (var itemRequest in request.Items)
         {
-            if (itemRequest.Quantity <= 0)
+            if (itemRequest.Quantity is <= 0 or > 99)
             {
-                throw new Exception("Số lượng món phải lớn hơn 0.");
+                throw new ArgumentException(
+                    "Số lượng mỗi món phải từ 1 đến 99.");
             }
 
             var menuItem = await _context.MenuItems
@@ -88,4 +92,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Gui
 
         return order.Id;
     }
+
+    private static string GenerateOrderCode()
+        => $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}-" +
+           Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
 }

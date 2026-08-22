@@ -8,7 +8,18 @@ public class InvoiceItemConfiguration : IEntityTypeConfiguration<InvoiceItem>
 {
     public void Configure(EntityTypeBuilder<InvoiceItem> builder)
     {
-        builder.ToTable("InvoiceItems");
+        builder.ToTable("InvoiceItems", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_InvoiceItems_Quantity_Positive",
+                "[Quantity] > 0");
+            table.HasCheckConstraint(
+                "CK_InvoiceItems_Amounts_NonNegative",
+                "[UnitPrice] >= 0 AND [TotalPrice] >= 0");
+            table.HasCheckConstraint(
+                "CK_InvoiceItems_TotalPrice",
+                "[TotalPrice] = [UnitPrice] * [Quantity]");
+        });
 
         builder.HasKey(x => x.Id);
 
@@ -38,5 +49,22 @@ public class InvoiceItemConfiguration : IEntityTypeConfiguration<InvoiceItem>
         builder.Property(x => x.CreatedAt).IsRequired();
 
         builder.HasIndex(x => x.InvoiceId);
+        builder.HasIndex(x => x.OrderItemId);
+        builder.HasIndex(x => x.MenuItemId);
+
+        builder.HasOne<Invoice>()
+            .WithMany()
+            .HasForeignKey(x => x.InvoiceId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<OrderItem>()
+            .WithMany()
+            .HasForeignKey(x => x.OrderItemId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<MenuItem>()
+            .WithMany()
+            .HasForeignKey(x => x.MenuItemId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

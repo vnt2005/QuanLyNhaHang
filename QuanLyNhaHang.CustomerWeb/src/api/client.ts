@@ -2,6 +2,46 @@ export const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8080'
 ).replace(/\/+$/, '')
 
+const CLIENT_ID_STORAGE_KEY = 'vnt-customer-client-id'
+const IDEMPOTENCY_REUSE_MS = 2_000
+const recentIdempotencyKeys = new Map<
+  string,
+  { key: string; expiresAt: number }
+>()
+
+function createRequestId() {
+  return globalThis.crypto?.randomUUID?.()
+    ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
+function getClientId() {
+  try {
+    const existing = localStorage.getItem(CLIENT_ID_STORAGE_KEY)
+    if (existing) return existing
+    const created = createRequestId()
+    localStorage.setItem(CLIENT_ID_STORAGE_KEY, created)
+    return created
+  } catch {
+    return createRequestId()
+  }
+}
+
+function getIdempotencyKey(path: string, init?: RequestInit) {
+  if ((init?.method ?? 'GET').toUpperCase() !== 'POST') return null
+
+  const fingerprint = `${path}\n${String(init?.body ?? '')}`
+  const now = Date.now()
+  const existing = recentIdempotencyKeys.get(fingerprint)
+  if (existing && existing.expiresAt > now) return existing.key
+
+  const key = createRequestId()
+  recentIdempotencyKeys.set(fingerprint, {
+    key,
+    expiresAt: now + IDEMPOTENCY_REUSE_MS,
+  })
+  return key
+}
+
 type ApiProblem = {
   message?: string
   title?: string
@@ -42,10 +82,13 @@ export async function apiRequest<T>(
   init?: RequestInit,
   accessToken?: string | null,
 ) {
+  const idempotencyKey = getIdempotencyKey(path, init)
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      'X-Client-Id': getClientId(),
+      ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...init?.headers,
     },

@@ -207,6 +207,7 @@ public class CreateQrOrderCommandHandler
 
     private static string GenerateOrderCode()
     {
-        return $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        return $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}-" +
+               Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
     }
 }

@@ -8,7 +8,20 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 {
     public void Configure(EntityTypeBuilder<Invoice> builder)
     {
-        builder.ToTable("Invoices");
+        builder.ToTable("Invoices", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_Invoices_Amounts_NonNegative",
+                "[TotalAmount] >= 0 AND [DiscountAmount] >= 0 " +
+                "AND [VatAmount] >= 0 AND [FinalAmount] >= 0 " +
+                "AND [CustomerPaid] >= 0 AND [ChangeAmount] >= 0 " +
+                "AND [DiscountAmount] <= [TotalAmount] " +
+                "AND [FinalAmount] > 0 " +
+                "AND [CustomerPaid] >= [FinalAmount] " +
+                "AND [ChangeAmount] = [CustomerPaid] - [FinalAmount] " +
+                "AND [FinalAmount] - [TotalAmount] + [DiscountAmount] " +
+                "- [VatAmount] >= 0");
+        });
 
         builder.HasKey(x => x.Id);
 
@@ -77,6 +90,9 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
         builder.Property(x => x.UpdatedAt).IsRequired(false);
 
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
         builder.HasIndex(x => x.InvoiceCode).IsUnique();
 
         builder.HasIndex(x => x.OrderId);
@@ -84,5 +100,20 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.HasIndex(x => x.PaymentId)
             .IsUnique()
             .HasFilter("[Status] <> 'Cancelled'");
+
+        builder.HasOne<Order>()
+            .WithMany()
+            .HasForeignKey(x => x.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Payment>()
+            .WithMany()
+            .HasForeignKey(x => x.PaymentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<RestaurantTable>()
+            .WithMany()
+            .HasForeignKey(x => x.RestaurantTableId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
