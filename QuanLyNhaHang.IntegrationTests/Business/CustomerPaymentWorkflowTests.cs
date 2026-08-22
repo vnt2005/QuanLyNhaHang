@@ -51,6 +51,74 @@ public sealed class CustomerPaymentWorkflowTests
     }
 
     [Fact]
+    public async Task RequiredWebhookReadiness_BlocksQrUntilExternalHeartbeatIsConfirmed()
+    {
+        using var factory = CreateSePayFactory(requireWebhookReadiness: true);
+        using var client = CreateHttpsClient(factory);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(factory, cancelOrder: false);
+
+        using (var blockedResponse = await client.PostAsJsonAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/sepay-qr",
+            new { qrToken = (string?)null }))
+        {
+            Assert.Equal(
+                HttpStatusCode.ServiceUnavailable,
+                blockedResponse.StatusCode);
+
+            using var json = JsonDocument.Parse(
+                await blockedResponse.Content.ReadAsStringAsync());
+            Assert.Equal(
+                "SEPAY_WEBHOOK_UNAVAILABLE",
+                json.RootElement.GetProperty("code").GetString());
+        }
+
+        using (var statusResponse = await client.GetAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/status"))
+        {
+            Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
+            var status = await statusResponse.Content
+                .ReadFromJsonAsync<PaymentStatusResponse>();
+
+            Assert.NotNull(status);
+            Assert.False(status!.CanPay);
+            Assert.False(status.PaymentChannelReady);
+            Assert.Null(status.QrCode);
+            Assert.Contains(
+                "webhook SePay",
+                status.PaymentUnavailableReason);
+        }
+
+        using (var localSpoof = await PostReadinessHeartbeatAsync(
+            client,
+            includeCloudflareHeader: false))
+        {
+            Assert.Equal(HttpStatusCode.BadRequest, localSpoof.StatusCode);
+        }
+
+        using (var heartbeat = await PostReadinessHeartbeatAsync(
+            client,
+            includeCloudflareHeader: true))
+        {
+            Assert.Equal(HttpStatusCode.OK, heartbeat.StatusCode);
+            using var json = JsonDocument.Parse(
+                await heartbeat.Content.ReadAsStringAsync());
+            Assert.True(
+                json.RootElement.GetProperty("webhookReady").GetBoolean());
+        }
+
+        using var enabledResponse = await client.PostAsJsonAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/sepay-qr",
+            new { qrToken = (string?)null });
+
+        Assert.Equal(HttpStatusCode.OK, enabledResponse.StatusCode);
+        var result = await enabledResponse.Content
+            .ReadFromJsonAsync<PaymentInstructionResponse>();
+        Assert.NotNull(result);
+        Assert.Equal(scenario.AttemptId, result!.AttemptId);
+        Assert.False(string.IsNullOrWhiteSpace(result.QrCode));
+    }
+
+    [Fact]
     public async Task PendingOrder_CannotCreateQr_AndLegacyAttemptIsInvalidated()
     {
         using var factory = CreateSePayFactory();
@@ -578,7 +646,8 @@ public sealed class CustomerPaymentWorkflowTests
             item => item.Id == scenario.OrderId);
     }
 
-    private static WebApplicationFactory<Program> CreateSePayFactory()
+    private static WebApplicationFactory<Program> CreateSePayFactory(
+        bool requireWebhookReadiness = false)
     {
         var baseFactory = new ApiWebApplicationFactory();
         return baseFactory.WithWebHostBuilder(builder =>
@@ -590,7 +659,10 @@ public sealed class CustomerPaymentWorkflowTests
                         ["SePay:AccountNumber"] = AccountNumber,
                         ["SePay:AccountHolder"] = AccountHolder,
                         ["SePay:WebhookApiKey"] = WebhookApiKey,
-                        ["SePay:PaymentPrefix"] = "DH"
+                        ["SePay:PaymentPrefix"] = "DH",
+                        ["SePay:RequireWebhookReadiness"] =
+                            requireWebhookReadiness.ToString(),
+                        ["SePay:WebhookHeartbeatTimeoutSeconds"] = "35"
                     })));
     }
 
@@ -600,6 +672,27 @@ public sealed class CustomerPaymentWorkflowTests
             BaseAddress = new Uri("https://localhost"),
             AllowAutoRedirect = false
         });
+
+    private static async Task<HttpResponseMessage> PostReadinessHeartbeatAsync(
+        HttpClient client,
+        bool includeCloudflareHeader)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/customer-payments/sepay/readiness");
+        request.Headers.TryAddWithoutValidation(
+            "Authorization",
+            $"Apikey {WebhookApiKey}");
+
+        if (includeCloudflareHeader)
+        {
+            request.Headers.TryAddWithoutValidation(
+                "CF-Ray",
+                "integration-test-ray");
+        }
+
+        return await client.SendAsync(request);
+    }
 
     private static async Task<HttpResponseMessage> PostSePayWebhookAsync(
         HttpClient client,
@@ -802,6 +895,8 @@ public sealed class CustomerPaymentWorkflowTests
         public string? PaymentUnavailableReason { get; set; }
         public string? PaymentCode { get; set; }
         public decimal? Amount { get; set; }
+        public bool PaymentChannelReady { get; set; }
+        public string? QrCode { get; set; }
         public string? AttemptStatus { get; set; }
         public bool RequiresReview { get; set; }
         public decimal? ReceivedAmount { get; set; }

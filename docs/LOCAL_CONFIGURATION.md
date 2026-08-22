@@ -61,6 +61,8 @@ SEPAY_ACCOUNT_NUMBER=<tpbank-account-number>
 SEPAY_ACCOUNT_HOLDER=<account-holder-without-diacritics>
 SEPAY_WEBHOOK_API_KEY=<same-api-key-configured-in-sepay>
 SEPAY_PAYMENT_PREFIX=DH
+SEPAY_REQUIRE_WEBHOOK_READINESS=true
+SEPAY_WEBHOOK_HEARTBEAT_TIMEOUT_SECONDS=35
 ```
 
 Khởi động SQL Server và hộp thư local khi phát triển bằng Visual Studio:
@@ -116,7 +118,9 @@ Trong Visual Studio:
     "AccountNumber": "<tpbank-account-number>",
     "AccountHolder": "<account-holder-without-diacritics>",
     "WebhookApiKey": "<same-api-key-configured-in-sepay>",
-    "PaymentPrefix": "DH"
+    "PaymentPrefix": "DH",
+    "RequireWebhookReadiness": true,
+    "WebhookHeartbeatTimeoutSeconds": 35
   }
 }
 ```
@@ -215,9 +219,13 @@ dụng migration chưa có trong `__EFMigrationsHistory`.
 
 ## 7. Mở webhook SePay từ máy local
 
-Cloudflare Quick Tunnel chỉ chuyển tiếp tới API đang chạy. Script dưới đây kiểm
-tra `/health/live` trước khi tạo tunnel, nhờ vậy sai cổng hoặc API chưa chạy sẽ
-được báo ngay thay vì để SePay nhận lỗi `502 Bad Gateway`.
+Cloudflare Quick Tunnel chỉ chuyển tiếp tới API đang chạy. Dự án còn dùng một
+heartbeat có xác thực đi xuyên qua chính URL công khai. Khi heartbeat quá hạn,
+backend trả `503 SEPAY_WEBHOOK_UNAVAILABLE`, nút thanh toán bị khóa và QR đang
+mở được ẩn đi. Cơ chế này tránh cấp QR mới khi SePay không thể gọi về máy local.
+
+Không chạy lệnh `cloudflared tunnel --url ...` riêng lẻ cho luồng thanh toán,
+vì lệnh đó không gửi heartbeat readiness. Hãy dùng script của dự án.
 
 Khi chạy API bằng Visual Studio tại `https://localhost:7134`:
 
@@ -228,22 +236,28 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-sepay-webhook-tunnel.ps
 Khi chạy API bằng Docker Compose tại `http://localhost:8080`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\start-sepay-webhook-tunnel.ps1 `
-  -ApiBaseUrl http://localhost:8080
+powershell -ExecutionPolicy Bypass -File .\scripts\start-sepay-webhook-tunnel.ps1 -ApiBaseUrl http://localhost:8080
 ```
 
-Sau khi cloudflared in ra URL mới, ghép thêm đường dẫn:
+Script tự kiểm tra `/health/live`, tạo Quick Tunnel, lấy URL
+`https://<ten-tunnel>.trycloudflare.com` và gửi heartbeat mỗi 10 giây. Sau khi
+dòng **Kênh webhook đã sẵn sàng** xuất hiện, sao chép URL webhook mà script in ra
+vào webhook **Có tiền vào** của SePay.
 
-```text
-https://<ten-tunnel>.trycloudflare.com/api/customer-payments/sepay/webhook
-```
+Giữ cửa sổ PowerShell này mở trong suốt lúc nhận thanh toán. Khi đóng cửa sổ,
+heartbeat hết hạn sau tối đa khoảng 35 giây và ứng dụng tự khóa QR. Quick Tunnel
+tạo URL tạm; nếu chạy lại script và URL thay đổi thì phải cập nhật URL mới trong
+SePay trước khi cho khách thanh toán.
 
-Đặt URL đầy đủ này vào webhook **Có tiền vào** của SePay và giữ cửa sổ
-PowerShell chạy cloudflared luôn mở. Quick Tunnel tạo URL tạm; nếu khởi động
-lại tunnel và URL thay đổi thì phải cập nhật URL trong SePay.
+Không đưa `SEPAY_WEBHOOK_API_KEY` vào URL. Script đọc khóa từ file `.env`
+không được theo dõi bởi Git; SePay gửi cùng khóa qua header
+`Authorization: Apikey ...`.
 
-Không đưa `SEPAY_WEBHOOK_API_KEY` vào URL. SePay gửi khóa này qua header
-`Authorization: Apikey ...` theo cấu hình xác thực API Key.
+Lưu ý giới hạn kỹ thuật: QR VietQR là lệnh chuyển khoản trực tiếp vào tài khoản
+ngân hàng. Sau khi khách đã nhìn thấy hoặc chụp lại QR, ứng dụng không thể yêu
+cầu ngân hàng từ chối khoản chuyển chỉ vì tunnel đã dừng. Readiness gate ngăn
+tạo/hiển thị QR khi webhook mất kết nối; giao dịch thực tế vẫn chỉ được ghi nhận
+thành công sau khi backend nhận và xác minh webhook SePay.
 
 ## 8. Kiểm tra đúng database
 

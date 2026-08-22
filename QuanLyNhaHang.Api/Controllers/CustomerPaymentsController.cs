@@ -33,17 +33,20 @@ public sealed class CustomerPaymentsController : ControllerBase
     private readonly ICurrentUserService _currentUserService;
     private readonly IAdminNotificationPublisher _notificationPublisher;
     private readonly SePayPaymentService _sePay;
+    private readonly SePayWebhookReadiness _webhookReadiness;
 
     public CustomerPaymentsController(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IAdminNotificationPublisher notificationPublisher,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        SePayWebhookReadiness webhookReadiness)
     {
         _context = context;
         _currentUserService = currentUserService;
         _notificationPublisher = notificationPublisher;
         _sePay = new SePayPaymentService(configuration);
+        _webhookReadiness = webhookReadiness;
     }
 
     [AllowAnonymous]
@@ -93,6 +96,19 @@ public sealed class CustomerPaymentsController : ControllerBase
             {
                 message = GetPaymentUnavailableMessage(order.Status),
                 orderStatus = order.Status
+            });
+        }
+
+        var webhookReadiness = _webhookReadiness.GetSnapshot();
+        if (!webhookReadiness.Ready)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                success = false,
+                code = "SEPAY_WEBHOOK_UNAVAILABLE",
+                message = GetWebhookUnavailableMessage(),
+                webhookReady = false,
+                webhookReadiness.LastConfirmedAtUtc
             });
         }
 
@@ -268,7 +284,21 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (attemptChanged)
             await _context.SaveChangesAsync(cancellationToken);
 
-        var instruction = BuildInstruction(latestAttempt);
+        var webhookReadiness = _webhookReadiness.GetSnapshot();
+        var orderCanStartOnlinePayment = CanStartOnlinePayment(order.Status);
+        var canPay = payment == null &&
+                     orderCanStartOnlinePayment &&
+                     webhookReadiness.Ready;
+        var paymentUnavailableReason = payment != null
+            ? null
+            : !orderCanStartOnlinePayment
+                ? GetPaymentUnavailableMessage(order.Status)
+                : !webhookReadiness.Ready
+                    ? GetWebhookUnavailableMessage()
+                    : null;
+        var instruction = BuildInstruction(
+            latestAttempt,
+            webhookReadiness.Ready);
 
         return Ok(new
         {
@@ -276,14 +306,15 @@ public sealed class CustomerPaymentsController : ControllerBase
             orderCode = order.OrderCode,
             orderStatus = order.Status,
             paid = payment != null,
-            canPay = payment == null && CanStartOnlinePayment(order.Status),
-            paymentUnavailableReason = payment != null || CanStartOnlinePayment(order.Status)
-                ? null
-                : GetPaymentUnavailableMessage(order.Status),
+            canPay,
+            paymentUnavailableReason,
             paymentCode = payment?.PaymentCode,
             amount = payment?.FinalAmount ?? latestAttempt?.Amount,
             paidAt = payment?.PaidAt,
             paymentMethod = payment?.PaymentMethod,
+            paymentChannelReady = webhookReadiness.Ready,
+            paymentChannelRequired = webhookReadiness.Required,
+            paymentChannelLastConfirmedAt = webhookReadiness.LastConfirmedAtUtc,
             attemptId = latestAttempt?.Id,
             attemptStatus = latestAttempt?.Status,
             requiresReview = latestAttempt?.Status == PaymentAttempt.RequiresReviewStatus,
@@ -296,6 +327,47 @@ public sealed class CustomerPaymentsController : ControllerBase
             bankCode = instruction?.BankCode,
             accountNumber = instruction?.AccountNumber,
             accountHolder = instruction?.AccountHolder
+        });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("sepay/readiness")]
+    public IActionResult ConfirmSePayWebhookReadiness()
+    {
+        if (!_sePay.IsConfigured)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                success = false,
+                message = "SePay chưa được cấu hình trên máy chủ."
+            });
+        }
+
+        if (!_sePay.IsWebhookAuthorized(Request.Headers["Authorization"].ToString()))
+        {
+            return Unauthorized(new
+            {
+                success = false,
+                message = "Heartbeat webhook SePay không có thông tin xác thực hợp lệ."
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(Request.Headers["CF-Ray"].ToString()))
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Heartbeat phải đi qua Cloudflare Tunnel công khai."
+            });
+        }
+
+        var readiness = _webhookReadiness.ConfirmExternalHeartbeat();
+        return Ok(new
+        {
+            success = true,
+            webhookReady = readiness.Ready,
+            readiness.LastConfirmedAtUtc,
+            readiness.ValidUntilUtc
         });
     }
 
@@ -322,6 +394,8 @@ public sealed class CustomerPaymentsController : ControllerBase
                 message = "Webhook SePay không có thông tin xác thực hợp lệ."
             });
         }
+
+        _webhookReadiness.ConfirmExternalHeartbeat();
 
         if (!string.Equals(webhook.TransferType, "in", StringComparison.OrdinalIgnoreCase))
             return SePayAcknowledged();
@@ -580,6 +654,10 @@ public sealed class CustomerPaymentsController : ControllerBase
     private static bool CanStartOnlinePayment(string orderStatus)
         => PayableOrderStatuses.Contains(orderStatus);
 
+    private static string GetWebhookUnavailableMessage()
+        => "Thanh toán chuyển khoản đang tạm khóa vì máy chủ chưa xác nhận được " +
+           "kết nối webhook SePay. Vui lòng báo nhà hàng mở lại kênh thanh toán rồi thử lại.";
+
     private static string GetPaymentUnavailableMessage(string orderStatus)
         => orderStatus switch
         {
@@ -695,9 +773,12 @@ public sealed class CustomerPaymentsController : ControllerBase
         return null;
     }
 
-    private SePayPaymentInstruction? BuildInstruction(PaymentAttempt? attempt)
+    private SePayPaymentInstruction? BuildInstruction(
+        PaymentAttempt? attempt,
+        bool webhookReady)
     {
         if (attempt == null ||
+            !webhookReady ||
             !_sePay.IsConfigured ||
             attempt.Status != PaymentAttempt.PendingStatus ||
             attempt.Amount is <= 0 or > int.MaxValue ||
