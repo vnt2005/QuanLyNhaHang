@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$ApiBaseUrl = 'https://localhost:7134',
+    [string]$ApiBaseUrl = 'http://localhost:8080',
     [string]$WebhookApiKey = $env:SEPAY_WEBHOOK_API_KEY,
     [ValidateRange(5, 60)]
     [int]$HeartbeatSeconds = 10
