@@ -1,10 +1,12 @@
-import { CheckCircle2, QrCode } from 'lucide-react'
+import { CheckCircle2, Clock3, QrCode } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import {
   createCustomerPaymentQr,
   getCustomerPaymentStatus,
 } from '../api/customerPayments'
 import { navigate } from '../navigation'
+
+const terminalOrderStatuses = new Set(['Completed', 'Cancelled'])
 
 export default function PayOnlineButton({
   orderId,
@@ -20,31 +22,57 @@ export default function PayOnlineButton({
   const [checking, setChecking] = useState(true)
   const [loading, setLoading] = useState(false)
   const [paid, setPaid] = useState(false)
+  const [canPay, setCanPay] = useState(false)
+  const [orderStatus, setOrderStatus] = useState('')
+  const [unavailableReason, setUnavailableReason] = useState('')
   const [error, setError] = useState('')
   const payingRef = useRef(false)
 
   useEffect(() => {
     let active = true
-    setChecking(true)
-    setError('')
-    void getCustomerPaymentStatus(orderId, qrToken, accessToken)
-      .then(status => {
-        if (active) setPaid(status.paid)
-      })
-      .catch(exception => {
+    let initialCheck = true
+    let timer: number | undefined
+
+    async function refreshStatus() {
+      if (initialCheck) setChecking(true)
+
+      try {
+        const status = await getCustomerPaymentStatus(orderId, qrToken, accessToken)
         if (!active) return
+
+        setPaid(status.paid)
+        setCanPay(status.canPay)
+        setOrderStatus(status.orderStatus)
+        setUnavailableReason(status.paymentUnavailableReason || '')
+        setError('')
+
+        if (status.paid || terminalOrderStatuses.has(status.orderStatus)) {
+          if (timer !== undefined) window.clearInterval(timer)
+        }
+      } catch (exception) {
+        if (!active) return
+        setCanPay(false)
+        setUnavailableReason('')
         setError(exception instanceof Error
           ? exception.message
           : 'Không kiểm tra được trạng thái thanh toán.')
-      })
-      .finally(() => {
-        if (active) setChecking(false)
-      })
-    return () => { active = false }
+      } finally {
+        if (active && initialCheck) setChecking(false)
+        initialCheck = false
+      }
+    }
+
+    void refreshStatus()
+    timer = window.setInterval(() => void refreshStatus(), 10_000)
+
+    return () => {
+      active = false
+      if (timer !== undefined) window.clearInterval(timer)
+    }
   }, [accessToken, orderId, qrToken])
 
   async function pay() {
-    if (payingRef.current || checking || loading || paid) return
+    if (payingRef.current || checking || loading || paid || !canPay) return
     payingRef.current = true
     setLoading(true)
     setError('')
@@ -53,6 +81,7 @@ export default function PayOnlineButton({
       const result = await createCustomerPaymentQr(orderId, qrToken, accessToken)
       if (result.alreadyPaid) {
         setPaid(true)
+        setCanPay(false)
         navigate(`/payment-result?orderId=${encodeURIComponent(orderId)}`)
         return
       }
@@ -75,18 +104,36 @@ export default function PayOnlineButton({
     }
   }
 
+  const blockedLabel = orderStatus === 'Pending'
+    ? 'Chờ nhà hàng xác nhận'
+    : orderStatus === 'Cancelled'
+      ? 'Đơn đã hủy'
+      : orderStatus === 'Completed'
+        ? 'Đơn đã hoàn thành'
+        : 'Chưa thể thanh toán'
+
   return (
     <div className="customer-online-payment-action">
-      <button className={className} type="button" disabled={checking || loading || paid} onClick={() => void pay()}>
-        {paid ? <CheckCircle2 /> : <QrCode />}
+      <button
+        className={className}
+        type="button"
+        disabled={checking || loading || paid || !canPay}
+        onClick={() => void pay()}
+      >
+        {paid ? <CheckCircle2 /> : canPay ? <QrCode /> : <Clock3 />}
         {paid
           ? 'Đã thanh toán'
           : checking
             ? 'Đang kiểm tra…'
             : loading
               ? 'Đang tạo mã QR…'
-              : 'Thanh toán online'}
+              : canPay
+                ? 'Thanh toán online'
+                : blockedLabel}
       </button>
+      {!paid && !checking && !canPay && unavailableReason
+        ? <small className="payment-inline-note">{unavailableReason}</small>
+        : null}
       {error ? <small className="payment-inline-error" role="alert">{error}</small> : null}
     </div>
   )
