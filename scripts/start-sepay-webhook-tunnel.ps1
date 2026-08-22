@@ -121,12 +121,14 @@ try {
            [string]::IsNullOrWhiteSpace($tunnelUrl)) {
         if (Test-Path -LiteralPath $logFile) {
             $logContent = Get-Content -LiteralPath $logFile -Raw -ErrorAction SilentlyContinue
-            $match = [Regex]::Match(
-                $logContent,
-                'https://[a-z0-9-]+\.trycloudflare\.com',
-                [Text.RegularExpressions.RegexOptions]::IgnoreCase)
-            if ($match.Success) {
-                $tunnelUrl = $match.Value.TrimEnd('/')
+            if (-not [string]::IsNullOrWhiteSpace($logContent)) {
+                $match = [Regex]::Match(
+                    $logContent,
+                    'https://[a-z0-9-]+\.trycloudflare\.com',
+                    [Text.RegularExpressions.RegexOptions]::IgnoreCase)
+                if ($match.Success) {
+                    $tunnelUrl = $match.Value.TrimEnd('/')
+                }
             }
         }
 
