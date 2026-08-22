@@ -68,6 +68,8 @@ services:
       SePay__AccountHolder: "${SEPAY_ACCOUNT_HOLDER:-}"
       SePay__WebhookApiKey: "${SEPAY_WEBHOOK_API_KEY:-}"
       SePay__PaymentPrefix: "${SEPAY_PAYMENT_PREFIX:-DH}"
+      SePay__RequireWebhookReadiness: "${SEPAY_REQUIRE_WEBHOOK_READINESS:-true}"
+      SePay__WebhookHeartbeatTimeoutSeconds: "${SEPAY_WEBHOOK_HEARTBEAT_TIMEOUT_SECONDS:-35}"
     ports:
       - "${API_PORT:-8080}:8080"
     depends_on:

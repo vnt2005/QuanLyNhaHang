@@ -61,6 +61,7 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
   const expired = status?.attemptStatus === 'Expired'
   const failed = status?.attemptStatus === 'Failed'
   const pending = !paid && !requiresReview && !cancelled && !expired && !failed
+  const channelUnavailable = pending && status?.paymentChannelReady === false
 
   useEffect(() => {
     if (!orderId || !pending || !status) return
@@ -103,7 +104,9 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
           ? 'Bạn đã hủy thanh toán'
           : failed
             ? 'Không thể tiếp tục phiên thanh toán'
-            : 'Quét QR để thanh toán'
+            : channelUnavailable
+              ? 'Kênh thanh toán đang tạm ngừng'
+              : 'Quét QR để thanh toán'
 
   return (
     <main className="payment-result-page page-section">
@@ -114,7 +117,9 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
             ? <AlertTriangle />
             : cancelled || expired || failed
               ? <XCircle />
-              : <Clock3 />}
+              : channelUnavailable
+                ? <AlertTriangle />
+                : <Clock3 />}
         <span className="page-kicker">THANH TOÁN QUA SEPAY</span>
         <h1>{heading}</h1>
 
@@ -127,7 +132,7 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
           </p>
         ) : null}
 
-        {pending && status?.qrCode ? (
+        {pending && !channelUnavailable && status?.qrCode ? (
           <div className="payment-qr-panel">
             <img src={status.qrCode} alt="Mã QR VietQR thanh toán đơn hàng" />
             <div className="payment-transfer-details">
@@ -143,13 +148,21 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
           </div>
         ) : null}
 
-        {pending && status && !status.qrCode ? (
+        {channelUnavailable ? (
+          <div className="form-notice error" role="alert">
+            {status?.paymentUnavailableReason ||
+              'Kênh xác nhận SePay đang mất kết nối. Không chuyển khoản cho đến khi nhà hàng mở lại kênh thanh toán.'}
+            {' '}Mã QR đã được ẩn để tránh tiền đã chuyển nhưng đơn hàng chưa được tự động cập nhật.
+          </div>
+        ) : null}
+
+        {pending && !channelUnavailable && status && !status.qrCode ? (
           <div className="form-notice error" role="alert">
             Chưa lấy được mã QR thanh toán. Hãy quay lại đơn hàng và tạo lại phiên thanh toán.
           </div>
         ) : null}
 
-        {pending && status?.qrCode ? (
+        {pending && !channelUnavailable && status?.qrCode ? (
           <p className="payment-auto-check">
             <RefreshCw className="spin" /> Hệ thống đang tự kiểm tra giao dịch qua webhook SePay mỗi vài giây.
           </p>

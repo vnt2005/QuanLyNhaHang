@@ -34,6 +34,9 @@ export type CustomerPaymentStatus = {
   amount?: number | null
   paidAt?: string | null
   paymentMethod?: string | null
+  paymentChannelReady?: boolean
+  paymentChannelRequired?: boolean
+  paymentChannelLastConfirmedAt?: string | null
   attemptId?: string | null
   attemptStatus?: string | null
   requiresReview?: boolean
