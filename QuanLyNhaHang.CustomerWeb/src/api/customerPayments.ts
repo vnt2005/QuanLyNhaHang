@@ -28,6 +28,8 @@ export type CustomerPaymentStatus = {
   orderCode: string
   orderStatus: string
   paid: boolean
+  canPay: boolean
+  paymentUnavailableReason?: string | null
   paymentCode?: string | null
   amount?: number | null
   paidAt?: string | null

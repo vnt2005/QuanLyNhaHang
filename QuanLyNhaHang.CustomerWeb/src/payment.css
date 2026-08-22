@@ -16,10 +16,18 @@
   height: 1.05rem;
 }
 
+.payment-inline-note,
 .payment-inline-error {
   max-width: 30rem;
-  color: #b42318;
   line-height: 1.45;
+}
+
+.payment-inline-note {
+  color: var(--muted);
+}
+
+.payment-inline-error {
+  color: #b42318;
 }
 
 .payment-result-page {
