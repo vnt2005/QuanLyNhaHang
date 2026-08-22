@@ -16,6 +16,14 @@ namespace QuanLyNhaHang.Api.Controllers;
 public sealed class CustomerPaymentsController : ControllerBase
 {
     private const string SePayProvider = "SePay";
+    private static readonly HashSet<string> PayableOrderStatuses = new(StringComparer.Ordinal)
+    {
+        "Confirmed",
+        "Preparing",
+        "Cooking",
+        "Ready",
+        "Served"
+    };
     private static readonly TimeSpan PaymentRequestLifetime = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan CreatingAttemptGracePeriod = TimeSpan.FromMinutes(1);
 
@@ -60,9 +68,6 @@ public sealed class CustomerPaymentsController : ControllerBase
         if (order == null)
             return NotFound(new { message = "Không tìm thấy đơn hàng hợp lệ để thanh toán." });
 
-        if (order.Status == "Cancelled")
-            return BadRequest(new { message = "Đơn hàng đã hủy, không thể thanh toán." });
-
         var existingPayment = await _context.Payments
             .AsNoTracking()
             .FirstOrDefaultAsync(
@@ -77,6 +82,15 @@ public sealed class CustomerPaymentsController : ControllerBase
                 alreadyPaid = true,
                 paymentCode = existingPayment.PaymentCode,
                 amount = existingPayment.FinalAmount
+            });
+        }
+
+        if (!CanStartOnlinePayment(order.Status))
+        {
+            return Conflict(new
+            {
+                message = GetPaymentUnavailableMessage(order.Status),
+                orderStatus = order.Status
             });
         }
 
@@ -228,14 +242,29 @@ public sealed class CustomerPaymentsController : ControllerBase
             .OrderByDescending(item => item.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
+        var attemptChanged = false;
         if (latestAttempt != null &&
             (latestAttempt.Status == PaymentAttempt.CreatingStatus ||
              latestAttempt.Status == PaymentAttempt.PendingStatus) &&
             latestAttempt.ExpiresAt <= DateTime.UtcNow)
         {
             latestAttempt.MarkExpired();
-            await _context.SaveChangesAsync(cancellationToken);
+            attemptChanged = true;
         }
+
+        if (payment == null &&
+            latestAttempt != null &&
+            !CanStartOnlinePayment(order.Status) &&
+            (latestAttempt.Status == PaymentAttempt.CreatingStatus ||
+             latestAttempt.Status == PaymentAttempt.PendingStatus))
+        {
+            latestAttempt.MarkCancelled(
+                $"Order status {order.Status} is not eligible for online payment.");
+            attemptChanged = true;
+        }
+
+        if (attemptChanged)
+            await _context.SaveChangesAsync(cancellationToken);
 
         var instruction = BuildInstruction(latestAttempt);
 
@@ -245,6 +274,10 @@ public sealed class CustomerPaymentsController : ControllerBase
             orderCode = order.OrderCode,
             orderStatus = order.Status,
             paid = payment != null,
+            canPay = payment == null && CanStartOnlinePayment(order.Status),
+            paymentUnavailableReason = payment != null || CanStartOnlinePayment(order.Status)
+                ? null
+                : GetPaymentUnavailableMessage(order.Status),
             paymentCode = payment?.PaymentCode,
             amount = payment?.FinalAmount ?? latestAttempt?.Amount,
             paidAt = payment?.PaidAt,
@@ -400,6 +433,19 @@ public sealed class CustomerPaymentsController : ControllerBase
             return SePayAcknowledged();
         }
 
+        if (!CanStartOnlinePayment(order.Status))
+        {
+            attempt.MarkRequiresReview(
+                webhook.TransferAmount,
+                transactionId,
+                order.Status == "Pending"
+                    ? "PaidBeforeOrderConfirmation"
+                    : $"PaidWhenOrderStatusNotPayable:{order.Status}",
+                "PAID");
+            await _context.SaveChangesAsync(cancellationToken);
+            return SePayAcknowledged();
+        }
+
         CustomerPaymentQuote quote;
         try
         {
@@ -498,6 +544,19 @@ public sealed class CustomerPaymentsController : ControllerBase
 
     private IActionResult SePayAcknowledged()
         => Ok(new { success = true });
+
+    private static bool CanStartOnlinePayment(string orderStatus)
+        => PayableOrderStatuses.Contains(orderStatus);
+
+    private static string GetPaymentUnavailableMessage(string orderStatus)
+        => orderStatus switch
+        {
+            "Pending" =>
+                "Đơn hàng đang chờ nhà hàng xác nhận. Vui lòng thanh toán sau khi nhà hàng bắt đầu chuẩn bị món.",
+            "Cancelled" => "Đơn hàng đã hủy, không thể thanh toán.",
+            "Completed" => "Đơn hàng đã hoàn tất, không thể tạo thêm giao dịch thanh toán.",
+            _ => "Trạng thái đơn hàng hiện không cho phép thanh toán online."
+        };
 
     private async Task<IActionResult?> ReconcileOpenAttemptsAsync(
         Order order,
