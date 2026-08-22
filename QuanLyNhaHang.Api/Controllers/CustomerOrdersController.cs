@@ -34,7 +34,8 @@ public class CustomerOrdersController : ControllerBase
         return Ok(await _mediator.Send(query));
     }
 
-    [EnableRateLimiting("QrCreate")]
+    [EnableRateLimiting("OrderCreate")]
+    [IdempotentRequest("customer-order-create")]
     [HttpPost]
     public async Task<IActionResult> CreateOrder(
         [FromBody] CreateCustomerOrderRequest request)
@@ -60,6 +61,8 @@ public class CustomerOrdersController : ControllerBase
     }
 
     [HttpPost("{orderId:guid}/claim")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [IdempotentRequest("customer-order-claim")]
     public async Task<IActionResult> ClaimOrder(
         Guid orderId,
         [FromBody] ClaimCustomerOrderRequest request)
@@ -77,4 +80,3 @@ public class CustomerOrdersController : ControllerBase
         });
     }
 }
-

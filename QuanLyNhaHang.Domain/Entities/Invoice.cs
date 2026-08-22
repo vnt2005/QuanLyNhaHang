@@ -45,6 +45,8 @@ public class Invoice
 
     public DateTime? UpdatedAt { get; private set; }
 
+    public byte[] RowVersion { get; private set; } = [];
+
     protected Invoice()
     {
     }
@@ -229,6 +231,7 @@ public class Invoice
 
     private static string GenerateInvoiceCode()
     {
-        return $"INV-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        return $"INV-{DateTime.UtcNow:yyyyMMddHHmmssfff}-" +
+               Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
     }
 }

@@ -13,6 +13,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 [ApiController]
 [Route("api/promotion-usages")]
 [Authorize]
+[AtomicRequest]
 public class PromotionUsagesController : ControllerBase
 {
     private readonly IMediator _mediator;

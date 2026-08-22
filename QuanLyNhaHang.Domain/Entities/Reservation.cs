@@ -36,6 +36,8 @@ public class Reservation
 
     public DateTime? UpdatedAt { get; private set; }
 
+    public byte[] RowVersion { get; private set; } = [];
+
     protected Reservation()
     {
     }
@@ -219,6 +221,7 @@ public class Reservation
 
     private static string GenerateReservationCode()
     {
-        return $"RSV-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        return $"RSV-{DateTime.UtcNow:yyyyMMddHHmmssfff}-" +
+               Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
     }
 }

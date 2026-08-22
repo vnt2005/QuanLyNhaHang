@@ -8,7 +8,15 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
 {
     public void Configure(EntityTypeBuilder<Reservation> builder)
     {
-        builder.ToTable("Reservations");
+        builder.ToTable("Reservations", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_Reservations_NumberOfGuests_Positive",
+                "[NumberOfGuests] > 0");
+            table.HasCheckConstraint(
+                "CK_Reservations_DepositAmount_NonNegative",
+                "[DepositAmount] >= 0");
+        });
 
         builder.HasKey(x => x.Id);
 
@@ -65,6 +73,9 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
         builder.Property(x => x.UpdatedAt)
             .IsRequired(false);
 
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
         builder.HasIndex(x => x.ReservationCode)
             .IsUnique();
 
@@ -84,5 +95,10 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
             x.ReservationTime,
             x.Status
         });
+
+        builder.HasOne<RestaurantTable>()
+            .WithMany()
+            .HasForeignKey(x => x.RestaurantTableId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

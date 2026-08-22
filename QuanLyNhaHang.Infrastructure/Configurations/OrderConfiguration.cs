@@ -8,7 +8,15 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
     public void Configure(EntityTypeBuilder<Order> builder)
     {
-        builder.ToTable("Orders");
+        builder.ToTable("Orders", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_Orders_OrderType",
+                "[OrderType] IN ('DineIn', 'Takeaway')");
+            table.HasCheckConstraint(
+                "CK_Orders_TotalAmount_NonNegative",
+                "[TotalAmount] >= 0");
+        });
 
         builder.HasKey(x => x.Id);
 
@@ -70,5 +78,22 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.Property(x => x.UpdatedAt)
             .IsRequired(false);
+
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
+        builder.HasIndex(x => new
+            {
+                x.RestaurantTableId,
+                x.IsActive,
+                x.Status
+            })
+            .HasDatabaseName(
+                "IX_Orders_RestaurantTableId_IsActive_Status");
+
+        builder.HasOne<RestaurantTable>()
+            .WithMany()
+            .HasForeignKey(x => x.RestaurantTableId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

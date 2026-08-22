@@ -15,6 +15,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 [ApiController]
 [Route("api/reservations")]
 [Authorize]
+[AtomicRequest]
 public class ReservationsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -96,6 +97,8 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("ReservationCreate")]
+    [IdempotentRequest("admin-reservation-create")]
     [HasPermission(PermissionCodes.ReservationsCreate)]
     public async Task<IActionResult> Create([FromBody] CreateReservationCommand command)
     {
@@ -110,6 +113,8 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [EnableRateLimiting("ReservationMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.ReservationsUpdate)]
     public async Task<IActionResult> Update(
         Guid id,
@@ -128,6 +133,8 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/status")]
+    [EnableRateLimiting("ReservationMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.ReservationsUpdate)]
     public async Task<IActionResult> UpdateStatus(
         Guid id,
@@ -146,6 +153,8 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [EnableRateLimiting("ReservationMutation")]
+    [AtomicRequest]
     [HasPermission(PermissionCodes.ReservationsCancel)]
     public async Task<IActionResult> Delete(Guid id)
     {

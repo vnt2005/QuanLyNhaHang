@@ -42,9 +42,10 @@ public class AddOrderItemCommandHandler
             throw new Exception("Không thể thêm món vào order đã hủy.");
         }
 
-        if (request.Quantity <= 0)
+        if (request.Quantity is <= 0 or > 99)
         {
-            throw new Exception("Số lượng món phải lớn hơn 0.");
+            throw new ArgumentException(
+                "Số lượng mỗi món phải từ 1 đến 99.");
         }
 
         var menuItem = await _context.MenuItems

@@ -413,6 +413,66 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.ToTable("InventoryTransactions", (string)null);
                 });
 
+            modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.IdempotencyRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Actor")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .IsFixedLength()
+                        .HasMaxLength(64)
+                        .HasColumnType("nchar(64)");
+
+                    b.Property<string>("ResponseBody")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("IX_IdempotencyRecords_ExpiresAt");
+
+                    b.HasIndex("Scope", "Actor", "Key")
+                        .IsUnique()
+                        .HasDatabaseName("UX_IdempotencyRecords_Scope_Actor_Key");
+
+                    b.ToTable("IdempotencyRecords", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_IdempotencyRecords_StatusCode",
+                                "[StatusCode] IS NULL OR ([StatusCode] >= 200 AND [StatusCode] < 400)");
+                        });
+                });
+
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.Invoice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -470,6 +530,12 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.Property<Guid?>("RestaurantTableId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("RestaurantTableName")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -500,7 +566,14 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[Status] <> 'Cancelled'");
 
-                    b.ToTable("Invoices", (string)null);
+                    b.HasIndex("RestaurantTableId");
+
+                    b.ToTable("Invoices", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_Invoices_Amounts_NonNegative",
+                                "[TotalAmount] >= 0 AND [DiscountAmount] >= 0 AND [VatAmount] >= 0 AND [FinalAmount] >= 0 AND [CustomerPaid] >= 0 AND [ChangeAmount] >= 0 AND [DiscountAmount] <= [TotalAmount] AND [FinalAmount] > 0 AND [CustomerPaid] >= [FinalAmount] AND [ChangeAmount] = [CustomerPaid] - [FinalAmount] AND [FinalAmount] - [TotalAmount] + [DiscountAmount] - [VatAmount] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.InvoiceItem", b =>
@@ -543,7 +616,24 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
 
                     b.HasIndex("InvoiceId");
 
-                    b.ToTable("InvoiceItems", (string)null);
+                    b.HasIndex("MenuItemId");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.ToTable("InvoiceItems", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_InvoiceItems_Amounts_NonNegative",
+                                "[UnitPrice] >= 0 AND [TotalPrice] >= 0");
+
+                            t.HasCheckConstraint(
+                                "CK_InvoiceItems_Quantity_Positive",
+                                "[Quantity] > 0");
+
+                            t.HasCheckConstraint(
+                                "CK_InvoiceItems_TotalPrice",
+                                "[TotalPrice] = [UnitPrice] * [Quantity]");
+                        });
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.MenuCategory", b =>
@@ -719,6 +809,12 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.Property<Guid?>("RestaurantTableId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -739,7 +835,19 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .HasDatabaseName("IX_Orders_CustomerUserId_CreatedAt")
                         .HasFilter("[CustomerUserId] IS NOT NULL");
 
-                    b.ToTable("Orders", (string)null);
+                    b.HasIndex("RestaurantTableId", "IsActive", "Status")
+                        .HasDatabaseName("IX_Orders_RestaurantTableId_IsActive_Status");
+
+                    b.ToTable("Orders", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_Orders_OrderType",
+                                "[OrderType] IN ('DineIn', 'Takeaway')");
+
+                            t.HasCheckConstraint(
+                                "CK_Orders_TotalAmount_NonNegative",
+                                "[TotalAmount] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.OrderItem", b =>
@@ -769,6 +877,12 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -791,7 +905,24 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.HasIndex("MenuItemId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItems", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_OrderItems_Amounts_NonNegative",
+                                "[UnitPrice] >= 0 AND [TotalPrice] >= 0");
+
+                            t.HasCheckConstraint(
+                                "CK_OrderItems_Quantity_Range",
+                                "[Quantity] >= 1 AND [Quantity] <= 99");
+
+                            t.HasCheckConstraint(
+                                "CK_OrderItems_TotalPrice",
+                                "[TotalPrice] = [UnitPrice] * [Quantity]");
+                        });
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.Payment", b =>
@@ -824,6 +955,12 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
 
                     b.Property<DateTime>("PaidAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("PaymentCode")
                         .IsRequired()
@@ -860,7 +997,12 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[Status] = 'Paid'");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_Payments_Amounts_NonNegative",
+                                "[TotalAmount] >= 0 AND [DiscountAmount] >= 0 AND [VatAmount] >= 0 AND [FinalAmount] >= 0 AND [CustomerPaid] >= 0 AND [ChangeAmount] >= 0 AND [DiscountAmount] <= [TotalAmount] AND [FinalAmount] > 0 AND [CustomerPaid] >= [FinalAmount] AND [ChangeAmount] = [CustomerPaid] - [FinalAmount] AND [FinalAmount] - [TotalAmount] + [DiscountAmount] - [VatAmount] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.PaymentAttempt", b =>
@@ -918,6 +1060,12 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -941,7 +1089,26 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.HasIndex("Provider", "ProviderOrderCode")
                         .IsUnique();
 
-                    b.ToTable("PaymentAttempts", (string)null);
+                    b.HasIndex("OrderId", "Provider")
+                        .IsUnique()
+                        .HasDatabaseName("UX_PaymentAttempts_Order_Provider_Open")
+                        .HasFilter("[Status] IN ('Creating', 'Pending')");
+
+                    b.HasIndex("Provider", "ProviderReference")
+                        .IsUnique()
+                        .HasDatabaseName("UX_PaymentAttempts_Provider_ProviderReference")
+                        .HasFilter("[ProviderReference] IS NOT NULL");
+
+                    b.ToTable("PaymentAttempts", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_PaymentAttempts_Amount_Positive",
+                                "[Amount] > 0");
+
+                            t.HasCheckConstraint(
+                                "CK_PaymentAttempts_ReceivedAmount_Positive",
+                                "[ReceivedAmount] IS NULL OR [ReceivedAmount] > 0");
+                        });
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.Permission", b =>
@@ -1183,6 +1350,12 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.Property<Guid>("RestaurantTableId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1208,7 +1381,16 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
 
                     b.HasIndex("RestaurantTableId", "ReservationTime", "Status");
 
-                    b.ToTable("Reservations", (string)null);
+                    b.ToTable("Reservations", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_Reservations_DepositAmount_NonNegative",
+                                "[DepositAmount] >= 0");
+
+                            t.HasCheckConstraint(
+                                "CK_Reservations_NumberOfGuests_Positive",
+                                "[NumberOfGuests] > 0");
+                        });
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.RestaurantSetting", b =>
@@ -1333,12 +1515,25 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.ToTable("RestaurantTables", (string)null);
+                    b.HasIndex("AreaId");
+
+                    b.ToTable("RestaurantTables", t =>
+                        {
+                            t.HasCheckConstraint(
+                                "CK_RestaurantTables_Capacity_Positive",
+                                "[Capacity] > 0");
+                        });
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.RevenueReport", b =>
@@ -1878,6 +2073,47 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.Invoice", b =>
+                {
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.Payment", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.RestaurantTable", null)
+                        .WithMany()
+                        .HasForeignKey("RestaurantTableId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.InvoiceItem", b =>
+                {
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.Invoice", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.MenuItem", null)
+                        .WithMany()
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.OrderItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.Ingredient", b =>
                 {
                     b.HasOne("QuanLyNhaHang.Domain.Entities.IngredientCategory", null)
@@ -1907,10 +2143,39 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.Order", b =>
                 {
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.RestaurantTable", null)
+                        .WithMany()
+                        .HasForeignKey("RestaurantTableId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("QuanLyNhaHang.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("CustomerUserId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.OrderItem", b =>
+                {
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.MenuItem", null)
+                        .WithMany()
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.PaymentAttempt", b =>
@@ -1932,6 +2197,24 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                     b.HasOne("QuanLyNhaHang.Domain.Entities.Promotion", null)
                         .WithMany()
                         .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.Reservation", b =>
+                {
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.RestaurantTable", null)
+                        .WithMany()
+                        .HasForeignKey("RestaurantTableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.RestaurantTable", b =>
+                {
+                    b.HasOne("QuanLyNhaHang.Domain.Entities.Area", null)
+                        .WithMany()
+                        .HasForeignKey("AreaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

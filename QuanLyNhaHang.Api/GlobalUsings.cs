@@ -4,7 +4,9 @@ global using QuanLyNhaHang.Api.Middlewares;
 global using QuanLyNhaHang.Api.Services;
 global using QuanLyNhaHang.Application.Common.Interfaces;
 global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.RateLimiting;
 global using QuanLyNhaHang.Api.Authorization;
+global using QuanLyNhaHang.Api.RequestProtection;
 global using System.Security.Claims;
 global using System.Threading.RateLimiting;
 

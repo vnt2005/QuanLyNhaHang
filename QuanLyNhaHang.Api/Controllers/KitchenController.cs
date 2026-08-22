@@ -11,6 +11,7 @@ namespace QuanLyNhaHang.Api.Controllers;
 [ApiController]
 [Route("api/kitchen")]
 [Authorize]
+[AtomicRequest]
 public class KitchenController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -39,6 +40,7 @@ public class KitchenController : ControllerBase
     }
 
     [HttpPatch("order-items/{orderItemId:guid}/status")]
+    [EnableRateLimiting("OrderItemMutation")]
     [HasPermission(PermissionCodes.KitchenUpdateStatus)]
     public async Task<IActionResult> UpdateKitchenOrderItemStatus(
         Guid orderItemId,

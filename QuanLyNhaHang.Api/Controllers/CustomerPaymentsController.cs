@@ -47,7 +47,8 @@ public sealed class CustomerPaymentsController : ControllerBase
     }
 
     [AllowAnonymous]
-    [EnableRateLimiting("QrCreate")]
+    [EnableRateLimiting("PaymentMutation")]
+    [IdempotentRequest("customer-sepay-qr-create")]
     [HttpPost("orders/{orderId:guid}/sepay-qr")]
     public async Task<IActionResult> CreateSePayQr(
         Guid orderId,
@@ -155,7 +156,8 @@ public sealed class CustomerPaymentsController : ControllerBase
     }
 
     [AllowAnonymous]
-    [EnableRateLimiting("QrCreate")]
+    [EnableRateLimiting("PaymentMutation")]
+    [IdempotentRequest("customer-payment-attempt-cancel")]
     [HttpPost("orders/{orderId:guid}/attempts/{attemptId:guid}/cancel")]
     public async Task<IActionResult> CancelPaymentAttempt(
         Guid orderId,
@@ -300,6 +302,10 @@ public sealed class CustomerPaymentsController : ControllerBase
     }
 
     [AllowAnonymous]
+    [EnableRateLimiting("PaymentWebhook")]
+    [IdempotentRequest(
+        "sepay-webhook",
+        FallbackWindowSeconds = 120)]
     [HttpPost("sepay/webhook")]
     public async Task<IActionResult> SePayWebhook(
         [FromBody] SePayWebhookTransaction webhook,

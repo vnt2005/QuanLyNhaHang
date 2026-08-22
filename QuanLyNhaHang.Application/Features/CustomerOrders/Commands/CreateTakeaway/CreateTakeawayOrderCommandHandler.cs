@@ -175,5 +175,6 @@ public sealed class CreateTakeawayOrderCommandHandler
     }
 
     private static string GenerateOrderCode()
-        => $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        => $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}-" +
+           Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
 }
