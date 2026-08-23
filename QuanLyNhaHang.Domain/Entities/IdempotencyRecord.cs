@@ -24,7 +24,7 @@ public sealed class IdempotencyRecord
 
     public bool IsCompleted => StatusCode.HasValue;
 
-    protected IdempotencyRecord()
+    private IdempotencyRecord()
     {
     }
 
@@ -77,4 +77,3 @@ public sealed class IdempotencyRecord
         ResponseBody = responseBody;
     }
 }
-
