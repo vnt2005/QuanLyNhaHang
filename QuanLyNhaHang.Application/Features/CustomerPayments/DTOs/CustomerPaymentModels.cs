@@ -118,11 +118,6 @@ public sealed class CustomerPaymentStatusDto
     public string? AccountHolder { get; init; }
 }
 
-public sealed record PaymentChannelState(
-    bool Required,
-    bool Ready,
-    DateTime? LastConfirmedAtUtc);
-
 public sealed record IncomingPaymentTransaction(
     string PaymentCode,
     decimal Amount,
