@@ -55,7 +55,7 @@ public sealed class CustomerPaymentInstructionDto
 {
     public bool Success { get; init; } = true;
     public bool AlreadyPaid { get; init; }
-    public bool? Reused { get; init; }
+    public bool Reused { get; init; }
     public Guid? OrderId { get; init; }
     public string? OrderCode { get; init; }
     public Guid? AttemptId { get; init; }
@@ -79,7 +79,7 @@ public sealed class CancelPaymentAttemptDto
 {
     public bool Success { get; init; } = true;
     public string? AttemptStatus { get; init; }
-    public bool? RequiresReview { get; init; }
+    public bool RequiresReview { get; init; }
 }
 
 public sealed class CustomerPaymentStatusDto
