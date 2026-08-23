@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using QuanLyNhaHang.Application.Common.Payments;
 
@@ -17,18 +17,13 @@ public sealed class SePayWebhookReadiness : IPaymentChannelReadiness
 
     public SePayWebhookReadiness(
         IOptions<SePayOptions> options,
-        IConfiguration configuration)
+        IHostEnvironment environment)
     {
         var value = options.Value;
-        var environmentName =
-            configuration["ASPNETCORE_ENVIRONMENT"] ??
-            configuration["DOTNET_ENVIRONMENT"];
-        var isDevelopment = string.Equals(
-            environmentName,
-            "Development",
-            StringComparison.OrdinalIgnoreCase);
 
-        IsRequired = value.RequireWebhookReadiness ?? isDevelopment;
+        IsRequired =
+            value.RequireWebhookReadiness ??
+            environment.IsDevelopment();
 
         var timeoutSeconds = Math.Clamp(
             value.WebhookHeartbeatTimeoutSeconds ??
