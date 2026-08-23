@@ -5,10 +5,10 @@ namespace QuanLyNhaHang.Application.Features.CustomerPayments.Commands.ProcessPa
 
 public sealed record ProcessPaymentWebhookCommand(
     IncomingPaymentTransaction Transaction)
-    : IRequest;
+    : IRequest<bool>;
 
 public sealed class ProcessPaymentWebhookCommandHandler
-    : IRequestHandler<ProcessPaymentWebhookCommand>
+    : IRequestHandler<ProcessPaymentWebhookCommand, bool>
 {
     private readonly CustomerPaymentWorkflow _workflow;
 
@@ -17,12 +17,14 @@ public sealed class ProcessPaymentWebhookCommandHandler
         _workflow = workflow;
     }
 
-    public async Task Handle(
+    public async Task<bool> Handle(
         ProcessPaymentWebhookCommand request,
         CancellationToken cancellationToken)
     {
         await _workflow.ProcessWebhookAsync(
             request.Transaction,
             cancellationToken);
+
+        return true;
     }
 }
