@@ -27,29 +27,37 @@
   justify-content: flex-end !important;
 }
 
-/* Generic create-order overlay: dim the page without erasing it. */
+/* Generic Orders modal backdrop: keep it very light. */
 .admin-layout:has(.orders-page) .modal-backdrop {
-  background: rgb(8 15 32 / 28%) !important;
-  -webkit-backdrop-filter: blur(3px) saturate(.94) brightness(.96) !important;
-  backdrop-filter: blur(3px) saturate(.94) brightness(.96) !important;
+  background-color: rgba(3, 8, 20, 0.08) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
 }
 
-/* Detail modal specifically needs a much lighter veil. The Orders page is
-   already dark, so a 40-50% black overlay effectively turns it into a flat
-   black screen. Keep the real page clearly visible behind the modal, similar
-   to the confirmation-dialog treatment in the supplied reference. */
+/* The detail modal previously looked like a full-screen navy page because the
+   shared backdrop was still effectively opaque in Chromium. Target the exact
+   backdrop that contains the detail modal and force a genuinely transparent
+   layer so the Orders screen remains visible around it. */
 .admin-layout:has(.orders-page) .modal-backdrop:has(.order-detail-modal) {
-  background: rgb(12 20 38 / 12%) !important;
-  -webkit-backdrop-filter: blur(3px) saturate(.9) brightness(.95) !important;
-  backdrop-filter: blur(3px) saturate(.9) brightness(.95) !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
 }
 
-/* Confirmation uses its own backdrop. Keep enough contrast for the warning
-   card while still showing the Orders screen beneath it. */
+/* Confirmation uses its own backdrop. Keep the page visible, only slightly
+   dimmed, and avoid blur that makes the dark page look like a solid block. */
 body:has(.orders-page) .ds-confirm-backdrop {
-  background: rgb(8 15 32 / 34%) !important;
-  -webkit-backdrop-filter: blur(3px) saturate(.92) brightness(.94) !important;
-  backdrop-filter: blur(3px) saturate(.92) brightness(.94) !important;
+  background: rgba(0, 0, 0, 0.16) !important;
+  background-color: rgba(0, 0, 0, 0.16) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(1px) !important;
+  backdrop-filter: blur(1px) !important;
+  opacity: 1 !important;
 }
 
 /* Remove the decorative danger/accent strip across the top of confirmation. */
@@ -66,7 +74,7 @@ body:has(.orders-page) .ds-confirm-dialog {
 
 /* Detail modal should feel elevated, while the app remains readable behind it. */
 .admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
-  box-shadow: 0 28px 72px rgb(0 0 0 / 34%) !important;
+  box-shadow: 0 28px 72px rgb(0 0 0 / 38%) !important;
 }
 
 @media (max-width: 1180px) {
