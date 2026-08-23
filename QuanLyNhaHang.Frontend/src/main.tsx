@@ -28,6 +28,7 @@ import './pages/module-loading.css'
 import './design-system/admin.css'
 import './components/notification-center.css'
 import './pages/dashboard-command-center.css'
+import './pages/dashboard-calendar-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
