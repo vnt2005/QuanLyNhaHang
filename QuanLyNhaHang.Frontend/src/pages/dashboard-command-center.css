@@ -1,0 +1,709 @@
+/* Dashboard dark command-center skin
+   Inspired by the supplied dark dashboard references while preserving the
+   restaurant admin's existing information architecture and interactions. */
+
+.admin-layout:has(.live-dashboard-page) {
+  --dashboard-bg: #050b1d;
+  --dashboard-surface: #091226;
+  --dashboard-surface-soft: #0d1730;
+  --dashboard-surface-strong: #111d36;
+  --dashboard-border: #1d2b49;
+  --dashboard-border-soft: #14223d;
+  --dashboard-text: #f6f7fb;
+  --dashboard-text-soft: #a4afc3;
+  --dashboard-text-muted: #718099;
+  --dashboard-accent: #ff9d00;
+  --dashboard-accent-strong: #ff7a00;
+  --dashboard-success: #22d3a7;
+  --dashboard-info: #60a5fa;
+  --dashboard-danger: #fb4b83;
+  --dashboard-warning: #f3b43f;
+  background: var(--dashboard-bg);
+}
+
+/* Keep the current left navigation instead of copying the reference shell. */
+.admin-layout:has(.live-dashboard-page) .sidebar {
+  border-right-color: #172540;
+  background:
+    radial-gradient(circle at 8% 0%, rgb(30 64 175 / 20%), transparent 28%),
+    linear-gradient(180deg, #081225 0%, #050b19 100%);
+}
+
+.admin-layout:has(.live-dashboard-page) .sidebar nav button.active,
+.admin-layout:has(.live-dashboard-page) .sidebar nav button.active:hover {
+  color: #fff7e8;
+  border-color: rgb(255 157 0 / 26%);
+  background: linear-gradient(90deg, rgb(255 157 0 / 17%), rgb(255 122 0 / 5%));
+  box-shadow: inset 3px 0 0 var(--dashboard-accent);
+}
+
+.admin-layout:has(.live-dashboard-page) .sidebar nav button.active > span {
+  color: #ffc765;
+  background: rgb(255 157 0 / 14%);
+}
+
+.admin-layout:has(.live-dashboard-page) .dashboard {
+  background:
+    radial-gradient(circle at 93% 8%, rgb(37 99 235 / 7%), transparent 26rem),
+    radial-gradient(circle at 42% 38%, rgb(255 157 0 / 3%), transparent 30rem),
+    var(--dashboard-bg);
+}
+
+.admin-layout:has(.live-dashboard-page) .topbar {
+  border-bottom-color: #172540;
+  background: rgb(5 11 29 / 92%);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 16%);
+  backdrop-filter: blur(18px);
+}
+
+.admin-layout:has(.live-dashboard-page) .topbar .eyebrow {
+  color: var(--dashboard-accent);
+}
+
+.admin-layout:has(.live-dashboard-page) .topbar h1,
+.admin-layout:has(.live-dashboard-page) .profile-button strong {
+  color: var(--dashboard-text);
+}
+
+.admin-layout:has(.live-dashboard-page) .profile-button small {
+  color: var(--dashboard-text-muted);
+}
+
+.admin-layout:has(.live-dashboard-page) .profile-button:hover,
+.admin-layout:has(.live-dashboard-page) .profile-button.active {
+  border-color: #263655;
+  background: #0b152b;
+  box-shadow: none;
+}
+
+.admin-layout:has(.live-dashboard-page) .logout {
+  color: #d8deea;
+  border-color: #263655;
+  background: #0b152b;
+  box-shadow: none;
+}
+
+.admin-layout:has(.live-dashboard-page) .logout:hover:not(:disabled) {
+  color: #ffd085;
+  border-color: rgb(255 157 0 / 45%);
+}
+
+/* Main dashboard rhythm -------------------------------------------------- */
+.live-dashboard-page {
+  width: min(100%, 1480px);
+  margin: 0 auto;
+  gap: 22px;
+  padding: 26px 0 42px;
+  color: var(--dashboard-text);
+}
+
+.live-dashboard-welcome {
+  position: relative;
+  min-height: 178px;
+  padding: 30px 32px;
+  border: 1px solid #22304d;
+  border-radius: 26px;
+  color: var(--dashboard-text);
+  background:
+    linear-gradient(115deg, rgb(14 25 50 / 98%), rgb(7 16 35 / 98%)),
+    #091226;
+  box-shadow: 0 22px 60px rgb(0 0 0 / 16%);
+  overflow: hidden;
+}
+
+.live-dashboard-welcome::before {
+  position: absolute;
+  inset: auto -90px -135px auto;
+  width: 320px;
+  height: 320px;
+  border: 1px solid rgb(255 157 0 / 10%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 54px rgb(255 157 0 / 2.5%),
+    0 0 0 108px rgb(255 157 0 / 1.5%);
+  content: '';
+}
+
+.live-dashboard-welcome > div,
+.live-dashboard-welcome > button {
+  position: relative;
+  z-index: 1;
+}
+
+.live-dashboard-welcome > div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #f8ad2f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.live-dashboard-welcome > div > span::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dashboard-accent);
+  box-shadow: 0 0 0 5px rgb(255 157 0 / 9%);
+  content: '';
+}
+
+.live-dashboard-welcome h2 {
+  margin: 12px 0 8px;
+  color: #fff;
+  font-size: clamp(1.75rem, 2.4vw, 2.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+}
+
+.live-dashboard-welcome p {
+  max-width: 720px;
+  margin: 0;
+  color: #9ba9bf;
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+.live-dashboard-welcome > button {
+  min-width: 168px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid #ffb43d !important;
+  border-radius: 13px;
+  color: #201100 !important;
+  background: linear-gradient(180deg, #ffad1c 0%, #ff8a00 100%) !important;
+  box-shadow: 0 12px 28px rgb(255 139 0 / 22%) !important;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.live-dashboard-welcome > button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+/* Filters stay in this product because they are functional and do not exist
+   in the reference screenshots. They are re-skinned, not removed. */
+.live-dashboard-control-row {
+  align-items: center;
+  gap: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 18px;
+  background: rgb(9 18 38 / 94%);
+  box-shadow: 0 14px 36px rgb(0 0 0 / 10%);
+}
+
+.live-dashboard-control-row form {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.live-dashboard-control-row label {
+  gap: 7px;
+  color: #7f8ca2;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.live-dashboard-control-row input,
+.live-dashboard-control-row select {
+  min-width: 138px;
+  height: 42px;
+  padding: 0 12px;
+  color: #dfe6f2;
+  border: 1px solid #283653;
+  border-radius: 11px;
+  background: #070f22;
+  font-size: 0.8rem;
+  color-scheme: dark;
+}
+
+.live-dashboard-control-row input:focus,
+.live-dashboard-control-row select:focus {
+  border-color: rgb(255 157 0 / 72%);
+  box-shadow: 0 0 0 3px rgb(255 157 0 / 10%);
+}
+
+.live-dashboard-control-row form > button {
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid #ffad2d;
+  border-radius: 11px;
+  color: #211100;
+  background: linear-gradient(180deg, #ffad1c, #ff8b00);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.live-dashboard-sync {
+  min-width: 272px;
+  color: var(--dashboard-text-soft);
+}
+
+.live-dashboard-sync > span {
+  background: var(--dashboard-success);
+  box-shadow: 0 0 0 4px rgb(34 211 167 / 11%);
+}
+
+.live-dashboard-sync > span.error {
+  background: var(--dashboard-danger);
+  box-shadow: 0 0 0 4px rgb(251 75 131 / 12%);
+}
+
+.live-dashboard-sync strong {
+  color: #d8e0eb;
+  font-size: 0.76rem;
+}
+
+.live-dashboard-sync small {
+  color: #718099;
+  font-size: 0.7rem;
+}
+
+.live-dashboard-sync > button {
+  width: 38px;
+  height: 38px;
+  color: #ffb12e;
+  border-color: #2a3855;
+  background: #070f22;
+}
+
+.live-dashboard-sync > button:hover:not(:disabled) {
+  border-color: rgb(255 157 0 / 50%);
+  background: rgb(255 157 0 / 7%);
+}
+
+.live-dashboard-alert {
+  border-radius: 14px;
+  font-size: 0.78rem;
+}
+
+.live-dashboard-alert.warning {
+  color: #ffd695;
+  border-color: rgb(243 180 63 / 30%);
+  background: rgb(243 180 63 / 8%);
+}
+
+.live-dashboard-alert.error {
+  color: #ffc2d5;
+  border-color: rgb(251 75 131 / 28%);
+  background: rgb(251 75 131 / 8%);
+}
+
+.live-dashboard-loading {
+  min-height: 420px;
+  color: #cdd6e4;
+  border-color: var(--dashboard-border);
+  background: var(--dashboard-surface);
+}
+
+.live-dashboard-loading small {
+  color: var(--dashboard-text-muted);
+}
+
+.live-dashboard-spinner {
+  border-color: #1b2a47;
+  border-top-color: var(--dashboard-accent);
+}
+
+/* KPI row --------------------------------------------------------------- */
+.live-dashboard-kpis {
+  gap: 18px;
+}
+
+.live-dashboard-kpis article {
+  min-height: 144px;
+  padding: 22px 22px 20px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 19px;
+  background:
+    linear-gradient(180deg, rgb(13 23 47 / 98%), rgb(8 17 36 / 98%));
+  box-shadow: 0 16px 40px rgb(0 0 0 / 12%);
+}
+
+.live-dashboard-kpis article::after {
+  right: -28px;
+  bottom: -38px;
+  width: 118px;
+  height: 118px;
+  background: rgb(255 157 0 / 2.8%);
+}
+
+.live-dashboard-kpi-icon {
+  top: 21px;
+  right: 21px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgb(34 211 167 / 24%);
+  border-radius: 12px;
+  color: #31e2b5;
+  background: rgb(34 211 167 / 8%);
+}
+
+.live-dashboard-kpis article.orders .live-dashboard-kpi-icon {
+  color: #ffc13a;
+  border-color: rgb(255 157 0 / 28%);
+  background: rgb(255 157 0 / 8%);
+}
+
+.live-dashboard-kpis article.tables .live-dashboard-kpi-icon {
+  color: #ff8b21;
+  border-color: rgb(255 122 0 / 28%);
+  background: rgb(255 122 0 / 8%);
+}
+
+.live-dashboard-kpis article.kitchen .live-dashboard-kpi-icon {
+  color: #8b96ff;
+  border-color: rgb(99 102 241 / 28%);
+  background: rgb(99 102 241 / 9%);
+}
+
+.live-dashboard-kpis p {
+  margin: 0 50px 12px 0;
+  color: #738199;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.live-dashboard-kpis h3 {
+  margin: 0 0 10px;
+  color: #f8fafc;
+  font-size: clamp(1.6rem, 2vw, 2rem);
+  letter-spacing: -0.035em;
+}
+
+.live-dashboard-kpis small {
+  color: #7b89a0;
+  font-size: 0.73rem;
+}
+
+/* Shared cards ---------------------------------------------------------- */
+.live-dashboard-card {
+  border: 1px solid var(--dashboard-border);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #0a1429 0%, #081124 100%);
+  box-shadow: 0 18px 44px rgb(0 0 0 / 12%);
+  overflow: hidden;
+}
+
+.live-dashboard-card > header {
+  gap: 18px;
+  padding: 23px 25px 19px;
+  border-bottom-color: #172540;
+}
+
+.live-dashboard-card > header span {
+  color: var(--dashboard-accent);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.095em;
+}
+
+.live-dashboard-card > header h3 {
+  margin: 6px 0 4px;
+  color: #f5f7fb;
+  font-size: 1.15rem;
+  letter-spacing: -0.015em;
+}
+
+.live-dashboard-card > header p {
+  color: #7d8ba2;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.live-dashboard-card > header button {
+  color: #ffb02f;
+  font-size: 0.76rem;
+}
+
+.live-dashboard-card > header button:hover {
+  color: #ffd083;
+}
+
+.live-dashboard-main-grid {
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.72fr);
+  gap: 18px;
+}
+
+.live-dashboard-chart-card > header > strong {
+  color: #37d9b0;
+  font-size: 1rem;
+}
+
+.live-dashboard-chart {
+  min-height: 330px;
+  gap: 18px;
+  padding: 26px 24px 20px;
+}
+
+.live-dashboard-y-axis {
+  flex-basis: 76px;
+  color: #62718b;
+  font-size: 0.68rem;
+}
+
+.live-dashboard-bars {
+  gap: 12px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 82px,
+    #17233a 83px
+  );
+}
+
+.live-dashboard-bar-column {
+  grid-template-rows: 235px 18px 16px;
+  min-width: 30px;
+  gap: 5px;
+}
+
+.live-dashboard-bar-track {
+  width: min(38px, 74%);
+}
+
+.live-dashboard-bar-track > span {
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(180deg, #ffad1d 0%, #ff7a00 100%);
+  box-shadow: 0 9px 20px rgb(255 122 0 / 16%);
+}
+
+.live-dashboard-bar-track > span.empty {
+  background: #1a2740;
+  box-shadow: none;
+}
+
+.live-dashboard-bar-column > strong {
+  color: #a4afc3;
+  font-size: 0.7rem;
+}
+
+.live-dashboard-bar-column > small {
+  color: #65738b;
+  font-size: 0.64rem;
+}
+
+/* Order tracker card: same data as today, styled like a compact real-time rail. */
+.live-dashboard-status-list {
+  gap: 0;
+  padding: 10px 20px 8px;
+}
+
+.live-dashboard-status-list > div {
+  gap: 11px;
+  padding: 14px 2px;
+  border-bottom-color: #17243c;
+}
+
+.live-dashboard-status-list .status-dot {
+  width: 9px;
+  height: 9px;
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 2%);
+}
+
+.status-dot.pending { background: var(--dashboard-warning); }
+.status-dot.cooking { background: var(--dashboard-info); }
+.status-dot.served { background: #31c9a2; }
+.status-dot.completed { background: #5fcb72; }
+.status-dot.cancelled { background: var(--dashboard-danger); }
+
+.live-dashboard-status-list strong {
+  color: #aab5c7;
+  font-size: 0.78rem;
+}
+
+.live-dashboard-status-list b {
+  color: #f7f9fc;
+  font-size: 0.96rem;
+}
+
+.live-dashboard-today-summary {
+  margin: 4px 20px 20px;
+  padding: 14px 15px;
+  border: 1px solid rgb(255 157 0 / 15%);
+  border-radius: 12px;
+  color: #ffcf7a;
+  background: rgb(255 157 0 / 6%);
+  font-size: 0.75rem;
+}
+
+.live-dashboard-today-summary strong {
+  color: #fff1d2;
+  font-size: 1.15rem;
+}
+
+/* Existing restaurant-specific detail sections are retained. */
+.live-dashboard-secondary-grid {
+  grid-template-columns: minmax(0, 1.22fr) minmax(320px, 0.78fr);
+  gap: 18px;
+}
+
+.live-dashboard-ranking,
+.live-dashboard-stock-list {
+  padding: 10px 22px 16px;
+}
+
+.live-dashboard-ranking > div,
+.live-dashboard-stock-list > div {
+  border-bottom-color: #17243c !important;
+}
+
+.live-dashboard-ranking > div {
+  gap: 12px;
+  padding: 13px 0;
+}
+
+.live-dashboard-ranking > div > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #2a3855;
+  border-radius: 8px;
+  color: #ffbf54;
+  background: #0c1730;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.live-dashboard-ranking strong,
+.live-dashboard-stock-list strong {
+  color: #e7ebf2 !important;
+}
+
+.live-dashboard-ranking small,
+.live-dashboard-stock-list small,
+.live-dashboard-ranking em,
+.live-dashboard-stock-list em {
+  color: #718099 !important;
+}
+
+.live-dashboard-empty {
+  color: #8290a7;
+  border-color: #1d2b49 !important;
+  background: #081124 !important;
+}
+
+.live-dashboard-empty > span {
+  color: #38d4ac;
+  border-color: rgb(34 211 167 / 22%) !important;
+  background: rgb(34 211 167 / 7%) !important;
+}
+
+/* Make generic badges and small counters inside dashboard cards harmonize
+   without depending on feature-specific markup. */
+.live-dashboard-page :is(.badge, .chip, [class*='badge'], [class*='pill']) {
+  border-color: #2a3855;
+  color: #c8d1df;
+  background: #0b162c;
+}
+
+.live-dashboard-page :is(button, input, select) {
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.live-dashboard-page :is(button, input, select):focus-visible {
+  outline: 2px solid rgb(255 157 0 / 72%);
+  outline-offset: 2px;
+}
+
+/* Scrollbars match the dark canvas. */
+.live-dashboard-page * {
+  scrollbar-color: #33415c #081124;
+  scrollbar-width: thin;
+}
+
+.live-dashboard-page *::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.live-dashboard-page *::-webkit-scrollbar-track {
+  background: #081124;
+}
+
+.live-dashboard-page *::-webkit-scrollbar-thumb {
+  border: 2px solid #081124;
+  border-radius: 999px;
+  background: #33415c;
+}
+
+/* Responsive: preserve all current content instead of hiding reference-only
+   widgets or forcing the screenshot's exact desktop proportions. */
+@media (max-width: 1180px) {
+  .live-dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .live-dashboard-main-grid,
+  .live-dashboard-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-dashboard-control-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .live-dashboard-sync {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .live-dashboard-page {
+    gap: 16px;
+    padding-top: 18px;
+  }
+
+  .live-dashboard-welcome {
+    align-items: stretch;
+    flex-direction: column;
+    min-height: 0;
+    padding: 24px 22px;
+    border-radius: 20px;
+  }
+
+  .live-dashboard-welcome > button {
+    align-self: flex-start;
+  }
+
+  .live-dashboard-control-row form {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .live-dashboard-control-row input,
+  .live-dashboard-control-row select,
+  .live-dashboard-control-row form > button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .live-dashboard-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .live-dashboard-card > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .live-dashboard-chart {
+    padding-inline: 16px;
+  }
+}
