@@ -1,0 +1,69 @@
+/* Final kitchen dark-control overrides.
+   Loaded after admin.css so generic form-control styles cannot turn the KDS
+   search field and table selector white. */
+
+.dashboard:has(.kitchen-page) .kitchen-controls {
+  color-scheme: dark;
+}
+
+.dashboard:has(.kitchen-page) .kitchen-search {
+  border-color: #21324b !important;
+  background: #091427 !important;
+  box-shadow: none !important;
+}
+
+.dashboard:has(.kitchen-page) .kitchen-search input,
+.dashboard:has(.kitchen-page) .kitchen-controls .kitchen-search input {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  color: #dce7f4 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-text-fill-color: #dce7f4;
+}
+
+.dashboard:has(.kitchen-page) .kitchen-search input::placeholder {
+  color: #667c98 !important;
+  opacity: 1;
+  -webkit-text-fill-color: #667c98;
+}
+
+.dashboard:has(.kitchen-page) .kitchen-controls > select {
+  min-height: 42px !important;
+  padding: 0 38px 0 13px !important;
+  border: 1px solid #21324b !important;
+  border-radius: 10px !important;
+  outline: 0 !important;
+  color: #d7e2ef !important;
+  background-color: #091427 !important;
+  box-shadow: none !important;
+  color-scheme: dark;
+}
+
+.dashboard:has(.kitchen-page) .kitchen-controls > select option {
+  color: #d7e2ef;
+  background: #091427;
+}
+
+.dashboard:has(.kitchen-page) .kitchen-controls > select:hover,
+.dashboard:has(.kitchen-page) .kitchen-search:hover {
+  border-color: #314664 !important;
+  background-color: #0b182c !important;
+}
+
+.dashboard:has(.kitchen-page) .kitchen-controls > select:focus,
+.dashboard:has(.kitchen-page) .kitchen-search:focus-within {
+  border-color: #a76a13 !important;
+  background-color: #0b182c !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.09) !important;
+}
+
+.dashboard:has(.kitchen-page) .kitchen-search:focus-within input {
+  background: transparent !important;
+  box-shadow: none !important;
+}
