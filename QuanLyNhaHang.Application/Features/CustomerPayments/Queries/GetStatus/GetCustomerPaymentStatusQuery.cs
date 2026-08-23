@@ -11,8 +11,7 @@ namespace QuanLyNhaHang.Application.Features.CustomerPayments.Queries.GetStatus;
 public sealed record GetCustomerPaymentStatusQuery(
     Guid OrderId,
     string? QrToken,
-    Guid? AttemptId,
-    PaymentChannelState PaymentChannel)
+    Guid? AttemptId)
     : IRequest<CustomerPaymentResult<CustomerPaymentStatusDto>>;
 
 public sealed class GetCustomerPaymentStatusQueryHandler
@@ -22,17 +21,20 @@ public sealed class GetCustomerPaymentStatusQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly IPaymentChannelReadiness _paymentChannelReadiness;
     private readonly CustomerPaymentAccessService _accessService;
     private readonly CustomerPaymentAttemptService _attemptService;
 
     public GetCustomerPaymentStatusQueryHandler(
         IApplicationDbContext context,
         IPaymentGateway paymentGateway,
+        IPaymentChannelReadiness paymentChannelReadiness,
         CustomerPaymentAccessService accessService,
         CustomerPaymentAttemptService attemptService)
     {
         _context = context;
         _paymentGateway = paymentGateway;
+        _paymentChannelReadiness = paymentChannelReadiness;
         _accessService = accessService;
         _attemptService = attemptService;
     }
@@ -97,21 +99,22 @@ public sealed class GetCustomerPaymentStatusQueryHandler
         if (attemptChanged)
             await _context.SaveChangesAsync(cancellationToken);
 
+        var paymentChannel = _paymentChannelReadiness.GetSnapshot();
         var orderCanStartOnlinePayment =
             CustomerPaymentAccessService.CanStartOnlinePayment(order.Status);
         var canPay = payment == null &&
                      orderCanStartOnlinePayment &&
-                     request.PaymentChannel.Ready;
+                     paymentChannel.Ready;
         var paymentUnavailableReason = payment != null
             ? null
             : !orderCanStartOnlinePayment
                 ? CustomerPaymentAccessService.GetPaymentUnavailableMessage(order.Status)
-                : !request.PaymentChannel.Ready
+                : !paymentChannel.Ready
                     ? CustomerPaymentAccessService.GetWebhookUnavailableMessage()
                     : null;
         var instruction = _attemptService.BuildInstruction(
             latestAttempt,
-            request.PaymentChannel.Ready);
+            paymentChannel.Ready);
 
         return CustomerPaymentResult<CustomerPaymentStatusDto>.Success(
             new CustomerPaymentStatusDto
@@ -126,9 +129,9 @@ public sealed class GetCustomerPaymentStatusQueryHandler
                 Amount = payment?.FinalAmount ?? latestAttempt?.Amount,
                 PaidAt = payment?.PaidAt,
                 PaymentMethod = payment?.PaymentMethod,
-                PaymentChannelReady = request.PaymentChannel.Ready,
-                PaymentChannelRequired = request.PaymentChannel.Required,
-                PaymentChannelLastConfirmedAt = request.PaymentChannel.LastConfirmedAtUtc,
+                PaymentChannelReady = paymentChannel.Ready,
+                PaymentChannelRequired = paymentChannel.Required,
+                PaymentChannelLastConfirmedAt = paymentChannel.LastConfirmedAtUtc,
                 AttemptId = latestAttempt?.Id,
                 AttemptStatus = latestAttempt?.Status,
                 RequiresReview = latestAttempt?.Status == PaymentAttempt.RequiresReviewStatus,
