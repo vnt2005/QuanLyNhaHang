@@ -44,6 +44,7 @@ public sealed class CustomerPaymentWorkflow
     public async Task<CustomerPaymentResult<CustomerPaymentInstructionDto>> CreateAsync(
         Guid orderId,
         string? qrToken,
+        PaymentChannelState paymentChannel,
         CancellationToken cancellationToken)
     {
         if (!_paymentGateway.IsConfigured)
@@ -85,6 +86,14 @@ public sealed class CustomerPaymentWorkflow
             return CustomerPaymentResult<CustomerPaymentInstructionDto>.Conflict(
                 GetPaymentUnavailableMessage(order.Status),
                 order.Status);
+        }
+
+        if (!paymentChannel.Ready)
+        {
+            return CustomerPaymentResult<CustomerPaymentInstructionDto>.Unavailable(
+                GetWebhookUnavailableMessage(),
+                "SEPAY_WEBHOOK_UNAVAILABLE",
+                paymentChannel.LastConfirmedAtUtc);
         }
 
         CustomerPaymentQuote quote;
