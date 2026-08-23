@@ -5,6 +5,7 @@ import {
   getCustomerPaymentStatus,
 } from '../api/customerPayments'
 import { navigate } from '../navigation'
+import PromotionCodeBox from './PromotionCodeBox'
 
 const terminalOrderStatuses = new Set(['Completed', 'Cancelled'])
 
@@ -114,6 +115,9 @@ export default function PayOnlineButton({
 
   return (
     <div className="customer-online-payment-action">
+      {!paid && !terminalOrderStatuses.has(orderStatus)
+        ? <PromotionCodeBox orderId={orderId} qrToken={qrToken} accessToken={accessToken} />
+        : null}
       <button
         className={className}
         type="button"
