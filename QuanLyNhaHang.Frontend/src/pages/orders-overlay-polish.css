@@ -1,0 +1,94 @@
+/* Final visual polish for Orders after the dark command-center skin.
+   Loaded last so layout alignment and overlay transparency stay predictable. */
+
+/* Keep every order row aligned even when action groups have different widths. */
+.admin-layout:has(.orders-page) .order-card {
+  grid-template-columns: minmax(0, 44%) minmax(0, 20%) minmax(360px, 36%) !important;
+  column-gap: 18px !important;
+}
+
+.admin-layout:has(.orders-page) .order-card-head {
+  grid-template-columns: minmax(0, 1fr) 148px !important;
+  gap: 14px !important;
+}
+
+.admin-layout:has(.orders-page) .order-card-head > .order-status {
+  justify-self: start !important;
+  min-width: 0 !important;
+}
+
+.admin-layout:has(.orders-page) .order-card-body {
+  align-self: center !important;
+}
+
+.admin-layout:has(.orders-page) .order-card-actions {
+  align-self: center !important;
+  justify-self: stretch !important;
+  justify-content: flex-end !important;
+}
+
+/* Let the page remain visible behind detail/create modals instead of turning
+   the whole viewport nearly black. */
+.admin-layout:has(.orders-page) .modal-backdrop {
+  background: rgb(2 8 23 / 48%) !important;
+  backdrop-filter: blur(3px) saturate(.92) !important;
+}
+
+/* Confirmation uses its own backdrop, so soften it independently too. */
+body:has(.orders-page) .ds-confirm-backdrop {
+  background: rgb(2 8 23 / 50%) !important;
+  backdrop-filter: blur(3px) saturate(.92) !important;
+}
+
+/* Remove the decorative danger/accent strip across the top of confirmation. */
+body:has(.orders-page) .ds-confirm-dialog::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Keep the dialog edge understated now that the accent strip is gone. */
+body:has(.orders-page) .ds-confirm-dialog {
+  border-color: #31405d !important;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 38%) !important;
+}
+
+/* Detail modal should feel elevated, while the app remains readable behind it. */
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
+  box-shadow: 0 28px 72px rgb(0 0 0 / 38%) !important;
+}
+
+@media (max-width: 1180px) {
+  .admin-layout:has(.orders-page) .order-card {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, auto) !important;
+  }
+
+  .admin-layout:has(.orders-page) .order-card-body {
+    grid-column: 1 / 2;
+  }
+
+  .admin-layout:has(.orders-page) .order-card-actions {
+    grid-column: 2 / 3;
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-layout:has(.orders-page) .order-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-layout:has(.orders-page) .order-card-head {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-layout:has(.orders-page) .order-card-body,
+  .admin-layout:has(.orders-page) .order-card-actions {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+
+  .admin-layout:has(.orders-page) .order-card-actions {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+}
