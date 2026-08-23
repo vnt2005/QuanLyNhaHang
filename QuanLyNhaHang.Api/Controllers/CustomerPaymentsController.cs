@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using QuanLyNhaHang.Api.Payments;
+using QuanLyNhaHang.Api.Contracts.Payments;
 using QuanLyNhaHang.Application.Common.Payments;
 using QuanLyNhaHang.Application.Features.CustomerPayments.Commands.CancelPaymentAttempt;
 using QuanLyNhaHang.Application.Features.CustomerPayments.Commands.CreateOnlinePayment;
@@ -141,7 +141,7 @@ public sealed class CustomerPaymentsController : ControllerBase
         FallbackWindowSeconds = 120)]
     [HttpPost("sepay/webhook")]
     public async Task<IActionResult> SePayWebhook(
-        [FromBody] SePayWebhookTransaction webhook,
+        [FromBody] SePayWebhookRequest webhook,
         CancellationToken cancellationToken)
     {
         if (!_paymentGateway.IsConfigured)
