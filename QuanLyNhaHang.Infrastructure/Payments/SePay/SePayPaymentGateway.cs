@@ -16,6 +16,8 @@ public sealed class SePayOptions
     public string AccountHolder { get; set; } = string.Empty;
     public string WebhookApiKey { get; set; } = string.Empty;
     public string PaymentPrefix { get; set; } = "DH";
+    public bool? RequireWebhookReadiness { get; set; }
+    public int? WebhookHeartbeatTimeoutSeconds { get; set; }
 }
 
 public sealed class SePayPaymentGateway : IPaymentGateway
