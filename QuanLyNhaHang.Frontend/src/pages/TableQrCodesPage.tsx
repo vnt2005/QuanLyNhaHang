@@ -55,17 +55,6 @@ function getNormalizedClientBaseUrl(value: string) {
   return url.toString().replace(/\/+$/, '')
 }
 
-function getSafeHttpUrl(value: string) {
-  try {
-    const url = new URL(value)
-    return url.protocol === 'http:' || url.protocol === 'https:'
-      ? url.toString()
-      : null
-  } catch {
-    return null
-  }
-}
-
 function formatDateTime(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '—'
@@ -200,7 +189,6 @@ export default function TableQrCodesPage() {
   const [editStatus, setEditStatus] = useState<TableQrCodeStatus>('Active')
   const [editNote, setEditNote] = useState('')
   const [detail, setDetail] = useState<TableQrCode | null>(null)
-  const [livePreview, setLivePreview] = useState<TableQrCode | null>(null)
 
   async function loadData(
     targetPage = page,
@@ -469,15 +457,6 @@ export default function TableQrCodesPage() {
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không sao chép được liên kết.')
     }
-  }
-
-  function openLivePreview(item: TableQrCode) {
-    resetNotices()
-    if (!getSafeHttpUrl(item.qrCodeUrl)) {
-      setError('Liên kết gọi món của mã QR không hợp lệ.')
-      return
-    }
-    setLivePreview(item)
   }
 
   async function downloadQr(item: TableQrCode) {
@@ -790,7 +769,7 @@ export default function TableQrCodesPage() {
         }}>
           <section className="table-qr-modal table-qr-detail-modal" role="dialog" aria-modal="true">
             <header>
-              <div><span className="table-qr-kicker">CHI TIẾT MÃ QR</span><h3>{detail.restaurantTableName}</h3><p>Quét bằng camera hoặc kiểm tra trực tiếp trang gọi món thật.</p></div>
+              <div><span className="table-qr-kicker">CHI TIẾT MÃ QR</span><h3>{detail.restaurantTableName}</h3><p>Quét bằng camera để xác nhận mã QR tại bàn.</p></div>
               <button type="button" onClick={() => setDetail(null)} disabled={Boolean(actionId)} aria-label="Đóng">×</button>
             </header>
 
@@ -813,14 +792,6 @@ export default function TableQrCodesPage() {
                 </div>
                 <div className="table-qr-detail-note"><span>Ghi chú</span><p>{detail.note?.trim() || 'Chưa có ghi chú.'}</p></div>
                 <div className="table-qr-detail-tools">
-                  <button
-                    type="button"
-                    className="table-qr-scan-button"
-                    onClick={() => openLivePreview(detail)}
-                    disabled={!getSafeHttpUrl(detail.qrCodeUrl)}
-                  >
-                    Kiểm tra gọi món thật
-                  </button>
                   <button type="button" onClick={() => void downloadQr(detail)} disabled={actionId === detail.id}>Tải ảnh PNG</button>
                   <button type="button" onClick={() => void printQr(detail)} disabled={actionId === detail.id}>In mã QR</button>
                   <button type="button" onClick={() => void regenerate(detail)} disabled={actionId === detail.id}>Tạo lại mã</button>
@@ -838,34 +809,6 @@ export default function TableQrCodesPage() {
               ) : (
                 <button type="button" className="table-qr-primary" onClick={() => void changeStatus(detail, 'Active')} disabled={actionId === detail.id}>Kích hoạt lại</button>
               )}
-            </footer>
-          </section>
-        </div>
-      )}
-
-      {livePreview && (
-        <div className="table-qr-modal-backdrop table-qr-scan-backdrop" onMouseDown={event => {
-          if (event.target === event.currentTarget) setLivePreview(null)
-        }}>
-          <section className="table-qr-modal table-qr-live-modal" role="dialog" aria-modal="true">
-            <header>
-              <div>
-                <span className="table-qr-kicker">TRANG GỌI MÓN THẬT</span>
-                <h3>{livePreview.restaurantTableName}</h3>
-                <p>Có thể chọn món và xác nhận như khách đang quét QR tại bàn.</p>
-              </div>
-              <button type="button" onClick={() => setLivePreview(null)} aria-label="Đóng">×</button>
-            </header>
-            <div className="table-qr-live-frame-wrap">
-              <iframe
-                className="table-qr-live-frame"
-                src={getSafeHttpUrl(livePreview.qrCodeUrl) ?? undefined}
-                title={`Trang gọi món thật của ${livePreview.restaurantTableName}`}
-              />
-            </div>
-            <footer className="table-qr-live-actions">
-              <button type="button" onClick={() => setLivePreview(null)}>Đóng</button>
-              <a href={getSafeHttpUrl(livePreview.qrCodeUrl) ?? undefined} target="_blank" rel="noreferrer">Mở toàn màn hình</a>
             </footer>
           </section>
         </div>
