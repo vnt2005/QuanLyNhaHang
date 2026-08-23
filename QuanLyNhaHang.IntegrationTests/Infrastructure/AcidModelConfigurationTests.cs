@@ -93,10 +93,11 @@ public sealed class AcidModelConfigurationTests
         Assert.NotNull(entityType);
 
         var foreignKey = Assert.Single(
-            entityType.GetForeignKeys().Where(candidate =>
+            entityType.GetForeignKeys(),
+            candidate =>
                 candidate.PrincipalEntityType.ClrType == typeof(TPrincipal) &&
                 candidate.Properties.Count == 1 &&
-                candidate.Properties[0].Name == propertyName));
+                candidate.Properties[0].Name == propertyName);
 
         Assert.Equal(DeleteBehavior.Restrict, foreignKey.DeleteBehavior);
     }
