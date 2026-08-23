@@ -1,0 +1,166 @@
+/* Compact Orders modal overflow fix.
+   Loaded after all Orders skins so compact dialogs never require horizontal scrolling. */
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal,
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
+  min-width: 0 !important;
+  max-width: calc(100vw - 32px) !important;
+  overflow-x: hidden !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-form,
+.admin-layout:has(.orders-page) .order-modal .order-lines,
+.admin-layout:has(.orders-page) .order-modal .line-heading,
+.admin-layout:has(.orders-page) .order-modal .order-line,
+.admin-layout:has(.orders-page) .order-detail-modal .order-detail-content,
+.admin-layout:has(.orders-page) .order-detail-modal .order-detail-section,
+.admin-layout:has(.orders-page) .order-detail-modal .detail-item,
+.admin-layout:has(.orders-page) .order-detail-modal .detail-item-actions,
+.admin-layout:has(.orders-page) .order-detail-modal .detail-note,
+.admin-layout:has(.orders-page) .order-detail-modal .add-order-item {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Vertical scrolling only. Horizontal scrolling inside a dialog is never needed. */
+.admin-layout:has(.orders-page) .order-modal .order-form,
+.admin-layout:has(.orders-page) .order-detail-modal .order-detail-content {
+  width: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* Long table/area names must shrink inside the field instead of expanding the modal. */
+.admin-layout:has(.orders-page) .order-modal :is(select, input, textarea, button),
+.admin-layout:has(.orders-page) .order-detail-modal :is(select, input, textarea, button) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-form > label,
+.admin-layout:has(.orders-page) .order-modal .order-form > label > :is(select, input, textarea) {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* The compact modal is too narrow for the old four-control row. Use two rows:
+   row 1 = menu picker; row 2 = quantity + item note + remove. */
+.admin-layout:has(.orders-page) .order-modal .order-line {
+  width: 100% !important;
+  grid-template-columns: 72px minmax(0, 1fr) 38px !important;
+  grid-template-rows: auto auto !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-line > select {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-line > input[type='number'] {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  width: 72px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-line > input:not([type='number']) {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  width: 100% !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-line > .danger {
+  grid-column: 3 !important;
+  grid-row: 2 !important;
+  width: 38px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .line-heading {
+  width: 100% !important;
+  flex-wrap: wrap !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .line-heading button {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+/* Apply the same no-overflow rule to the compact detail dialog. */
+.admin-layout:has(.orders-page) .order-detail-modal .detail-item {
+  flex-wrap: wrap !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .detail-item > div:first-child {
+  min-width: 0 !important;
+  flex: 1 1 180px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .detail-item-actions {
+  flex: 1 1 220px !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .add-order-item {
+  width: 100% !important;
+  grid-template-columns: 72px minmax(0, 1fr) auto !important;
+  grid-template-rows: auto auto !important;
+  gap: 8px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .add-order-item > select {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .add-order-item > input[type='number'] {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  width: 72px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .add-order-item > input:not([type='number']) {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  width: 100% !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .add-order-item > button {
+  grid-column: 3 !important;
+  grid-row: 2 !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 520px) {
+  .admin-layout:has(.orders-page) .employee-modal.order-modal,
+  .admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+
+  .admin-layout:has(.orders-page) .order-modal .modal-heading,
+  .admin-layout:has(.orders-page) .order-modal .order-form,
+  .admin-layout:has(.orders-page) .order-modal .modal-footer,
+  .admin-layout:has(.orders-page) .order-detail-modal .modal-heading,
+  .admin-layout:has(.orders-page) .order-detail-modal .order-detail-content,
+  .admin-layout:has(.orders-page) .order-detail-modal .modal-footer {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .admin-layout:has(.orders-page) .order-detail-modal .detail-note,
+  .admin-layout:has(.orders-page) .order-detail-modal .add-order-item {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-layout:has(.orders-page) .order-detail-modal .add-order-item > * {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    width: 100% !important;
+  }
+}

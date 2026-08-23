@@ -1,0 +1,125 @@
+/* Native control + late surface overrides for the dark dashboard skin.
+   This file intentionally loads last so legacy light dashboard rules cannot
+   turn date/select controls or operation cards white again. */
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date'] {
+  color: #dfe6f2 !important;
+  border-color: #283653 !important;
+  background: #070f22 !important;
+  color-scheme: dark;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date']:focus {
+  border-color: rgb(255 157 0 / 72%) !important;
+  box-shadow: 0 0 0 3px rgb(255 157 0 / 10%) !important;
+}
+
+/* Windows/Chromium may keep the native select face light unless appearance
+   and the option palette are explicitly overridden. */
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 38px !important;
+  color: #e8edf6 !important;
+  border-color: #283653 !important;
+  background-color: #070f22 !important;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #9aa8bd 50%),
+    linear-gradient(135deg, #9aa8bd 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 17px,
+    calc(100% - 12px) 17px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  color-scheme: dark;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  select option {
+  color: #e8edf6;
+  background: #0a1429;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  select:focus {
+  border-color: rgb(255 157 0 / 72%) !important;
+  box-shadow: 0 0 0 3px rgb(255 157 0 / 10%) !important;
+}
+
+/* The four restaurant operation cards are legacy light cards in dashboard.css.
+   Keep their business content, but make them part of the new command-center
+   visual system instead of leaving a white strip at the bottom. */
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations > article {
+  border-color: #1d2b49 !important;
+  background:
+    linear-gradient(180deg, rgb(13 23 47 / 98%), rgb(8 17 36 / 98%)) !important;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 12%) !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations header > span {
+  color: #8491a8 !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations header button {
+  color: #ffb02f !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations header button:hover {
+  color: #ffd083 !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations h3 {
+  color: #f5f7fb !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations article > div:last-child {
+  color: #7d8ba2 !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operation-icon.tables {
+  color: #31e2b5 !important;
+  border: 1px solid rgb(34 211 167 / 24%);
+  background: rgb(34 211 167 / 8%) !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operation-icon.reservations {
+  color: #83a9ff !important;
+  border: 1px solid rgb(96 165 250 / 24%);
+  background: rgb(96 165 250 / 8%) !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operation-icon.finance {
+  color: #ffc13a !important;
+  border: 1px solid rgb(255 157 0 / 28%);
+  background: rgb(255 157 0 / 8%) !important;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operation-icon.system {
+  color: #b6a4ff !important;
+  border: 1px solid rgb(139 92 246 / 26%);
+  background: rgb(139 92 246 / 9%) !important;
+}
