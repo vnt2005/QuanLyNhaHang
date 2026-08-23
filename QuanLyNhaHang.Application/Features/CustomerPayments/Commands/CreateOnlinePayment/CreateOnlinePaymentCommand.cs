@@ -10,8 +10,7 @@ namespace QuanLyNhaHang.Application.Features.CustomerPayments.Commands.CreateOnl
 
 public sealed record CreateOnlinePaymentCommand(
     Guid OrderId,
-    string? QrToken,
-    PaymentChannelState PaymentChannel)
+    string? QrToken)
     : IRequest<CustomerPaymentResult<CustomerPaymentInstructionDto>>;
 
 public sealed class CreateOnlinePaymentCommandHandler
@@ -23,6 +22,7 @@ public sealed class CreateOnlinePaymentCommandHandler
 
     private readonly IApplicationDbContext _context;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly IPaymentChannelReadiness _paymentChannelReadiness;
     private readonly CustomerPaymentAccessService _accessService;
     private readonly CustomerPaymentQuoteService _quoteService;
     private readonly CustomerPaymentAttemptService _attemptService;
@@ -30,12 +30,14 @@ public sealed class CreateOnlinePaymentCommandHandler
     public CreateOnlinePaymentCommandHandler(
         IApplicationDbContext context,
         IPaymentGateway paymentGateway,
+        IPaymentChannelReadiness paymentChannelReadiness,
         CustomerPaymentAccessService accessService,
         CustomerPaymentQuoteService quoteService,
         CustomerPaymentAttemptService attemptService)
     {
         _context = context;
         _paymentGateway = paymentGateway;
+        _paymentChannelReadiness = paymentChannelReadiness;
         _accessService = accessService;
         _quoteService = quoteService;
         _attemptService = attemptService;
@@ -87,12 +89,13 @@ public sealed class CreateOnlinePaymentCommandHandler
                 order.Status);
         }
 
-        if (!request.PaymentChannel.Ready)
+        var paymentChannel = _paymentChannelReadiness.GetSnapshot();
+        if (!paymentChannel.Ready)
         {
             return CustomerPaymentResult<CustomerPaymentInstructionDto>.Unavailable(
                 CustomerPaymentAccessService.GetWebhookUnavailableMessage(),
                 "SEPAY_WEBHOOK_UNAVAILABLE",
-                request.PaymentChannel.LastConfirmedAtUtc);
+                paymentChannel.LastConfirmedAtUtc);
         }
 
         CustomerPaymentQuote quote;
