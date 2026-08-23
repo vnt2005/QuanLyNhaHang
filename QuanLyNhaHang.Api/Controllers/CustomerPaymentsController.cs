@@ -40,15 +40,10 @@ public sealed class CustomerPaymentsController : ControllerBase
         [FromBody] CreateCustomerPaymentRequest? request,
         CancellationToken cancellationToken)
     {
-        var readiness = _paymentChannelReadiness.GetSnapshot();
         var result = await _sender.Send(
             new CreateOnlinePaymentCommand(
                 orderId,
-                request?.QrToken,
-                new PaymentChannelState(
-                    readiness.Required,
-                    readiness.Ready,
-                    readiness.LastConfirmedAtUtc)),
+                request?.QrToken),
             cancellationToken);
 
         return ToActionResult(result);
@@ -83,16 +78,11 @@ public sealed class CustomerPaymentsController : ControllerBase
         [FromQuery] Guid? attemptId,
         CancellationToken cancellationToken)
     {
-        var readiness = _paymentChannelReadiness.GetSnapshot();
         var result = await _sender.Send(
             new GetCustomerPaymentStatusQuery(
                 orderId,
                 qrToken,
-                attemptId,
-                new PaymentChannelState(
-                    readiness.Required,
-                    readiness.Ready,
-                    readiness.LastConfirmedAtUtc)),
+                attemptId),
             cancellationToken);
 
         return ToActionResult(result);
