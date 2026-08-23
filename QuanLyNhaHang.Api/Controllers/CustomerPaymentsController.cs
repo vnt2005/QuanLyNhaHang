@@ -19,16 +19,16 @@ public sealed class CustomerPaymentsController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IPaymentGateway _paymentGateway;
-    private readonly SePayWebhookReadiness _webhookReadiness;
+    private readonly IPaymentChannelReadiness _paymentChannelReadiness;
 
     public CustomerPaymentsController(
         ISender sender,
         IPaymentGateway paymentGateway,
-        SePayWebhookReadiness webhookReadiness)
+        IPaymentChannelReadiness paymentChannelReadiness)
     {
         _sender = sender;
         _paymentGateway = paymentGateway;
-        _webhookReadiness = webhookReadiness;
+        _paymentChannelReadiness = paymentChannelReadiness;
     }
 
     [AllowAnonymous]
@@ -40,7 +40,7 @@ public sealed class CustomerPaymentsController : ControllerBase
         [FromBody] CreateCustomerPaymentRequest? request,
         CancellationToken cancellationToken)
     {
-        var readiness = _webhookReadiness.GetSnapshot();
+        var readiness = _paymentChannelReadiness.GetSnapshot();
         var result = await _sender.Send(
             new CreateOnlinePaymentCommand(
                 orderId,
@@ -83,7 +83,7 @@ public sealed class CustomerPaymentsController : ControllerBase
         [FromQuery] Guid? attemptId,
         CancellationToken cancellationToken)
     {
-        var readiness = _webhookReadiness.GetSnapshot();
+        var readiness = _paymentChannelReadiness.GetSnapshot();
         var result = await _sender.Send(
             new GetCustomerPaymentStatusQuery(
                 orderId,
@@ -131,7 +131,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             });
         }
 
-        var readiness = _webhookReadiness.ConfirmExternalHeartbeat();
+        var readiness = _paymentChannelReadiness.ConfirmExternalHeartbeat();
         return Ok(new
         {
             success = true,
@@ -170,7 +170,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             });
         }
 
-        _webhookReadiness.ConfirmExternalHeartbeat();
+        _paymentChannelReadiness.ConfirmExternalHeartbeat();
 
         if (!string.Equals(
                 webhook.TransferType,
