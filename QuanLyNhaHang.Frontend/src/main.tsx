@@ -34,6 +34,7 @@ import './pages/orders-overlay-polish.css'
 import './pages/orders-modal-overflow-fix.css'
 import './pages/kitchen-dark-overrides.css'
 import './pages/payments-dark-overrides.css'
+import './pages/payments-confirm-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
