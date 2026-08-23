@@ -79,7 +79,7 @@ public sealed class CustomerPaymentsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            new GetCustomerPaymentStatusQuery(
+            new GetPaymentStatusQuery(
                 orderId,
                 qrToken,
                 attemptId),
