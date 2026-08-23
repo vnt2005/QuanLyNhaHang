@@ -44,7 +44,7 @@ public sealed class CustomerPromotionsController : ControllerBase
     }
 
     [AllowAnonymous]
-    [EnableRateLimiting("PaymentMutation")]
+    [EnableRateLimiting("OrderItemMutation")]
     [IdempotentRequest("customer-promotion-apply")]
     [HttpPost("orders/{orderId:guid}/apply")]
     public async Task<IActionResult> Apply(
