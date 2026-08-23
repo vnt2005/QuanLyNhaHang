@@ -19,15 +19,18 @@ public sealed class CustomerPaymentsController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly IPaymentWebhookAdapter _paymentWebhookAdapter;
     private readonly IPaymentChannelReadiness _paymentChannelReadiness;
 
     public CustomerPaymentsController(
         ISender sender,
         IPaymentGateway paymentGateway,
+        IPaymentWebhookAdapter paymentWebhookAdapter,
         IPaymentChannelReadiness paymentChannelReadiness)
     {
         _sender = sender;
         _paymentGateway = paymentGateway;
+        _paymentWebhookAdapter = paymentWebhookAdapter;
         _paymentChannelReadiness = paymentChannelReadiness;
     }
 
@@ -102,7 +105,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             });
         }
 
-        if (!_paymentGateway.IsWebhookAuthorized(
+        if (!_paymentWebhookAdapter.IsAuthorized(
                 Request.Headers["Authorization"].ToString()))
         {
             return Unauthorized(new
@@ -150,7 +153,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             });
         }
 
-        if (!_paymentGateway.IsWebhookAuthorized(
+        if (!_paymentWebhookAdapter.IsAuthorized(
                 Request.Headers["Authorization"].ToString()))
         {
             return Unauthorized(new
@@ -170,7 +173,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             return SePayAcknowledged();
         }
 
-        if (!_paymentGateway.IsExpectedAccount(webhook.AccountNumber))
+        if (!_paymentWebhookAdapter.IsExpectedAccount(webhook.AccountNumber))
             return SePayAcknowledged();
 
         if (webhook.Id <= 0 || webhook.TransferAmount <= 0)
@@ -182,7 +185,7 @@ public sealed class CustomerPaymentsController : ControllerBase
             });
         }
 
-        var paymentCode = _paymentGateway.ExtractPaymentCode(
+        var paymentCode = _paymentWebhookAdapter.ExtractPaymentCode(
             webhook.Code,
             webhook.Content,
             webhook.Description);
@@ -190,13 +193,13 @@ public sealed class CustomerPaymentsController : ControllerBase
             return SePayAcknowledged();
 
         var transactionOccurredAtUtc =
-            _paymentGateway.ParseTransactionUtc(webhook.TransactionDate) ??
+            _paymentWebhookAdapter.ParseTransactionUtc(webhook.TransactionDate) ??
             DateTime.UtcNow;
         var bankReference = string.IsNullOrWhiteSpace(webhook.ReferenceCode)
             ? "n/a"
             : webhook.ReferenceCode.Trim();
         var gateway = string.IsNullOrWhiteSpace(webhook.Gateway)
-            ? _paymentGateway.BankCode
+            ? _paymentWebhookAdapter.DefaultGateway
             : webhook.Gateway.Trim();
 
         await _sender.Send(
