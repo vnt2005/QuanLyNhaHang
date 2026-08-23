@@ -63,8 +63,6 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddSingleton<SePayWebhookReadiness>();
-
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
