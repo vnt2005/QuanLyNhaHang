@@ -1,0 +1,478 @@
+/* Late cascade fixes for the Orders dark command-center skin.
+   This file is imported after the shared admin design system on purpose so
+   feature-specific dark surfaces cannot be reset back to white. */
+
+body:has(.orders-page) {
+  --orders-override-bg: #050b1d;
+  --orders-override-surface: #091226;
+  --orders-override-surface-2: #0c1730;
+  --orders-override-border: #1d2b49;
+  --orders-override-border-strong: #2d3d5c;
+  --orders-override-text: #f6f8fc;
+  --orders-override-soft: #9aa9c0;
+  --orders-override-muted: #72819a;
+  --orders-override-accent: #ff9d00;
+  --orders-override-danger: #ff668f;
+}
+
+/* Page title and page-level surfaces ------------------------------------ */
+.admin-layout:has(.orders-page) .orders-page,
+.admin-layout:has(.orders-page) .orders-page .page-toolbar,
+.admin-layout:has(.orders-page) .orders-page .page-toolbar > div {
+  color: var(--orders-override-text) !important;
+}
+
+.admin-layout:has(.orders-page) .orders-page .page-toolbar h2 {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.admin-layout:has(.orders-page) .orders-page .page-toolbar p {
+  color: #8fa0b8 !important;
+  opacity: 1 !important;
+}
+
+.admin-layout:has(.orders-page) .order-summary article,
+.admin-layout:has(.orders-page) .order-filters,
+.admin-layout:has(.orders-page) .order-card,
+.admin-layout:has(.orders-page) .empty-order-state,
+.admin-layout:has(.orders-page) .pagination {
+  color: var(--orders-override-text) !important;
+  border-color: var(--orders-override-border) !important;
+  background: linear-gradient(180deg, #0b162d 0%, #081124 100%) !important;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 12%) !important;
+}
+
+.admin-layout:has(.orders-page) .order-card:hover {
+  border-color: #334665 !important;
+  background: linear-gradient(180deg, #0f1b34 0%, #0a1429 100%) !important;
+}
+
+.admin-layout:has(.orders-page) .order-summary span,
+.admin-layout:has(.orders-page) .order-card-head div > span,
+.admin-layout:has(.orders-page) .order-card-body p,
+.admin-layout:has(.orders-page) .order-card-body > div span,
+.admin-layout:has(.orders-page) .pagination > span {
+  color: #8292aa !important;
+}
+
+.admin-layout:has(.orders-page) .order-summary strong,
+.admin-layout:has(.orders-page) .order-card-body > div strong {
+  color: #f7f9fd !important;
+}
+
+.admin-layout:has(.orders-page) .order-card-head strong {
+  color: #ffae28 !important;
+}
+
+.admin-layout:has(.orders-page) .pagination {
+  padding: 14px 16px !important;
+  border-radius: 15px !important;
+}
+
+.admin-layout:has(.orders-page) .pagination button {
+  min-height: 38px !important;
+  border: 1px solid #2b3b59 !important;
+  border-radius: 10px !important;
+  color: #d9e1ed !important;
+  background: #0a1529 !important;
+}
+
+.admin-layout:has(.orders-page) .pagination button:hover:not(:disabled) {
+  color: #ffd084 !important;
+  border-color: rgb(255 157 0 / 42%) !important;
+  background: rgb(255 157 0 / 7%) !important;
+}
+
+.admin-layout:has(.orders-page) .pagination button:disabled {
+  color: #53617a !important;
+  border-color: #1d2a42 !important;
+  background: #081120 !important;
+}
+
+/* Inputs/selects must not fall back to native white --------------------- */
+.admin-layout:has(.orders-page)
+  :is(
+    .order-filters input,
+    .order-filters select,
+    .order-form input,
+    .order-form select,
+    .order-form textarea,
+    .detail-note textarea,
+    .add-order-item input,
+    .add-order-item select,
+    .detail-item-actions input,
+    .order-card-actions select
+  ) {
+  color: #edf2fa !important;
+  border-color: #2b3b59 !important;
+  background-color: #071020 !important;
+  box-shadow: none !important;
+  color-scheme: dark !important;
+  opacity: 1 !important;
+}
+
+.admin-layout:has(.orders-page) :is(.order-form select, .order-filters select, .add-order-item select, .order-card-actions select) option {
+  color: #edf2fa !important;
+  background: #071020 !important;
+}
+
+.admin-layout:has(.orders-page)
+  :is(
+    .order-filters input,
+    .order-filters select,
+    .order-form input,
+    .order-form select,
+    .order-form textarea,
+    .detail-note textarea,
+    .add-order-item input,
+    .add-order-item select,
+    .detail-item-actions input,
+    .order-card-actions select
+  ):focus {
+  border-color: rgb(255 157 0 / 72%) !important;
+  background-color: #09152a !important;
+  box-shadow: 0 0 0 3px rgb(255 157 0 / 10%) !important;
+}
+
+.admin-layout:has(.orders-page)
+  :is(
+    .order-filters input,
+    .order-form input,
+    .order-form textarea,
+    .detail-note textarea,
+    .add-order-item input
+  )::placeholder {
+  color: #65758e !important;
+  opacity: 1 !important;
+}
+
+/* Create-order modal ---------------------------------------------------- */
+.admin-layout:has(.orders-page) .modal-backdrop {
+  background: rgb(1 5 16 / 84%) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal {
+  isolation: isolate;
+  color: var(--orders-override-text) !important;
+  border: 1px solid #263755 !important;
+  background:
+    radial-gradient(circle at 88% 0%, rgb(255 157 0 / 5%), transparent 19rem),
+    linear-gradient(180deg, #0b1730 0%, #071124 100%) !important;
+  box-shadow: 0 36px 100px rgb(0 0 0 / 50%) !important;
+  opacity: 1 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .modal-heading {
+  color: var(--orders-override-text) !important;
+  border-bottom-color: #1d2b46 !important;
+  background: #0b1730 !important;
+  backdrop-filter: none !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .modal-heading h2 {
+  color: #ffffff !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .modal-heading p {
+  color: #8d9cb2 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .modal-kicker {
+  color: #ffb02f !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .modal-heading > button {
+  color: #aab6c8 !important;
+  border-color: #2b3a58 !important;
+  background: #081326 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .order-form {
+  color: var(--orders-override-text) !important;
+  background: #081326 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .order-form > label {
+  color: #92a0b7 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .line-heading strong {
+  color: #f6f8fc !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .line-heading button {
+  color: #ffbd49 !important;
+  border-color: rgb(255 157 0 / 31%) !important;
+  background: rgb(255 157 0 / 7%) !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .order-line {
+  border: 1px solid #1e2e4b !important;
+  background: linear-gradient(180deg, #09152a 0%, #071020 100%) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 2%) !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .order-line .danger {
+  color: #ff88aa !important;
+  border-color: rgb(255 102 143 / 34%) !important;
+  background: rgb(255 102 143 / 8%) !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .modal-footer {
+  color: var(--orders-override-text) !important;
+  border-top-color: #1d2b46 !important;
+  background: #081326 !important;
+  backdrop-filter: none !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-modal .modal-footer > button:not(.primary-button) {
+  color: #d7e0ec !important;
+  border-color: #2d3d5c !important;
+  background: #0a162a !important;
+}
+
+/* Detail modal: fully opaque and visually grouped ----------------------- */
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
+  isolation: isolate;
+  color: var(--orders-override-text) !important;
+  border: 1px solid #263755 !important;
+  background:
+    radial-gradient(circle at 90% 0%, rgb(255 157 0 / 4%), transparent 20rem),
+    linear-gradient(180deg, #0b1730 0%, #071124 100%) !important;
+  box-shadow: 0 36px 100px rgb(0 0 0 / 52%) !important;
+  opacity: 1 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #081326;
+  content: '';
+  pointer-events: none;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .modal-heading {
+  color: var(--orders-override-text) !important;
+  border-bottom-color: #1d2b46 !important;
+  background: #0b1730 !important;
+  backdrop-filter: none !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .modal-heading h2 {
+  color: #ffffff !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .modal-heading p {
+  color: #8d9db5 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .modal-kicker {
+  color: #ffb02f !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .modal-heading > button {
+  color: #b5c0d1 !important;
+  border-color: #2b3b59 !important;
+  background: #071224 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .order-detail-content {
+  color: var(--orders-override-text) !important;
+  background: #071224 !important;
+  opacity: 1 !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .order-detail-section {
+  color: var(--orders-override-text) !important;
+  border: 1px solid #1e2e4b !important;
+  background:
+    linear-gradient(180deg, #0b1730 0%, #091426 100%) !important;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 10%) !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .order-detail-section-heading span {
+  color: #ffb02f !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .order-detail-section-heading h3,
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .detail-item strong {
+  color: #f7f9fd !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .order-detail-section-heading small,
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .detail-item span,
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .detail-item-actions label {
+  color: #8392aa !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .detail-item {
+  color: var(--orders-override-text) !important;
+  border: 1px solid #20304d !important;
+  background: linear-gradient(180deg, #091528 0%, #071122 100%) !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .detail-note button,
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .add-order-item button {
+  color: #201100 !important;
+  border-color: #ffb43d !important;
+  background: linear-gradient(180deg, #ffad1c 0%, #ff8900 100%) !important;
+  box-shadow: 0 10px 24px rgb(255 139 0 / 16%) !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .modal-footer {
+  color: var(--orders-override-text) !important;
+  border-top-color: #1d2b46 !important;
+  background: #081326 !important;
+  backdrop-filter: none !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal .modal-footer button {
+  color: #dce4ef !important;
+  border-color: #2d3d5c !important;
+  background: #0a162a !important;
+}
+
+/* Confirmation dialog: compact dark destructive card -------------------- */
+body:has(.orders-page) .ds-confirm-backdrop {
+  background: rgb(1 5 16 / 82%) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+body:has(.orders-page) .ds-confirm-dialog {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  width: min(500px, calc(100vw - 32px)) !important;
+  gap: 0 16px !important;
+  padding: 22px !important;
+  overflow: hidden;
+  color: #f7f9fd !important;
+  border: 1px solid #2a3957 !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgb(255 102 143 / 10%), transparent 15rem),
+    linear-gradient(180deg, #0d172b 0%, #081224 100%) !important;
+  box-shadow: 0 32px 90px rgb(0 0 0 / 52%) !important;
+}
+
+body:has(.orders-page) .ds-confirm-dialog::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #ff668f, #ff9d00, transparent 80%);
+  content: '';
+}
+
+body:has(.orders-page) .ds-confirm-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 54px !important;
+  height: 54px !important;
+  margin: 2px 0 0 !important;
+  color: #ff88a9 !important;
+  border: 1px solid rgb(255 102 143 / 32%) !important;
+  border-radius: 16px !important;
+  background: rgb(255 102 143 / 9%) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%) !important;
+  font-size: 1.35rem !important;
+  font-weight: 900 !important;
+}
+
+body:has(.orders-page) .ds-confirm-copy {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+body:has(.orders-page) .ds-confirm-copy > span {
+  display: block !important;
+  margin: 0 0 6px !important;
+  color: #ff9bb5 !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.1em !important;
+}
+
+body:has(.orders-page) .ds-confirm-copy h2 {
+  margin: 0 0 7px !important;
+  color: #ffffff !important;
+  font-size: 1.2rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
+}
+
+body:has(.orders-page) .ds-confirm-copy p {
+  margin: 0 !important;
+  color: #93a2b9 !important;
+  font-size: 0.84rem !important;
+  line-height: 1.55 !important;
+}
+
+body:has(.orders-page) .ds-confirm-actions {
+  grid-column: 1 / -1 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  margin: 20px -2px -2px !important;
+  padding: 16px 2px 0 !important;
+  border-top: 1px solid #1d2b46 !important;
+  background: transparent !important;
+}
+
+body:has(.orders-page) .ds-confirm-actions button {
+  min-height: 42px !important;
+  padding: 0 16px !important;
+  border-radius: 11px !important;
+  font-size: 0.8rem !important;
+  font-weight: 850 !important;
+  box-shadow: none !important;
+}
+
+body:has(.orders-page) .ds-confirm-actions button:first-child {
+  color: #d8e1ed !important;
+  border: 1px solid #2d3d5c !important;
+  background: #0a162a !important;
+}
+
+body:has(.orders-page) .ds-confirm-actions button:first-child:hover {
+  color: #ffffff !important;
+  border-color: #405170 !important;
+  background: #0d1a31 !important;
+}
+
+body:has(.orders-page) .ds-confirm-actions button.danger {
+  color: #fff5f8 !important;
+  border: 1px solid #ff789d !important;
+  background: linear-gradient(180deg, #f85d88 0%, #d93f6b 100%) !important;
+  box-shadow: 0 10px 24px rgb(217 63 107 / 18%) !important;
+}
+
+body:has(.orders-page) .ds-confirm-actions button.danger:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 700px) {
+  body:has(.orders-page) .ds-confirm-dialog {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+    gap: 0 13px !important;
+    padding: 18px !important;
+  }
+
+  body:has(.orders-page) .ds-confirm-icon {
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 14px !important;
+  }
+
+  body:has(.orders-page) .ds-confirm-actions {
+    flex-direction: column-reverse !important;
+  }
+
+  body:has(.orders-page) .ds-confirm-actions button {
+    width: 100% !important;
+  }
+}
