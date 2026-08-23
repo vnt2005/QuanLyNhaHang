@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Text.Json;
 using QuanLyNhaHang.Api.Health;
 using QuanLyNhaHang.Api.Hubs;
-using QuanLyNhaHang.Api.Payments;
 using QuanLyNhaHang.Api.Serialization;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Features.Permissions.Commands.SyncCatalog;
