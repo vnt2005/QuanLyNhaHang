@@ -27,17 +27,29 @@
   justify-content: flex-end !important;
 }
 
-/* Let the page remain visible behind detail/create modals instead of turning
-   the whole viewport nearly black. */
+/* Generic create-order overlay: dim the page without erasing it. */
 .admin-layout:has(.orders-page) .modal-backdrop {
-  background: rgb(2 8 23 / 48%) !important;
-  backdrop-filter: blur(3px) saturate(.92) !important;
+  background: rgb(8 15 32 / 28%) !important;
+  -webkit-backdrop-filter: blur(3px) saturate(.94) brightness(.96) !important;
+  backdrop-filter: blur(3px) saturate(.94) brightness(.96) !important;
 }
 
-/* Confirmation uses its own backdrop, so soften it independently too. */
+/* Detail modal specifically needs a much lighter veil. The Orders page is
+   already dark, so a 40-50% black overlay effectively turns it into a flat
+   black screen. Keep the real page clearly visible behind the modal, similar
+   to the confirmation-dialog treatment in the supplied reference. */
+.admin-layout:has(.orders-page) .modal-backdrop:has(.order-detail-modal) {
+  background: rgb(12 20 38 / 12%) !important;
+  -webkit-backdrop-filter: blur(3px) saturate(.9) brightness(.95) !important;
+  backdrop-filter: blur(3px) saturate(.9) brightness(.95) !important;
+}
+
+/* Confirmation uses its own backdrop. Keep enough contrast for the warning
+   card while still showing the Orders screen beneath it. */
 body:has(.orders-page) .ds-confirm-backdrop {
-  background: rgb(2 8 23 / 50%) !important;
-  backdrop-filter: blur(3px) saturate(.92) !important;
+  background: rgb(8 15 32 / 34%) !important;
+  -webkit-backdrop-filter: blur(3px) saturate(.92) brightness(.94) !important;
+  backdrop-filter: blur(3px) saturate(.92) brightness(.94) !important;
 }
 
 /* Remove the decorative danger/accent strip across the top of confirmation. */
@@ -54,7 +66,7 @@ body:has(.orders-page) .ds-confirm-dialog {
 
 /* Detail modal should feel elevated, while the app remains readable behind it. */
 .admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
-  box-shadow: 0 28px 72px rgb(0 0 0 / 38%) !important;
+  box-shadow: 0 28px 72px rgb(0 0 0 / 34%) !important;
 }
 
 @media (max-width: 1180px) {
