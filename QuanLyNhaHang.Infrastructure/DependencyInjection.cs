@@ -40,6 +40,7 @@ public static class DependencyInjection
             configuration.GetSection(SePayOptions.SectionName));
 
         services.AddSingleton<IPaymentGateway, SePayPaymentGateway>();
+        services.AddSingleton<IPaymentChannelReadiness, SePayWebhookReadiness>();
 
         return services;
     }
