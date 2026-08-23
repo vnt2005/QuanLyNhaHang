@@ -22,7 +22,7 @@ type TableQrResponse = {
   }
 }
 
-test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, tạo lại và vô hiệu', async ({ page, request }) => {
+test('QR bàn: tạo, tải ảnh, sửa, khóa, tạo lại và vô hiệu', async ({ page, request }) => {
   const id = suffix()
   const areaName = `Khu QR E2E ${id}`
   const tableName = `Bàn QR E2E ${id}`
@@ -97,6 +97,7 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
   await expect(createdDetail).toBeVisible()
   await expect(createdDetail).toContainText(tableName)
   await expect(createdDetail.locator('code').first()).toHaveText(originalToken)
+  await expect(createdDetail.getByRole('button', { name: 'Kiểm tra gọi món thật', exact: true })).toHaveCount(0)
   await createdDetail
     .getByRole('button', { name: 'Đóng', exact: true })
     .click()
@@ -130,25 +131,12 @@ test('QR bàn: tạo, tải ảnh, kiểm tra gọi món thật, sửa, khóa, t
   await expect(detail).toContainText(note)
   await expect(detail.locator('img')).toHaveAttribute('src', /^data:image\/png;base64,/)
   await expect(detail.locator('code').first()).toHaveText(originalToken)
+  await expect(detail.getByRole('button', { name: 'Kiểm tra gọi món thật', exact: true })).toHaveCount(0)
 
   const downloadPromise = page.waitForEvent('download')
   await detail.getByRole('button', { name: 'Tải ảnh PNG', exact: true }).click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/\.png$/)
-
-  await detail.getByRole('button', { name: 'Kiểm tra gọi món thật', exact: true }).click()
-  const livePreview = page.locator('.table-qr-live-modal')
-  await expect(livePreview).toBeVisible()
-  const liveFrame = page.frameLocator('.table-qr-live-frame')
-  await expect(liveFrame.getByRole('heading', {
-    name: `Gọi món tại ${tableName}`,
-  })).toBeVisible()
-  await expect(liveFrame.locator('.qr-menu-item').filter({ hasText: menuItemName })).toBeVisible()
-  await livePreview
-    .locator('.table-qr-live-actions')
-    .getByRole('button', { name: 'Đóng', exact: true })
-    .click()
-  await expect(livePreview).toHaveCount(0)
 
   detail = page.locator('.table-qr-detail-modal')
   await detail.getByRole('button', { name: 'Sửa ghi chú', exact: true }).click()
