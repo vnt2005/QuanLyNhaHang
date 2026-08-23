@@ -1,0 +1,23 @@
+/* Calendar input visibility fix for the dark dashboard skin. */
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date'] {
+  color: #dfe6f2 !important;
+  border-color: #283653 !important;
+  background: #070f22 !important;
+  color-scheme: dark;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date']:focus {
+  border-color: rgb(255 157 0 / 72%) !important;
+  box-shadow: 0 0 0 3px rgb(255 157 0 / 10%) !important;
+}
