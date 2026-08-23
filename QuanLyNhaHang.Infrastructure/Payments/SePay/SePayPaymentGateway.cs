@@ -11,11 +11,11 @@ public sealed class SePayOptions
 {
     public const string SectionName = "SePay";
 
-    public string BankCode { get; init; } = "TPBank";
-    public string AccountNumber { get; init; } = string.Empty;
-    public string AccountHolder { get; init; } = string.Empty;
-    public string WebhookApiKey { get; init; } = string.Empty;
-    public string PaymentPrefix { get; init; } = "DH";
+    public string BankCode { get; set; } = "TPBank";
+    public string AccountNumber { get; set; } = string.Empty;
+    public string AccountHolder { get; set; } = string.Empty;
+    public string WebhookApiKey { get; set; } = string.Empty;
+    public string PaymentPrefix { get; set; } = "DH";
 }
 
 public sealed class SePayPaymentGateway : IPaymentGateway
