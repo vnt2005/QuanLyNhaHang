@@ -5,7 +5,8 @@ namespace QuanLyNhaHang.Application.Features.CustomerPayments.Commands.CreateOnl
 
 public sealed record CreateOnlinePaymentCommand(
     Guid OrderId,
-    string? QrToken)
+    string? QrToken,
+    PaymentChannelState PaymentChannel)
     : IRequest<CustomerPaymentResult<CustomerPaymentInstructionDto>>;
 
 public sealed class CreateOnlinePaymentCommandHandler
@@ -26,5 +27,6 @@ public sealed class CreateOnlinePaymentCommandHandler
         => _workflow.CreateAsync(
             request.OrderId,
             request.QrToken,
+            request.PaymentChannel,
             cancellationToken);
 }
