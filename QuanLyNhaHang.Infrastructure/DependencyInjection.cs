@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Payments;
+using QuanLyNhaHang.Infrastructure.Payments.SePay;
 using QuanLyNhaHang.Infrastructure.Persistence;
 using QuanLyNhaHang.Infrastructure.Services;
 
@@ -33,6 +35,13 @@ public static class DependencyInjection
         services.AddScoped<IActivityLogService, ActivityLogService>();
 
         services.AddScoped<IUserPermissionService, UserPermissionService>();
+
+        services.Configure<SePayOptions>(
+            configuration.GetSection(SePayOptions.SectionName));
+
+        services.AddSingleton<IPaymentGateway, SePayPaymentGateway>();
+        services.AddSingleton<IPaymentWebhookAdapter, SePayWebhookParser>();
+        services.AddSingleton<IPaymentChannelReadiness, SePayWebhookReadiness>();
 
         return services;
     }

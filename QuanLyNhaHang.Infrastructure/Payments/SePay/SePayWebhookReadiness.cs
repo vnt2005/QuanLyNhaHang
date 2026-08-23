@@ -1,12 +1,10 @@
-namespace QuanLyNhaHang.Api.Payments;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using QuanLyNhaHang.Application.Common.Payments;
 
-public sealed record SePayWebhookReadinessSnapshot(
-    bool Required,
-    bool Ready,
-    DateTime? LastConfirmedAtUtc,
-    DateTime? ValidUntilUtc);
+namespace QuanLyNhaHang.Infrastructure.Payments.SePay;
 
-public sealed class SePayWebhookReadiness
+public sealed class SePayWebhookReadiness : IPaymentChannelReadiness
 {
     private const int DefaultHeartbeatTimeoutSeconds = 35;
     private const int MinimumHeartbeatTimeoutSeconds = 15;
@@ -18,24 +16,25 @@ public sealed class SePayWebhookReadiness
     public bool IsRequired { get; }
 
     public SePayWebhookReadiness(
-        IConfiguration configuration,
+        IOptions<SePayOptions> options,
         IHostEnvironment environment)
     {
+        var value = options.Value;
+
         IsRequired =
-            configuration.GetValue<bool?>("SePay:RequireWebhookReadiness") ??
+            value.RequireWebhookReadiness ??
             environment.IsDevelopment();
 
-        var configuredTimeout = configuration.GetValue<int?>(
-            "SePay:WebhookHeartbeatTimeoutSeconds");
         var timeoutSeconds = Math.Clamp(
-            configuredTimeout ?? DefaultHeartbeatTimeoutSeconds,
+            value.WebhookHeartbeatTimeoutSeconds ??
+            DefaultHeartbeatTimeoutSeconds,
             MinimumHeartbeatTimeoutSeconds,
             MaximumHeartbeatTimeoutSeconds);
 
         _heartbeatTimeout = TimeSpan.FromSeconds(timeoutSeconds);
     }
 
-    public SePayWebhookReadinessSnapshot GetSnapshot()
+    public PaymentChannelReadinessSnapshot GetSnapshot()
     {
         var now = DateTime.UtcNow;
         var ticks = Interlocked.Read(ref _lastConfirmedAtUtcTicks);
@@ -46,14 +45,14 @@ public sealed class SePayWebhookReadiness
         var ready = !IsRequired ||
                     (validUntilUtc.HasValue && validUntilUtc.Value > now);
 
-        return new SePayWebhookReadinessSnapshot(
+        return new PaymentChannelReadinessSnapshot(
             IsRequired,
             ready,
             lastConfirmedAtUtc,
             validUntilUtc);
     }
 
-    public SePayWebhookReadinessSnapshot ConfirmExternalHeartbeat()
+    public PaymentChannelReadinessSnapshot ConfirmExternalHeartbeat()
     {
         Interlocked.Exchange(
             ref _lastConfirmedAtUtcTicks,
