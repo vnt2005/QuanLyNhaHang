@@ -85,6 +85,132 @@ body:has(.orders-page) .ds-confirm-dialog {
   box-shadow: 0 24px 64px rgb(0 0 0 / 38%) !important;
 }
 
+/* Compact modal sizing ---------------------------------------------------
+   The reference modals occupy roughly one third of a 1600px desktop width.
+   Keep this project's own fields/actions, but match that compact visual scale. */
+.admin-layout:has(.orders-page) .employee-modal.order-modal {
+  width: min(560px, calc(100vw - 32px)) !important;
+  max-height: min(620px, calc(100vh - 48px)) !important;
+  border-radius: 20px !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
+  width: min(560px, calc(100vw - 32px)) !important;
+  max-height: min(620px, calc(100vh - 48px)) !important;
+  border-radius: 20px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .modal-heading,
+.admin-layout:has(.orders-page) .order-detail-modal .modal-heading {
+  padding: 18px 20px 16px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .modal-heading h2,
+.admin-layout:has(.orders-page) .order-detail-modal .modal-heading h2 {
+  margin: 6px 0 4px !important;
+  font-size: 1.45rem !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .modal-heading p,
+.admin-layout:has(.orders-page) .order-detail-modal .modal-heading p {
+  font-size: 0.78rem !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .modal-heading > button,
+.admin-layout:has(.orders-page) .order-detail-modal .modal-heading > button {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-form {
+  gap: 13px !important;
+  padding: 16px 20px 18px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-form > label {
+  gap: 6px !important;
+  font-size: 0.72rem !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-form textarea {
+  min-height: 68px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-lines {
+  gap: 8px !important;
+  padding-top: 0 !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .line-heading {
+  padding-top: 0 !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-line {
+  grid-template-columns: minmax(0, 1.35fr) 64px minmax(0, 1fr) 38px !important;
+  gap: 7px !important;
+  padding: 9px !important;
+  border-radius: 12px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .order-line > .danger {
+  width: 38px !important;
+  min-height: 38px !important;
+}
+
+.admin-layout:has(.orders-page) .order-modal .modal-footer,
+.admin-layout:has(.orders-page) .order-detail-modal .modal-footer {
+  padding: 12px 20px 14px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .order-detail-content {
+  max-height: calc(min(620px, calc(100vh - 48px)) - 142px) !important;
+  gap: 12px !important;
+  padding: 16px 20px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .order-detail-section {
+  padding: 13px !important;
+  border-radius: 13px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .order-detail-section-heading {
+  margin-bottom: 10px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .order-detail-section-heading h3 {
+  margin-top: 3px !important;
+  font-size: 0.95rem !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .detail-note {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .detail-note textarea {
+  min-height: 48px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .detail-item {
+  gap: 10px !important;
+  padding: 10px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .detail-item-actions {
+  gap: 6px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .detail-item-actions input {
+  width: 62px !important;
+  min-height: 38px !important;
+}
+
+.admin-layout:has(.orders-page) .order-detail-modal .add-order-item {
+  grid-template-columns: minmax(0, 1fr) 64px minmax(0, .9fr) auto !important;
+  gap: 7px !important;
+}
+
 @media (max-width: 1180px) {
   .admin-layout:has(.orders-page) .order-card {
     grid-template-columns: minmax(0, 1fr) minmax(300px, auto) !important;
@@ -97,6 +223,20 @@ body:has(.orders-page) .ds-confirm-dialog {
   .admin-layout:has(.orders-page) .order-card-actions {
     grid-column: 2 / 3;
     grid-row: 1 / span 2;
+  }
+}
+
+@media (max-width: 620px) {
+  .admin-layout:has(.orders-page) .employee-modal.order-modal,
+  .admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
+    width: calc(100vw - 20px) !important;
+    max-height: calc(100vh - 20px) !important;
+  }
+
+  .admin-layout:has(.orders-page) .order-modal .order-line,
+  .admin-layout:has(.orders-page) .order-detail-modal .add-order-item,
+  .admin-layout:has(.orders-page) .order-detail-modal .detail-note {
+    grid-template-columns: 1fr !important;
   }
 }
 
