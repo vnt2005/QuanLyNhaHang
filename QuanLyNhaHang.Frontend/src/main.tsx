@@ -30,6 +30,7 @@ import './components/notification-center.css'
 import './pages/dashboard-command-center.css'
 import './pages/dashboard-calendar-fix.css'
 import './pages/orders-dark-overrides.css'
+import './pages/orders-overlay-polish.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
