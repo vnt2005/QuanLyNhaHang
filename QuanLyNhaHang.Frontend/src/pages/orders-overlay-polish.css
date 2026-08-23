@@ -27,30 +27,43 @@
   justify-content: flex-end !important;
 }
 
-/* Generic Orders modal backdrop: keep it very light. */
+/* Generic Orders modal backdrop. */
 .admin-layout:has(.orders-page) .modal-backdrop {
-  background-color: rgba(3, 8, 20, 0.08) !important;
+  background: rgba(0, 0, 0, 0.16) !important;
   background-image: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
+  -webkit-backdrop-filter: blur(1px) !important;
+  backdrop-filter: blur(1px) !important;
   opacity: 1 !important;
 }
 
-/* The detail modal previously looked like a full-screen navy page because the
-   shared backdrop was still effectively opaque in Chromium. Target the exact
-   backdrop that contains the detail modal and force a genuinely transparent
-   layer so the Orders screen remains visible around it. */
-.admin-layout:has(.orders-page) .modal-backdrop:has(.order-detail-modal) {
-  background: rgba(0, 0, 0, 0.06) !important;
-  background-color: rgba(0, 0, 0, 0.06) !important;
+/* IMPORTANT: orders-dark-overrides.css added a ::before to the detail modal
+   with position:absolute + inset:0 but the modal itself was not positioned.
+   Chromium therefore used the viewport as that pseudo-element's containing
+   block, painting a solid navy sheet over the entire application. Remove that
+   escaped pseudo-element completely; the modal already has an opaque surface. */
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
+  position: relative !important;
+  isolation: isolate;
+  box-shadow: 0 28px 72px rgb(0 0 0 / 38%) !important;
+}
+
+.admin-layout:has(.orders-page) .employee-modal.order-detail-modal::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Match the visual treatment of the delete confirmation: the Orders page is
+   still clearly visible behind the detail dialog, only lightly dimmed/blurred. */
+.admin-layout:has(.orders-page) .modal-backdrop:has(> .order-detail-modal) {
+  background: rgba(0, 0, 0, 0.16) !important;
+  background-color: rgba(0, 0, 0, 0.16) !important;
   background-image: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
+  -webkit-backdrop-filter: blur(1px) !important;
+  backdrop-filter: blur(1px) !important;
   opacity: 1 !important;
 }
 
-/* Confirmation uses its own backdrop. Keep the page visible, only slightly
-   dimmed, and avoid blur that makes the dark page look like a solid block. */
+/* Confirmation uses the same light treatment so both overlays feel related. */
 body:has(.orders-page) .ds-confirm-backdrop {
   background: rgba(0, 0, 0, 0.16) !important;
   background-color: rgba(0, 0, 0, 0.16) !important;
@@ -70,11 +83,6 @@ body:has(.orders-page) .ds-confirm-dialog::before {
 body:has(.orders-page) .ds-confirm-dialog {
   border-color: #31405d !important;
   box-shadow: 0 24px 64px rgb(0 0 0 / 38%) !important;
-}
-
-/* Detail modal should feel elevated, while the app remains readable behind it. */
-.admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
-  box-shadow: 0 28px 72px rgb(0 0 0 / 38%) !important;
 }
 
 @media (max-width: 1180px) {
