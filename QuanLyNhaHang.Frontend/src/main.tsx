@@ -29,6 +29,7 @@ import './design-system/admin.css'
 import './components/notification-center.css'
 import './pages/dashboard-command-center.css'
 import './pages/dashboard-calendar-fix.css'
+import './pages/orders-dark-overrides.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
