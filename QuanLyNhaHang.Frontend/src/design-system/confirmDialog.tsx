@@ -22,6 +22,33 @@ const waitingRequests: ConfirmRequest[] = []
 function inferOptions(message: string): Required<ConfirmOptions> {
   const normalized = message.toLocaleLowerCase('vi')
 
+  if (normalized.includes('xóa') && normalized.includes('tài khoản')) {
+    return {
+      title: 'Xóa tài khoản?',
+      confirmLabel: 'Xóa tài khoản',
+      cancelLabel: 'Giữ tài khoản',
+      tone: 'danger',
+    }
+  }
+
+  if (normalized.includes('hủy hóa đơn')) {
+    return {
+      title: 'Hủy hóa đơn?',
+      confirmLabel: 'Hủy hóa đơn',
+      cancelLabel: 'Giữ hóa đơn',
+      tone: 'danger',
+    }
+  }
+
+  if (normalized.includes('vô hiệu') && normalized.includes('vai trò')) {
+    return {
+      title: 'Vô hiệu hóa vai trò?',
+      confirmLabel: 'Vô hiệu hóa',
+      cancelLabel: 'Giữ hoạt động',
+      tone: 'danger',
+    }
+  }
+
   if (normalized.includes('xóa')) {
     return {
       title: 'Xác nhận xóa',

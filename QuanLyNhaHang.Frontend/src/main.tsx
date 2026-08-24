@@ -35,6 +35,13 @@ import './pages/orders-modal-overflow-fix.css'
 import './pages/kitchen-dark-overrides.css'
 import './pages/payments-dark-overrides.css'
 import './pages/payments-confirm-fix.css'
+import './pages/employees-dark.css'
+import './pages/customers-dark.css'
+import './pages/shifts-dark.css'
+import './pages/access-dark.css'
+import './pages/invoices-dark.css'
+import './pages/revenue-dark.css'
+import './design-system/confirm-dialog-polish.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

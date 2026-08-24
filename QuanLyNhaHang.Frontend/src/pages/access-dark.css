@@ -1,0 +1,1264 @@
+/* Access command center -------------------------------------------------
+   Adapts the approved navy/orange references to the application's real
+   account, role and permission capabilities without inventing data. */
+.admin-layout:has(.access-page) {
+  --access-bg: #050a1b;
+  --access-bg-deep: #020617;
+  --access-surface: #10192d;
+  --access-surface-raised: #142038;
+  --access-input: #060c1f;
+  --access-border: #243149;
+  --access-border-soft: #1b2840;
+  --access-text: #f4f7ff;
+  --access-muted: #8194b3;
+  --access-muted-strong: #aab8ce;
+  --access-orange: #ff9f0a;
+  --access-orange-hover: #ffad2f;
+  --access-green: #00d7a5;
+  --access-danger: #ff668f;
+  background: var(--access-bg-deep);
+}
+
+.admin-layout:has(.access-page) .dashboard {
+  background:
+    radial-gradient(circle at 84% -12%, rgb(34 59 105 / 18%), transparent 32rem),
+    var(--access-bg);
+}
+
+.admin-layout:has(.access-page) .topbar {
+  color: var(--access-text);
+  border-bottom-color: var(--access-border);
+  background: rgb(15 24 43 / 94%);
+}
+
+.admin-layout:has(.access-page) .topbar .eyebrow {
+  color: var(--access-orange);
+}
+
+.admin-layout:has(.access-page) .topbar h1,
+.admin-layout:has(.access-page) .profile-button strong {
+  color: var(--access-text);
+}
+
+.admin-layout:has(.access-page) .profile-button small {
+  color: var(--access-muted);
+}
+
+.admin-layout:has(.access-page) .profile-button:hover,
+.admin-layout:has(.access-page) .profile-button.active {
+  border-color: var(--access-border);
+  background: var(--access-surface);
+}
+
+.admin-layout:has(.access-page) .profile-button > span,
+.admin-layout:has(.access-page) .topbar .profile > span,
+.admin-layout:has(.access-page) .logo > span {
+  color: #1a1100;
+  background: linear-gradient(135deg, #ffb018, #ff8a00);
+  box-shadow: 0 8px 24px rgb(255 159 10 / 22%);
+}
+
+.admin-layout:has(.access-page) .logout,
+.admin-layout:has(.access-page) .notification-trigger {
+  color: var(--access-muted-strong);
+  border-color: var(--access-border);
+  background: var(--access-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.access-page) .notification-trigger:hover,
+.admin-layout:has(.access-page) .notification-trigger.active {
+  color: var(--access-text);
+  border-color: #3a4a68;
+  background: var(--access-surface-raised);
+}
+
+.admin-layout:has(.access-page) .sidebar nav button.active,
+.admin-layout:has(.access-page) .sidebar nav button.active:hover {
+  color: var(--access-orange);
+  border-color: rgb(255 159 10 / 16%);
+  background: linear-gradient(90deg, rgb(255 159 10 / 16%), rgb(255 159 10 / 5%));
+  box-shadow: inset 3px 0 0 var(--access-orange);
+}
+
+.admin-layout:has(.access-page) .sidebar nav button.active > span {
+  color: var(--access-orange);
+  background: rgb(255 159 10 / 12%);
+}
+
+.dashboard .access-page {
+  display: grid;
+  align-content: start;
+  width: min(100%, 100rem);
+  max-width: 100%;
+  min-width: 0;
+  min-height: calc(100vh - var(--ds-topbar-height));
+  gap: 0;
+  margin: 0 auto;
+  padding: 0 0 3rem;
+  color: var(--access-text);
+}
+
+.dashboard .access-command-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 7.25rem;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--access-border);
+}
+
+.dashboard .access-breadcrumb {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.625rem;
+  color: var(--access-muted);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.dashboard .access-breadcrumb svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard .access-breadcrumb strong {
+  overflow: hidden;
+  color: var(--access-text);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard .toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard .toolbar-actions > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.875rem;
+  gap: 0.625rem;
+  padding: 0 1.125rem;
+  border-radius: 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 850;
+}
+
+.dashboard .toolbar-actions > button svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard .access-sync-button {
+  color: var(--access-muted-strong);
+  border: 1px solid var(--access-border);
+  background: var(--access-surface);
+}
+
+.dashboard .access-sync-button:hover:not(:disabled) {
+  color: var(--access-text);
+  border-color: #3a4a68;
+  background: var(--access-surface-raised);
+}
+
+.dashboard .access-primary-button {
+  color: #181006 !important;
+  border: 1px solid var(--access-orange) !important;
+  background: var(--access-orange) !important;
+  box-shadow: 0 0.625rem 1.5rem rgb(255 159 10 / 18%);
+}
+
+.dashboard .access-primary-button:hover:not(:disabled) {
+  color: #181006 !important;
+  border-color: var(--access-orange-hover) !important;
+  background: var(--access-orange-hover) !important;
+  box-shadow: 0 0.75rem 1.75rem rgb(255 159 10 / 26%);
+  transform: translateY(-1px);
+}
+
+.dashboard .toolbar-actions > button:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+.dashboard .access-tabs {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 0;
+  margin: 1.75rem 0 1.875rem;
+  padding: 0;
+  overflow-x: auto;
+  border: 0;
+  border-bottom: 1px solid var(--access-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dashboard .access-tabs button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 3.25rem;
+  gap: 0.55rem;
+  padding: 0 1.5rem;
+  color: var(--access-muted);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dashboard .access-tabs button::after {
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  background: transparent;
+  content: '';
+}
+
+.dashboard .access-tabs button:hover {
+  color: var(--access-text);
+  background: transparent;
+}
+
+.dashboard .access-tabs button.active {
+  color: var(--access-orange);
+  background: transparent;
+}
+
+.dashboard .access-tabs button.active::after {
+  background: var(--access-orange);
+}
+
+.dashboard .access-tabs svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard .access-page .inline-alert {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid;
+  border-radius: 0.875rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.dashboard .access-page .inline-alert.success {
+  color: #7ce7c8;
+  border-color: rgb(0 215 165 / 28%);
+  background: rgb(0 215 165 / 8%);
+}
+
+.dashboard .access-page .inline-alert.error {
+  color: #ff9eae;
+  border-color: rgb(255 102 143 / 28%);
+  background: rgb(255 102 143 / 8%);
+}
+
+.dashboard .access-filter-band {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1fr) auto auto;
+  align-items: center;
+  min-width: 0;
+  min-height: 5.375rem;
+  gap: 1.25rem;
+  margin-bottom: 1.125rem;
+  padding: 1.25rem;
+  border: 1px solid var(--access-border);
+  border-radius: 1.125rem;
+  background: var(--access-surface);
+}
+
+.dashboard .role-filter-band {
+  grid-template-columns: minmax(18rem, 25rem);
+}
+
+.dashboard .access-search-field {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 2.875rem;
+  gap: 0.75rem;
+  padding: 0 0.875rem;
+  color: #6981a5;
+  border: 1px solid var(--access-border);
+  border-radius: 0.875rem;
+  background: var(--access-input);
+}
+
+.dashboard .access-search-field > svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.dashboard .access-search-field input {
+  width: 100%;
+  min-width: 0;
+  height: 2.75rem;
+  padding: 0;
+  color: var(--access-text) !important;
+  border: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.dashboard .access-search-field input::placeholder {
+  color: #667d9f;
+}
+
+.dashboard .access-search-field:focus-within {
+  border-color: var(--access-orange);
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 14%);
+}
+
+.dashboard .access-clear-button {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  padding: 0;
+  place-items: center;
+  color: var(--access-muted);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.dashboard .access-clear-button:hover {
+  color: var(--access-text);
+  background: rgb(255 255 255 / 6%);
+}
+
+.dashboard .access-clear-button svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.dashboard .access-filter-field {
+  display: grid;
+  grid-template-columns: auto minmax(10rem, 12rem);
+  align-items: center;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.dashboard .access-filter-field > span {
+  color: #748db4;
+  font-size: 0.6875rem;
+  font-weight: 850;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dashboard .access-filter-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0 2.5rem 0 0.875rem;
+  color: var(--access-text) !important;
+  border: 1px solid var(--access-border) !important;
+  border-radius: 0.875rem;
+  outline: 0;
+  background-color: var(--access-input) !important;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color-scheme: dark;
+}
+
+.dashboard .access-filter-field select:focus {
+  border-color: var(--access-orange) !important;
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 14%);
+}
+
+.dashboard .access-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.dashboard .access-result-row {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #6f86ac;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.dashboard .access-result-row strong {
+  color: var(--access-muted-strong);
+}
+
+.dashboard .access-table-panel {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--access-border);
+  border-radius: 1.25rem;
+  background: var(--access-bg-deep);
+  box-shadow: none;
+}
+
+.dashboard .access-table-panel .table-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.dashboard .access-table-panel table {
+  width: 100%;
+  min-width: 72rem;
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.dashboard .role-table-panel table {
+  min-width: 58rem;
+}
+
+.dashboard .access-table-panel th {
+  position: static;
+  height: 3.75rem;
+  padding: 0.875rem 1.5rem;
+  color: #687fa5;
+  border: 0;
+  border-bottom: 1px solid var(--access-border-soft);
+  background: transparent;
+  font-size: 0.6875rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.dashboard .access-table-panel th:last-child {
+  text-align: right;
+}
+
+.dashboard .access-table-panel td {
+  height: 5rem;
+  padding: 0.875rem 1.5rem;
+  color: var(--access-muted-strong);
+  border: 0;
+  border-bottom: 1px solid var(--access-border-soft);
+  background: transparent !important;
+  font-size: 0.8125rem;
+  vertical-align: middle;
+}
+
+.dashboard .access-table-panel tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.dashboard .access-table-panel tbody tr:hover td {
+  background: rgb(17 29 51 / 62%) !important;
+}
+
+.dashboard .access-table-panel .employee-cell,
+.dashboard .access-role-identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.dashboard .access-table-panel .employee-cell > span {
+  display: grid;
+  width: 2.625rem;
+  height: 2.625rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--access-orange);
+  border: 1px solid rgb(255 159 10 / 20%);
+  border-radius: 0.75rem;
+  background: rgb(255 159 10 / 10%);
+  font-weight: 850;
+}
+
+.dashboard .access-table-panel .employee-cell > div,
+.dashboard .access-role-identity > div,
+.dashboard .access-contact-cell {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.dashboard .access-table-panel .employee-cell strong,
+.dashboard .access-role-identity strong,
+.dashboard .access-contact-cell strong {
+  overflow: hidden;
+  color: var(--access-text);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard .access-table-panel .employee-cell small,
+.dashboard .access-role-identity small,
+.dashboard .access-contact-cell small {
+  color: #7186a7;
+  font-size: 0.72rem;
+}
+
+.dashboard .access-role-identity > span {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--access-orange);
+  border: 1px solid rgb(255 159 10 / 20%);
+  border-radius: 0.75rem;
+  background: rgb(255 159 10 / 11%);
+}
+
+.dashboard .access-role-identity svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard .access-role-description {
+  max-width: 34rem;
+  color: #91a2bd !important;
+  line-height: 1.55;
+}
+
+.dashboard .access-page .role-chip {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  padding: 0 0.625rem;
+  color: #c6d1e2;
+  border: 1px solid #263652;
+  border-radius: 999px;
+  background: #16243b;
+  font-size: 0.6875rem;
+  font-weight: 850;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.dashboard .access-page .status-badge {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  padding: 0 0.625rem;
+  color: var(--access-green);
+  border: 1px solid rgb(0 215 165 / 24%);
+  border-radius: 999px;
+  background: rgb(0 215 165 / 10%);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dashboard .access-page .status-badge.inactive {
+  color: #ff8caa;
+  border-color: rgb(255 102 143 / 25%);
+  background: rgb(255 102 143 / 9%);
+}
+
+.dashboard .access-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 0.375rem;
+  margin: 0;
+}
+
+.dashboard .access-row-actions button {
+  display: grid;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  place-items: center;
+  color: #8fa2c0;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  background: transparent;
+}
+
+.dashboard .access-row-actions button:hover:not(:disabled) {
+  color: var(--access-orange);
+  border-color: rgb(255 159 10 / 20%);
+  background: rgb(255 159 10 / 9%);
+}
+
+.dashboard .access-row-actions button.danger:hover:not(:disabled) {
+  color: #ff9bb5;
+  border-color: rgb(255 102 143 / 20%);
+  background: rgb(255 102 143 / 9%);
+}
+
+.dashboard .access-row-actions button:disabled {
+  opacity: 0.38;
+  cursor: wait;
+}
+
+.dashboard .access-row-actions svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard .access-page .empty-state {
+  height: 10rem;
+  padding: 2.5rem !important;
+  color: var(--access-muted);
+  text-align: center !important;
+}
+
+.dashboard .access-page .pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4.25rem;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  color: var(--access-muted);
+  border-top: 1px solid var(--access-border-soft);
+  background: rgb(11 20 39 / 82%);
+  font-size: 0.75rem;
+}
+
+.dashboard .access-page .pagination > div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dashboard .access-page .pagination button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  gap: 0.375rem;
+  padding: 0 0.75rem;
+  color: var(--access-muted-strong);
+  border: 1px solid var(--access-border);
+  border-radius: 0.625rem;
+  background: var(--access-surface);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.dashboard .access-page .pagination button:hover:not(:disabled) {
+  color: var(--access-text);
+  border-color: #3a4a68;
+  background: var(--access-surface-raised);
+}
+
+.dashboard .access-page .pagination button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.dashboard .access-page .pagination button svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard .access-page button:focus-visible,
+.dashboard .access-page :is(input, select, textarea):focus-visible {
+  outline: 3px solid rgb(255 159 10 / 32%);
+  outline-offset: 2px;
+}
+
+/* Account, role and permission modals ---------------------------------- */
+.admin-layout:has(.access-page) .modal-backdrop {
+  z-index: 1200;
+  overflow-y: auto;
+  padding: 2rem 1rem;
+  background: rgb(1 5 16 / 84%);
+  backdrop-filter: blur(7px);
+  overscroll-behavior: contain;
+}
+
+.admin-layout:has(.access-page) .access-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(40rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  color: var(--access-text);
+  border: 1px solid var(--access-border);
+  border-radius: 1.25rem;
+  background: var(--access-surface);
+  box-shadow: 0 2.25rem 6rem rgb(0 0 0 / 58%);
+  color-scheme: dark;
+}
+
+.admin-layout:has(.access-page) .account-access-modal {
+  width: min(48rem, calc(100vw - 2rem));
+}
+
+.admin-layout:has(.access-page) .permission-modal {
+  width: min(56rem, calc(100vw - 2rem));
+  height: min(44rem, calc(100vh - 4rem));
+}
+
+.admin-layout:has(.access-page) .access-modal .modal-heading {
+  position: relative;
+  top: auto;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4.875rem;
+  flex: 0 0 auto;
+  gap: 1rem;
+  padding: 1.25rem 1.875rem;
+  border-bottom: 1px solid var(--access-border-soft);
+  background: rgb(16 25 45 / 98%);
+  backdrop-filter: none;
+}
+
+.admin-layout:has(.access-page) .access-modal .modal-heading h2 {
+  margin: 0;
+  color: var(--access-text);
+  font-size: 1rem;
+  font-weight: 850;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+
+.admin-layout:has(.access-page) .access-modal .modal-heading p {
+  margin: 0.35rem 0 0;
+  color: var(--access-muted);
+  font-size: 0.75rem;
+}
+
+.admin-layout:has(.access-page) .access-modal .modal-heading > button {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  padding: 0;
+  place-items: center;
+  color: var(--access-muted);
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+}
+
+.admin-layout:has(.access-page) .access-modal .modal-heading > button:hover:not(:disabled) {
+  color: var(--access-text);
+  background: rgb(255 255 255 / 5%);
+}
+
+.admin-layout:has(.access-page) .access-modal .modal-heading > button svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.admin-layout:has(.access-page) .access-modal-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 1.125rem 1rem;
+  margin: 0;
+  padding: 1.75rem 1.875rem 0;
+  overflow-y: auto;
+}
+
+.admin-layout:has(.access-page) .access-modal-form > label {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  gap: 0.5rem;
+  color: var(--access-muted-strong);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.admin-layout:has(.access-page) .access-modal-form label b {
+  color: var(--access-danger);
+}
+
+.admin-layout:has(.access-page) .access-modal-form .wide-field {
+  grid-column: 1 / -1;
+}
+
+.admin-layout:has(.access-page) .access-modal-form :is(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  color: var(--access-text) !important;
+  border: 1px solid var(--access-border) !important;
+  border-radius: 0.75rem;
+  outline: 0;
+  background: var(--access-input) !important;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color-scheme: dark;
+}
+
+.admin-layout:has(.access-page) .access-modal-form :is(input, select) {
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+}
+
+.admin-layout:has(.access-page) .access-modal-form select {
+  padding-right: 2.5rem;
+}
+
+.admin-layout:has(.access-page) .access-modal-form textarea {
+  min-height: 5.75rem;
+  padding: 0.75rem 0.875rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.admin-layout:has(.access-page) .access-modal-form :is(input, textarea)::placeholder {
+  color: #657894;
+}
+
+.admin-layout:has(.access-page) .access-modal-form :is(input, select, textarea):focus {
+  border-color: var(--access-orange) !important;
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 14%);
+}
+
+.admin-layout:has(.access-page) .access-modal-form input:disabled {
+  color: #72829d !important;
+  background: #0b1325 !important;
+  cursor: not-allowed;
+}
+
+.admin-layout:has(.access-page) .access-status-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.admin-layout:has(.access-page) .access-status-field legend {
+  margin-bottom: 0.5rem;
+  padding: 0;
+  color: var(--access-muted-strong);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.admin-layout:has(.access-page) .access-status-field > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.admin-layout:has(.access-page) .access-status-field button {
+  min-height: 2.625rem;
+  color: var(--access-muted);
+  border: 1px solid var(--access-border);
+  border-radius: 0.75rem;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.admin-layout:has(.access-page) .access-status-field button.active {
+  color: var(--access-green);
+  border-color: rgb(0 215 165 / 36%);
+  background: rgb(0 215 165 / 10%);
+}
+
+.admin-layout:has(.access-page) .access-status-field button.inactive.active {
+  color: #ff8caa;
+  border-color: rgb(255 102 143 / 34%);
+  background: rgb(255 102 143 / 9%);
+}
+
+.admin-layout:has(.access-page) .security-note {
+  padding: 0.75rem 0.875rem;
+  color: #e9bd65;
+  border: 1px solid rgb(255 159 10 / 24%);
+  border-radius: 0.75rem;
+  background: rgb(255 159 10 / 8%);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.admin-layout:has(.access-page) .access-modal-form .modal-actions,
+.admin-layout:has(.access-page) .permission-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  grid-column: 1 / -1;
+  flex: 0 0 auto;
+  gap: 0.75rem;
+  margin: 0 -1.875rem;
+  padding: 1rem 1.875rem 1.25rem;
+  border-top: 1px solid var(--access-border-soft);
+  background: rgb(16 25 45 / 98%);
+}
+
+.admin-layout:has(.access-page) .access-modal-form .modal-actions button,
+.admin-layout:has(.access-page) .permission-actions button {
+  min-height: 2.625rem;
+  padding: 0 1.125rem;
+  color: var(--access-muted-strong);
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.admin-layout:has(.access-page) .access-modal-form .modal-actions button:hover:not(:disabled),
+.admin-layout:has(.access-page) .permission-actions button:hover:not(:disabled) {
+  color: var(--access-text);
+  background: rgb(255 255 255 / 5%);
+}
+
+.admin-layout:has(.access-page) .access-modal-form .modal-actions .primary-button,
+.admin-layout:has(.access-page) .permission-actions .primary-button {
+  color: #181006 !important;
+  border-color: var(--access-orange) !important;
+  background: var(--access-orange) !important;
+  box-shadow: 0 0.625rem 1.5rem rgb(255 159 10 / 16%);
+}
+
+.admin-layout:has(.access-page) .access-modal-form .modal-actions .primary-button:hover:not(:disabled),
+.admin-layout:has(.access-page) .permission-actions .primary-button:hover:not(:disabled) {
+  background: var(--access-orange-hover) !important;
+}
+
+.admin-layout:has(.access-page) .permission-toolbar {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--access-border-soft);
+  background: var(--access-surface);
+}
+
+.admin-layout:has(.access-page) .permission-toolbar input {
+  flex: 1;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  color: var(--access-text);
+  border: 1px solid var(--access-border);
+  border-radius: 0.75rem;
+  outline: 0;
+  background: var(--access-input);
+  font-size: 0.8125rem;
+}
+
+.admin-layout:has(.access-page) .permission-toolbar input::placeholder {
+  color: #657894;
+}
+
+.admin-layout:has(.access-page) .permission-toolbar input:focus {
+  border-color: var(--access-orange);
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 14%);
+}
+
+.admin-layout:has(.access-page) .permission-toolbar span {
+  color: var(--access-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.admin-layout:has(.access-page) .permission-groups {
+  min-height: 0;
+  flex: 1 1 auto;
+  gap: 0.875rem;
+  padding: 1.125rem 1.25rem;
+  background: #0b1325;
+  scrollbar-color: #44536e transparent;
+}
+
+.admin-layout:has(.access-page) .permission-groups section {
+  border-color: var(--access-border);
+  border-radius: 0.875rem;
+  background: var(--access-surface);
+}
+
+.admin-layout:has(.access-page) .permission-group-heading {
+  padding: 0.75rem 0.875rem;
+  background: var(--access-surface-raised);
+}
+
+.admin-layout:has(.access-page) .permission-group-heading h3 {
+  color: var(--access-text);
+}
+
+.admin-layout:has(.access-page) .permission-group-heading button {
+  color: var(--access-orange);
+}
+
+.admin-layout:has(.access-page) .permission-item {
+  color: var(--access-muted-strong);
+  border-top-color: var(--access-border-soft);
+}
+
+.admin-layout:has(.access-page) .permission-item:hover {
+  background: rgb(255 255 255 / 3%);
+}
+
+.admin-layout:has(.access-page) .permission-item input {
+  accent-color: var(--access-orange);
+}
+
+.admin-layout:has(.access-page) .permission-item strong {
+  color: var(--access-text);
+}
+
+.admin-layout:has(.access-page) .permission-item code {
+  color: #7285a5;
+}
+
+.admin-layout:has(.access-page) .permission-empty-state {
+  color: var(--access-muted);
+  border-color: var(--access-border);
+  background: var(--access-surface);
+}
+
+.admin-layout:has(.access-page) .permission-actions {
+  margin: 0;
+}
+
+@media (max-width: 1180px) {
+  .dashboard .access-filter-band {
+    grid-template-columns: minmax(18rem, 1fr) minmax(12rem, 15rem);
+  }
+
+  .dashboard .access-filter-field {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .dashboard .access-filter-field:last-of-type {
+    grid-column: 2;
+  }
+
+  .dashboard .role-filter-band {
+    grid-template-columns: minmax(18rem, 25rem);
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-layout:has(.access-page) .dashboard {
+    padding-inline: 1rem;
+  }
+
+  .dashboard .access-page {
+    min-height: auto;
+    padding-bottom: 2rem;
+  }
+
+  .dashboard .access-command-bar {
+    align-items: flex-start;
+    min-height: auto;
+    padding: 1rem 0 1.25rem;
+  }
+
+  .dashboard .access-breadcrumb {
+    flex: 1 1 auto;
+    min-height: 2.875rem;
+  }
+
+  .dashboard .toolbar-actions {
+    flex: 0 0 auto;
+    width: auto;
+    flex-direction: row;
+  }
+
+  .dashboard .toolbar-actions > button {
+    width: 2.875rem;
+    padding: 0;
+  }
+
+  .dashboard .toolbar-actions > button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .dashboard .access-tabs {
+    margin: 1rem 0 1.25rem;
+  }
+
+  .dashboard .access-tabs button {
+    flex: 1 0 auto;
+    justify-content: center;
+    padding: 0 1rem;
+  }
+
+  .dashboard .access-filter-band,
+  .dashboard .role-filter-band {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .dashboard .access-filter-field,
+  .dashboard .access-filter-field:last-of-type {
+    grid-column: auto;
+  }
+
+  .dashboard .access-result-row {
+    margin: 0 0 0.75rem;
+  }
+
+  .dashboard .access-table-panel {
+    border-radius: 1rem;
+  }
+
+  .dashboard .access-page .pagination {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 0.875rem 1rem;
+  }
+
+  .dashboard .access-page .pagination > div {
+    width: 100%;
+  }
+
+  .dashboard .access-page .pagination button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .admin-layout:has(.access-page) .modal-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .admin-layout:has(.access-page) .access-modal,
+  .admin-layout:has(.access-page) .account-access-modal,
+  .admin-layout:has(.access-page) .permission-modal {
+    width: 100%;
+    height: auto;
+    max-height: 94dvh;
+    margin: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 1.5rem 1.5rem 0 0;
+  }
+
+  .admin-layout:has(.access-page) .access-modal .modal-heading {
+    min-height: 4.5rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .admin-layout:has(.access-page) .access-modal-form {
+    grid-template-columns: 1fr;
+    padding: 1.25rem 1.25rem 0;
+  }
+
+  .admin-layout:has(.access-page) .access-modal-form .wide-field,
+  .admin-layout:has(.access-page) .access-modal-form .modal-actions {
+    grid-column: auto;
+  }
+
+  .admin-layout:has(.access-page) .access-modal-form .modal-actions {
+    margin: 0 -1.25rem;
+    padding: 0.875rem 1.25rem 1.25rem;
+  }
+
+  .admin-layout:has(.access-page) .access-modal-form .modal-actions button,
+  .admin-layout:has(.access-page) .permission-actions button {
+    flex: 1;
+  }
+
+  .admin-layout:has(.access-page) .permission-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-layout:has(.access-page) .permission-actions {
+    flex-direction: row;
+    padding: 0.875rem 1.25rem 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard .access-page button {
+    transition: none !important;
+  }
+}
