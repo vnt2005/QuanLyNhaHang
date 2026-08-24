@@ -39,6 +39,80 @@ const reservationLabels: Record<ReservationStatus, string> = {
   NoShow: 'Không đến',
 }
 
+function RefreshIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 11a8 8 0 1 0-2.34 5.66" />
+      <path d="M20 4v7h-7" />
+    </svg>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-4-4" />
+    </svg>
+  )
+}
+
+function UsersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
+function UserCheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="8.5" cy="7" r="4" />
+      <path d="m17 11 2 2 4-4" />
+    </svg>
+  )
+}
+
+function MailCheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="3" />
+      <path d="m3 6 9 7 9-7M16 17l1.5 1.5L21 15" />
+    </svg>
+  )
+}
+
+function MailWarningIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="3" />
+      <path d="m3 6 9 7 9-7M18 9v4M18 16h.01" />
+    </svg>
+  )
+}
+
+function EyeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  )
+}
+
+function EditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
+    </svg>
+  )
+}
+
 function getErrorMessage(exception: unknown, fallback: string) {
   return exception instanceof Error ? exception.message : fallback
 }
@@ -268,7 +342,13 @@ export default function CustomerManagementPage() {
     <section className="customers-page">
       <div className="customers-heading">
         <div>
-          <span>CRM NHÀ HÀNG</span>
+          <div className="customer-breadcrumb" aria-label="Vị trí hiện tại">
+            <span>Khách hàng &amp; đội ngũ</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <strong>Khách hàng</strong>
+          </div>
           <h2>Quản lý khách hàng</h2>
           <p>
             Theo dõi tài khoản khách, trạng thái xác minh và lịch sử đặt bàn.
@@ -279,42 +359,43 @@ export default function CustomerManagementPage() {
           onClick={() => void loadCustomers(page, keyword, filter)}
           disabled={loading}
         >
-          {loading ? 'Đang đồng bộ…' : '↻ Làm mới'}
+          <RefreshIcon />
+          {loading ? 'Đang đồng bộ…' : 'Làm mới'}
         </button>
       </div>
 
       <div className="customer-kpis">
-        <article>
-          <span className="customer-kpi-icon total">♙</span>
+        <article className="total">
           <div>
             <small>TỔNG KHÁCH HÀNG</small>
             <strong>{summary.total}</strong>
             <p>Tài khoản có vai trò Customer</p>
           </div>
+          <span className="customer-kpi-icon total"><UsersIcon /></span>
         </article>
-        <article>
-          <span className="customer-kpi-icon active">✓</span>
+        <article className="active">
           <div>
             <small>ĐANG HOẠT ĐỘNG</small>
             <strong>{summary.active}</strong>
             <p>Có thể đăng nhập và sử dụng dịch vụ</p>
           </div>
+          <span className="customer-kpi-icon active"><UserCheckIcon /></span>
         </article>
-        <article>
-          <span className="customer-kpi-icon verified">@</span>
+        <article className="verified">
           <div>
             <small>ĐÃ XÁC MINH EMAIL</small>
             <strong>{summary.verified}</strong>
             <p>Tài khoản đã hoàn tất xác minh</p>
           </div>
+          <span className="customer-kpi-icon verified"><MailCheckIcon /></span>
         </article>
-        <article>
-          <span className="customer-kpi-icon warning">!</span>
+        <article className="warning">
           <div>
             <small>CHỜ XÁC MINH</small>
             <strong>{unverifiedCount}</strong>
             <p>Cần xác minh email để đăng nhập</p>
           </div>
+          <span className="customer-kpi-icon warning"><MailWarningIcon /></span>
         </article>
       </div>
 
@@ -330,26 +411,30 @@ export default function CustomerManagementPage() {
           }}
         >
           <div className="customer-search">
-            <span>⌕</span>
+            <span><SearchIcon /></span>
             <input
               value={keyword}
               onChange={event => setKeyword(event.target.value)}
               placeholder="Tìm theo tên, email hoặc số điện thoại..."
             />
           </div>
-          <select
-            value={filter}
-            onChange={event => {
-              const next = event.target.value as CustomerFilter
-              setFilter(next)
-              void loadCustomers(1, keyword, next)
-            }}
-          >
-            <option value="all">Tất cả khách hàng</option>
-            <option value="active">Đang hoạt động</option>
-            <option value="locked">Đã khóa</option>
-            <option value="unverified">Chưa xác minh email</option>
-          </select>
+          <label className="customer-filter-field">
+            <span>TRẠNG THÁI</span>
+            <select
+              aria-label="Trạng thái khách hàng"
+              value={filter}
+              onChange={event => {
+                const next = event.target.value as CustomerFilter
+                setFilter(next)
+                void loadCustomers(1, keyword, next)
+              }}
+            >
+              <option value="all">Tất cả khách hàng</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="locked">Đã khóa</option>
+              <option value="unverified">Chưa xác minh email</option>
+            </select>
+          </label>
           <button type="submit">Tìm kiếm</button>
           {(keyword || filter !== 'all') && (
             <button
@@ -375,7 +460,7 @@ export default function CustomerManagementPage() {
                 <th>Ngày đăng ký</th>
                 <th>Xác minh email</th>
                 <th>Trạng thái</th>
-                <th />
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -429,15 +514,19 @@ export default function CustomerManagementPage() {
                     <div className="customer-actions">
                       <button
                         type="button"
+                        aria-label="Chi tiết"
+                        title="Chi tiết"
                         onClick={() => void openDetails(customer)}
                       >
-                        Chi tiết
+                        <EyeIcon />
                       </button>
                       <button
                         type="button"
+                        aria-label="Sửa"
+                        title="Sửa"
                         onClick={() => openEdit(customer)}
                       >
-                        Sửa
+                        <EditIcon />
                       </button>
                     </div>
                   </td>
