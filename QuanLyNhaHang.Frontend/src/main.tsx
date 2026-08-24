@@ -35,6 +35,7 @@ import './pages/orders-modal-overflow-fix.css'
 import './pages/kitchen-dark-overrides.css'
 import './pages/payments-dark-overrides.css'
 import './pages/payments-confirm-fix.css'
+import './pages/employees-dark.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
