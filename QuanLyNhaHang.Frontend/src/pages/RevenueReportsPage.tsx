@@ -76,6 +76,90 @@ function csvCell(value: string | number) {
   return `"${normalized}"`
 }
 
+type RevenuePeriod = 'today' | 'week' | 'month' | 'year' | 'custom'
+
+function getQuickRange(period: Exclude<RevenuePeriod, 'custom'>) {
+  const today = new Date()
+  let fromDate = new Date(today)
+
+  if (period === 'week') {
+    fromDate.setDate(today.getDate() - 6)
+  } else if (period === 'month') {
+    fromDate = new Date(today.getFullYear(), today.getMonth(), 1)
+  } else if (period === 'year') {
+    fromDate = new Date(today.getFullYear(), 0, 1)
+  }
+
+  return {
+    fromDate: toInputDate(fromDate),
+    toDate: toInputDate(today),
+  }
+}
+
+function ChevronRightIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+}
+
+function PlusIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+}
+
+function RefreshIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5" /><path d="M6.1 9A7 7 0 0 1 18.8 7M17.9 15A7 7 0 0 1 5.2 17" /></svg>
+}
+
+function TrendIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16 5-5 4 3 7-8" /><path d="M15 6h5v5" /></svg>
+}
+
+function ReceiptIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>
+}
+
+function AverageIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 19h16M8 9h8M8 15h8" /><path d="M12 8v8" /></svg>
+}
+
+function DiscountIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 19 14-14" /><circle cx="7.5" cy="7.5" r="2.5" /><circle cx="16.5" cy="16.5" r="2.5" /></svg>
+}
+
+function SearchIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.4-3.4" /></svg>
+}
+
+function EyeIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+}
+
+function EditIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 6.5 17.5 10.5M4 20l4.2-.9L19 8.3a2.8 2.8 0 0 0-4-4L4.2 15.1 4 20Z" /></svg>
+}
+
+function DownloadIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5" /><path d="M5 20h14" /></svg>
+}
+
+function PrinterIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M7 14h10v7H7z" /></svg>
+}
+
+function CancelIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6M15 9l-6 6" /></svg>
+}
+
+function CloseIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+}
+
+function ArrowLeftIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+}
+
+function ArrowRightIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+}
+
 function downloadReportCsv(report: RevenueReport) {
   const rows: Array<Array<string | number>> = [
     ['Mã báo cáo', report.reportCode],
@@ -112,6 +196,7 @@ export default function RevenueReportsPage() {
   const defaultRange = useMemo(getDefaultRange, [])
   const [summaryFrom, setSummaryFrom] = useState(defaultRange.fromDate)
   const [summaryTo, setSummaryTo] = useState(defaultRange.toDate)
+  const [activePeriod, setActivePeriod] = useState<RevenuePeriod>('month')
   const [summary, setSummary] = useState<RevenueSummary | null>(null)
   const [reports, setReports] = useState<RevenueReport[]>([])
   const [keyword, setKeyword] = useState('')
@@ -237,6 +322,43 @@ export default function RevenueReportsPage() {
     [summary],
   )
   const maxItemRevenue = Math.max(1, ...topItems.map(item => item.totalRevenue))
+  const modalOpen = Boolean(detail) || createOpen || Boolean(editing)
+
+  useEffect(() => {
+    if (!modalOpen) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || saving) return
+      if (editing) {
+        setEditing(null)
+        return
+      }
+      if (createOpen) {
+        setCreateOpen(false)
+        return
+      }
+      setDetail(null)
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [createOpen, editing, modalOpen, saving])
+
+  async function applyQuickPeriod(period: Exclude<RevenuePeriod, 'custom'>) {
+    const range = getQuickRange(period)
+    setActivePeriod(period)
+    setSummaryFrom(range.fromDate)
+    setSummaryTo(range.toDate)
+    setError('')
+    setMessage('')
+    await loadSummary(range.fromDate, range.toDate)
+  }
 
   function openCreate() {
     setFormFrom(summaryFrom)
@@ -244,10 +366,14 @@ export default function RevenueReportsPage() {
     setNote('')
     setError('')
     setMessage('')
+    setDetail(null)
+    setEditing(null)
     setCreateOpen(true)
   }
 
   function openEdit(report: RevenueReport) {
+    setDetail(null)
+    setCreateOpen(false)
     setEditing(report)
     setNote(report.note ?? '')
     setError('')
@@ -258,6 +384,7 @@ export default function RevenueReportsPage() {
     event.preventDefault()
     setError('')
     setMessage('')
+    setActivePeriod('custom')
     await loadSummary(summaryFrom, summaryTo)
   }
 
@@ -273,6 +400,7 @@ export default function RevenueReportsPage() {
       setCreateOpen(false)
       setSummaryFrom(formFrom)
       setSummaryTo(formTo)
+      setActivePeriod('custom')
       await Promise.all([loadSummary(formFrom, formTo), loadReports(1)])
       setDetail(await getRevenueReport(result.data.id))
     } catch (exception) {
@@ -305,6 +433,8 @@ export default function RevenueReportsPage() {
 
   async function openDetail(report: RevenueReport) {
     setError('')
+    setCreateOpen(false)
+    setEditing(null)
     try {
       setDetail(await getRevenueReport(report.id))
     } catch (exception) {
@@ -381,15 +511,16 @@ export default function RevenueReportsPage() {
 
   return (
     <section className="revenue-reports-page">
-      <div className="page-toolbar">
-        <div>
-          <h2>Báo cáo doanh thu</h2>
-          <p>Theo dõi doanh thu thực tế, món bán tốt và lưu báo cáo theo từng khoảng thời gian.</p>
+      <div className="revenue-command-bar">
+        <div className="revenue-breadcrumb" aria-label="Đường dẫn trang">
+          <span>Báo cáo</span>
+          <ChevronRightIcon />
+          <strong>Doanh thu</strong>
         </div>
         <div className="revenue-toolbar-actions">
           <button
             type="button"
-            className="secondary-button"
+            className="revenue-refresh-button"
             disabled={summaryLoading || reportsLoading}
             onClick={() => {
               setError('')
@@ -397,10 +528,12 @@ export default function RevenueReportsPage() {
               void Promise.all([loadSummary(), loadReports(page)])
             }}
           >
-            ↻ Làm mới
+            <RefreshIcon />
+            <span>Làm mới</span>
           </button>
-          <button type="button" className="primary-button" onClick={openCreate}>
-            + Tạo báo cáo
+          <button type="button" className="revenue-primary-button" onClick={openCreate}>
+            <PlusIcon />
+            <span>Tạo báo cáo</span>
           </button>
         </div>
       </div>
@@ -409,58 +542,101 @@ export default function RevenueReportsPage() {
       {error && <div className="inline-alert error">{error}</div>}
 
       <form className="revenue-period-card" onSubmit={submitSummary}>
-        <div>
-          <span className="eyebrow">SỐ LIỆU THỜI GIAN THỰC</span>
-          <h3>Khoảng phân tích</h3>
-          <p>Số liệu được tổng hợp trực tiếp từ các giao dịch đã thanh toán.</p>
+        <div className="revenue-period-presets" aria-label="Chọn nhanh khoảng phân tích">
+          {([
+            ['today', 'Hôm nay'],
+            ['week', '7 ngày gần nhất'],
+            ['month', 'Tháng này'],
+            ['year', 'Năm nay'],
+          ] as Array<[Exclude<RevenuePeriod, 'custom'>, string]>).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={activePeriod === value ? 'active' : ''}
+              disabled={summaryLoading}
+              onClick={() => void applyQuickPeriod(value)}
+            >
+              {label}
+            </button>
+          ))}
+          <button
+            type="button"
+            className={activePeriod === 'custom' ? 'active' : ''}
+            onClick={() => setActivePeriod('custom')}
+          >
+            Tùy chọn ngày
+          </button>
         </div>
-        <label>
-          Từ ngày
-          <input
-            type="date"
-            required
-            value={summaryFrom}
-            max={summaryTo}
-            onChange={event => setSummaryFrom(event.target.value)}
-          />
-        </label>
-        <label>
-          Đến ngày
-          <input
-            type="date"
-            required
-            value={summaryTo}
-            min={summaryFrom}
-            onChange={event => setSummaryTo(event.target.value)}
-          />
-        </label>
-        <button type="submit" disabled={summaryLoading}>
-          {summaryLoading ? 'Đang tổng hợp...' : 'Xem báo cáo'}
-        </button>
+        <div className="revenue-period-fields">
+          <div className="revenue-period-copy">
+            <strong>Khoảng phân tích</strong>
+            <span>Số liệu trực tiếp từ các giao dịch đã thanh toán.</span>
+          </div>
+          <label>
+            <span>Từ ngày</span>
+            <input
+              type="date"
+              required
+              value={summaryFrom}
+              max={summaryTo}
+              onChange={event => {
+                setSummaryFrom(event.target.value)
+                setActivePeriod('custom')
+              }}
+            />
+          </label>
+          <label>
+            <span>Đến ngày</span>
+            <input
+              type="date"
+              required
+              value={summaryTo}
+              min={summaryFrom}
+              onChange={event => {
+                setSummaryTo(event.target.value)
+                setActivePeriod('custom')
+              }}
+            />
+          </label>
+          <button type="submit" className="revenue-view-button" disabled={summaryLoading}>
+            <TrendIcon />
+            <span>{summaryLoading ? 'Đang tổng hợp' : 'Xem dữ liệu'}</span>
+          </button>
+        </div>
       </form>
 
       <div className="revenue-summary-grid">
-        <article className="revenue-summary-card primary">
-          <span>Doanh thu thực thu</span>
-          <strong>{summaryLoading ? '—' : money(summary?.totalRevenue ?? 0)}</strong>
-          <small>
-            {displayDate(summaryFrom)} - {displayDate(summaryTo)}
-          </small>
+        <article className="revenue-summary-card revenue-tone-green">
+          <div>
+            <span>Doanh thu thực thu</span>
+            <strong>{summaryLoading ? '—' : money(summary?.totalRevenue ?? 0)}</strong>
+            <small>{displayDate(summaryFrom)} – {displayDate(summaryTo)}</small>
+          </div>
+          <span className="revenue-metric-icon"><TrendIcon /></span>
         </article>
-        <article className="revenue-summary-card">
-          <span>Giao dịch đã thanh toán</span>
-          <strong>{summaryLoading ? '—' : summary?.totalInvoices ?? 0}</strong>
-          <small>{summary?.totalOrders ?? 0} đơn hàng</small>
+        <article className="revenue-summary-card revenue-tone-amber">
+          <div>
+            <span>Giao dịch đã thanh toán</span>
+            <strong>{summaryLoading ? '—' : summary?.totalInvoices ?? 0}</strong>
+            <small>{summary?.totalOrders ?? 0} đơn hàng</small>
+          </div>
+          <span className="revenue-metric-icon"><ReceiptIcon /></span>
         </article>
-        <article className="revenue-summary-card">
-          <span>Trung bình / giao dịch</span>
-          <strong>{summaryLoading ? '—' : money(summary?.averageRevenuePerInvoice ?? 0)}</strong>
-          <small>Giá trị trung bình mỗi giao dịch</small>
+        <article className="revenue-summary-card revenue-tone-blue">
+          <div>
+            <span>Trung bình / giao dịch</span>
+            <strong>{summaryLoading ? '—' : money(summary?.averageRevenuePerInvoice ?? 0)}</strong>
+            <small>Giá trị trung bình mỗi hóa đơn</small>
+          </div>
+          <span className="revenue-metric-icon"><AverageIcon /></span>
         </article>
-        <article className="revenue-summary-card">
-          <span>Tổng giảm giá</span>
-          <strong>{summaryLoading ? '—' : money(summary?.totalDiscountAmount ?? 0)}</strong>
-          <small>VAT {money(summary?.totalVatAmount ?? 0)}</small>
+        <article className="revenue-summary-card revenue-tone-rose">
+          <div>
+            <span>Tổng giảm giá</span>
+            <strong>{summaryLoading ? '—' : money(summary?.totalDiscountAmount ?? 0)}</strong>
+            <small>VAT cộng {money(summary?.totalVatAmount ?? 0)}</small>
+          </div>
+          <span className="revenue-metric-icon"><DiscountIcon /></span>
         </article>
       </div>
 
@@ -567,33 +743,49 @@ export default function RevenueReportsPage() {
             void loadReports(1)
           }}
         >
-          <input
-            value={keyword}
-            onChange={event => setKeyword(event.target.value)}
-            placeholder="Tìm mã hoặc trạng thái báo cáo..."
-          />
-          <select value={status} onChange={event => setStatus(event.target.value)}>
-            <option value="">Tất cả trạng thái</option>
-            <option value="Generated">Đã tạo</option>
-            <option value="Exported">Đã xuất</option>
-            <option value="Printed">Đã in</option>
-            <option value="Cancelled">Đã hủy</option>
-          </select>
-          <input
-            type="date"
-            aria-label="Báo cáo từ ngày"
-            value={filterFrom}
-            max={filterTo || undefined}
-            onChange={event => setFilterFrom(event.target.value)}
-          />
-          <input
-            type="date"
-            aria-label="Báo cáo đến ngày"
-            value={filterTo}
-            min={filterFrom || undefined}
-            onChange={event => setFilterTo(event.target.value)}
-          />
-          <button type="submit">Lọc</button>
+          <label className="revenue-search-field">
+            <span className="sr-only">Tìm báo cáo</span>
+            <SearchIcon />
+            <input
+              value={keyword}
+              onChange={event => setKeyword(event.target.value)}
+              placeholder="Tìm mã hoặc trạng thái báo cáo..."
+            />
+          </label>
+          <label className="revenue-filter-field">
+            <span>Trạng thái</span>
+            <select value={status} onChange={event => setStatus(event.target.value)}>
+              <option value="">Tất cả trạng thái</option>
+              <option value="Generated">Đã tạo</option>
+              <option value="Exported">Đã xuất</option>
+              <option value="Printed">Đã in</option>
+              <option value="Cancelled">Đã hủy</option>
+            </select>
+          </label>
+          <label className="revenue-filter-field">
+            <span>Từ ngày</span>
+            <input
+              type="date"
+              aria-label="Báo cáo từ ngày"
+              value={filterFrom}
+              max={filterTo || undefined}
+              onChange={event => setFilterFrom(event.target.value)}
+            />
+          </label>
+          <label className="revenue-filter-field">
+            <span>Đến ngày</span>
+            <input
+              type="date"
+              aria-label="Báo cáo đến ngày"
+              value={filterTo}
+              min={filterFrom || undefined}
+              onChange={event => setFilterTo(event.target.value)}
+            />
+          </label>
+          <button type="submit" className="revenue-filter-button">
+            <SearchIcon />
+            <span>Lọc</span>
+          </button>
           <button
             type="button"
             className="clear-filter"
@@ -654,37 +846,50 @@ export default function RevenueReportsPage() {
                     </td>
                     <td>
                       <div className="revenue-actions">
-                        <button type="button" onClick={() => void openDetail(report)}>
-                          Chi tiết
+                        <button
+                          type="button"
+                          title="Xem chi tiết"
+                          aria-label={`Xem chi tiết báo cáo ${report.reportCode}`}
+                          onClick={() => void openDetail(report)}
+                        >
+                          <EyeIcon />
                         </button>
                         <button
                           type="button"
+                          title="Sửa ghi chú"
+                          aria-label={`Sửa báo cáo ${report.reportCode}`}
                           disabled={saving || report.status === 'Cancelled'}
                           onClick={() => openEdit(report)}
                         >
-                          Sửa
+                          <EditIcon />
                         </button>
                         <button
                           type="button"
+                          title="Xuất CSV"
+                          aria-label={`Xuất CSV báo cáo ${report.reportCode}`}
                           disabled={saving || report.status === 'Cancelled'}
                           onClick={() => void exportCsv(report)}
                         >
-                          CSV
+                          <DownloadIcon />
                         </button>
                         <button
                           type="button"
+                          title="In báo cáo"
+                          aria-label={`In báo cáo ${report.reportCode}`}
                           disabled={saving || report.status === 'Cancelled'}
                           onClick={() => void printReport(report)}
                         >
-                          In
+                          <PrinterIcon />
                         </button>
                         <button
                           type="button"
                           className="danger"
+                          title="Hủy báo cáo"
+                          aria-label={`Hủy báo cáo ${report.reportCode}`}
                           disabled={saving || report.status === 'Cancelled'}
                           onClick={() => void cancel(report)}
                         >
-                          Hủy
+                          <CancelIcon />
                         </button>
                       </div>
                     </td>
@@ -705,23 +910,25 @@ export default function RevenueReportsPage() {
               disabled={page <= 1 || reportsLoading}
               onClick={() => void loadReports(page - 1)}
             >
-              Trước
+              <ArrowLeftIcon />
+              <span>Trước</span>
             </button>
             <button
               type="button"
               disabled={page >= totalPages || reportsLoading}
               onClick={() => void loadReports(page + 1)}
             >
-              Sau
+              <span>Sau</span>
+              <ArrowRightIcon />
             </button>
           </div>
         </div>
       </article>
 
-      {detail && (
-        <div className="modal-backdrop" onMouseDown={() => setDetail(null)}>
+      {detail && !editing && !createOpen && (
+        <div className="modal-backdrop revenue-modal-backdrop" onMouseDown={() => !saving && setDetail(null)}>
           <div
-            className="revenue-detail-modal"
+            className="revenue-detail-modal revenue-dark-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="revenue-detail-title"
@@ -729,13 +936,14 @@ export default function RevenueReportsPage() {
           >
             <div className="modal-heading">
               <div>
-                <h2 id="revenue-detail-title">{detail.reportCode}</h2>
+                <span className="revenue-modal-kicker">BÁO CÁO ĐÃ LƯU</span>
+                <h2 id="revenue-detail-title">CHI TIẾT BÁO CÁO DOANH THU</h2>
                 <p>
-                  {displayDate(detail.fromDate)} - {displayDate(detail.toDate)}
+                  {detail.reportCode} • {displayDate(detail.fromDate)} – {displayDate(detail.toDate)}
                 </p>
               </div>
-              <button type="button" aria-label="Đóng" onClick={() => setDetail(null)}>
-                ×
+              <button type="button" aria-label="Đóng chi tiết báo cáo" onClick={() => setDetail(null)}>
+                <CloseIcon />
               </button>
             </div>
             <div className="revenue-detail-content">
@@ -814,15 +1022,17 @@ export default function RevenueReportsPage() {
                 disabled={saving || detail.status === 'Cancelled'}
                 onClick={() => void exportCsv(detail)}
               >
-                Xuất CSV
+                <DownloadIcon />
+                <span>Xuất CSV</span>
               </button>
               <button
                 type="button"
-                className="primary-button"
+                className="revenue-primary-button"
                 disabled={saving || detail.status === 'Cancelled'}
                 onClick={() => void printReport(detail)}
               >
-                In báo cáo
+                <PrinterIcon />
+                <span>In báo cáo</span>
               </button>
             </div>
           </div>
@@ -830,9 +1040,9 @@ export default function RevenueReportsPage() {
       )}
 
       {createOpen && (
-        <div className="modal-backdrop" onMouseDown={() => !saving && setCreateOpen(false)}>
+        <div className="modal-backdrop revenue-modal-backdrop" onMouseDown={() => !saving && setCreateOpen(false)}>
           <div
-            className="employee-modal revenue-form-modal"
+            className="employee-modal revenue-form-modal revenue-dark-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="create-revenue-title"
@@ -840,17 +1050,18 @@ export default function RevenueReportsPage() {
           >
             <div className="modal-heading">
               <div>
-                <h2 id="create-revenue-title">Tạo báo cáo doanh thu</h2>
+                <span className="revenue-modal-kicker">DOANH THU</span>
+                <h2 id="create-revenue-title">TẠO BÁO CÁO MỚI</h2>
                 <p>Lưu ảnh chụp số liệu từ các hóa đơn hợp lệ trong khoảng đã chọn.</p>
               </div>
-              <button type="button" aria-label="Đóng" onClick={() => setCreateOpen(false)}>
-                ×
+              <button type="button" aria-label="Đóng cửa sổ tạo báo cáo" onClick={() => setCreateOpen(false)}>
+                <CloseIcon />
               </button>
             </div>
             <form className="revenue-form" onSubmit={submitCreate}>
               <div className="revenue-form-grid">
                 <label>
-                  Từ ngày
+                  <span>Từ ngày <em>*</em></span>
                   <input
                     type="date"
                     required
@@ -860,7 +1071,7 @@ export default function RevenueReportsPage() {
                   />
                 </label>
                 <label>
-                  Đến ngày
+                  <span>Đến ngày <em>*</em></span>
                   <input
                     type="date"
                     required
@@ -871,7 +1082,7 @@ export default function RevenueReportsPage() {
                 </label>
               </div>
               <label>
-                Ghi chú
+                <span>Ghi chú</span>
                 <textarea
                   value={note}
                   maxLength={500}
@@ -881,10 +1092,11 @@ export default function RevenueReportsPage() {
               </label>
               <div className="modal-actions">
                 <button type="button" onClick={() => setCreateOpen(false)}>
-                  Đóng
+                  Hủy bỏ
                 </button>
-                <button className="primary-button" disabled={saving}>
-                  {saving ? 'Đang tạo...' : 'Tạo báo cáo'}
+                <button type="submit" className="revenue-primary-button" disabled={saving}>
+                  <PlusIcon />
+                  <span>{saving ? 'Đang tạo...' : 'Tạo báo cáo'}</span>
                 </button>
               </div>
             </form>
@@ -893,9 +1105,9 @@ export default function RevenueReportsPage() {
       )}
 
       {editing && (
-        <div className="modal-backdrop" onMouseDown={() => !saving && setEditing(null)}>
+        <div className="modal-backdrop revenue-modal-backdrop" onMouseDown={() => !saving && setEditing(null)}>
           <div
-            className="employee-modal revenue-form-modal"
+            className="employee-modal revenue-form-modal revenue-dark-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="edit-revenue-title"
@@ -903,16 +1115,17 @@ export default function RevenueReportsPage() {
           >
             <div className="modal-heading">
               <div>
-                <h2 id="edit-revenue-title">Cập nhật ghi chú</h2>
+                <span className="revenue-modal-kicker">BÁO CÁO ĐÃ LƯU</span>
+                <h2 id="edit-revenue-title">CẬP NHẬT GHI CHÚ</h2>
                 <p>{editing.reportCode}</p>
               </div>
-              <button type="button" aria-label="Đóng" onClick={() => setEditing(null)}>
-                ×
+              <button type="button" aria-label="Đóng cửa sổ cập nhật" onClick={() => setEditing(null)}>
+                <CloseIcon />
               </button>
             </div>
             <form className="revenue-form" onSubmit={submitEdit}>
               <label>
-                Ghi chú
+                <span>Ghi chú</span>
                 <textarea
                   value={note}
                   maxLength={500}
@@ -921,10 +1134,11 @@ export default function RevenueReportsPage() {
               </label>
               <div className="modal-actions">
                 <button type="button" onClick={() => setEditing(null)}>
-                  Đóng
+                  Hủy bỏ
                 </button>
-                <button className="primary-button" disabled={saving}>
-                  {saving ? 'Đang lưu...' : 'Cập nhật'}
+                <button type="submit" className="revenue-primary-button" disabled={saving}>
+                  <EditIcon />
+                  <span>{saving ? 'Đang lưu...' : 'Cập nhật'}</span>
                 </button>
               </div>
             </form>
