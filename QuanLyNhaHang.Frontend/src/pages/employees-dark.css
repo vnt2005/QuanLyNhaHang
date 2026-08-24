@@ -765,6 +765,132 @@
   background: rgb(255 255 255 / 5%);
 }
 
+/* Confirmation dialog ---------------------------------------------------
+   ConfirmDialogHost is mounted beside the admin layout, so scope its dark
+   treatment from body instead of inheriting variables from .admin-layout. */
+body:has(.employees-page) .ds-confirm-backdrop {
+  background: rgb(1 5 16 / 84%) !important;
+  background-image: none !important;
+  backdrop-filter: blur(8px) !important;
+  opacity: 1 !important;
+}
+
+body:has(.employees-page) .ds-confirm-dialog {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 3.375rem minmax(0, 1fr) !important;
+  width: min(31.25rem, calc(100vw - 2rem)) !important;
+  gap: 0 0.9375rem !important;
+  padding: 1.3125rem !important;
+  overflow: hidden !important;
+  color: #f4f7ff !important;
+  border: 1px solid #243149 !important;
+  border-radius: 1.25rem !important;
+  background: #10192d !important;
+  background-image: none !important;
+  box-shadow: 0 2.125rem 5.625rem rgb(0 0 0 / 56%) !important;
+  opacity: 1 !important;
+  isolation: isolate;
+}
+
+body:has(.employees-page) .ds-confirm-dialog::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0.1875rem;
+  background: linear-gradient(90deg, #ff668f, #ff9f0a, transparent 82%);
+  content: '';
+}
+
+body:has(.employees-page) .ds-confirm-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 3.125rem !important;
+  height: 3.125rem !important;
+  margin: 0.125rem 0 0 !important;
+  color: #ff8ca8 !important;
+  border: 1px solid rgb(255 102 143 / 32%) !important;
+  border-radius: 0.9375rem !important;
+  background: #2b1830 !important;
+  font-size: 1.25rem !important;
+  font-weight: 900 !important;
+}
+
+body:has(.employees-page) .ds-confirm-copy {
+  min-width: 0;
+  padding: 0 !important;
+}
+
+body:has(.employees-page) .ds-confirm-copy > span {
+  display: block;
+  margin-bottom: 0.375rem;
+  color: #ff9f0a !important;
+  font-size: 0.6875rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.11em !important;
+}
+
+body:has(.employees-page) .ds-confirm-copy h2 {
+  margin: 0 0 0.4375rem !important;
+  color: #ffffff !important;
+  font-size: 1.2rem !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.02em !important;
+}
+
+body:has(.employees-page) .ds-confirm-copy p {
+  margin: 0 !important;
+  color: #adbad0 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.55 !important;
+}
+
+body:has(.employees-page) .ds-confirm-actions {
+  grid-column: 1 / -1 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.625rem !important;
+  margin: 1.25rem -1.3125rem -1.3125rem !important;
+  padding: 0.875rem 1.3125rem 1rem !important;
+  border-top: 1px solid #1b2840 !important;
+  background: #0b1427 !important;
+  opacity: 1 !important;
+}
+
+body:has(.employees-page) .ds-confirm-actions button {
+  min-height: 2.625rem !important;
+  padding: 0 1rem !important;
+  color: #d8e1ed !important;
+  border: 1px solid #30405d !important;
+  border-radius: 0.6875rem !important;
+  background: #111d32 !important;
+  box-shadow: none !important;
+  font-size: 0.8125rem !important;
+  font-weight: 800 !important;
+}
+
+body:has(.employees-page) .ds-confirm-actions button:hover {
+  color: #ffffff !important;
+  border-color: #405170 !important;
+  background: #17243a !important;
+}
+
+body:has(.employees-page) .ds-confirm-actions button.danger {
+  color: #fff5f8 !important;
+  border-color: #e65b83 !important;
+  background: #b92e57 !important;
+  box-shadow: 0 0.625rem 1.5rem rgb(185 46 87 / 22%) !important;
+}
+
+body:has(.employees-page) .ds-confirm-actions button.danger:hover {
+  border-color: #ff789d !important;
+  background: #c83a64 !important;
+}
+
+body:has(.employees-page) .ds-confirm-actions button:focus-visible {
+  outline: 0.1875rem solid rgb(255 159 10 / 42%) !important;
+  outline-offset: 0.125rem;
+}
+
 @media (max-width: 1200px) {
   .dashboard .employees-page .employee-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -793,6 +919,28 @@
 }
 
 @media (max-width: 760px) {
+  body:has(.employees-page) .ds-confirm-dialog {
+    grid-template-columns: 2.875rem minmax(0, 1fr) !important;
+    gap: 0 0.75rem !important;
+    padding: 1.125rem !important;
+  }
+
+  body:has(.employees-page) .ds-confirm-icon {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+    border-radius: 0.8125rem !important;
+  }
+
+  body:has(.employees-page) .ds-confirm-actions {
+    flex-direction: column-reverse !important;
+    margin: 1.125rem -1.125rem -1.125rem !important;
+    padding: 0.875rem 1.125rem 1.125rem !important;
+  }
+
+  body:has(.employees-page) .ds-confirm-actions button {
+    width: 100% !important;
+  }
+
   .admin-layout:has(.employees-page) .dashboard {
     padding-inline: 1rem;
   }
