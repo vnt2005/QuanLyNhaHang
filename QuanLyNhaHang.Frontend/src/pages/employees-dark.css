@@ -794,11 +794,8 @@ body:has(.employees-page) .ds-confirm-dialog {
 }
 
 body:has(.employees-page) .ds-confirm-dialog::before {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 0.1875rem;
-  background: linear-gradient(90deg, #ff668f, #e84675, transparent 82%);
-  content: '';
+  display: none !important;
+  content: none !important;
 }
 
 body:has(.employees-page) .ds-confirm-icon {
