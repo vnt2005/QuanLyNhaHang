@@ -40,6 +40,7 @@ import './pages/customers-dark.css'
 import './pages/shifts-dark.css'
 import './pages/access-dark.css'
 import './pages/invoices-dark.css'
+import './pages/revenue-dark.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
