@@ -37,6 +37,7 @@ import './pages/payments-dark-overrides.css'
 import './pages/payments-confirm-fix.css'
 import './pages/employees-dark.css'
 import './pages/customers-dark.css'
+import './pages/shifts-dark.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
