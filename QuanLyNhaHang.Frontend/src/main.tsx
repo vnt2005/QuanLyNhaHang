@@ -41,6 +41,7 @@ import './pages/shifts-dark.css'
 import './pages/access-dark.css'
 import './pages/invoices-dark.css'
 import './pages/revenue-dark.css'
+import './design-system/confirm-dialog-polish.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
