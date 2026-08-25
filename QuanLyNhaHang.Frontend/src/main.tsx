@@ -50,6 +50,7 @@ import './pages/areas-tables-final-fix.css'
 import './pages/reservations-final-fix.css'
 import './design-system/pagination-interaction-fix.css'
 import './design-system/table-placeholder-fix.css'
+import './pages/activity-logs-final-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
