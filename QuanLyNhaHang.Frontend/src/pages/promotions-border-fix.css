@@ -1,0 +1,171 @@
+/* Final border harmonization for Promotions.
+   Loaded after all promotions theme files so no legacy light separator leaks through. */
+
+.admin-layout:has(.promotions-page) {
+  --promo-border-strong: #2c3b55;
+  --promo-border-mid: #24324b;
+  --promo-border-subtle: #1b2940;
+}
+
+/* Main panel, tabs and filter separators */
+.admin-layout:has(.promotions-page) .promotions-panel {
+  border-color: var(--promo-border-mid) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs {
+  border: 0 !important;
+  border-bottom: 1px solid var(--promo-border-subtle) !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs button,
+.admin-layout:has(.promotions-page) .promotions-tabs button:hover,
+.admin-layout:has(.promotions-page) .promotions-tabs button:focus,
+.admin-layout:has(.promotions-page) .promotions-tabs button:active {
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs button.active,
+.admin-layout:has(.promotions-page) .promotions-tabs button.active:hover,
+.admin-layout:has(.promotions-page) .promotions-tabs button.active:focus,
+.admin-layout:has(.promotions-page) .promotions-tabs button.active:active {
+  border-color: rgb(255 159 10 / 30%) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotions-filters,
+.admin-layout:has(.promotions-page) .promotion-usage-filters {
+  border-bottom-color: var(--promo-border-subtle) !important;
+}
+
+/* Promotion card frame and all internal dividers */
+.admin-layout:has(.promotions-page) .promotion-card {
+  border-color: var(--promo-border-mid) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-card > header,
+.admin-layout:has(.promotions-page) .promotion-card > footer,
+.admin-layout:has(.promotions-page) .promotion-usage-progress {
+  border-color: var(--promo-border-subtle) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-card-content {
+  border-color: var(--promo-border-subtle) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-card-offer {
+  border-right-color: rgb(255 159 10 / 22%) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-meta-grid > span {
+  border-color: var(--promo-border-subtle) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-progress-track {
+  border: 0 !important;
+}
+
+/* Usage-history table: remove the bright horizontal rules visible in screenshots. */
+.admin-layout:has(.promotions-page) .promotion-usage-table,
+.admin-layout:has(.promotions-page) .promotion-usage-table-wrap {
+  border-color: var(--promo-border-mid) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table th,
+.admin-layout:has(.promotions-page) .promotion-usage-table td {
+  border-color: var(--promo-border-subtle) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table thead tr,
+.admin-layout:has(.promotions-page) .promotion-usage-table tbody tr {
+  border-color: var(--promo-border-subtle) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table tbody tr + tr td {
+  border-top-color: var(--promo-border-subtle) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotions-pagination {
+  border-top-color: var(--promo-border-subtle) !important;
+}
+
+/* Forms / modals */
+.admin-layout:has(.promotions-page) .promotions-modal,
+.admin-layout:has(.promotions-page) .promotions-modal > header,
+.admin-layout:has(.promotions-page) .promotions-modal > footer,
+.admin-layout:has(.promotions-page) .promotions-modal form > footer,
+.admin-layout:has(.promotions-page) .promotion-form-preview,
+.admin-layout:has(.promotions-page) .promotion-preview-note,
+.admin-layout:has(.promotions-page) .apply-calculation,
+.admin-layout:has(.promotions-page) .promotion-detail-grid > div,
+.admin-layout:has(.promotions-page) .usage-detail-links > div,
+.admin-layout:has(.promotions-page) .usage-detail-amounts > div,
+.admin-layout:has(.promotions-page) .payment-link-content,
+.admin-layout:has(.promotions-page) .payment-link-promotion {
+  border-color: var(--promo-border-mid) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-form-layout,
+.admin-layout:has(.promotions-page) .promotion-form-fields fieldset,
+.admin-layout:has(.promotions-page) .apply-promotion-fields,
+.admin-layout:has(.promotions-page) .payment-link-content {
+  border-color: var(--promo-border-subtle) !important;
+}
+
+.admin-layout:has(.promotions-page) :is(
+  .promotions-filters input,
+  .promotions-filters select,
+  .promotion-usage-filters input,
+  .promotion-usage-filters select,
+  .promotion-form-fields input,
+  .promotion-form-fields select,
+  .promotion-form-fields textarea,
+  .apply-promotion-fields select,
+  .apply-promotion-fields textarea,
+  .payment-link-content select
+) {
+  border-color: var(--promo-border-mid) !important;
+}
+
+.admin-layout:has(.promotions-page) :is(
+  .promotions-filters input,
+  .promotions-filters select,
+  .promotion-usage-filters input,
+  .promotion-usage-filters select,
+  .promotion-form-fields input,
+  .promotion-form-fields select,
+  .promotion-form-fields textarea,
+  .apply-promotion-fields select,
+  .apply-promotion-fields textarea,
+  .payment-link-content select
+):focus {
+  border-color: var(--promo-orange) !important;
+}
+
+/* Keep semantic accents, but remove the icy/white outlines around them. */
+.admin-layout:has(.promotions-page) .promotion-status.valid,
+.admin-layout:has(.promotions-page) .promotion-usage-status.applied {
+  border: 1px solid rgb(23 215 174 / 25%) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-status.upcoming {
+  border: 1px solid rgb(255 159 10 / 25%) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-status:is(.expired, .inactive, .exhausted) {
+  border: 1px solid var(--promo-border-strong) !important;
+}
+
+/* Never allow browser/global table borders to turn light. */
+.admin-layout:has(.promotions-page) :is(
+  .promotion-card,
+  .promotion-card *,
+  .promotion-usage-table,
+  .promotion-usage-table th,
+  .promotion-usage-table td,
+  .promotions-pagination,
+  .promotions-modal,
+  .promotions-modal *
+) {
+  outline-color: var(--promo-border-mid);
+}
