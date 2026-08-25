@@ -94,7 +94,7 @@
 }
 
 /* Page ------------------------------------------------------------------- */
-.dashboard .reservations-page {
+.admin-layout:has(.reservations-page) .dashboard .reservations-page {
   display: grid;
   width: min(100%, 100rem);
   max-width: 100%;
@@ -104,7 +104,7 @@
   color: var(--reservation-text);
 }
 
-.dashboard .reservations-toolbar {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -114,11 +114,11 @@
   border-bottom: 1px solid var(--reservation-border-soft);
 }
 
-.dashboard .reservations-toolbar > div {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > div {
   min-width: 0;
 }
 
-.dashboard .reservations-toolbar > div > span {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > div > span {
   display: block;
   margin-bottom: 0.45rem;
   color: var(--reservation-orange);
@@ -128,7 +128,7 @@
   text-transform: uppercase;
 }
 
-.dashboard .reservations-toolbar h2 {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar h2 {
   margin: 0;
   color: var(--reservation-text);
   font-size: clamp(1.7rem, 2.5vw, 2.25rem);
@@ -137,7 +137,7 @@
   letter-spacing: -0.035em;
 }
 
-.dashboard .reservations-toolbar p {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar p {
   max-width: 50rem;
   margin: 0.62rem 0 0;
   color: var(--reservation-muted);
@@ -145,7 +145,7 @@
   line-height: 1.55;
 }
 
-.dashboard .reservations-toolbar > button {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -163,25 +163,25 @@
   transition: 150ms ease;
 }
 
-.dashboard .reservations-toolbar > button::before {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > button::before {
   content: '+';
   font-size: 1.05rem;
   line-height: 1;
 }
 
-.dashboard .reservations-toolbar > button:hover:not(:disabled) {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > button:hover:not(:disabled) {
   border-color: var(--reservation-orange-hover) !important;
   background: linear-gradient(180deg, #ffc042, #ffa10c) !important;
   box-shadow: 0 0.9rem 2.1rem rgb(255 159 10 / 27%);
   transform: translateY(-1px);
 }
 
-.dashboard .reservations-toolbar > button:disabled {
+.admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > button:disabled {
   opacity: 0.55;
 }
 
 /* Alerts ----------------------------------------------------------------- */
-.dashboard .reservations-alert {
+.admin-layout:has(.reservations-page) .dashboard .reservations-alert {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -193,7 +193,7 @@
   box-shadow: none;
 }
 
-.dashboard .reservations-alert > span {
+.admin-layout:has(.reservations-page) .dashboard .reservations-alert > span {
   display: grid;
   width: 1.7rem;
   height: 1.7rem;
@@ -203,48 +203,48 @@
   font-weight: 900;
 }
 
-.dashboard .reservations-alert p {
+.admin-layout:has(.reservations-page) .dashboard .reservations-alert p {
   flex: 1;
   margin: 0;
   color: currentColor;
   font-size: 0.76rem;
 }
 
-.dashboard .reservations-alert button {
+.admin-layout:has(.reservations-page) .dashboard .reservations-alert button {
   color: currentColor;
   border: 0;
   background: transparent;
 }
 
-.dashboard .reservations-alert.error {
+.admin-layout:has(.reservations-page) .dashboard .reservations-alert.error {
   color: #ffb5c1;
   border-color: rgb(255 95 120 / 30%);
   background: rgb(255 95 120 / 8%);
 }
 
-.dashboard .reservations-alert.error > span {
+.admin-layout:has(.reservations-page) .dashboard .reservations-alert.error > span {
   background: rgb(255 95 120 / 12%);
 }
 
-.dashboard .reservations-alert.success {
+.admin-layout:has(.reservations-page) .dashboard .reservations-alert.success {
   color: #97f1d8;
   border-color: rgb(22 216 178 / 28%);
   background: rgb(22 216 178 / 8%);
 }
 
-.dashboard .reservations-alert.success > span {
+.admin-layout:has(.reservations-page) .dashboard .reservations-alert.success > span {
   background: rgb(22 216 178 / 12%);
 }
 
 /* Compact operational summary ------------------------------------------- */
-.dashboard .reservations-summary {
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.85rem;
   margin: 0;
 }
 
-.dashboard .reservations-summary article {
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article {
   position: relative;
   display: grid;
   min-width: 0;
@@ -261,7 +261,7 @@
   box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 9%);
 }
 
-.dashboard .reservations-summary article::before {
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article::before {
   position: absolute;
   top: 50%;
   left: 1rem;
@@ -279,12 +279,12 @@
   transform: translateY(-50%);
 }
 
-.dashboard .reservations-summary article:nth-child(2)::before { content: '◷'; color: #ffd166; border-color: rgb(255 209 102 / 32%); background: rgb(255 209 102 / 8%); }
-.dashboard .reservations-summary article:nth-child(3)::before { content: '✓'; color: var(--reservation-teal); border-color: rgb(22 216 178 / 32%); background: rgb(22 216 178 / 8%); }
-.dashboard .reservations-summary article:nth-child(4)::before { content: '⇥'; color: var(--reservation-blue); border-color: rgb(77 141 255 / 32%); background: rgb(77 141 255 / 8%); }
-.dashboard .reservations-summary article:nth-child(5)::before { content: '₫'; color: var(--reservation-purple); border-color: rgb(167 139 250 / 34%); background: rgb(167 139 250 / 8%); }
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article:nth-child(2)::before { content: '◷'; color: #ffd166; border-color: rgb(255 209 102 / 32%); background: rgb(255 209 102 / 8%); }
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article:nth-child(3)::before { content: '✓'; color: var(--reservation-teal); border-color: rgb(22 216 178 / 32%); background: rgb(22 216 178 / 8%); }
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article:nth-child(4)::before { content: '⇥'; color: var(--reservation-blue); border-color: rgb(77 141 255 / 32%); background: rgb(77 141 255 / 8%); }
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article:nth-child(5)::before { content: '₫'; color: var(--reservation-purple); border-color: rgb(167 139 250 / 34%); background: rgb(167 139 250 / 8%); }
 
-.dashboard .reservations-summary small {
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary small {
   display: block;
   margin: 0;
   overflow: hidden;
@@ -295,7 +295,7 @@
   white-space: nowrap;
 }
 
-.dashboard .reservations-summary strong {
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary strong {
   display: block;
   margin: 0.32rem 0;
   overflow: hidden;
@@ -307,12 +307,12 @@
   white-space: nowrap;
 }
 
-.dashboard .reservations-summary article:nth-child(2) strong { color: #ffd166; }
-.dashboard .reservations-summary article:nth-child(3) strong { color: var(--reservation-teal); }
-.dashboard .reservations-summary article:nth-child(4) strong { color: var(--reservation-blue); }
-.dashboard .reservations-summary article:nth-child(5) strong { color: var(--reservation-purple); }
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article:nth-child(2) strong { color: #ffd166; }
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article:nth-child(3) strong { color: var(--reservation-teal); }
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article:nth-child(4) strong { color: var(--reservation-blue); }
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary article:nth-child(5) strong { color: var(--reservation-purple); }
 
-.dashboard .reservations-summary span {
+.admin-layout:has(.reservations-page) .dashboard .reservations-summary span {
   display: block;
   overflow: hidden;
   color: #71829d;
@@ -322,7 +322,7 @@
 }
 
 /* Filters + table -------------------------------------------------------- */
-.dashboard .reservations-panel {
+.admin-layout:has(.reservations-page) .dashboard .reservations-panel {
   display: grid;
   min-width: 0;
   gap: 0.9rem;
@@ -333,7 +333,7 @@
   box-shadow: none;
 }
 
-.dashboard .reservations-filters {
+.admin-layout:has(.reservations-page) .dashboard .reservations-filters {
   display: grid;
   grid-template-columns: minmax(17rem, 1.5fr) minmax(11rem, 0.75fr) minmax(9rem, 0.55fr) minmax(9rem, 0.55fr);
   align-items: end;
@@ -345,9 +345,9 @@
   box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 9%);
 }
 
-.dashboard .reservations-filters > input,
-.dashboard .reservations-filters > select,
-.dashboard .reservations-filters label input {
+.admin-layout:has(.reservations-page) .dashboard .reservations-filters > input,
+.admin-layout:has(.reservations-page) .dashboard .reservations-filters > select,
+.admin-layout:has(.reservations-page) .dashboard .reservations-filters label input {
   width: 100%;
   min-width: 0;
   min-height: 2.7rem;
@@ -363,11 +363,11 @@
   transition: 150ms ease;
 }
 
-.dashboard .reservations-filters > input::placeholder {
+.admin-layout:has(.reservations-page) .dashboard .reservations-filters > input::placeholder {
   color: #667791;
 }
 
-.dashboard .reservations-filters label {
+.admin-layout:has(.reservations-page) .dashboard .reservations-filters label {
   display: grid;
   min-width: 0;
   gap: 0.42rem;
@@ -378,12 +378,12 @@
   text-transform: uppercase;
 }
 
-.dashboard .reservations-filters :is(input, select):focus {
+.admin-layout:has(.reservations-page) .dashboard .reservations-filters :is(input, select):focus {
   border-color: rgb(255 159 10 / 72%);
   box-shadow: 0 0 0 3px rgb(255 159 10 / 10%);
 }
 
-.dashboard .reservations-table-wrap {
+.admin-layout:has(.reservations-page) .dashboard .reservations-table-wrap {
   min-width: 0;
   overflow: auto;
   border: 1px solid var(--reservation-border);
@@ -394,7 +394,7 @@
   scrollbar-width: thin;
 }
 
-.dashboard .reservations-table {
+.admin-layout:has(.reservations-page) .dashboard .reservations-table {
   width: 100%;
   min-width: 68rem;
   border-collapse: separate;
@@ -402,15 +402,15 @@
   color: var(--reservation-text-soft);
 }
 
-.dashboard .reservations-table th,
-.dashboard .reservations-table td {
+.admin-layout:has(.reservations-page) .dashboard .reservations-table th,
+.admin-layout:has(.reservations-page) .dashboard .reservations-table td {
   padding: 0.9rem 1rem;
   text-align: left;
   vertical-align: middle;
   border-bottom: 1px solid var(--reservation-border-soft);
 }
 
-.dashboard .reservations-table th {
+.admin-layout:has(.reservations-page) .dashboard .reservations-table th {
   color: #7386a5;
   background: #0a1326;
   font-size: 0.64rem;
@@ -419,28 +419,28 @@
   text-transform: uppercase;
 }
 
-.dashboard .reservations-table tbody tr {
+.admin-layout:has(.reservations-page) .dashboard .reservations-table tbody tr {
   background: var(--reservation-surface);
   transition: 150ms ease;
 }
 
-.dashboard .reservations-table tbody tr:hover,
-.dashboard .reservations-table tbody tr:hover > td {
+.admin-layout:has(.reservations-page) .dashboard .reservations-table tbody tr:hover,
+.admin-layout:has(.reservations-page) .dashboard .reservations-table tbody tr:hover > td {
   color: var(--reservation-text-soft) !important;
   background: var(--reservation-surface-raised) !important;
 }
 
-.dashboard .reservations-table td {
+.admin-layout:has(.reservations-page) .dashboard .reservations-table td {
   color: #aeb9c9;
   font-size: 0.73rem;
 }
 
-.dashboard .reservations-table td > strong {
+.admin-layout:has(.reservations-page) .dashboard .reservations-table td > strong {
   color: var(--reservation-text);
   font-size: 0.75rem;
 }
 
-.dashboard .reservation-name {
+.admin-layout:has(.reservations-page) .dashboard .reservation-name {
   display: grid;
   min-width: 0;
   gap: 0.18rem;
@@ -451,13 +451,13 @@
   text-align: left;
 }
 
-.dashboard .reservation-name span {
+.admin-layout:has(.reservations-page) .dashboard .reservation-name span {
   color: var(--reservation-orange);
   font-size: 0.66rem;
   font-weight: 850;
 }
 
-.dashboard .reservation-name strong {
+.admin-layout:has(.reservations-page) .dashboard .reservation-name strong {
   overflow: hidden;
   color: var(--reservation-text);
   font-size: 0.76rem;
@@ -465,12 +465,12 @@
   white-space: nowrap;
 }
 
-.dashboard .reservation-name small {
+.admin-layout:has(.reservations-page) .dashboard .reservation-name small {
   color: #71829d;
   font-size: 0.66rem;
 }
 
-.dashboard .reservation-status {
+.admin-layout:has(.reservations-page) .dashboard .reservation-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -485,38 +485,38 @@
   white-space: nowrap;
 }
 
-.dashboard .reservation-status.confirmed {
+.admin-layout:has(.reservations-page) .dashboard .reservation-status.confirmed {
   color: var(--reservation-teal);
   border-color: rgb(22 216 178 / 35%);
   background: rgb(22 216 178 / 8%);
 }
 
-.dashboard .reservation-status.checkedin {
+.admin-layout:has(.reservations-page) .dashboard .reservation-status.checkedin {
   color: var(--reservation-blue);
   border-color: rgb(77 141 255 / 35%);
   background: rgb(77 141 255 / 8%);
 }
 
-.dashboard .reservation-status.completed {
+.admin-layout:has(.reservations-page) .dashboard .reservation-status.completed {
   color: #70e3a4;
   border-color: rgb(112 227 164 / 34%);
   background: rgb(112 227 164 / 8%);
 }
 
-.dashboard .reservation-status.cancelled,
-.dashboard .reservation-status.noshow {
+.admin-layout:has(.reservations-page) .dashboard .reservation-status.cancelled,
+.admin-layout:has(.reservations-page) .dashboard .reservation-status.noshow {
   color: #ff8194;
   border-color: rgb(255 95 120 / 35%);
   background: rgb(255 95 120 / 8%);
 }
 
-.dashboard .reservation-actions {
+.admin-layout:has(.reservations-page) .dashboard .reservation-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.42rem;
 }
 
-.dashboard .reservation-actions button {
+.admin-layout:has(.reservations-page) .dashboard .reservation-actions button {
   min-height: 2rem;
   padding: 0 0.62rem;
   color: var(--reservation-text-soft);
@@ -528,43 +528,43 @@
   transition: 150ms ease;
 }
 
-.dashboard .reservation-actions button:hover:not(:disabled) {
+.admin-layout:has(.reservations-page) .dashboard .reservation-actions button:hover:not(:disabled) {
   color: var(--reservation-orange);
   border-color: rgb(255 159 10 / 42%);
   background: rgb(255 159 10 / 6%);
 }
 
-.dashboard .reservation-actions button.danger {
+.admin-layout:has(.reservations-page) .dashboard .reservation-actions button.danger {
   color: #ff7188;
   border-color: rgb(255 95 120 / 34%);
   background: rgb(255 95 120 / 4%);
 }
 
-.dashboard .reservation-actions button.danger:hover:not(:disabled) {
+.admin-layout:has(.reservations-page) .dashboard .reservation-actions button.danger:hover:not(:disabled) {
   color: #ff9aaa;
   border-color: rgb(255 95 120 / 52%);
   background: rgb(255 95 120 / 9%);
 }
 
-.dashboard .reservations-empty {
+.admin-layout:has(.reservations-page) .dashboard .reservations-empty {
   padding: 3rem 1rem !important;
   color: var(--reservation-muted) !important;
   background: var(--reservation-surface) !important;
   text-align: center !important;
 }
 
-.dashboard .reservations-empty strong {
+.admin-layout:has(.reservations-page) .dashboard .reservations-empty strong {
   color: var(--reservation-text);
   font-size: 0.82rem;
 }
 
-.dashboard .reservations-empty span {
+.admin-layout:has(.reservations-page) .dashboard .reservations-empty span {
   margin-top: 0.3rem;
   color: var(--reservation-muted);
   font-size: 0.69rem;
 }
 
-.dashboard .reservations-pagination {
+.admin-layout:has(.reservations-page) .dashboard .reservations-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -578,17 +578,17 @@
   background: var(--reservation-surface);
 }
 
-.dashboard .reservations-pagination > span {
+.admin-layout:has(.reservations-page) .dashboard .reservations-pagination > span {
   color: var(--reservation-muted);
   font-size: 0.7rem;
 }
 
-.dashboard .reservations-pagination > div {
+.admin-layout:has(.reservations-page) .dashboard .reservations-pagination > div {
   display: flex;
   gap: 0.5rem;
 }
 
-.dashboard .reservations-pagination button {
+.admin-layout:has(.reservations-page) .dashboard .reservations-pagination button {
   min-height: 2.2rem;
   padding: 0 0.8rem;
   color: var(--reservation-text-soft);
@@ -599,12 +599,12 @@
   font-weight: 750;
 }
 
-.dashboard .reservations-pagination button:hover:not(:disabled) {
+.admin-layout:has(.reservations-page) .dashboard .reservations-pagination button:hover:not(:disabled) {
   color: var(--reservation-orange);
   border-color: rgb(255 159 10 / 42%);
 }
 
-.dashboard .reservations-pagination button:disabled {
+.admin-layout:has(.reservations-page) .dashboard .reservations-pagination button:disabled {
   color: #526076;
   border-color: #1d2940;
   background: #081020;
@@ -870,26 +870,26 @@
 
 /* Responsive ------------------------------------------------------------- */
 @media (max-width: 1180px) {
-  .dashboard .reservations-summary {
+  .admin-layout:has(.reservations-page) .dashboard .reservations-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .dashboard .reservations-filters {
+  .admin-layout:has(.reservations-page) .dashboard .reservations-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 820px) {
-  .dashboard .reservations-toolbar {
+  .admin-layout:has(.reservations-page) .dashboard .reservations-toolbar {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .dashboard .reservations-toolbar > button {
+  .admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > button {
     width: 100%;
   }
 
-  .dashboard .reservations-summary {
+  .admin-layout:has(.reservations-page) .dashboard .reservations-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -904,8 +904,8 @@
 }
 
 @media (max-width: 620px) {
-  .dashboard .reservations-summary,
-  .dashboard .reservations-filters {
+  .admin-layout:has(.reservations-page) .dashboard .reservations-summary,
+  .admin-layout:has(.reservations-page) .dashboard .reservations-filters {
     grid-template-columns: 1fr;
   }
 
@@ -919,7 +919,7 @@
     grid-column: auto;
   }
 
-  .dashboard .reservations-pagination {
+  .admin-layout:has(.reservations-page) .dashboard .reservations-pagination {
     align-items: flex-start;
     flex-direction: column;
   }

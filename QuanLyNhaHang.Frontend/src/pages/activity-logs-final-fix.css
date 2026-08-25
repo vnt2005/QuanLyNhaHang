@@ -58,3 +58,47 @@
   transition: none !important;
   animation: none !important;
 }
+
+/* Keep audit actions and modal controls reachable on constrained screens. */
+.admin-layout:has(.activity-logs-page) .activity-table th:last-child,
+.admin-layout:has(.activity-logs-page) .activity-table td:last-child:not([colspan]) {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: #0d172a !important;
+  box-shadow: -0.7rem 0 1rem rgb(2 6 23 / 22%);
+}
+
+.admin-layout:has(.activity-logs-page) .activity-table th:last-child {
+  z-index: 3;
+  background: #091225 !important;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-table tbody tr:hover > td:last-child:not([colspan]) {
+  background: #121d33 !important;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: #0d172a !important;
+  box-shadow: 0 1px 0 var(--activity-border);
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  margin-top: 1rem;
+  padding: 1rem 1.5rem !important;
+  border-top: 1px solid var(--activity-border);
+  background: #0d172a !important;
+  box-shadow: 0 -0.8rem 1.5rem rgb(2 6 23 / 34%);
+}
+
+@media (max-width: 620px) {
+  .admin-layout:has(.activity-logs-page) .activity-modal > footer .danger {
+    width: 100%;
+  }
+}

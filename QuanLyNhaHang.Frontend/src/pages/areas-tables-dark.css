@@ -94,7 +94,7 @@
   background: rgb(255 159 10 / 12%);
 }
 
-.dashboard .areas-tables-page {
+.admin-layout:has(.areas-tables-page) .dashboard .areas-tables-page {
   display: grid;
   width: min(100%, 100rem);
   max-width: 100%;
@@ -104,7 +104,7 @@
   color: var(--space-text);
 }
 
-.dashboard .space-page-heading {
+.admin-layout:has(.areas-tables-page) .dashboard .space-page-heading {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -114,11 +114,11 @@
   border-bottom: 1px solid var(--space-border-soft);
 }
 
-.dashboard .space-page-heading > div {
+.admin-layout:has(.areas-tables-page) .dashboard .space-page-heading > div {
   min-width: 0;
 }
 
-.dashboard .space-kicker {
+.admin-layout:has(.areas-tables-page) .dashboard .space-kicker {
   display: block;
   margin-bottom: 0.45rem;
   color: var(--space-orange);
@@ -128,7 +128,7 @@
   text-transform: uppercase;
 }
 
-.dashboard .space-page-heading h2 {
+.admin-layout:has(.areas-tables-page) .dashboard .space-page-heading h2 {
   margin: 0;
   color: var(--space-text);
   font-size: clamp(1.65rem, 2.5vw, 2.2rem);
@@ -137,7 +137,7 @@
   letter-spacing: -0.035em;
 }
 
-.dashboard .space-page-heading p {
+.admin-layout:has(.areas-tables-page) .dashboard .space-page-heading p {
   max-width: 48rem;
   margin: 0.58rem 0 0;
   color: var(--space-muted);
@@ -145,8 +145,8 @@
   line-height: 1.55;
 }
 
-.dashboard .space-primary,
-.dashboard .areas-tables-modal .primary-button {
+.admin-layout:has(.areas-tables-page) .dashboard .space-primary,
+.admin-layout:has(.areas-tables-page) .dashboard .areas-tables-modal .primary-button {
   min-height: 2.75rem;
   padding: 0 1.15rem;
   color: #251500 !important;
@@ -159,15 +159,15 @@
   transition: 150ms ease;
 }
 
-.dashboard .space-primary:hover:not(:disabled),
-.dashboard .areas-tables-modal .primary-button:hover:not(:disabled) {
+.admin-layout:has(.areas-tables-page) .dashboard .space-primary:hover:not(:disabled),
+.admin-layout:has(.areas-tables-page) .dashboard .areas-tables-modal .primary-button:hover:not(:disabled) {
   border-color: var(--space-orange-hover) !important;
   background: linear-gradient(180deg, #ffba35, #ff9f0a) !important;
   box-shadow: 0 0.85rem 2rem rgb(255 159 10 / 26%);
   transform: translateY(-1px);
 }
 
-.dashboard .management-tabs {
+.admin-layout:has(.areas-tables-page) .dashboard .management-tabs {
   display: inline-flex;
   width: fit-content;
   gap: 0.3rem;
@@ -178,7 +178,7 @@
   background: #091326;
 }
 
-.dashboard .management-tabs button {
+.admin-layout:has(.areas-tables-page) .dashboard .management-tabs button {
   min-width: 4.3rem;
   min-height: 2.35rem;
   padding: 0 1rem;
@@ -191,45 +191,45 @@
   transition: 150ms ease;
 }
 
-.dashboard .management-tabs button:hover {
+.admin-layout:has(.areas-tables-page) .dashboard .management-tabs button:hover {
   color: var(--space-text);
   background: rgb(255 255 255 / 4%);
 }
 
-.dashboard .management-tabs button.active,
-.dashboard .management-tabs button.active:hover {
+.admin-layout:has(.areas-tables-page) .dashboard .management-tabs button.active,
+.admin-layout:has(.areas-tables-page) .dashboard .management-tabs button.active:hover {
   color: var(--space-orange);
   border-color: rgb(255 159 10 / 32%);
   background: rgb(255 159 10 / 8%);
   box-shadow: inset 0 -2px 0 var(--space-orange);
 }
 
-.dashboard .areas-tables-page .inline-alert {
+.admin-layout:has(.areas-tables-page) .dashboard .areas-tables-page .inline-alert {
   margin: 0;
   border-radius: 0.75rem;
   font-size: 0.76rem;
 }
 
-.dashboard .areas-tables-page .inline-alert.success {
+.admin-layout:has(.areas-tables-page) .dashboard .areas-tables-page .inline-alert.success {
   color: #94f1d6;
   border-color: rgb(22 216 178 / 28%);
   background: rgb(22 216 178 / 8%);
 }
 
-.dashboard .areas-tables-page .inline-alert.error {
+.admin-layout:has(.areas-tables-page) .dashboard .areas-tables-page .inline-alert.error {
   color: #ffb1be;
   border-color: rgb(255 83 109 / 30%);
   background: rgb(255 83 109 / 8%);
 }
 
-.dashboard .table-kpis {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.9rem;
   margin: 0;
 }
 
-.dashboard .table-kpis article {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis article {
   position: relative;
   display: flex;
   align-items: center;
@@ -247,7 +247,7 @@
   box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 10%);
 }
 
-.dashboard .table-kpis .kpi-icon {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis .kpi-icon {
   display: grid;
   width: 2.8rem;
   height: 2.8rem;
@@ -262,25 +262,25 @@
   font-weight: 900;
 }
 
-.dashboard .table-kpis article.available .kpi-icon {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis article.available .kpi-icon {
   color: var(--space-cyan);
   border-color: rgb(45 212 215 / 38%);
   background: rgb(45 212 215 / 11%);
 }
 
-.dashboard .table-kpis article.occupied .kpi-icon {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis article.occupied .kpi-icon {
   color: #ff7b22;
   border-color: rgb(255 123 34 / 38%);
   background: rgb(255 123 34 / 11%);
 }
 
-.dashboard .table-kpis article.reserved .kpi-icon {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis article.reserved .kpi-icon {
   color: #b65cff;
   border-color: rgb(182 92 255 / 40%);
   background: rgb(182 92 255 / 11%);
 }
 
-.dashboard .table-kpis article > div {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis article > div {
   display: flex;
   flex: 1;
   min-width: 0;
@@ -289,24 +289,24 @@
   gap: 0.75rem;
 }
 
-.dashboard .table-kpis small {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis small {
   color: var(--space-text-soft);
   font-size: 0.74rem;
   font-weight: 650;
 }
 
-.dashboard .table-kpis strong {
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis strong {
   color: var(--space-text);
   font-size: clamp(1.55rem, 2vw, 2rem);
   font-weight: 900;
   line-height: 1;
 }
 
-.dashboard .table-kpis article.available strong { color: var(--space-cyan); }
-.dashboard .table-kpis article.occupied strong { color: #ff7b22; }
-.dashboard .table-kpis article.reserved strong { color: #b65cff; }
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis article.available strong { color: var(--space-cyan); }
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis article.occupied strong { color: #ff7b22; }
+.admin-layout:has(.areas-tables-page) .dashboard .table-kpis article.reserved strong { color: #b65cff; }
 
-.dashboard .space-filters {
+.admin-layout:has(.areas-tables-page) .dashboard .space-filters {
   display: grid;
   grid-template-columns: minmax(18rem, 1.75fr) minmax(10rem, 0.55fr) minmax(10rem, 0.55fr) auto;
   align-items: center;
@@ -319,16 +319,16 @@
   box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 9%);
 }
 
-.dashboard .space-filters.area-filters {
+.admin-layout:has(.areas-tables-page) .dashboard .space-filters.area-filters {
   grid-template-columns: minmax(18rem, 1fr) auto;
 }
 
-.dashboard .space-search-control {
+.admin-layout:has(.areas-tables-page) .dashboard .space-search-control {
   position: relative;
   min-width: 0;
 }
 
-.dashboard .space-search-control > span {
+.admin-layout:has(.areas-tables-page) .dashboard .space-search-control > span {
   position: absolute;
   top: 50%;
   left: 0.9rem;
@@ -339,7 +339,7 @@
   pointer-events: none;
 }
 
-.dashboard .space-filters :is(input, select) {
+.admin-layout:has(.areas-tables-page) .dashboard .space-filters :is(input, select) {
   width: 100%;
   min-width: 0;
   min-height: 2.7rem;
@@ -355,20 +355,20 @@
   transition: 150ms ease;
 }
 
-.dashboard .space-search-control input {
+.admin-layout:has(.areas-tables-page) .dashboard .space-search-control input {
   padding-left: 2.45rem;
 }
 
-.dashboard .space-filters input::placeholder {
+.admin-layout:has(.areas-tables-page) .dashboard .space-filters input::placeholder {
   color: #677791;
 }
 
-.dashboard .space-filters :is(input, select):focus {
+.admin-layout:has(.areas-tables-page) .dashboard .space-filters :is(input, select):focus {
   border-color: rgb(255 159 10 / 75%);
   box-shadow: 0 0 0 3px rgb(255 159 10 / 10%);
 }
 
-.dashboard .space-search-button {
+.admin-layout:has(.areas-tables-page) .dashboard .space-search-button {
   min-height: 2.7rem;
   padding: 0 1.15rem;
   color: var(--space-text-soft);
@@ -380,21 +380,21 @@
   transition: 150ms ease;
 }
 
-.dashboard .space-search-button:hover:not(:disabled) {
+.admin-layout:has(.areas-tables-page) .dashboard .space-search-button:hover:not(:disabled) {
   color: var(--space-orange);
   border-color: rgb(255 159 10 / 45%);
   background: rgb(255 159 10 / 6%);
 }
 
-.dashboard .table-card-grid,
-.dashboard .area-grid {
+.admin-layout:has(.areas-tables-page) .dashboard .table-card-grid,
+.admin-layout:has(.areas-tables-page) .dashboard .area-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
 }
 
-.dashboard .restaurant-table-card,
-.dashboard .area-card {
+.admin-layout:has(.areas-tables-page) .dashboard .restaurant-table-card,
+.admin-layout:has(.areas-tables-page) .dashboard .area-card {
   min-width: 0;
   border: 1px solid var(--space-border);
   border-radius: 0.95rem;
@@ -405,8 +405,8 @@
   transition: 160ms ease;
 }
 
-.dashboard .restaurant-table-card:hover,
-.dashboard .area-card:hover {
+.admin-layout:has(.areas-tables-page) .dashboard .restaurant-table-card:hover,
+.admin-layout:has(.areas-tables-page) .dashboard .area-card:hover {
   border-color: #344461;
   background:
     linear-gradient(145deg, rgb(255 255 255 / 2.5%), transparent 62%),
@@ -414,7 +414,7 @@
   transform: translateY(-1px);
 }
 
-.dashboard .restaurant-table-card {
+.admin-layout:has(.areas-tables-page) .dashboard .restaurant-table-card {
   display: flex;
   min-height: 18rem;
   flex-direction: column;
@@ -422,23 +422,23 @@
   border-top: 1px solid var(--space-border);
 }
 
-.dashboard .table-card-head {
+.admin-layout:has(.areas-tables-page) .dashboard .table-card-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.9rem;
 }
 
-.dashboard .table-card-head > div,
-.dashboard .area-card-main {
+.admin-layout:has(.areas-tables-page) .dashboard .table-card-head > div,
+.admin-layout:has(.areas-tables-page) .dashboard .area-card-main {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: 0.85rem;
 }
 
-.dashboard .table-icon,
-.dashboard .area-icon {
+.admin-layout:has(.areas-tables-page) .dashboard .table-icon,
+.admin-layout:has(.areas-tables-page) .dashboard .area-icon {
   display: grid;
   width: 2.75rem;
   height: 2.75rem;
@@ -453,14 +453,14 @@
   font-weight: 900;
 }
 
-.dashboard .area-icon {
+.admin-layout:has(.areas-tables-page) .dashboard .area-icon {
   color: var(--space-orange);
   border-color: rgb(255 159 10 / 18%);
   background: linear-gradient(145deg, rgb(255 159 10 / 20%), rgb(255 159 10 / 7%));
 }
 
-.dashboard .table-card-head h3,
-.dashboard .area-card h3 {
+.admin-layout:has(.areas-tables-page) .dashboard .table-card-head h3,
+.admin-layout:has(.areas-tables-page) .dashboard .area-card h3 {
   margin: 0 0 0.24rem;
   overflow: hidden;
   color: var(--space-text);
@@ -470,8 +470,8 @@
   white-space: nowrap;
 }
 
-.dashboard .table-card-head p,
-.dashboard .area-card p {
+.admin-layout:has(.areas-tables-page) .dashboard .table-card-head p,
+.admin-layout:has(.areas-tables-page) .dashboard .area-card p {
   margin: 0;
   overflow: hidden;
   color: var(--space-muted);
@@ -480,8 +480,8 @@
   white-space: nowrap;
 }
 
-.dashboard .table-status-chip,
-.dashboard .area-status-chip {
+.admin-layout:has(.areas-tables-page) .dashboard .table-status-chip,
+.admin-layout:has(.areas-tables-page) .dashboard .area-status-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -497,31 +497,31 @@
   white-space: nowrap;
 }
 
-.dashboard .table-status-chip.occupied {
+.admin-layout:has(.areas-tables-page) .dashboard .table-status-chip.occupied {
   color: var(--space-orange);
   border-color: rgb(255 159 10 / 44%);
   background: rgb(255 159 10 / 9%);
 }
 
-.dashboard .table-status-chip.reserved {
+.admin-layout:has(.areas-tables-page) .dashboard .table-status-chip.reserved {
   color: #b66cff;
   border-color: rgb(182 108 255 / 40%);
   background: rgb(182 108 255 / 9%);
 }
 
-.dashboard .table-status-chip.cleaning {
+.admin-layout:has(.areas-tables-page) .dashboard .table-status-chip.cleaning {
   color: #ffd166;
   border-color: rgb(255 209 102 / 38%);
   background: rgb(255 209 102 / 8%);
 }
 
-.dashboard .area-status-chip.inactive {
+.admin-layout:has(.areas-tables-page) .dashboard .area-status-chip.inactive {
   color: #9ba9bc;
   border-color: rgb(155 169 188 / 28%);
   background: rgb(155 169 188 / 7%);
 }
 
-.dashboard .table-meta {
+.admin-layout:has(.areas-tables-page) .dashboard .table-meta {
   display: grid;
   gap: 0.48rem;
   margin: 1.35rem 0 1.15rem;
@@ -529,13 +529,13 @@
   font-size: 0.76rem;
 }
 
-.dashboard .table-meta span {
+.admin-layout:has(.areas-tables-page) .dashboard .table-meta span {
   display: flex;
   align-items: center;
   gap: 0.45rem;
 }
 
-.dashboard .table-meta i {
+.admin-layout:has(.areas-tables-page) .dashboard .table-meta i {
   display: grid;
   width: 1rem;
   color: #6f819d;
@@ -543,7 +543,7 @@
   place-items: center;
 }
 
-.dashboard .status-field {
+.admin-layout:has(.areas-tables-page) .dashboard .status-field {
   display: grid;
   gap: 0.48rem;
   margin-top: auto;
@@ -552,7 +552,7 @@
   font-weight: 750;
 }
 
-.dashboard .restaurant-table-card select {
+.admin-layout:has(.areas-tables-page) .dashboard .restaurant-table-card select {
   width: 100%;
   min-height: 2.55rem;
   padding: 0 0.78rem;
@@ -563,19 +563,19 @@
   outline: none;
 }
 
-.dashboard .restaurant-table-card select:focus {
+.admin-layout:has(.areas-tables-page) .dashboard .restaurant-table-card select:focus {
   border-color: rgb(255 159 10 / 68%);
   box-shadow: 0 0 0 3px rgb(255 159 10 / 9%);
 }
 
-.dashboard .card-actions {
+.admin-layout:has(.areas-tables-page) .dashboard .card-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.55rem;
   margin-top: 0.85rem;
 }
 
-.dashboard .card-actions button {
+.admin-layout:has(.areas-tables-page) .dashboard .card-actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -591,25 +591,25 @@
   transition: 150ms ease;
 }
 
-.dashboard .card-actions button:hover:not(:disabled) {
+.admin-layout:has(.areas-tables-page) .dashboard .card-actions button:hover:not(:disabled) {
   color: var(--space-text);
   border-color: #485c7e;
   background: #111e34;
 }
 
-.dashboard .card-actions .danger {
+.admin-layout:has(.areas-tables-page) .dashboard .card-actions .danger {
   color: var(--space-danger);
   border-color: rgb(255 83 109 / 38%);
   background: rgb(255 83 109 / 4%);
 }
 
-.dashboard .card-actions .danger:hover:not(:disabled) {
+.admin-layout:has(.areas-tables-page) .dashboard .card-actions .danger:hover:not(:disabled) {
   color: #ff8598;
   border-color: rgb(255 83 109 / 60%);
   background: rgb(255 83 109 / 9%);
 }
 
-.dashboard .area-card {
+.admin-layout:has(.areas-tables-page) .dashboard .area-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   min-height: 9.7rem;
@@ -617,13 +617,13 @@
   padding: 1.1rem;
 }
 
-.dashboard .area-card .card-actions {
+.admin-layout:has(.areas-tables-page) .dashboard .area-card .card-actions {
   grid-column: 1 / -1;
   align-self: end;
   margin-top: 0;
 }
 
-.dashboard .empty-state-card {
+.admin-layout:has(.areas-tables-page) .dashboard .empty-state-card {
   grid-column: 1 / -1;
   padding: 3rem 1.5rem;
   color: var(--space-muted);
@@ -633,25 +633,25 @@
   text-align: center;
 }
 
-.dashboard .space-pagination {
+.admin-layout:has(.areas-tables-page) .dashboard .space-pagination {
   margin-top: 0;
   padding: 0.9rem 0;
   color: var(--space-muted);
   border-top: 1px solid var(--space-border-soft);
 }
 
-.dashboard .space-pagination button {
+.admin-layout:has(.areas-tables-page) .dashboard .space-pagination button {
   color: var(--space-text-soft);
   border-color: var(--space-border);
   background: var(--space-surface);
 }
 
-.dashboard .space-pagination button:hover:not(:disabled) {
+.admin-layout:has(.areas-tables-page) .dashboard .space-pagination button:hover:not(:disabled) {
   color: var(--space-orange);
   border-color: rgb(255 159 10 / 40%);
 }
 
-.dashboard .space-pagination button:disabled {
+.admin-layout:has(.areas-tables-page) .dashboard .space-pagination button:disabled {
   color: #46536a;
   border-color: #1b273b;
   background: #091020;
@@ -846,25 +846,25 @@
 }
 
 @media (max-width: 1180px) {
-  .dashboard .table-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dashboard .table-card-grid,
-  .dashboard .area-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dashboard .space-filters { grid-template-columns: minmax(15rem, 1fr) repeat(2, minmax(9rem, 0.55fr)); }
-  .dashboard .space-search-button { grid-column: 1 / -1; }
-  .dashboard .space-filters.area-filters { grid-template-columns: 1fr auto; }
-  .dashboard .space-filters.area-filters .space-search-button { grid-column: auto; }
+  .admin-layout:has(.areas-tables-page) .dashboard .table-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-layout:has(.areas-tables-page) .dashboard .table-card-grid,
+  .admin-layout:has(.areas-tables-page) .dashboard .area-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-layout:has(.areas-tables-page) .dashboard .space-filters { grid-template-columns: minmax(15rem, 1fr) repeat(2, minmax(9rem, 0.55fr)); }
+  .admin-layout:has(.areas-tables-page) .dashboard .space-search-button { grid-column: 1 / -1; }
+  .admin-layout:has(.areas-tables-page) .dashboard .space-filters.area-filters { grid-template-columns: 1fr auto; }
+  .admin-layout:has(.areas-tables-page) .dashboard .space-filters.area-filters .space-search-button { grid-column: auto; }
 }
 
 @media (max-width: 760px) {
-  .dashboard .space-page-heading { align-items: stretch; flex-direction: column; }
-  .dashboard .space-primary { align-self: flex-start; }
-  .dashboard .table-kpis,
-  .dashboard .table-card-grid,
-  .dashboard .area-grid,
-  .dashboard .space-filters,
-  .dashboard .space-filters.area-filters { grid-template-columns: 1fr; }
-  .dashboard .space-search-button,
-  .dashboard .space-filters.area-filters .space-search-button { grid-column: auto; }
+  .admin-layout:has(.areas-tables-page) .dashboard .space-page-heading { align-items: stretch; flex-direction: column; }
+  .admin-layout:has(.areas-tables-page) .dashboard .space-primary { align-self: flex-start; }
+  .admin-layout:has(.areas-tables-page) .dashboard .table-kpis,
+  .admin-layout:has(.areas-tables-page) .dashboard .table-card-grid,
+  .admin-layout:has(.areas-tables-page) .dashboard .area-grid,
+  .admin-layout:has(.areas-tables-page) .dashboard .space-filters,
+  .admin-layout:has(.areas-tables-page) .dashboard .space-filters.area-filters { grid-template-columns: 1fr; }
+  .admin-layout:has(.areas-tables-page) .dashboard .space-search-button,
+  .admin-layout:has(.areas-tables-page) .dashboard .space-filters.area-filters .space-search-button { grid-column: auto; }
   .admin-layout:has(.areas-tables-page) .space-modal-form { grid-template-columns: 1fr; }
   .admin-layout:has(.areas-tables-page) .space-modal-form .wide-field,
   .admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-actions { grid-column: 1; }

@@ -118,3 +118,61 @@
   color: var(--reservation-text);
   background: #081226;
 }
+
+/* Keep the action column visible without removing horizontal table scrolling. */
+.admin-layout:has(.reservations-page) .reservations-table th:last-child,
+.admin-layout:has(.reservations-page) .reservations-table td:last-child:not([colspan]) {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: var(--reservation-surface) !important;
+  box-shadow: -0.7rem 0 1rem rgb(2 6 23 / 22%);
+}
+
+.admin-layout:has(.reservations-page) .reservations-table th:last-child {
+  z-index: 3;
+  background: #0a1326 !important;
+}
+
+.admin-layout:has(.reservations-page) .reservations-table tbody tr:hover > td:last-child:not([colspan]) {
+  background: var(--reservation-surface-raised) !important;
+}
+
+/* Header and actions remain reachable while long create/detail content scrolls. */
+.admin-layout:has(.reservations-page) .reservations-modal > header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: #0d172a !important;
+  box-shadow: 0 1px 0 var(--reservation-border);
+}
+
+.admin-layout:has(.reservations-page) .reservations-modal > footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  margin: 1.15rem 0 0 !important;
+  padding: 1rem 1.55rem 1.35rem !important;
+  border-top: 1px solid var(--reservation-border);
+  background: #0d172a !important;
+  box-shadow: 0 -0.8rem 1.5rem rgb(2 6 23 / 34%);
+}
+
+@media (max-width: 620px) {
+  .admin-layout:has(.reservations-page) .reservations-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .admin-layout:has(.reservations-page) .reservations-modal {
+    max-height: 94vh;
+  }
+
+  .admin-layout:has(.reservations-page) .reservations-modal > footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-layout:has(.reservations-page) .reservations-modal > footer button {
+    width: 100%;
+  }
+}

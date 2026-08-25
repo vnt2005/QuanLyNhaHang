@@ -94,7 +94,7 @@
   background: rgb(255 159 10 / 12%);
 }
 
-.dashboard .activity-logs-page {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-logs-page {
   display: grid;
   align-content: start;
   width: min(100%, 100rem);
@@ -106,7 +106,7 @@
   color: var(--activity-text);
 }
 
-.dashboard .activity-logs-heading {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-logs-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -116,11 +116,11 @@
   border-bottom: 1px solid var(--activity-border);
 }
 
-.dashboard .activity-logs-heading > div {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-logs-heading > div {
   min-width: 0;
 }
 
-.dashboard .activity-logs-kicker {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-logs-kicker {
   display: block;
   margin: 0 0 0.45rem;
   color: var(--activity-orange);
@@ -130,7 +130,7 @@
   text-transform: uppercase;
 }
 
-.dashboard .activity-logs-heading h2 {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-logs-heading h2 {
   margin: 0;
   color: var(--activity-text);
   font-size: clamp(1.8rem, 2.7vw, 2.4rem);
@@ -139,7 +139,7 @@
   letter-spacing: -0.035em;
 }
 
-.dashboard .activity-logs-heading p {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-logs-heading p {
   max-width: 54rem;
   margin: 0.65rem 0 0;
   color: var(--activity-muted);
@@ -147,7 +147,7 @@
   line-height: 1.6;
 }
 
-.dashboard .activity-refresh {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-refresh {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -165,43 +165,43 @@
   transition: 150ms ease;
 }
 
-.dashboard .activity-refresh:hover:not(:disabled) {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-refresh:hover:not(:disabled) {
   border-color: var(--activity-orange-hover) !important;
   background: var(--activity-orange-hover) !important;
   box-shadow: 0 0.8rem 1.8rem rgb(255 159 10 / 24%);
   transform: translateY(-1px);
 }
 
-.dashboard .activity-alert {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-alert {
   color: var(--activity-text-soft);
   border: 1px solid var(--activity-border);
   border-radius: 0.85rem;
   background: var(--activity-surface);
 }
 
-.dashboard .activity-alert.error {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-alert.error {
   color: #ffb3c0;
   border-color: rgb(255 95 120 / 30%);
   background: rgb(255 95 120 / 9%);
 }
 
-.dashboard .activity-alert.success {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-alert.success {
   color: #96f4d9;
   border-color: rgb(17 215 176 / 28%);
   background: rgb(17 215 176 / 8%);
 }
 
-.dashboard .activity-alert button {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-alert button {
   color: currentColor;
 }
 
-.dashboard .activity-summary-grid {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
 }
 
-.dashboard .activity-summary-grid > article {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid > article {
   position: relative;
   display: flex;
   align-items: center;
@@ -219,7 +219,7 @@
   box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 12%);
 }
 
-.dashboard .activity-summary-grid > article::after {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid > article::after {
   position: absolute;
   inset: auto -2rem -3.2rem auto;
   width: 8rem;
@@ -231,19 +231,19 @@
   pointer-events: none;
 }
 
-.dashboard .activity-summary-grid > article.success::after {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid > article.success::after {
   background: rgb(17 215 176 / 5%);
 }
 
-.dashboard .activity-summary-grid > article.failed::after {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid > article.failed::after {
   background: rgb(255 95 120 / 5%);
 }
 
-.dashboard .activity-summary-grid > article.today::after {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid > article.today::after {
   background: rgb(77 141 255 / 6%);
 }
 
-.dashboard .activity-summary-grid article > span {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid article > span {
   display: grid;
   width: 3.15rem;
   height: 3.15rem;
@@ -258,40 +258,40 @@
   font-weight: 900;
 }
 
-.dashboard .activity-summary-grid article.success > span {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid article.success > span {
   color: var(--activity-teal);
   border-color: rgb(17 215 176 / 45%);
   background: linear-gradient(145deg, rgb(17 215 176 / 16%), rgb(17 215 176 / 5%));
 }
 
-.dashboard .activity-summary-grid article.failed > span {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid article.failed > span {
   color: var(--activity-danger);
   border-color: rgb(255 95 120 / 45%);
   background: linear-gradient(145deg, rgb(255 95 120 / 16%), rgb(255 95 120 / 5%));
 }
 
-.dashboard .activity-summary-grid article.today > span {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid article.today > span {
   color: var(--activity-blue);
   border-color: rgb(77 141 255 / 45%);
   background: linear-gradient(145deg, rgb(77 141 255 / 16%), rgb(77 141 255 / 5%));
 }
 
-.dashboard .activity-summary-grid article > div {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid article > div {
   min-width: 0;
 }
 
-.dashboard .activity-summary-grid p,
-.dashboard .activity-summary-grid small {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid p,
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid small {
   margin: 0;
   color: var(--activity-muted);
 }
 
-.dashboard .activity-summary-grid p {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid p {
   font-size: 0.75rem;
   font-weight: 650;
 }
 
-.dashboard .activity-summary-grid strong {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid strong {
   display: block;
   margin: 0.35rem 0 0.4rem;
   overflow: hidden;
@@ -303,19 +303,19 @@
   white-space: nowrap;
 }
 
-.dashboard .activity-summary-grid article.success strong {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid article.success strong {
   color: var(--activity-teal);
 }
 
-.dashboard .activity-summary-grid article.failed strong {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid article.failed strong {
   color: var(--activity-danger);
 }
 
-.dashboard .activity-summary-grid article.today strong {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid article.today strong {
   color: var(--activity-blue);
 }
 
-.dashboard .activity-summary-grid small {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid small {
   display: block;
   overflow: hidden;
   font-size: 0.69rem;
@@ -324,7 +324,7 @@
   white-space: nowrap;
 }
 
-.dashboard .activity-panel {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-panel {
   display: grid;
   min-width: 0;
   gap: 1rem;
@@ -335,7 +335,7 @@
   box-shadow: none;
 }
 
-.dashboard .activity-filters {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-filters {
   display: grid;
   grid-template-columns: minmax(12rem, 1.6fr) repeat(5, minmax(8.5rem, 1fr)) auto;
   align-items: end;
@@ -347,13 +347,13 @@
   box-shadow: 0 0.9rem 2.5rem rgb(0 0 0 / 10%);
 }
 
-.dashboard .activity-filters label {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-filters label {
   display: grid;
   min-width: 0;
   gap: 0.45rem;
 }
 
-.dashboard .activity-filters label > span {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-filters label > span {
   color: var(--activity-muted);
   font-size: 0.66rem;
   font-weight: 850;
@@ -361,7 +361,7 @@
   text-transform: uppercase;
 }
 
-.dashboard .activity-filters :is(input, select) {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-filters :is(input, select) {
   width: 100%;
   min-width: 0;
   min-height: 2.7rem;
@@ -377,16 +377,16 @@
   transition: 150ms ease;
 }
 
-.dashboard .activity-filters input::placeholder {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-filters input::placeholder {
   color: #63738e;
 }
 
-.dashboard .activity-filters :is(input, select):focus {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-filters :is(input, select):focus {
   border-color: var(--activity-orange);
   box-shadow: 0 0 0 3px rgb(255 159 10 / 12%);
 }
 
-.dashboard .activity-clear {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-clear {
   min-height: 2.7rem;
   padding: 0 1rem;
   color: var(--activity-orange);
@@ -399,13 +399,13 @@
   transition: 150ms ease;
 }
 
-.dashboard .activity-clear:hover:not(:disabled) {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-clear:hover:not(:disabled) {
   color: #211300;
   border-color: var(--activity-orange);
   background: var(--activity-orange);
 }
 
-.dashboard .activity-table-wrap {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table-wrap {
   min-width: 0;
   overflow: auto;
   border: 1px solid var(--activity-border);
@@ -416,7 +416,7 @@
   scrollbar-width: thin;
 }
 
-.dashboard .activity-table {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table {
   width: 100%;
   min-width: 74rem;
   border-collapse: separate;
@@ -424,15 +424,15 @@
   color: var(--activity-text-soft);
 }
 
-.dashboard .activity-table th,
-.dashboard .activity-table td {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table th,
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table td {
   padding: 1rem 1rem;
   text-align: left;
   vertical-align: middle;
   border-bottom: 1px solid var(--activity-border-soft);
 }
 
-.dashboard .activity-table th {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table th {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -444,27 +444,27 @@
   text-transform: uppercase;
 }
 
-.dashboard .activity-table tbody tr {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody tr {
   background: var(--activity-surface);
   transition: background 130ms ease;
 }
 
-.dashboard .activity-table tbody tr:hover {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody tr:hover {
   background: var(--activity-surface-raised);
 }
 
-.dashboard .activity-table tbody tr:last-child td {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.dashboard .activity-table td strong {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table td strong {
   display: block;
   color: var(--activity-text);
   font-size: 0.78rem;
   font-weight: 760;
 }
 
-.dashboard .activity-table td small {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table td small {
   display: block;
   max-width: 15rem;
   margin-top: 0.32rem;
@@ -474,14 +474,14 @@
   line-height: 1.35;
 }
 
-.dashboard .activity-description {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-description {
   max-width: 22rem;
   color: #9eacc1;
   font-size: 0.74rem;
   line-height: 1.5;
 }
 
-.dashboard .activity-action {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-action {
   display: inline-flex;
   align-items: center;
   min-height: 1.7rem;
@@ -494,7 +494,7 @@
   font-weight: 850;
 }
 
-.dashboard .activity-status {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-status {
   display: inline-flex;
   align-items: center;
   min-height: 1.72rem;
@@ -506,7 +506,7 @@
   white-space: nowrap;
 }
 
-.dashboard .activity-status::before {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-status::before {
   width: 0.36rem;
   height: 0.36rem;
   content: '';
@@ -516,26 +516,26 @@
   opacity: 0.8;
 }
 
-.dashboard .activity-status.success {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-status.success {
   color: #4ce7bf;
   border: 1px solid rgb(17 215 176 / 24%);
   background: rgb(17 215 176 / 8%);
 }
 
-.dashboard .activity-status.failed {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-status.failed {
   color: #ff8ea1;
   border: 1px solid rgb(255 95 120 / 25%);
   background: rgb(255 95 120 / 8%);
 }
 
-.dashboard .activity-row-actions {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-row-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.45rem;
 }
 
-.dashboard .activity-row-actions button {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-row-actions button {
   min-height: 2.1rem;
   padding: 0 0.7rem;
   color: var(--activity-text-soft);
@@ -547,35 +547,35 @@
   transition: 130ms ease;
 }
 
-.dashboard .activity-row-actions button:hover:not(:disabled) {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-row-actions button:hover:not(:disabled) {
   color: var(--activity-text);
   border-color: #536684;
   background: #15223a;
 }
 
-.dashboard .activity-row-actions .danger {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-row-actions .danger {
   color: #ff879a;
   border-color: rgb(255 95 120 / 30%);
   background: rgb(255 95 120 / 6%);
 }
 
-.dashboard .activity-row-actions .danger:hover:not(:disabled) {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-row-actions .danger:hover:not(:disabled) {
   color: #160408;
   border-color: var(--activity-danger);
   background: var(--activity-danger);
 }
 
-.dashboard .activity-empty {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-empty {
   padding: 3rem 1rem !important;
   color: var(--activity-muted) !important;
   text-align: center !important;
 }
 
-.dashboard .activity-empty strong {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-empty strong {
   color: var(--activity-text-soft);
 }
 
-.dashboard .activity-pagination {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -589,17 +589,17 @@
   background: #0b1427;
 }
 
-.dashboard .activity-pagination > span {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-pagination > span {
   font-size: 0.7rem;
   font-weight: 700;
 }
 
-.dashboard .activity-pagination div {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-pagination div {
   display: flex;
   gap: 0.45rem;
 }
 
-.dashboard .activity-pagination button {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-pagination button {
   min-height: 2.15rem;
   padding: 0 0.75rem;
   color: var(--activity-text-soft);
@@ -610,14 +610,14 @@
   font-weight: 800;
 }
 
-.dashboard .activity-pagination button:hover:not(:disabled) {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-pagination button:hover:not(:disabled) {
   color: #211300;
   border-color: var(--activity-orange);
   background: var(--activity-orange);
 }
 
-.dashboard .activity-pagination button:disabled,
-.dashboard .activity-row-actions button:disabled {
+.admin-layout:has(.activity-logs-page) .dashboard .activity-pagination button:disabled,
+.admin-layout:has(.activity-logs-page) .dashboard .activity-row-actions button:disabled {
   opacity: 0.38;
   cursor: not-allowed;
 }
@@ -828,15 +828,15 @@
 }
 
 @media (max-width: 1280px) {
-  .dashboard .activity-summary-grid {
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .dashboard .activity-filters {
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-filters {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .dashboard .activity-search {
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-search {
     grid-column: span 2;
   }
 
@@ -846,26 +846,26 @@
 }
 
 @media (max-width: 760px) {
-  .dashboard .activity-logs-heading {
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-logs-heading {
     display: grid;
   }
 
-  .dashboard .activity-refresh {
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-refresh {
     width: 100%;
   }
 
-  .dashboard .activity-summary-grid,
-  .dashboard .activity-filters,
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-summary-grid,
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-filters,
   .admin-layout:has(.activity-logs-page) .activity-detail-grid,
   .admin-layout:has(.activity-logs-page) .activity-json-grid {
     grid-template-columns: 1fr;
   }
 
-  .dashboard .activity-search {
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-search {
     grid-column: auto;
   }
 
-  .dashboard .activity-pagination {
+  .admin-layout:has(.activity-logs-page) .dashboard .activity-pagination {
     align-items: flex-start;
     flex-direction: column;
   }
