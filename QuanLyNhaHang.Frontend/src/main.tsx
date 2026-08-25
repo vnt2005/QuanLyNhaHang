@@ -47,6 +47,7 @@ import './pages/areas-tables-dark.css'
 import './pages/reservations-dark.css'
 import './design-system/confirm-dialog-polish.css'
 import './pages/areas-tables-final-fix.css'
+import './pages/reservations-final-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
