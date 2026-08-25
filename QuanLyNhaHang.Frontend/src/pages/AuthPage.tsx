@@ -376,43 +376,31 @@ export default function AuthPage({
   return (
     <main className="auth-shell">
       <section className="auth-brand-panel">
+        <div className="auth-brand-header">
+          <span className="auth-brand-mark" aria-hidden="true" />
+          <div>
+            <span>HỆ THỐNG QUẢN TRỊ</span>
+            <strong>VNT RESTAURANT</strong>
+          </div>
+        </div>
+
         <div className="auth-brand-copy">
-          <span className="auth-eyebrow">RESTAURANT OPERATIONS</span>
-          <h1>Quản lý nhà hàng rõ ràng, nhanh chóng và an toàn.</h1>
+          <span className="auth-standard">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="m12 3 2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.02 6.9 18.7l.98-5.68L3.75 9l5.7-.83L12 3Z" />
+            </svg>
+            5-STAR STANDARD
+          </span>
+          <h1>Hệ thống của<br />VNT Restaurant.</h1>
           <p>
-            Giao diện quản trị React kết nối trực tiếp với ASP.NET Core API,
-            đồng bộ dữ liệu vận hành theo thời gian thực.
+            Đồng bộ dữ liệu thời gian thực giữa nhà bếp, thu ngân, sảnh tiếp
+            khách và người quản lý. Tối ưu hóa năng suất vận hành chuyên nghiệp.
           </p>
         </div>
-        <div className="auth-security-points">
-          <article>
-            <span>✓</span>
-            <div>
-              <strong>Phiên đăng nhập bảo mật</strong>
-              <small>Refresh token được xoay vòng và có thể thu hồi.</small>
-            </div>
-          </article>
-          <article>
-            <span>✓</span>
-            <div>
-              <strong>Khôi phục tài khoản</strong>
-              <small>Đặt lại mật khẩu an toàn qua email đã xác minh.</small>
-            </div>
-          </article>
-          <article>
-            <span>✓</span>
-            <div>
-              <strong>Phân quyền theo vai trò</strong>
-              <small>Mỗi tài khoản chỉ thấy và dùng đúng chức năng được cấp.</small>
-            </div>
-          </article>
-        </div>
-        <div className="auth-backend-status">
-          <span/>
-          <div>
-            <strong>Backend sẵn sàng</strong>
-            <small>Kết nối bảo mật tới API tại cổng 7134</small>
-          </div>
+
+        <div className="auth-brand-footer">
+          <span>REST API 7134</span>
+          <strong><i /> Live Secure</strong>
         </div>
       </section>
 
