@@ -19,6 +19,24 @@
   background-color: var(--reservation-surface) !important;
 }
 
+/* Paint the complete table stack dark, not only td/tr. During pagination React
+   briefly removes/replaces body rows, so the table/tbody layer itself can be
+   visible for one frame. This was the white rectangle captured in the video. */
+.admin-layout:has(.reservations-page)
+  .dashboard
+  .reservations-table-wrap,
+.admin-layout:has(.reservations-page)
+  .dashboard
+  .reservations-table,
+.admin-layout:has(.reservations-page)
+  .dashboard
+  .reservations-table tbody {
+  background: #0b1427 !important;
+  background-color: #0b1427 !important;
+  background-image: none !important;
+  isolation: isolate;
+}
+
 .admin-layout:has(.reservations-page)
   .dashboard
   .reservations-table tbody tr,
@@ -27,6 +45,10 @@
   .reservations-table tbody td {
   color: #aeb9c9 !important;
   background: var(--reservation-surface) !important;
+  background-color: var(--reservation-surface) !important;
+  background-image: none !important;
+  animation: none !important;
+  transition-property: color, border-color, opacity, transform !important;
 }
 
 .admin-layout:has(.reservations-page)
@@ -37,12 +59,36 @@
   .reservations-table tbody tr:hover > td {
   color: var(--reservation-text-soft) !important;
   background: var(--reservation-surface-raised) !important;
+  background-color: var(--reservation-surface-raised) !important;
 }
 
 .admin-layout:has(.reservations-page)
   .dashboard
   .reservations-table tbody tr:hover :is(strong, .reservation-name strong) {
   color: var(--reservation-text) !important;
+}
+
+/* Loading/empty row: keep a real dark surface. Never transparent because the
+   legacy table underneath is light. */
+.admin-layout:has(.reservations-page)
+  .dashboard
+  .reservations-table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.reservations-page)
+  .dashboard
+  .reservations-table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.reservations-page)
+  .dashboard
+  .reservations-table tbody > tr:only-child:hover,
+.admin-layout:has(.reservations-page)
+  .dashboard
+  .reservations-table tbody > tr:only-child:hover > td[colspan] {
+  color: #8fa0b8 !important;
+  background: #0b1427 !important;
+  background-color: #0b1427 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transition: none !important;
 }
 
 .admin-layout:has(.reservations-page)
