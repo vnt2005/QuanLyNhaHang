@@ -6,6 +6,7 @@ import './menu-item-detail.css'
 import './takeaway.css'
 import './customer-promotion.css'
 import './home-premium.css'
+import './menu-premium.css'
 
 if ('scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual'
