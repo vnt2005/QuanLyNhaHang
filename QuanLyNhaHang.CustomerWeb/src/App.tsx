@@ -167,7 +167,7 @@ export default function App() {
         onSessionRefresh={refreshCustomerSession}
       />
       <Suspense fallback={<PageLoading />}>{content()}</Suspense>
-      <SiteFooter restaurant={data.restaurant} />
+      <SiteFooter restaurant={data.restaurant} home={pathname === '/'} />
     </div>
   )
 }
