@@ -272,8 +272,8 @@ export default function ReservationsPage() {
         <button type="button" onClick={() => void openCreate()} disabled={loading}>+ Tạo đặt bàn</button>
       </header>
 
-      {error && <div className="reservations-alert error"><span>!</span><p>{error}</p><button onClick={() => setError('')}>×</button></div>}
-      {message && <div className="reservations-alert success"><span>✓</span><p>{message}</p><button onClick={() => setMessage('')}>×</button></div>}
+      {error && <div className="reservations-alert error"><span>!</span><p>{error}</p><button type="button" aria-label="Đóng thông báo lỗi" onClick={() => setError('')}>×</button></div>}
+      {message && <div className="reservations-alert success"><span>✓</span><p>{message}</p><button type="button" aria-label="Đóng thông báo thành công" onClick={() => setMessage('')}>×</button></div>}
 
       <section className="reservations-summary">
         <article><small>Tổng kết quả</small><strong>{totalCount}</strong><span>lịch đặt phù hợp</span></article>
@@ -285,8 +285,8 @@ export default function ReservationsPage() {
 
       <section className="reservations-panel">
         <div className="reservations-filters">
-          <input value={keyword} onChange={event => { setKeyword(event.target.value); setPage(1) }} placeholder="Mã đặt bàn, khách, SĐT hoặc bàn…" />
-          <select value={status} onChange={event => { setStatus(event.target.value); setPage(1) }}>
+          <input aria-label="Tìm lịch đặt bàn" value={keyword} onChange={event => { setKeyword(event.target.value); setPage(1) }} placeholder="Mã đặt bàn, khách, SĐT hoặc bàn…" />
+          <select aria-label="Lọc lịch đặt theo trạng thái" value={status} onChange={event => { setStatus(event.target.value); setPage(1) }}>
             <option value="">Tất cả trạng thái</option>
             {Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
@@ -302,7 +302,7 @@ export default function ReservationsPage() {
                 : items.length === 0 ? <tr><td colSpan={7} className="reservations-empty"><strong>Chưa có lịch đặt phù hợp</strong><span>Thử thay đổi bộ lọc hoặc tạo lịch mới.</span></td></tr>
                 : items.map(item => (
                   <tr key={item.id}>
-                    <td><button className="reservation-name" onClick={() => void openDetail(item)} disabled={actionId === item.id}><span>{item.reservationCode}</span><strong>{item.customerName}</strong><small>{item.phoneNumber}</small></button></td>
+                    <td><button type="button" className="reservation-name" onClick={() => void openDetail(item)} disabled={actionId === item.id}><span>{item.reservationCode}</span><strong>{item.customerName}</strong><small>{item.phoneNumber}</small></button></td>
                     <td><strong>{item.restaurantTableName}</strong></td>
                     <td>{formatDateTime(item.reservationTime)}</td>
                     <td>{item.numberOfGuests} người</td>
@@ -322,8 +322,8 @@ export default function ReservationsPage() {
         <footer className="reservations-pagination"><span>Trang {page}/{totalPages} • {totalCount} kết quả</span><div><button disabled={page <= 1} onClick={() => setPage(page - 1)}>← Trước</button><button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Sau →</button></div></footer>
       </section>
 
-      {formOpen && <div className="reservations-modal-backdrop" onMouseDown={() => !saving && setFormOpen(false)}><form className="reservations-modal" onSubmit={submit} onMouseDown={event => event.stopPropagation()}>
-        <header><div><span>{editing ? 'CẬP NHẬT' : 'TẠO MỚI'}</span><h3>{editing ? editing.reservationCode : 'Đặt bàn mới'}</h3></div><button type="button" onClick={() => setFormOpen(false)}>×</button></header>
+      {formOpen && <div className="reservations-modal-backdrop" onMouseDown={() => !saving && setFormOpen(false)}><form className="reservations-modal" role="dialog" aria-modal="true" aria-labelledby="reservation-form-title" onSubmit={submit} onMouseDown={event => event.stopPropagation()}>
+        <header><div><span>{editing ? 'CẬP NHẬT' : 'TẠO MỚI'}</span><h3 id="reservation-form-title">{editing ? editing.reservationCode : 'Đặt bàn mới'}</h3></div><button type="button" aria-label="Đóng biểu mẫu đặt bàn" onClick={() => setFormOpen(false)}>×</button></header>
         <div className="reservation-form-grid">
           <label>Bàn<select value={form.restaurantTableId} onChange={event => setForm(current => ({ ...current, restaurantTableId: event.target.value }))} required><option value="">Chọn bàn</option>{tables.map(table => <option key={table.id} value={table.id}>{table.name} • {table.areaName} • {table.capacity} chỗ</option>)}</select></label>
           <label>Thời gian<input type="datetime-local" value={form.reservationTime} onChange={event => setForm(current => ({ ...current, reservationTime: event.target.value }))} required /></label>
@@ -338,8 +338,8 @@ export default function ReservationsPage() {
         <footer><button type="button" className="secondary" onClick={() => setFormOpen(false)}>Đóng</button><button disabled={saving}>{saving ? 'Đang lưu…' : editing ? 'Lưu thay đổi' : 'Tạo đặt bàn'}</button></footer>
       </form></div>}
 
-      {detail && <div className="reservations-modal-backdrop" onMouseDown={() => setDetail(null)}><section className="reservations-modal detail" onMouseDown={event => event.stopPropagation()}>
-        <header><div><span>CHI TIẾT ĐẶT BÀN</span><h3>{detail.reservationCode}</h3></div><button onClick={() => setDetail(null)}>×</button></header>
+      {detail && <div className="reservations-modal-backdrop" onMouseDown={() => setDetail(null)}><section className="reservations-modal detail" role="dialog" aria-modal="true" aria-labelledby="reservation-detail-title" onMouseDown={event => event.stopPropagation()}>
+        <header><div><span>CHI TIẾT ĐẶT BÀN</span><h3 id="reservation-detail-title">{detail.reservationCode}</h3></div><button type="button" aria-label="Đóng chi tiết đặt bàn" onClick={() => setDetail(null)}>×</button></header>
         <div className="reservation-detail-grid">
           <article><small>Khách hàng</small><strong>{detail.customerName}</strong><span>{detail.phoneNumber}</span><span>{detail.email ?? 'Không có email'}</span></article>
           <article><small>Bàn & thời gian</small><strong>{detail.restaurantTableName}</strong><span>{formatDateTime(detail.reservationTime)}</span><span>{detail.numberOfGuests} người</span></article>
@@ -354,7 +354,7 @@ export default function ReservationsPage() {
           <span><strong>Hủy</strong>{formatDateTime(detail.cancelledAt)}</span>
         </div>
         {detail.note && <div className="reservation-note"><strong>Ghi chú</strong><p>{detail.note}</p></div>}
-        <footer><button onClick={() => setDetail(null)}>Đóng</button>{(detail.status === 'Pending' || detail.status === 'Confirmed') && <button onClick={() => openEdit(detail)}>Chỉnh sửa</button>}</footer>
+        <footer><button type="button" onClick={() => setDetail(null)}>Đóng</button>{(detail.status === 'Pending' || detail.status === 'Confirmed') && <button type="button" onClick={() => openEdit(detail)}>Chỉnh sửa</button>}</footer>
       </section></div>}
     </section>
   )

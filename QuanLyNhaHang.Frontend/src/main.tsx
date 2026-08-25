@@ -60,6 +60,7 @@ import './pages/promotions-border-fix.css'
 import './pages/account-security-dark.css'
 import './pages/restaurant-settings-dark.css'
 import './pages/restaurant-settings-final-fix.css'
+import './pages/auth-portal-dark.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

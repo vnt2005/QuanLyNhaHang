@@ -17,6 +17,21 @@ function tomorrow() {
   return `${year}-${month}-${day}`
 }
 
+function reservationPrefill() {
+  const params = new URLSearchParams(window.location.search)
+  const minimumDate = tomorrow()
+  const requestedDate = params.get('date') || ''
+  const requestedTime = params.get('time') || ''
+  const requestedGuests = Number.parseInt(params.get('guests') || '', 10)
+
+  return {
+    date: /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && requestedDate >= minimumDate ? requestedDate : minimumDate,
+    time: /^\d{2}:\d{2}$/.test(requestedTime) ? requestedTime : '19:00',
+    guests: Number.isFinite(requestedGuests) && requestedGuests >= 1 && requestedGuests <= 20 ? requestedGuests : 2,
+    area: params.get('area') || '',
+  }
+}
+
 export default function ReservationPage({
   data,
   session,
@@ -24,12 +39,13 @@ export default function ReservationPage({
   data: CustomerSiteBootstrap
   session: CustomerSession | null
 }) {
+  const [prefill] = useState(reservationPrefill)
   const [customerName, setCustomerName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [email, setEmail] = useState('')
-  const [numberOfGuests, setNumberOfGuests] = useState(2)
-  const [date, setDate] = useState(tomorrow)
-  const [time, setTime] = useState('19:00')
+  const [numberOfGuests, setNumberOfGuests] = useState(prefill.guests)
+  const [date, setDate] = useState(prefill.date)
+  const [time, setTime] = useState(prefill.time)
   const [tableId, setTableId] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
@@ -43,9 +59,12 @@ export default function ReservationPage({
 
   useEffect(() => {
     if (!eligibleTables.some(table => table.id === tableId)) {
-      setTableId(eligibleTables[0]?.id ?? '')
+      const preferredTable = prefill.area
+        ? eligibleTables.find(table => table.areaName === prefill.area)
+        : undefined
+      setTableId(preferredTable?.id ?? eligibleTables[0]?.id ?? '')
     }
-  }, [eligibleTables, tableId])
+  }, [eligibleTables, prefill.area, tableId])
 
   useEffect(() => {
     if (!session) return
