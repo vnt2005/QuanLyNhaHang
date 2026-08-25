@@ -45,6 +45,7 @@ import './pages/activity-logs-dark.css'
 import './pages/activity-logs-hover-fix.css'
 import './pages/areas-tables-dark.css'
 import './design-system/confirm-dialog-polish.css'
+import './pages/areas-tables-final-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
