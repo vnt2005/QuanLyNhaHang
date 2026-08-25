@@ -42,6 +42,7 @@ import './pages/access-dark.css'
 import './pages/invoices-dark.css'
 import './pages/revenue-dark.css'
 import './pages/activity-logs-dark.css'
+import './pages/activity-logs-hover-fix.css'
 import './design-system/confirm-dialog-polish.css'
 
 createRoot(document.getElementById('root')!).render(
