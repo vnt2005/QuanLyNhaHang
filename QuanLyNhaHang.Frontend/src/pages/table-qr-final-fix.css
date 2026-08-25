@@ -1,0 +1,77 @@
+/* Final QR table dark isolation --------------------------------------------
+   Loaded after the QR dark skin so legacy light card/pagination rules cannot
+   paint white strips inside the dark QR management screen. */
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card > footer {
+  color: var(--qr-text-soft) !important;
+  border-top-color: var(--qr-border-soft) !important;
+  background: var(--qr-surface) !important;
+  background-color: var(--qr-surface) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card > footer button {
+  color: var(--qr-text-soft) !important;
+  border-color: var(--qr-border) !important;
+  background: var(--qr-surface-2) !important;
+  background-color: var(--qr-surface-2) !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card > footer button:hover:not(:disabled) {
+  color: var(--qr-text) !important;
+  border-color: #3b4b68 !important;
+  background: var(--qr-surface-3) !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card > footer .table-qr-card-primary {
+  color: var(--qr-orange) !important;
+  border-color: rgb(255 159 10 / 38%) !important;
+  background: rgb(255 159 10 / 7%) !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card > footer .table-qr-card-primary:hover:not(:disabled) {
+  color: #211300 !important;
+  border-color: var(--qr-orange) !important;
+  background: var(--qr-orange) !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-pagination {
+  color: var(--qr-muted) !important;
+  border-top-color: var(--qr-border-soft) !important;
+  background: var(--qr-surface) !important;
+  background-color: var(--qr-surface) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-pagination button {
+  color: var(--qr-text-soft) !important;
+  border-color: var(--qr-border) !important;
+  background: var(--qr-surface-2) !important;
+  background-color: var(--qr-surface-2) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-pagination button:hover:not(:disabled) {
+  color: var(--qr-orange) !important;
+  border-color: rgb(255 159 10 / 45%) !important;
+  background: rgb(255 159 10 / 7%) !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-pagination button:disabled {
+  color: #60708a !important;
+  border-color: #26334a !important;
+  background: #101a2d !important;
+  opacity: 0.55;
+}
+
+/* Keep the whole panel canvas dark, including empty space below an odd card. */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-grid {
+  background-color: var(--qr-bg) !important;
+  background-image: none !important;
+}
