@@ -55,6 +55,7 @@ import './pages/table-qr-dark.css'
 import './pages/table-qr-final-fix.css'
 import './pages/menu-management-dark.css'
 import './pages/promotions-dark.css'
+import './pages/promotions-final-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
