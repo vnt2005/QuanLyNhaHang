@@ -145,3 +145,44 @@
 .restaurant-settings-modal :is(input, textarea, select):focus-visible {
   background-color: #071126 !important;
 }
+
+/* Remaining legacy light card: active-setting toggle in create/edit modal. */
+.restaurant-settings-modal.form-modal .restaurant-setting-active-toggle,
+.restaurant-settings-modal.form-modal label.restaurant-setting-active-toggle,
+.restaurant-settings-modal.form-modal .restaurant-setting-active-toggle.disabled {
+  color: #c6d0de !important;
+  border: 1px solid #24324b !important;
+  background: #0a1427 !important;
+  background-color: #0a1427 !important;
+  box-shadow: none !important;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-setting-active-toggle:hover:not(.disabled) {
+  border-color: #334765 !important;
+  background: #0d1a31 !important;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-setting-active-toggle strong {
+  color: #f6f8fc !important;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-setting-active-toggle small {
+  color: #8293ad !important;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-setting-active-toggle input[type='checkbox'] {
+  accent-color: #ff9f0a !important;
+  background-color: #071126 !important;
+  border-color: #334765 !important;
+  color-scheme: dark;
+}
+
+/* The QR preview icon had its own legacy white tile. */
+.restaurant-settings-modal.form-modal .qr-message-preview > span,
+.restaurant-settings-modal.form-modal .qr-message-preview > :first-child {
+  color: #ff9f0a !important;
+  border: 1px solid #2d3d59 !important;
+  background: #0d1a31 !important;
+  background-color: #0d1a31 !important;
+  box-shadow: none !important;
+}
