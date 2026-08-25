@@ -96,7 +96,7 @@ export default function SiteHeader({
         <div className="site-header-actions">
           <a className="takeaway-cart-link" href="/takeaway" aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`} onClick={event => follow(event, '/takeaway')}>
             <ShoppingBag aria-hidden="true" />
-            {isPremium ? <span className="takeaway-cart-label">Giỏ mang về</span> : null}
+            {isPremium ? <b className="takeaway-cart-label">Giỏ mang về</b> : null}
             {cartCount ? <span className="takeaway-cart-count">{cartCount > 99 ? '99+' : cartCount}</span> : null}
           </a>
           {session
