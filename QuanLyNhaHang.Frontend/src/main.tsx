@@ -53,6 +53,7 @@ import './design-system/table-placeholder-fix.css'
 import './pages/activity-logs-final-fix.css'
 import './pages/table-qr-dark.css'
 import './pages/table-qr-final-fix.css'
+import './pages/menu-management-dark.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
