@@ -1,0 +1,614 @@
+/* Table QR dark command-center skin ---------------------------------------
+   Inspired by the dark QR operations reference while preserving the current
+   QR management workflow, filters, status model, real customer URL settings,
+   download/print actions and existing modals. */
+
+.admin-layout:has(.table-qr-page) {
+  --qr-bg: #050a1b;
+  --qr-bg-deep: #020617;
+  --qr-surface: #0d172a;
+  --qr-surface-2: #111d33;
+  --qr-surface-3: #15223a;
+  --qr-input: #071024;
+  --qr-border: #24324b;
+  --qr-border-soft: #1b2940;
+  --qr-text: #f5f8fd;
+  --qr-text-soft: #c5cfdd;
+  --qr-muted: #8293ad;
+  --qr-orange: #ff9f0a;
+  --qr-orange-hover: #ffad2f;
+  --qr-teal: #16d7ae;
+  --qr-blue: #4d8dff;
+  --qr-danger: #ff6178;
+  color-scheme: dark;
+  background: var(--qr-bg-deep);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard {
+  background:
+    radial-gradient(circle at 82% -10%, rgb(42 67 112 / 18%), transparent 34rem),
+    radial-gradient(circle at 12% 94%, rgb(255 159 10 / 4%), transparent 28rem),
+    var(--qr-bg);
+}
+
+.admin-layout:has(.table-qr-page) .topbar {
+  color: var(--qr-text);
+  border-bottom-color: var(--qr-border);
+  background: rgb(7 14 28 / 94%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 12%);
+}
+
+.admin-layout:has(.table-qr-page) .topbar .eyebrow {
+  color: var(--qr-orange);
+}
+
+.admin-layout:has(.table-qr-page) .topbar h1,
+.admin-layout:has(.table-qr-page) .profile-button strong {
+  color: var(--qr-text);
+}
+
+.admin-layout:has(.table-qr-page) .profile-button small {
+  color: var(--qr-muted);
+}
+
+.admin-layout:has(.table-qr-page) .profile-button:hover,
+.admin-layout:has(.table-qr-page) .profile-button.active,
+.admin-layout:has(.table-qr-page) .logout,
+.admin-layout:has(.table-qr-page) .notification-trigger {
+  color: var(--qr-text-soft);
+  border-color: var(--qr-border);
+  background: var(--qr-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.table-qr-page) .profile-button > span,
+.admin-layout:has(.table-qr-page) .topbar .profile > span,
+.admin-layout:has(.table-qr-page) .logo > span {
+  color: #251600;
+  border-color: rgb(255 159 10 / 35%);
+  background: linear-gradient(135deg, #ffb420, #ff8a00);
+  box-shadow: 0 8px 24px rgb(255 159 10 / 22%);
+}
+
+.admin-layout:has(.table-qr-page) .sidebar nav button.active,
+.admin-layout:has(.table-qr-page) .sidebar nav button.active:hover {
+  color: var(--qr-orange);
+  border-color: rgb(255 159 10 / 16%);
+  background: linear-gradient(90deg, rgb(255 159 10 / 17%), rgb(255 159 10 / 5%));
+  box-shadow: inset 3px 0 0 var(--qr-orange);
+}
+
+.admin-layout:has(.table-qr-page) .sidebar nav button.active > span {
+  color: var(--qr-orange);
+  background: rgb(255 159 10 / 12%);
+}
+
+/* Page shell --------------------------------------------------------------- */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-page {
+  width: min(100%, 100rem);
+  max-width: 100%;
+  gap: 1.45rem;
+  margin: 0 auto;
+  padding: 1.35rem 0 3rem;
+  color: var(--qr-text-soft);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar {
+  position: relative;
+  align-items: center;
+  padding: 0.2rem 0 1.55rem;
+  border-bottom: 1px solid var(--qr-border);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar > div::before {
+  display: block;
+  margin-bottom: 0.72rem;
+  content: 'Hệ thống  ›  QR bàn';
+  color: #7690b4;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-kicker {
+  color: var(--qr-orange);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar h2 {
+  margin: 0.2rem 0 0.45rem;
+  color: var(--qr-text);
+  font-size: clamp(1.85rem, 2.6vw, 2.35rem);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar p {
+  color: #98a9c0;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-primary {
+  min-height: 2.85rem;
+  padding-inline: 1.2rem;
+  color: #211300 !important;
+  border-color: var(--qr-orange) !important;
+  background: var(--qr-orange) !important;
+  box-shadow: 0 0.75rem 1.8rem rgb(255 159 10 / 17%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-primary:hover:not(:disabled) {
+  border-color: var(--qr-orange-hover) !important;
+  background: var(--qr-orange-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* Real customer-site address ---------------------------------------------- */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings {
+  grid-template-columns: auto minmax(15rem, 0.7fr) minmax(18rem, 1fr) auto;
+  border-color: var(--qr-border);
+  background:
+    linear-gradient(135deg, rgb(255 159 10 / 3%), transparent 42%),
+    var(--qr-surface);
+  box-shadow: 0 0.9rem 2.4rem rgb(0 0 0 / 10%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-icon {
+  color: var(--qr-orange);
+  border: 1px solid rgb(255 159 10 / 24%);
+  background: rgb(255 159 10 / 9%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-copy strong {
+  color: var(--qr-text);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-copy span {
+  color: var(--qr-muted);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings input,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filters input,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filters select,
+.admin-layout:has(.table-qr-page) .table-qr-form-modal select,
+.admin-layout:has(.table-qr-page) .table-qr-form-modal textarea {
+  color: var(--qr-text) !important;
+  border-color: var(--qr-border) !important;
+  background: var(--qr-input) !important;
+  box-shadow: none !important;
+  color-scheme: dark;
+}
+
+.admin-layout:has(.table-qr-page) :is(.table-qr-url-settings input, .table-qr-filters input)::placeholder,
+.admin-layout:has(.table-qr-page) .table-qr-form-modal textarea::placeholder {
+  color: #62738e;
+}
+
+.admin-layout:has(.table-qr-page) :is(.table-qr-url-settings input, .table-qr-filters input, .table-qr-filters select, .table-qr-form-modal select, .table-qr-form-modal textarea):focus {
+  border-color: var(--qr-orange) !important;
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 11%) !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings > button {
+  color: var(--qr-text-soft);
+  border-color: var(--qr-border);
+  background: var(--qr-surface-2);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings > button:hover {
+  color: var(--qr-orange);
+  border-color: rgb(255 159 10 / 45%);
+  background: rgb(255 159 10 / 6%);
+}
+
+/* Summary cards ------------------------------------------------------------ */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-grid {
+  gap: 1rem;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card {
+  min-height: 7.4rem;
+  border-color: var(--qr-border);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 58%),
+    var(--qr-surface);
+  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 11%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card::after {
+  opacity: 0.18;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card.total,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card.active,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card.inactive,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card.blocked {
+  --summary-soft: transparent;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card.total { --summary-color: var(--qr-orange); }
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card.active { --summary-color: var(--qr-teal); }
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card.inactive { --summary-color: #91a2b8; }
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card.blocked { --summary-color: var(--qr-danger); }
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-icon {
+  color: var(--summary-color);
+  border: 1px solid color-mix(in srgb, var(--summary-color) 34%, transparent);
+  background: color-mix(in srgb, var(--summary-color) 10%, transparent);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card p,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card small {
+  color: var(--qr-muted);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card strong {
+  color: var(--qr-text);
+}
+
+/* Filter/list panel -------------------------------------------------------- */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel {
+  border-color: var(--qr-border);
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel-heading {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--qr-border);
+  border-bottom: 0;
+  border-radius: 1rem 1rem 0 0;
+  background: var(--qr-surface);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel-heading h3 {
+  color: var(--qr-text);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel-heading p {
+  color: var(--qr-muted);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel-heading > span {
+  color: var(--qr-teal);
+  border: 1px solid rgb(22 215 174 / 18%);
+  background: rgb(22 215 174 / 7%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
+  grid-template-columns: minmax(16rem, 1.45fr) minmax(10rem, 0.72fr) minmax(10rem, 0.68fr) auto auto;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--qr-border);
+  background: var(--qr-surface);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-search > span {
+  color: #6f829f;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filters button {
+  color: var(--qr-text-soft);
+  border-color: var(--qr-border);
+  background: var(--qr-surface-2);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-submit {
+  color: #211300 !important;
+  border-color: var(--qr-orange) !important;
+  background: var(--qr-orange) !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-clear:hover,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filters button:hover:not(:disabled) {
+  border-color: #3a4b68;
+  background: var(--qr-surface-3);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-submit:hover:not(:disabled) {
+  color: #211300 !important;
+  border-color: var(--qr-orange-hover) !important;
+  background: var(--qr-orange-hover) !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-loading,
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-empty {
+  color: var(--qr-muted);
+  border: 1px solid var(--qr-border);
+  border-top: 0;
+  background: var(--qr-surface);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-empty h3 {
+  color: var(--qr-text);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-empty-icon {
+  color: var(--qr-orange);
+  background: rgb(255 159 10 / 9%);
+}
+
+/* QR cards ---------------------------------------------------------------- */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1rem 0 0;
+  background: transparent;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card {
+  color: var(--qr-text-soft);
+  border-color: var(--qr-border);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 1.5%), transparent 55%),
+    var(--qr-surface);
+  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 12%);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card:hover {
+  border-color: #354764;
+  background:
+    linear-gradient(145deg, rgb(255 159 10 / 2.5%), transparent 55%),
+    var(--qr-surface-2);
+  box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 18%);
+  transform: translateY(-2px);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card > header {
+  border-bottom-color: var(--qr-border-soft);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-table-name > span {
+  color: var(--qr-orange);
+  border: 1px solid rgb(255 159 10 / 22%);
+  background:
+    linear-gradient(90deg, transparent 45%, rgb(255 159 10 / 12%) 45% 55%, transparent 55%),
+    linear-gradient(transparent 45%, rgb(255 159 10 / 12%) 45% 55%, transparent 55%),
+    rgb(255 159 10 / 7%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-table-name strong {
+  color: var(--qr-text);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-table-name small {
+  color: var(--qr-muted);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-status.active {
+  color: var(--qr-teal);
+  border: 1px solid rgb(22 215 174 / 22%);
+  background: rgb(22 215 174 / 8%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-status.inactive {
+  color: #9aa9bc;
+  border: 1px solid #344159;
+  background: rgb(148 163 184 / 7%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-status.blocked {
+  color: var(--qr-danger);
+  border: 1px solid rgb(255 97 120 / 24%);
+  background: rgb(255 97 120 / 8%);
+}
+
+/* Legacy card descendants are intentionally covered broadly because the
+   current card contains real URL/token metadata that the visual reference
+   does not have. Keep those fields, but make them belong to this dark skin. */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card :is(p, small, span, label) {
+  color: var(--qr-muted);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card :is(strong, b) {
+  color: var(--qr-text);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card :is(code, input) {
+  color: #b7c5d8 !important;
+  border-color: var(--qr-border-soft) !important;
+  background: #081326 !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card a {
+  color: #dbe5f2;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card :is(button, a[role='button']) {
+  border-color: var(--qr-border);
+  background: var(--qr-surface-2);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card :is(button, a[role='button']):hover:not(:disabled) {
+  color: var(--qr-orange);
+  border-color: rgb(255 159 10 / 38%);
+  background: rgb(255 159 10 / 6%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-image {
+  border-color: #31415c;
+  background: #f8fafc;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 3%);
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-image img {
+  border-radius: 0.5rem;
+}
+
+/* Modal shell -------------------------------------------------------------- */
+.admin-layout:has(.table-qr-page) .table-qr-modal-backdrop {
+  background: rgb(1 6 18 / 76%);
+  backdrop-filter: blur(8px) saturate(0.9);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-modal {
+  color: var(--qr-text-soft);
+  border-color: #2a3954;
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at 92% 0%, rgb(48 76 128 / 13%), transparent 22rem),
+    #0c1629;
+  box-shadow: 0 2.2rem 5.5rem rgb(0 0 0 / 50%);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-modal > header {
+  border-bottom-color: #263650;
+  background: transparent;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-modal > header h3 {
+  color: var(--qr-text);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-modal > header p {
+  color: var(--qr-muted);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-modal > header > button {
+  color: #9aabc2;
+  border-color: #2b3a55;
+  background: #101c31;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-modal > header > button:hover:not(:disabled) {
+  color: #fff;
+  border-color: #425476;
+  background: #17233a;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-form-modal form {
+  color: var(--qr-text-soft);
+  background: transparent;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-form-modal form label,
+.admin-layout:has(.table-qr-page) .table-qr-form-modal form strong {
+  color: #9fb0c7;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-modal-actions > button:not(.table-qr-primary) {
+  color: var(--qr-text-soft);
+  border-color: var(--qr-border);
+  background: var(--qr-surface-2);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-modal-actions > button:not(.table-qr-primary):hover:not(:disabled) {
+  color: #fff;
+  border-color: #40516f;
+  background: var(--qr-surface-3);
+}
+
+/* Detail modal ------------------------------------------------------------- */
+.admin-layout:has(.table-qr-page) .table-qr-detail-modal {
+  width: min(64rem, 95vw);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-content {
+  gap: 1rem;
+  padding: 1.2rem;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-preview {
+  border: 1px solid #2a3a55;
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 15% 12%, rgb(255 159 10 / 7%), transparent 42%),
+    #101c31;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-preview .table-qr-image {
+  border-color: #384963;
+  background: #fff;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-info {
+  gap: 0.8rem;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-row,
+.admin-layout:has(.table-qr-page) .table-qr-detail-note {
+  border-color: #293953;
+  background: #101c31;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-row > span,
+.admin-layout:has(.table-qr-page) .table-qr-detail-note > span,
+.admin-layout:has(.table-qr-page) .table-qr-detail-meta > span {
+  color: #8ea1bc;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-row :is(strong, code),
+.admin-layout:has(.table-qr-page) .table-qr-detail-meta strong,
+.admin-layout:has(.table-qr-page) .table-qr-detail-note p {
+  color: #dbe5f2;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-row > button {
+  color: var(--qr-orange);
+  border-color: rgb(255 159 10 / 30%);
+  background: rgb(255 159 10 / 6%);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-meta > span {
+  border: 1px solid #27364f;
+  background: #0d182c;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-tools :is(a, button),
+.admin-layout:has(.table-qr-page) .table-qr-detail-actions > button {
+  color: var(--qr-text-soft);
+  border-color: var(--qr-border);
+  background: var(--qr-surface-2);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-tools :is(a, button):hover:not(:disabled),
+.admin-layout:has(.table-qr-page) .table-qr-detail-actions > button:hover:not(:disabled) {
+  color: var(--qr-orange);
+  border-color: rgb(255 159 10 / 38%);
+  background: rgb(255 159 10 / 6%);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-tools .table-qr-scan-button {
+  color: #211300 !important;
+  border-color: var(--qr-orange) !important;
+  background: var(--qr-orange) !important;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-actions .table-qr-warning-button {
+  color: #ffc45f;
+  border-color: rgb(255 159 10 / 30%);
+  background: rgb(255 159 10 / 7%);
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-detail-actions .table-qr-danger-button {
+  color: #ff8296;
+  border-color: rgb(255 97 120 / 30%);
+  background: rgb(255 97 120 / 7%);
+}
+
+/* Native options should not flash light inside the dark modals. */
+.admin-layout:has(.table-qr-page) select option {
+  color: var(--qr-text);
+  background: #071024;
+}
+
+@media (max-width: 980px) {
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar {
+    align-items: stretch;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
