@@ -59,6 +59,7 @@ import './pages/promotions-final-fix.css'
 import './pages/promotions-border-fix.css'
 import './pages/account-security-dark.css'
 import './pages/restaurant-settings-dark.css'
+import './pages/restaurant-settings-final-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
