@@ -1,0 +1,87 @@
+/* Activity log hover isolation ---------------------------------------------
+   Keep the dark audit table dark when shared Admin table hover rules run. */
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover,
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover
+  > td {
+  color: var(--activity-text-soft) !important;
+  background: var(--activity-surface-raised) !important;
+}
+
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover
+  > td {
+  border-bottom-color: #2d3b55 !important;
+}
+
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover
+  td
+  strong {
+  color: var(--activity-text) !important;
+}
+
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover
+  td
+  small {
+  color: #91a2bd !important;
+}
+
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover
+  .activity-description {
+  color: #b4c0d1 !important;
+}
+
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover
+  .activity-action {
+  color: #d0c3ff !important;
+  border-color: rgb(167 139 250 / 38%) !important;
+  background: rgb(167 139 250 / 13%) !important;
+}
+
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover
+  .activity-status.success {
+  color: #5cebc5 !important;
+  border-color: rgb(17 215 176 / 35%) !important;
+  background: rgb(17 215 176 / 12%) !important;
+}
+
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table
+  tbody
+  tr:hover
+  .activity-status.failed {
+  color: #ff8296 !important;
+  border-color: rgb(255 95 120 / 35%) !important;
+  background: rgb(255 95 120 / 12%) !important;
+}
