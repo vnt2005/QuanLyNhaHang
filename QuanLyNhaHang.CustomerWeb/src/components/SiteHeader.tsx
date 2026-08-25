@@ -1,4 +1,4 @@
-import { Menu, ShoppingBag, UserRound, X } from 'lucide-react'
+import { Clock3, Menu, Phone, ShoppingBag, UserRound, UtensilsCrossed, X } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import type { CustomerSession } from '../api/customerAuth'
 import type { PublicRestaurant } from '../api/customerSite'
@@ -29,6 +29,7 @@ export default function SiteHeader({
   const [cartCount, setCartCount] = useState(() => takeawayCartCount())
   const accountPath = session ? '/orders' : '/login'
   const accountLabel = session ? [session.ho, session.ten].filter(Boolean).join(' ') : 'Đăng nhập'
+  const isHome = pathname === '/'
 
   useEffect(() => {
     const updateCart = () => setCartCount(takeawayCartCount())
@@ -52,12 +53,34 @@ export default function SiteHeader({
   }
 
   return (
-    <header className="site-header">
+    <header className={isHome ? 'site-header home-site-header' : 'site-header'}>
+      {isHome ? (
+        <div className="home-utility-bar">
+          <div>
+            <span><Phone aria-hidden="true" />{restaurant?.phoneNumber ? `Hotline: ${restaurant.phoneNumber}` : 'Hotline đang cập nhật'}</span>
+            <span><Clock3 aria-hidden="true" />{restaurant ? `Mở cửa: ${restaurant.openingTime} – ${restaurant.closingTime}` : 'Giờ mở cửa đang cập nhật'}</span>
+            <a href="/reservation" onClick={event => follow(event, '/reservation')}>Đặt bàn trực tuyến</a>
+          </div>
+        </div>
+      ) : null}
+
       <div className="site-header-inner">
-        <a className="brand" href="/" onClick={event => follow(event, '/')}>
-          {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" /> : null}
-          <span>{restaurant?.restaurantName || 'Nhà Hàng'}</span>
-        </a>
+        {isHome ? (
+          <a className="brand home-brand" href="/" onClick={event => follow(event, '/')}>
+            <span className="home-brand-mark">
+              {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" /> : <UtensilsCrossed aria-hidden="true" />}
+            </span>
+            <span className="home-brand-copy">
+              <strong>{restaurant?.restaurantName || 'Nhà Hàng'}</strong>
+              <small>Ẩm thực Việt</small>
+            </span>
+          </a>
+        ) : (
+          <a className="brand" href="/" onClick={event => follow(event, '/')}>
+            {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" /> : null}
+            <span>{restaurant?.restaurantName || 'Nhà Hàng'}</span>
+          </a>
+        )}
 
         <nav className={open ? 'site-nav open' : 'site-nav'} aria-label="Điều hướng chính">
           {links.map(link => {
@@ -69,7 +92,8 @@ export default function SiteHeader({
         <div className="site-header-actions">
           <a className="takeaway-cart-link" href="/takeaway" aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`} onClick={event => follow(event, '/takeaway')}>
             <ShoppingBag aria-hidden="true" />
-            {cartCount ? <span>{cartCount > 99 ? '99+' : cartCount}</span> : null}
+            {isHome ? <span className="takeaway-cart-label">Giỏ mang về</span> : null}
+            {cartCount ? <span className="takeaway-cart-count">{cartCount > 99 ? '99+' : cartCount}</span> : null}
           </a>
           {session
             ? <NotificationCenter
