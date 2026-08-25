@@ -1,45 +1,131 @@
-/* Prevent transient white table flashes while paginated data is loading.
-   Many Admin screens temporarily replace tbody with one colspan cell such as
-   "Đang tải...". Legacy/light table rules were painting that placeholder white,
-   which appeared as a brief white rectangle between pages. */
+/* Prevent transient white/blue table flashes while paginated data is loading.
+   Several Admin pages replace tbody with a single colspan loading row between
+   requests. The old light table surface can show through for a frame, then a
+   row background transition can briefly flash blue when new data mounts. */
 
+/* Base protection for placeholder/loading rows. */
 .admin-layout .dashboard table tbody:has(> tr:only-child > td[colspan]),
 .admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]),
 .admin-layout .dashboard table tbody > tr:only-child > td[colspan] {
-  background: transparent !important;
-  background-color: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
-.admin-layout .dashboard table tbody > tr:only-child:hover > td[colspan],
-.admin-layout .dashboard table tbody > tr:only-child:focus-within > td[colspan] {
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-/* Cover the explicit empty/loading cells used across individual modules too. */
 .admin-layout .dashboard table tbody td[colspan][class*="empty"],
 .admin-layout .dashboard table tbody td[colspan][class*="loading"],
 .admin-layout .dashboard table tbody td[colspan].reservations-empty {
-  background: transparent !important;
-  background-color: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
-/* Dark redesigned modules: keep placeholder text readable without introducing
-   a filled row. The surrounding table/panel remains visible while data loads. */
+/* Dark pages -------------------------------------------------------------
+   Do not use transparent here. The underlying legacy table/panel can still be
+   white, which is exactly what caused the one-frame rectangle in pagination.
+   Give the table state a real navy paint instead. */
+.admin-layout:has(.reservations-page) .dashboard :is(.reservations-panel, .reservations-table-wrap, .reservations-table, .reservations-table tbody),
+.admin-layout:has(.activity-logs-page) .dashboard :is(.activity-logs-table-wrap, .activity-logs-table, .activity-logs-table tbody),
+.admin-layout:has(.employees-page) .dashboard table,
+.admin-layout:has(.employees-page) .dashboard table tbody,
+.admin-layout:has(.customers-page) .dashboard table,
+.admin-layout:has(.customers-page) .dashboard table tbody,
+.admin-layout:has(.scheduling-page) .dashboard table,
+.admin-layout:has(.scheduling-page) .dashboard table tbody,
+.admin-layout:has(.access-page) .dashboard table,
+.admin-layout:has(.access-page) .dashboard table tbody,
+.admin-layout:has(.invoices-page) .dashboard table,
+.admin-layout:has(.invoices-page) .dashboard table tbody,
+.admin-layout:has(.revenue-reports-page) .dashboard table,
+.admin-layout:has(.revenue-reports-page) .dashboard table tbody,
+.admin-layout:has(.payments-page) .dashboard table,
+.admin-layout:has(.payments-page) .dashboard table tbody,
+.admin-layout:has(.orders-page) .dashboard table,
+.admin-layout:has(.orders-page) .dashboard table tbody,
+.admin-layout:has(.kitchen-page) .dashboard table,
+.admin-layout:has(.kitchen-page) .dashboard table tbody {
+  background-color: #0b1427 !important;
+}
+
+.admin-layout:has(.reservations-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.activity-logs-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.employees-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.customers-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.scheduling-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.access-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.invoices-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.revenue-reports-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.payments-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.orders-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout:has(.kitchen-page) .dashboard table tbody > tr:only-child:has(> td[colspan]),
 .admin-layout:has(.reservations-page) .dashboard table tbody > tr:only-child > td[colspan],
-.admin-layout:has(.areas-tables-page) .dashboard table tbody > tr:only-child > td[colspan],
 .admin-layout:has(.activity-logs-page) .dashboard table tbody > tr:only-child > td[colspan],
 .admin-layout:has(.employees-page) .dashboard table tbody > tr:only-child > td[colspan],
 .admin-layout:has(.customers-page) .dashboard table tbody > tr:only-child > td[colspan],
-.admin-layout:has(.shifts-page) .dashboard table tbody > tr:only-child > td[colspan],
-.admin-layout:has(.access-management-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.scheduling-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.access-page) .dashboard table tbody > tr:only-child > td[colspan],
 .admin-layout:has(.invoices-page) .dashboard table tbody > tr:only-child > td[colspan],
-.admin-layout:has(.revenue-reports-page) .dashboard table tbody > tr:only-child > td[colspan] {
+.admin-layout:has(.revenue-reports-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.payments-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.orders-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.kitchen-page) .dashboard table tbody > tr:only-child > td[colspan] {
   color: #8fa0b8 !important;
+  background: #0b1427 !important;
+  background-color: #0b1427 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* The video also shows the freshly mounted row flashing blue immediately
+   after the white loading frame. Stop row/cell background transitions in the
+   dark data tables. Hover can still change immediately, but cannot animate
+   from a legacy light color. */
+.admin-layout:has(.reservations-page) .dashboard .reservations-table tbody :is(tr, td),
+.admin-layout:has(.activity-logs-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.employees-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.customers-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.scheduling-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.access-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.invoices-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.revenue-reports-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.payments-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.orders-page) .dashboard table tbody :is(tr, td),
+.admin-layout:has(.kitchen-page) .dashboard table tbody :is(tr, td) {
+  transition-property: color, border-color, opacity, transform !important;
+  animation: none !important;
+}
+
+/* A placeholder must stay navy even if a generic row hover/focus selector has
+   higher feature-level specificity. */
+.admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]):hover,
+.admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]):focus-within,
+.admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]):hover > td[colspan],
+.admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]):focus-within > td[colspan] {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.reservations-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.activity-logs-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.employees-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.customers-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.scheduling-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.access-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.invoices-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.revenue-reports-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.payments-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.orders-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.kitchen-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+.admin-layout:has(.reservations-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.activity-logs-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.employees-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.customers-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.scheduling-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.access-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.invoices-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.revenue-reports-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.payments-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.orders-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan],
+.admin-layout:has(.kitchen-page) .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan] {
+  background: #0b1427 !important;
+  background-color: #0b1427 !important;
 }
