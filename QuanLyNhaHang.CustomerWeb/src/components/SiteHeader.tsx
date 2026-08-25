@@ -29,7 +29,11 @@ export default function SiteHeader({
   const [cartCount, setCartCount] = useState(() => takeawayCartCount())
   const accountPath = session ? '/orders' : '/login'
   const accountLabel = session ? [session.ho, session.ten].filter(Boolean).join(' ') : 'Đăng nhập'
-  const isHome = pathname === '/'
+  const isPremium = pathname === '/'
+    || pathname === '/menu'
+    || pathname.startsWith('/menu/')
+    || pathname === '/takeaway'
+    || pathname === '/payment-result'
 
   useEffect(() => {
     const updateCart = () => setCartCount(takeawayCartCount())
@@ -53,8 +57,8 @@ export default function SiteHeader({
   }
 
   return (
-    <header className={isHome ? 'site-header home-site-header' : 'site-header'}>
-      {isHome ? (
+    <header className={isPremium ? 'site-header home-site-header' : 'site-header'}>
+      {isPremium ? (
         <div className="home-utility-bar">
           <div>
             <span><Phone aria-hidden="true" />{restaurant?.phoneNumber ? `Hotline: ${restaurant.phoneNumber}` : 'Hotline đang cập nhật'}</span>
@@ -65,7 +69,7 @@ export default function SiteHeader({
       ) : null}
 
       <div className="site-header-inner">
-        {isHome ? (
+        {isPremium ? (
           <a className="brand home-brand" href="/" onClick={event => follow(event, '/')}>
             <span className="home-brand-mark">
               {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" /> : <UtensilsCrossed aria-hidden="true" />}
@@ -92,7 +96,7 @@ export default function SiteHeader({
         <div className="site-header-actions">
           <a className="takeaway-cart-link" href="/takeaway" aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`} onClick={event => follow(event, '/takeaway')}>
             <ShoppingBag aria-hidden="true" />
-            {isHome ? <span className="takeaway-cart-label">Giỏ mang về</span> : null}
+            {isPremium ? <span className="takeaway-cart-label">Giỏ mang về</span> : null}
             {cartCount ? <span className="takeaway-cart-count">{cartCount > 99 ? '99+' : cartCount}</span> : null}
           </a>
           {session
