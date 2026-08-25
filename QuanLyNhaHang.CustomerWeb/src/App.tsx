@@ -143,6 +143,11 @@ export default function App() {
 
   const qrToken = getQrToken(pathname)
   const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/reservation' || Boolean(menuItemId)
+  const premiumCustomerChrome = pathname === '/'
+    || pathname === '/menu'
+    || Boolean(menuItemId)
+    || pathname === '/takeaway'
+    || pathname === '/payment-result'
 
   function content() {
     if (pathname === '/payment-result') return <PaymentResultPage session={session} />
@@ -167,7 +172,7 @@ export default function App() {
         onSessionRefresh={refreshCustomerSession}
       />
       <Suspense fallback={<PageLoading />}>{content()}</Suspense>
-      <SiteFooter restaurant={data.restaurant} home={pathname === '/'} />
+      <SiteFooter restaurant={data.restaurant} home={premiumCustomerChrome} />
     </div>
   )
 }
