@@ -1,0 +1,45 @@
+/* Prevent transient white table flashes while paginated data is loading.
+   Many Admin screens temporarily replace tbody with one colspan cell such as
+   "Đang tải...". Legacy/light table rules were painting that placeholder white,
+   which appeared as a brief white rectangle between pages. */
+
+.admin-layout .dashboard table tbody:has(> tr:only-child > td[colspan]),
+.admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]),
+.admin-layout .dashboard table tbody > tr:only-child > td[colspan] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.admin-layout .dashboard table tbody > tr:only-child:hover > td[colspan],
+.admin-layout .dashboard table tbody > tr:only-child:focus-within > td[colspan] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Cover the explicit empty/loading cells used across individual modules too. */
+.admin-layout .dashboard table tbody td[colspan][class*="empty"],
+.admin-layout .dashboard table tbody td[colspan][class*="loading"],
+.admin-layout .dashboard table tbody td[colspan].reservations-empty {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Dark redesigned modules: keep placeholder text readable without introducing
+   a filled row. The surrounding table/panel remains visible while data loads. */
+.admin-layout:has(.reservations-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.areas-tables-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.activity-logs-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.employees-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.customers-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.shifts-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.access-management-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.invoices-page) .dashboard table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.revenue-reports-page) .dashboard table tbody > tr:only-child > td[colspan] {
+  color: #8fa0b8 !important;
+}
