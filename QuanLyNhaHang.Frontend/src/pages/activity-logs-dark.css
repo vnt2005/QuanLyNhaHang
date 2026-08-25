@@ -1,0 +1,882 @@
+/* Activity log audit center -------------------------------------------------
+   Dark navy/orange treatment inspired by the operations screens while keeping
+   the existing activity-log data, filters, permissions and detail workflow. */
+.admin-layout:has(.activity-logs-page) {
+  --activity-bg: #050a1b;
+  --activity-bg-deep: #020617;
+  --activity-surface: #0e172a;
+  --activity-surface-raised: #121d33;
+  --activity-input: #071024;
+  --activity-border: #253149;
+  --activity-border-soft: #1b2940;
+  --activity-text: #f5f7fb;
+  --activity-text-soft: #c2ccda;
+  --activity-muted: #8192ad;
+  --activity-orange: #ff9f0a;
+  --activity-orange-hover: #ffad2f;
+  --activity-teal: #11d7b0;
+  --activity-blue: #4d8dff;
+  --activity-purple: #a78bfa;
+  --activity-danger: #ff5f78;
+  color-scheme: dark;
+  background: var(--activity-bg-deep);
+}
+
+.admin-layout:has(.activity-logs-page) .dashboard {
+  background:
+    radial-gradient(circle at 82% -8%, rgb(39 65 112 / 20%), transparent 34rem),
+    radial-gradient(circle at 10% 92%, rgb(255 159 10 / 5%), transparent 28rem),
+    var(--activity-bg);
+}
+
+.admin-layout:has(.activity-logs-page) .topbar {
+  color: var(--activity-text);
+  border-bottom-color: var(--activity-border);
+  background: rgb(10 17 32 / 94%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 12%);
+}
+
+.admin-layout:has(.activity-logs-page) .topbar .eyebrow {
+  color: var(--activity-orange);
+}
+
+.admin-layout:has(.activity-logs-page) .topbar h1,
+.admin-layout:has(.activity-logs-page) .profile-button strong {
+  color: var(--activity-text);
+}
+
+.admin-layout:has(.activity-logs-page) .profile-button small {
+  color: var(--activity-muted);
+}
+
+.admin-layout:has(.activity-logs-page) .profile-button:hover,
+.admin-layout:has(.activity-logs-page) .profile-button.active {
+  border-color: var(--activity-border);
+  background: var(--activity-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.activity-logs-page) .profile-button > span,
+.admin-layout:has(.activity-logs-page) .topbar .profile > span,
+.admin-layout:has(.activity-logs-page) .logo > span {
+  color: #241500;
+  border-color: rgb(255 159 10 / 35%);
+  background: linear-gradient(135deg, #ffb41f, #ff8a00);
+  box-shadow: 0 8px 24px rgb(255 159 10 / 24%);
+}
+
+.admin-layout:has(.activity-logs-page) .logout,
+.admin-layout:has(.activity-logs-page) .notification-trigger {
+  color: var(--activity-text-soft);
+  border-color: var(--activity-border);
+  background: var(--activity-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.activity-logs-page) .logout:hover:not(:disabled),
+.admin-layout:has(.activity-logs-page) .notification-trigger:hover,
+.admin-layout:has(.activity-logs-page) .notification-trigger.active {
+  color: var(--activity-text);
+  border-color: #3a4a68;
+  background: var(--activity-surface-raised);
+}
+
+.admin-layout:has(.activity-logs-page) .sidebar nav button.active,
+.admin-layout:has(.activity-logs-page) .sidebar nav button.active:hover {
+  color: var(--activity-orange);
+  border-color: rgb(255 159 10 / 16%);
+  background: linear-gradient(90deg, rgb(255 159 10 / 17%), rgb(255 159 10 / 5%));
+  box-shadow: inset 3px 0 0 var(--activity-orange);
+}
+
+.admin-layout:has(.activity-logs-page) .sidebar nav button.active > span {
+  color: var(--activity-orange);
+  background: rgb(255 159 10 / 12%);
+}
+
+.dashboard .activity-logs-page {
+  display: grid;
+  align-content: start;
+  width: min(100%, 100rem);
+  max-width: 100%;
+  min-width: 0;
+  gap: 1.5rem;
+  margin: 0 auto;
+  padding: 1.35rem 0 3rem;
+  color: var(--activity-text);
+}
+
+.dashboard .activity-logs-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0.25rem 0 1.5rem;
+  border-bottom: 1px solid var(--activity-border);
+}
+
+.dashboard .activity-logs-heading > div {
+  min-width: 0;
+}
+
+.dashboard .activity-logs-kicker {
+  display: block;
+  margin: 0 0 0.45rem;
+  color: var(--activity-orange);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dashboard .activity-logs-heading h2 {
+  margin: 0;
+  color: var(--activity-text);
+  font-size: clamp(1.8rem, 2.7vw, 2.4rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.dashboard .activity-logs-heading p {
+  max-width: 54rem;
+  margin: 0.65rem 0 0;
+  color: var(--activity-muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.dashboard .activity-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.85rem;
+  gap: 0.5rem;
+  padding: 0 1.15rem;
+  flex: 0 0 auto;
+  color: #211300;
+  border: 1px solid var(--activity-orange) !important;
+  border-radius: 0.8rem;
+  background: var(--activity-orange) !important;
+  box-shadow: 0 0.65rem 1.5rem rgb(255 159 10 / 16%);
+  font-size: 0.8rem;
+  font-weight: 850;
+  transition: 150ms ease;
+}
+
+.dashboard .activity-refresh:hover:not(:disabled) {
+  border-color: var(--activity-orange-hover) !important;
+  background: var(--activity-orange-hover) !important;
+  box-shadow: 0 0.8rem 1.8rem rgb(255 159 10 / 24%);
+  transform: translateY(-1px);
+}
+
+.dashboard .activity-alert {
+  color: var(--activity-text-soft);
+  border: 1px solid var(--activity-border);
+  border-radius: 0.85rem;
+  background: var(--activity-surface);
+}
+
+.dashboard .activity-alert.error {
+  color: #ffb3c0;
+  border-color: rgb(255 95 120 / 30%);
+  background: rgb(255 95 120 / 9%);
+}
+
+.dashboard .activity-alert.success {
+  color: #96f4d9;
+  border-color: rgb(17 215 176 / 28%);
+  background: rgb(17 215 176 / 8%);
+}
+
+.dashboard .activity-alert button {
+  color: currentColor;
+}
+
+.dashboard .activity-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.dashboard .activity-summary-grid > article {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 8.2rem;
+  gap: 1rem;
+  padding: 1.25rem 1.3rem;
+  overflow: hidden;
+  color: var(--activity-text);
+  border: 1px solid var(--activity-border);
+  border-radius: 1.05rem;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 55%),
+    var(--activity-surface);
+  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 12%);
+}
+
+.dashboard .activity-summary-grid > article::after {
+  position: absolute;
+  inset: auto -2rem -3.2rem auto;
+  width: 8rem;
+  height: 8rem;
+  content: '';
+  border-radius: 999px;
+  background: rgb(255 159 10 / 5%);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.dashboard .activity-summary-grid > article.success::after {
+  background: rgb(17 215 176 / 5%);
+}
+
+.dashboard .activity-summary-grid > article.failed::after {
+  background: rgb(255 95 120 / 5%);
+}
+
+.dashboard .activity-summary-grid > article.today::after {
+  background: rgb(77 141 255 / 6%);
+}
+
+.dashboard .activity-summary-grid article > span {
+  display: grid;
+  width: 3.15rem;
+  height: 3.15rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--activity-orange);
+  border: 1px solid rgb(255 159 10 / 48%);
+  border-radius: 0.85rem;
+  background: linear-gradient(145deg, rgb(255 159 10 / 17%), rgb(255 159 10 / 5%));
+  box-shadow: inset 0 0 1.25rem rgb(255 159 10 / 6%);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.dashboard .activity-summary-grid article.success > span {
+  color: var(--activity-teal);
+  border-color: rgb(17 215 176 / 45%);
+  background: linear-gradient(145deg, rgb(17 215 176 / 16%), rgb(17 215 176 / 5%));
+}
+
+.dashboard .activity-summary-grid article.failed > span {
+  color: var(--activity-danger);
+  border-color: rgb(255 95 120 / 45%);
+  background: linear-gradient(145deg, rgb(255 95 120 / 16%), rgb(255 95 120 / 5%));
+}
+
+.dashboard .activity-summary-grid article.today > span {
+  color: var(--activity-blue);
+  border-color: rgb(77 141 255 / 45%);
+  background: linear-gradient(145deg, rgb(77 141 255 / 16%), rgb(77 141 255 / 5%));
+}
+
+.dashboard .activity-summary-grid article > div {
+  min-width: 0;
+}
+
+.dashboard .activity-summary-grid p,
+.dashboard .activity-summary-grid small {
+  margin: 0;
+  color: var(--activity-muted);
+}
+
+.dashboard .activity-summary-grid p {
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.dashboard .activity-summary-grid strong {
+  display: block;
+  margin: 0.35rem 0 0.4rem;
+  overflow: hidden;
+  color: var(--activity-orange);
+  font-size: clamp(1.55rem, 2.1vw, 2rem);
+  font-weight: 900;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard .activity-summary-grid article.success strong {
+  color: var(--activity-teal);
+}
+
+.dashboard .activity-summary-grid article.failed strong {
+  color: var(--activity-danger);
+}
+
+.dashboard .activity-summary-grid article.today strong {
+  color: var(--activity-blue);
+}
+
+.dashboard .activity-summary-grid small {
+  display: block;
+  overflow: hidden;
+  font-size: 0.69rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard .activity-panel {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dashboard .activity-filters {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.6fr) repeat(5, minmax(8.5rem, 1fr)) auto;
+  align-items: end;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--activity-border);
+  border-radius: 1.05rem;
+  background: var(--activity-surface);
+  box-shadow: 0 0.9rem 2.5rem rgb(0 0 0 / 10%);
+}
+
+.dashboard .activity-filters label {
+  display: grid;
+  min-width: 0;
+  gap: 0.45rem;
+}
+
+.dashboard .activity-filters label > span {
+  color: var(--activity-muted);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.dashboard .activity-filters :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.7rem;
+  padding: 0 0.8rem;
+  color: var(--activity-text) !important;
+  border: 1px solid var(--activity-border);
+  border-radius: 0.72rem;
+  background: var(--activity-input) !important;
+  box-shadow: none;
+  font-size: 0.75rem;
+  font-weight: 650;
+  outline: none;
+  transition: 150ms ease;
+}
+
+.dashboard .activity-filters input::placeholder {
+  color: #63738e;
+}
+
+.dashboard .activity-filters :is(input, select):focus {
+  border-color: var(--activity-orange);
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 12%);
+}
+
+.dashboard .activity-clear {
+  min-height: 2.7rem;
+  padding: 0 1rem;
+  color: var(--activity-orange);
+  border: 1px solid rgb(255 159 10 / 55%);
+  border-radius: 0.72rem;
+  background: rgb(255 159 10 / 6%);
+  font-size: 0.75rem;
+  font-weight: 850;
+  white-space: nowrap;
+  transition: 150ms ease;
+}
+
+.dashboard .activity-clear:hover:not(:disabled) {
+  color: #211300;
+  border-color: var(--activity-orange);
+  background: var(--activity-orange);
+}
+
+.dashboard .activity-table-wrap {
+  min-width: 0;
+  overflow: auto;
+  border: 1px solid var(--activity-border);
+  border-radius: 1.05rem 1.05rem 0 0;
+  background: var(--activity-surface);
+  box-shadow: 0 0.9rem 2.5rem rgb(0 0 0 / 10%);
+  scrollbar-color: #40516d transparent;
+  scrollbar-width: thin;
+}
+
+.dashboard .activity-table {
+  width: 100%;
+  min-width: 74rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--activity-text-soft);
+}
+
+.dashboard .activity-table th,
+.dashboard .activity-table td {
+  padding: 1rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--activity-border-soft);
+}
+
+.dashboard .activity-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: #7386a5;
+  background: #0b1427;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard .activity-table tbody tr {
+  background: var(--activity-surface);
+  transition: background 130ms ease;
+}
+
+.dashboard .activity-table tbody tr:hover {
+  background: var(--activity-surface-raised);
+}
+
+.dashboard .activity-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.dashboard .activity-table td strong {
+  display: block;
+  color: var(--activity-text);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.dashboard .activity-table td small {
+  display: block;
+  max-width: 15rem;
+  margin-top: 0.32rem;
+  overflow-wrap: anywhere;
+  color: var(--activity-muted);
+  font-size: 0.67rem;
+  line-height: 1.35;
+}
+
+.dashboard .activity-description {
+  max-width: 22rem;
+  color: #9eacc1;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.dashboard .activity-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.7rem;
+  padding: 0 0.58rem;
+  color: #c2b0ff;
+  border: 1px solid rgb(167 139 250 / 28%);
+  border-radius: 0.55rem;
+  background: rgb(167 139 250 / 9%);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.dashboard .activity-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.72rem;
+  gap: 0.35rem;
+  padding: 0 0.62rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.dashboard .activity-status::before {
+  width: 0.36rem;
+  height: 0.36rem;
+  content: '';
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 3px currentColor;
+  opacity: 0.8;
+}
+
+.dashboard .activity-status.success {
+  color: #4ce7bf;
+  border: 1px solid rgb(17 215 176 / 24%);
+  background: rgb(17 215 176 / 8%);
+}
+
+.dashboard .activity-status.failed {
+  color: #ff8ea1;
+  border: 1px solid rgb(255 95 120 / 25%);
+  background: rgb(255 95 120 / 8%);
+}
+
+.dashboard .activity-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.dashboard .activity-row-actions button {
+  min-height: 2.1rem;
+  padding: 0 0.7rem;
+  color: var(--activity-text-soft);
+  border: 1px solid #34435e;
+  border-radius: 0.65rem;
+  background: #0a1427;
+  font-size: 0.7rem;
+  font-weight: 800;
+  transition: 130ms ease;
+}
+
+.dashboard .activity-row-actions button:hover:not(:disabled) {
+  color: var(--activity-text);
+  border-color: #536684;
+  background: #15223a;
+}
+
+.dashboard .activity-row-actions .danger {
+  color: #ff879a;
+  border-color: rgb(255 95 120 / 30%);
+  background: rgb(255 95 120 / 6%);
+}
+
+.dashboard .activity-row-actions .danger:hover:not(:disabled) {
+  color: #160408;
+  border-color: var(--activity-danger);
+  background: var(--activity-danger);
+}
+
+.dashboard .activity-empty {
+  padding: 3rem 1rem !important;
+  color: var(--activity-muted) !important;
+  text-align: center !important;
+}
+
+.dashboard .activity-empty strong {
+  color: var(--activity-text-soft);
+}
+
+.dashboard .activity-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: -1rem;
+  padding: 0.9rem 1rem;
+  color: var(--activity-muted);
+  border: 1px solid var(--activity-border);
+  border-top: 0;
+  border-radius: 0 0 1.05rem 1.05rem;
+  background: #0b1427;
+}
+
+.dashboard .activity-pagination > span {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.dashboard .activity-pagination div {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.dashboard .activity-pagination button {
+  min-height: 2.15rem;
+  padding: 0 0.75rem;
+  color: var(--activity-text-soft);
+  border: 1px solid #34435e;
+  border-radius: 0.65rem;
+  background: #101b30;
+  font-size: 0.69rem;
+  font-weight: 800;
+}
+
+.dashboard .activity-pagination button:hover:not(:disabled) {
+  color: #211300;
+  border-color: var(--activity-orange);
+  background: var(--activity-orange);
+}
+
+.dashboard .activity-pagination button:disabled,
+.dashboard .activity-row-actions button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+/* Detail modal ------------------------------------------------------------ */
+.admin-layout:has(.activity-logs-page) .activity-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgb(1 7 19 / 76%);
+  backdrop-filter: blur(9px);
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal {
+  width: min(60rem, 96vw);
+  max-height: min(88vh, 52rem);
+  overflow: auto;
+  color: var(--activity-text);
+  border: 1px solid #2a3853;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(255 159 10 / 8%), transparent 18rem),
+    linear-gradient(180deg, #111b30 0%, #0c162a 100%);
+  box-shadow: 0 2.2rem 6rem rgb(0 0 0 / 48%);
+  scrollbar-color: #475a78 transparent;
+  scrollbar-width: thin;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.5rem;
+  border-bottom: 1px solid var(--activity-border);
+  background: transparent;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > header > div {
+  min-width: 0;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > header span {
+  display: block;
+  color: var(--activity-orange);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > header h3 {
+  margin: 0.28rem 0 0;
+  color: var(--activity-text);
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > header button {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: #9aabc3;
+  border: 1px solid var(--activity-border);
+  border-radius: 0.72rem;
+  background: #0a1427;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > header button:hover {
+  color: var(--activity-text);
+  border-color: #465874;
+  background: #17233b;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 1.25rem 1.5rem 0;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-detail-grid > div {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  min-height: 8.2rem;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--activity-border);
+  border-radius: 0.9rem;
+  background: linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 55%), #0a1427;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-detail-grid span,
+.admin-layout:has(.activity-logs-page) .activity-detail-description span,
+.admin-layout:has(.activity-logs-page) .activity-json-grid > article > span {
+  display: block;
+  margin: 0 0 0.42rem;
+  color: var(--activity-muted);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-detail-grid strong {
+  color: var(--activity-text);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-detail-grid small {
+  display: block;
+  margin-top: 0.12rem;
+  overflow-wrap: anywhere;
+  color: var(--activity-muted);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-detail-grid .agent-text {
+  overflow-wrap: anywhere;
+  color: #dbe4f1;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-detail-description {
+  margin: 0.9rem 1.5rem 0;
+  padding: 0.95rem 1rem;
+  color: var(--activity-text-soft);
+  border: 1px solid var(--activity-border);
+  border-radius: 0.9rem;
+  background: #0a1427;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-detail-description p {
+  margin: 0;
+  color: var(--activity-text-soft);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-json-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  padding: 0.9rem 1.5rem 1.35rem;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-json-grid > article {
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--activity-border);
+  border-radius: 0.9rem;
+  background: #0a1427;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-json-grid pre {
+  min-height: 11rem;
+  max-height: 20rem;
+  margin: 0;
+  padding: 1rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #dce8f9;
+  border: 1px solid #1d2a42;
+  border-radius: 0.72rem;
+  background: #030a18;
+  box-shadow: inset 0 1rem 2rem rgb(0 0 0 / 14%);
+  font: 0.73rem/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  scrollbar-color: #40516d transparent;
+  scrollbar-width: thin;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1.5rem 1.35rem;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > footer .danger {
+  min-height: 2.55rem;
+  padding: 0 1rem;
+  color: #ff9aad;
+  border: 1px solid rgb(255 95 120 / 34%);
+  border-radius: 0.75rem;
+  background: rgb(255 95 120 / 7%);
+  font-size: 0.74rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.admin-layout:has(.activity-logs-page) .activity-modal > footer .danger:hover:not(:disabled) {
+  color: #1b0509;
+  border-color: var(--activity-danger);
+  background: var(--activity-danger);
+}
+
+@media (max-width: 1280px) {
+  .dashboard .activity-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard .activity-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard .activity-search {
+    grid-column: span 2;
+  }
+
+  .admin-layout:has(.activity-logs-page) .activity-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard .activity-logs-heading {
+    display: grid;
+  }
+
+  .dashboard .activity-refresh {
+    width: 100%;
+  }
+
+  .dashboard .activity-summary-grid,
+  .dashboard .activity-filters,
+  .admin-layout:has(.activity-logs-page) .activity-detail-grid,
+  .admin-layout:has(.activity-logs-page) .activity-json-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard .activity-search {
+    grid-column: auto;
+  }
+
+  .dashboard .activity-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-layout:has(.activity-logs-page) .activity-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .admin-layout:has(.activity-logs-page) .activity-modal {
+    width: 100%;
+    max-height: 94vh;
+    border-radius: 1rem;
+  }
+}

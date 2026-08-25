@@ -1,0 +1,255 @@
+/* Final isolation fixes for Areas & Tables ---------------------------------
+   Loaded after shared Admin CSS so legacy light styles cannot leak into this
+   dark operations screen. */
+
+/* Pagination: shared .pagination rules were painting a white footer. */
+.admin-layout:has(.areas-tables-page)
+  .dashboard
+  .areas-tables-page
+  .pagination.space-pagination {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0.9rem 1rem !important;
+  color: var(--space-muted) !important;
+  border: 1px solid var(--space-border) !important;
+  border-radius: 0.9rem !important;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 1.5%), transparent 60%),
+    var(--space-surface) !important;
+  box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 8%) !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .dashboard
+  .areas-tables-page
+  .pagination.space-pagination > span {
+  color: var(--space-muted) !important;
+  background: transparent !important;
+  font-size: 0.76rem !important;
+  font-weight: 650 !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .dashboard
+  .areas-tables-page
+  .pagination.space-pagination > div {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.55rem !important;
+  background: transparent !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .dashboard
+  .areas-tables-page
+  .pagination.space-pagination button {
+  min-width: 4.25rem !important;
+  min-height: 2.35rem !important;
+  padding: 0 0.85rem !important;
+  color: var(--space-text-soft) !important;
+  border: 1px solid var(--space-border) !important;
+  border-radius: 0.65rem !important;
+  background: #0a1427 !important;
+  box-shadow: none !important;
+  font-size: 0.72rem !important;
+  font-weight: 750 !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .dashboard
+  .areas-tables-page
+  .pagination.space-pagination button:hover:not(:disabled) {
+  color: var(--space-orange) !important;
+  border-color: rgb(255 159 10 / 45%) !important;
+  background: rgb(255 159 10 / 7%) !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .dashboard
+  .areas-tables-page
+  .pagination.space-pagination button:disabled {
+  color: #56657b !important;
+  border-color: #1c2940 !important;
+  background: #081020 !important;
+  opacity: 0.68 !important;
+}
+
+/* Modal shell/header: shared employee-modal styles were leaving a white cap. */
+.admin-layout:has(.areas-tables-page) .areas-tables-backdrop.modal-backdrop {
+  background: rgb(1 7 20 / 82%) !important;
+  backdrop-filter: blur(7px) !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal.employee-modal.compact-modal {
+  overflow: hidden auto !important;
+  color: var(--space-text) !important;
+  border: 1px solid #2b3a56 !important;
+  border-radius: 1rem !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(54 86 139 / 16%), transparent 19rem),
+    #0d172a !important;
+  box-shadow: 0 1.8rem 6rem rgb(0 0 0 / 50%) !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal.employee-modal
+  .modal-heading {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 5rem !important;
+  gap: 1rem !important;
+  margin: 0 !important;
+  padding: 1.05rem 1.55rem !important;
+  color: var(--space-text) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--space-border) !important;
+  border-radius: 0 !important;
+  background: #0d172a !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal.employee-modal
+  .modal-heading > div {
+  display: grid !important;
+  min-width: 0 !important;
+  gap: 0.28rem !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal.employee-modal
+  .modal-kicker {
+  display: block !important;
+  margin: 0 !important;
+  color: var(--space-orange) !important;
+  background: transparent !important;
+  font-size: 0.6rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.13em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal.employee-modal
+  .modal-heading h2 {
+  display: block !important;
+  margin: 0 !important;
+  color: var(--space-text) !important;
+  background: transparent !important;
+  font-size: 1.18rem !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.02em !important;
+  opacity: 1 !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal.employee-modal
+  .modal-heading > button {
+  display: grid !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+  place-items: center !important;
+  color: #9cabc0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 0.62rem !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 1.35rem !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal.employee-modal
+  .modal-heading > button:hover {
+  color: var(--space-text) !important;
+  border-color: var(--space-border) !important;
+  background: rgb(255 255 255 / 4%) !important;
+}
+
+/* Keep all modal form surfaces dark even when generic employee styles load. */
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal
+  .space-modal-form.employee-form {
+  color: var(--space-text) !important;
+  background: transparent !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal
+  .space-modal-form.employee-form label {
+  color: #aeb9ca !important;
+  background: transparent !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal
+  .space-modal-form.employee-form
+  :is(input, select, textarea) {
+  color: var(--space-text) !important;
+  border-color: var(--space-border) !important;
+  background: var(--space-input) !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal
+  .space-modal-form.employee-form
+  :is(input, textarea)::placeholder {
+  color: #667791 !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal
+  .space-modal-form.employee-form
+  :is(input, select, textarea):focus {
+  border-color: rgb(255 159 10 / 75%) !important;
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 10%) !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal
+  .modal-actions {
+  border-top-color: var(--space-border) !important;
+  background: transparent !important;
+}
+
+.admin-layout:has(.areas-tables-page)
+  .areas-tables-modal
+  .modal-actions > button:not(.primary-button) {
+  color: var(--space-text-soft) !important;
+  border-color: var(--space-border) !important;
+  background: #0a1427 !important;
+}
+
+@media (max-width: 760px) {
+  .admin-layout:has(.areas-tables-page)
+    .dashboard
+    .areas-tables-page
+    .pagination.space-pagination {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .admin-layout:has(.areas-tables-page)
+    .dashboard
+    .areas-tables-page
+    .pagination.space-pagination > div {
+    width: 100% !important;
+  }
+
+  .admin-layout:has(.areas-tables-page)
+    .dashboard
+    .areas-tables-page
+    .pagination.space-pagination button {
+    flex: 1 !important;
+  }
+}

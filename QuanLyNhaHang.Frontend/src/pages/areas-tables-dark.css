@@ -1,0 +1,871 @@
+/* Areas & tables dark operations theme -----------------------------------
+   Page-scoped overrides so the redesign does not leak into other modules. */
+.admin-layout:has(.areas-tables-page) {
+  --space-bg: #050a1b;
+  --space-bg-deep: #020617;
+  --space-surface: #0d172a;
+  --space-surface-2: #101c31;
+  --space-input: #071024;
+  --space-border: #24324b;
+  --space-border-soft: #1b2940;
+  --space-text: #f5f7fb;
+  --space-text-soft: #c4cedc;
+  --space-muted: #8292aa;
+  --space-orange: #ff9f0a;
+  --space-orange-hover: #ffae2e;
+  --space-blue: #438cff;
+  --space-cyan: #2dd4d7;
+  --space-teal: #16d8b2;
+  --space-purple: #a855f7;
+  --space-danger: #ff536d;
+  color-scheme: dark;
+  background: var(--space-bg-deep);
+}
+
+.admin-layout:has(.areas-tables-page) .dashboard {
+  background:
+    radial-gradient(circle at 88% -10%, rgb(43 83 143 / 20%), transparent 36rem),
+    radial-gradient(circle at 12% 92%, rgb(255 159 10 / 5%), transparent 28rem),
+    var(--space-bg);
+}
+
+.admin-layout:has(.areas-tables-page) .topbar {
+  color: var(--space-text);
+  border-bottom-color: var(--space-border);
+  background: rgb(8 16 31 / 94%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
+}
+
+.admin-layout:has(.areas-tables-page) .topbar .eyebrow {
+  color: var(--space-orange);
+}
+
+.admin-layout:has(.areas-tables-page) .topbar h1,
+.admin-layout:has(.areas-tables-page) .profile-button strong {
+  color: var(--space-text);
+}
+
+.admin-layout:has(.areas-tables-page) .profile-button small {
+  color: var(--space-muted);
+}
+
+.admin-layout:has(.areas-tables-page) .profile-button:hover,
+.admin-layout:has(.areas-tables-page) .profile-button.active {
+  border-color: var(--space-border);
+  background: var(--space-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.areas-tables-page) .profile-button > span,
+.admin-layout:has(.areas-tables-page) .topbar .profile > span,
+.admin-layout:has(.areas-tables-page) .logo > span {
+  color: #241500;
+  border-color: rgb(255 159 10 / 36%);
+  background: linear-gradient(135deg, #ffb51f, #ff8a00);
+  box-shadow: 0 8px 24px rgb(255 159 10 / 24%);
+}
+
+.admin-layout:has(.areas-tables-page) .logout,
+.admin-layout:has(.areas-tables-page) .notification-trigger {
+  color: var(--space-text-soft);
+  border-color: var(--space-border);
+  background: var(--space-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.areas-tables-page) .logout:hover:not(:disabled),
+.admin-layout:has(.areas-tables-page) .notification-trigger:hover,
+.admin-layout:has(.areas-tables-page) .notification-trigger.active {
+  color: var(--space-text);
+  border-color: #3b4c6c;
+  background: var(--space-surface-2);
+}
+
+.admin-layout:has(.areas-tables-page) .sidebar nav button.active,
+.admin-layout:has(.areas-tables-page) .sidebar nav button.active:hover {
+  color: var(--space-orange);
+  border-color: rgb(255 159 10 / 18%);
+  background: linear-gradient(90deg, rgb(255 159 10 / 18%), rgb(255 159 10 / 5%));
+  box-shadow: inset 3px 0 0 var(--space-orange);
+}
+
+.admin-layout:has(.areas-tables-page) .sidebar nav button.active > span {
+  color: var(--space-orange);
+  background: rgb(255 159 10 / 12%);
+}
+
+.dashboard .areas-tables-page {
+  display: grid;
+  width: min(100%, 100rem);
+  max-width: 100%;
+  gap: 1.15rem;
+  margin: 0 auto;
+  padding: 1.3rem 0 3rem;
+  color: var(--space-text);
+}
+
+.dashboard .space-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0.35rem 0 1.35rem;
+  border-bottom: 1px solid var(--space-border-soft);
+}
+
+.dashboard .space-page-heading > div {
+  min-width: 0;
+}
+
+.dashboard .space-kicker {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--space-orange);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dashboard .space-page-heading h2 {
+  margin: 0;
+  color: var(--space-text);
+  font-size: clamp(1.65rem, 2.5vw, 2.2rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.dashboard .space-page-heading p {
+  max-width: 48rem;
+  margin: 0.58rem 0 0;
+  color: var(--space-muted);
+  font-size: 0.79rem;
+  line-height: 1.55;
+}
+
+.dashboard .space-primary,
+.dashboard .areas-tables-modal .primary-button {
+  min-height: 2.75rem;
+  padding: 0 1.15rem;
+  color: #251500 !important;
+  border: 1px solid var(--space-orange) !important;
+  border-radius: 0.78rem;
+  background: linear-gradient(180deg, #ffad1f, #ff9300) !important;
+  box-shadow: 0 0.65rem 1.6rem rgb(255 159 10 / 18%);
+  font-size: 0.78rem;
+  font-weight: 850;
+  transition: 150ms ease;
+}
+
+.dashboard .space-primary:hover:not(:disabled),
+.dashboard .areas-tables-modal .primary-button:hover:not(:disabled) {
+  border-color: var(--space-orange-hover) !important;
+  background: linear-gradient(180deg, #ffba35, #ff9f0a) !important;
+  box-shadow: 0 0.85rem 2rem rgb(255 159 10 / 26%);
+  transform: translateY(-1px);
+}
+
+.dashboard .management-tabs {
+  display: inline-flex;
+  width: fit-content;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--space-border-soft);
+  border-radius: 0.78rem;
+  background: #091326;
+}
+
+.dashboard .management-tabs button {
+  min-width: 4.3rem;
+  min-height: 2.35rem;
+  padding: 0 1rem;
+  color: #9aa9bd;
+  border: 1px solid transparent;
+  border-radius: 0.62rem;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 750;
+  transition: 150ms ease;
+}
+
+.dashboard .management-tabs button:hover {
+  color: var(--space-text);
+  background: rgb(255 255 255 / 4%);
+}
+
+.dashboard .management-tabs button.active,
+.dashboard .management-tabs button.active:hover {
+  color: var(--space-orange);
+  border-color: rgb(255 159 10 / 32%);
+  background: rgb(255 159 10 / 8%);
+  box-shadow: inset 0 -2px 0 var(--space-orange);
+}
+
+.dashboard .areas-tables-page .inline-alert {
+  margin: 0;
+  border-radius: 0.75rem;
+  font-size: 0.76rem;
+}
+
+.dashboard .areas-tables-page .inline-alert.success {
+  color: #94f1d6;
+  border-color: rgb(22 216 178 / 28%);
+  background: rgb(22 216 178 / 8%);
+}
+
+.dashboard .areas-tables-page .inline-alert.error {
+  color: #ffb1be;
+  border-color: rgb(255 83 109 / 30%);
+  background: rgb(255 83 109 / 8%);
+}
+
+.dashboard .table-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin: 0;
+}
+
+.dashboard .table-kpis article {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 6rem;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  overflow: hidden;
+  color: var(--space-text);
+  border: 1px solid var(--space-border);
+  border-radius: 0.9rem;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 58%),
+    var(--space-surface);
+  box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 10%);
+}
+
+.dashboard .table-kpis .kpi-icon {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--space-blue);
+  border: 1px solid rgb(67 140 255 / 38%);
+  border-radius: 0.75rem;
+  background: rgb(67 140 255 / 12%);
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.dashboard .table-kpis article.available .kpi-icon {
+  color: var(--space-cyan);
+  border-color: rgb(45 212 215 / 38%);
+  background: rgb(45 212 215 / 11%);
+}
+
+.dashboard .table-kpis article.occupied .kpi-icon {
+  color: #ff7b22;
+  border-color: rgb(255 123 34 / 38%);
+  background: rgb(255 123 34 / 11%);
+}
+
+.dashboard .table-kpis article.reserved .kpi-icon {
+  color: #b65cff;
+  border-color: rgb(182 92 255 / 40%);
+  background: rgb(182 92 255 / 11%);
+}
+
+.dashboard .table-kpis article > div {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dashboard .table-kpis small {
+  color: var(--space-text-soft);
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+
+.dashboard .table-kpis strong {
+  color: var(--space-text);
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.dashboard .table-kpis article.available strong { color: var(--space-cyan); }
+.dashboard .table-kpis article.occupied strong { color: #ff7b22; }
+.dashboard .table-kpis article.reserved strong { color: #b65cff; }
+
+.dashboard .space-filters {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1.75fr) minmax(10rem, 0.55fr) minmax(10rem, 0.55fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.95rem;
+  border: 1px solid var(--space-border);
+  border-radius: 0.95rem;
+  background: var(--space-surface);
+  box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 9%);
+}
+
+.dashboard .space-filters.area-filters {
+  grid-template-columns: minmax(18rem, 1fr) auto;
+}
+
+.dashboard .space-search-control {
+  position: relative;
+  min-width: 0;
+}
+
+.dashboard .space-search-control > span {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  z-index: 1;
+  color: #71829d;
+  font-size: 1.2rem;
+  transform: translateY(-52%);
+  pointer-events: none;
+}
+
+.dashboard .space-filters :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.7rem;
+  padding: 0 0.82rem;
+  color: var(--space-text) !important;
+  border: 1px solid var(--space-border);
+  border-radius: 0.68rem;
+  background: var(--space-input) !important;
+  box-shadow: none;
+  outline: none;
+  font-size: 0.75rem;
+  font-weight: 650;
+  transition: 150ms ease;
+}
+
+.dashboard .space-search-control input {
+  padding-left: 2.45rem;
+}
+
+.dashboard .space-filters input::placeholder {
+  color: #677791;
+}
+
+.dashboard .space-filters :is(input, select):focus {
+  border-color: rgb(255 159 10 / 75%);
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 10%);
+}
+
+.dashboard .space-search-button {
+  min-height: 2.7rem;
+  padding: 0 1.15rem;
+  color: var(--space-text-soft);
+  border: 1px solid var(--space-border);
+  border-radius: 0.68rem;
+  background: #0a1427;
+  font-size: 0.76rem;
+  font-weight: 800;
+  transition: 150ms ease;
+}
+
+.dashboard .space-search-button:hover:not(:disabled) {
+  color: var(--space-orange);
+  border-color: rgb(255 159 10 / 45%);
+  background: rgb(255 159 10 / 6%);
+}
+
+.dashboard .table-card-grid,
+.dashboard .area-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.dashboard .restaurant-table-card,
+.dashboard .area-card {
+  min-width: 0;
+  border: 1px solid var(--space-border);
+  border-radius: 0.95rem;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 1.5%), transparent 62%),
+    var(--space-surface);
+  box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 10%);
+  transition: 160ms ease;
+}
+
+.dashboard .restaurant-table-card:hover,
+.dashboard .area-card:hover {
+  border-color: #344461;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 2.5%), transparent 62%),
+    var(--space-surface-2);
+  transform: translateY(-1px);
+}
+
+.dashboard .restaurant-table-card {
+  display: flex;
+  min-height: 18rem;
+  flex-direction: column;
+  padding: 1.1rem;
+  border-top: 1px solid var(--space-border);
+}
+
+.dashboard .table-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.dashboard .table-card-head > div,
+.dashboard .area-card-main {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.dashboard .table-icon,
+.dashboard .area-icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--space-blue);
+  border: 1px solid rgb(67 140 255 / 18%);
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, rgb(48 112 255 / 22%), rgb(48 112 255 / 8%));
+  box-shadow: inset 0 0 1.25rem rgb(67 140 255 / 5%);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.dashboard .area-icon {
+  color: var(--space-orange);
+  border-color: rgb(255 159 10 / 18%);
+  background: linear-gradient(145deg, rgb(255 159 10 / 20%), rgb(255 159 10 / 7%));
+}
+
+.dashboard .table-card-head h3,
+.dashboard .area-card h3 {
+  margin: 0 0 0.24rem;
+  overflow: hidden;
+  color: var(--space-text);
+  font-size: 0.95rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard .table-card-head p,
+.dashboard .area-card p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--space-muted);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard .table-status-chip,
+.dashboard .area-status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.75rem;
+  flex: 0 0 auto;
+  padding: 0 0.65rem;
+  color: var(--space-teal);
+  border: 1px solid rgb(22 216 178 / 38%);
+  border-radius: 999px;
+  background: rgb(22 216 178 / 8%);
+  font-size: 0.67rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.dashboard .table-status-chip.occupied {
+  color: var(--space-orange);
+  border-color: rgb(255 159 10 / 44%);
+  background: rgb(255 159 10 / 9%);
+}
+
+.dashboard .table-status-chip.reserved {
+  color: #b66cff;
+  border-color: rgb(182 108 255 / 40%);
+  background: rgb(182 108 255 / 9%);
+}
+
+.dashboard .table-status-chip.cleaning {
+  color: #ffd166;
+  border-color: rgb(255 209 102 / 38%);
+  background: rgb(255 209 102 / 8%);
+}
+
+.dashboard .area-status-chip.inactive {
+  color: #9ba9bc;
+  border-color: rgb(155 169 188 / 28%);
+  background: rgb(155 169 188 / 7%);
+}
+
+.dashboard .table-meta {
+  display: grid;
+  gap: 0.48rem;
+  margin: 1.35rem 0 1.15rem;
+  color: #aab7c9;
+  font-size: 0.76rem;
+}
+
+.dashboard .table-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dashboard .table-meta i {
+  display: grid;
+  width: 1rem;
+  color: #6f819d;
+  font-style: normal;
+  place-items: center;
+}
+
+.dashboard .status-field {
+  display: grid;
+  gap: 0.48rem;
+  margin-top: auto;
+  color: var(--space-text-soft);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.dashboard .restaurant-table-card select {
+  width: 100%;
+  min-height: 2.55rem;
+  padding: 0 0.78rem;
+  color: var(--space-text) !important;
+  border: 1px solid var(--space-border);
+  border-radius: 0.65rem;
+  background: var(--space-input) !important;
+  outline: none;
+}
+
+.dashboard .restaurant-table-card select:focus {
+  border-color: rgb(255 159 10 / 68%);
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 9%);
+}
+
+.dashboard .card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.dashboard .card-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  gap: 0.35rem;
+  padding: 0 0.78rem;
+  color: var(--space-text-soft);
+  border: 1px solid #31415c;
+  border-radius: 0.62rem;
+  background: #091327;
+  font-size: 0.72rem;
+  font-weight: 750;
+  transition: 150ms ease;
+}
+
+.dashboard .card-actions button:hover:not(:disabled) {
+  color: var(--space-text);
+  border-color: #485c7e;
+  background: #111e34;
+}
+
+.dashboard .card-actions .danger {
+  color: var(--space-danger);
+  border-color: rgb(255 83 109 / 38%);
+  background: rgb(255 83 109 / 4%);
+}
+
+.dashboard .card-actions .danger:hover:not(:disabled) {
+  color: #ff8598;
+  border-color: rgb(255 83 109 / 60%);
+  background: rgb(255 83 109 / 9%);
+}
+
+.dashboard .area-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 9.7rem;
+  gap: 1rem;
+  padding: 1.1rem;
+}
+
+.dashboard .area-card .card-actions {
+  grid-column: 1 / -1;
+  align-self: end;
+  margin-top: 0;
+}
+
+.dashboard .empty-state-card {
+  grid-column: 1 / -1;
+  padding: 3rem 1.5rem;
+  color: var(--space-muted);
+  border: 1px dashed #31415c;
+  border-radius: 0.9rem;
+  background: var(--space-surface);
+  text-align: center;
+}
+
+.dashboard .space-pagination {
+  margin-top: 0;
+  padding: 0.9rem 0;
+  color: var(--space-muted);
+  border-top: 1px solid var(--space-border-soft);
+}
+
+.dashboard .space-pagination button {
+  color: var(--space-text-soft);
+  border-color: var(--space-border);
+  background: var(--space-surface);
+}
+
+.dashboard .space-pagination button:hover:not(:disabled) {
+  color: var(--space-orange);
+  border-color: rgb(255 159 10 / 40%);
+}
+
+.dashboard .space-pagination button:disabled {
+  color: #46536a;
+  border-color: #1b273b;
+  background: #091020;
+  opacity: 0.72;
+}
+
+/* Modal ------------------------------------------------------------------ */
+.admin-layout:has(.areas-tables-page) .areas-tables-backdrop {
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgb(1 7 20 / 78%);
+  backdrop-filter: blur(5px);
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal {
+  width: min(100%, 50rem);
+  max-height: min(86vh, 48rem);
+  padding: 0;
+  overflow: auto;
+  color: var(--space-text);
+  border: 1px solid #2a3955;
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(54 86 139 / 16%), transparent 19rem),
+    #0d172a;
+  box-shadow: 0 1.8rem 6rem rgb(0 0 0 / 48%);
+  scrollbar-color: #42526c transparent;
+  scrollbar-width: thin;
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal.area-form-modal {
+  width: min(100%, 37rem);
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4.7rem;
+  gap: 1rem;
+  padding: 1.1rem 1.55rem;
+  border-bottom: 1px solid var(--space-border);
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-heading > div {
+  min-width: 0;
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-kicker {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--space-orange);
+  font-size: 0.58rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-heading h2 {
+  margin: 0;
+  color: var(--space-text);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-heading > button {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  padding: 0;
+  place-items: center;
+  color: #9aa9bd;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  background: transparent;
+  font-size: 1.35rem;
+  font-weight: 400;
+  transition: 150ms ease;
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-heading > button:hover {
+  color: var(--space-text);
+  border-color: var(--space-border);
+  background: rgb(255 255 255 / 4%);
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.35rem 1.55rem 1.45rem;
+}
+
+.admin-layout:has(.areas-tables-page) .area-form-modal .space-modal-form {
+  grid-template-columns: 1fr;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form label {
+  display: grid;
+  min-width: 0;
+  gap: 0.45rem;
+  color: #aeb9ca;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form label em {
+  color: var(--space-danger);
+  font-style: normal;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form label small {
+  color: #7888a2;
+  font-size: 0.65rem;
+  font-weight: 650;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form .wide-field {
+  grid-column: 1 / -1;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form :is(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  color: var(--space-text) !important;
+  border: 1px solid #2b3952 !important;
+  border-radius: 0.66rem !important;
+  background: #050d20 !important;
+  box-shadow: none !important;
+  outline: none;
+  font: inherit;
+  font-size: 0.77rem !important;
+  font-weight: 650;
+  transition: 150ms ease;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form :is(input, select) {
+  min-height: 2.7rem;
+  padding: 0 0.78rem !important;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form textarea {
+  min-height: 5.2rem;
+  padding: 0.75rem 0.78rem !important;
+  resize: vertical;
+}
+
+.admin-layout:has(.areas-tables-page) .area-form-modal .space-modal-form textarea {
+  min-height: 6.3rem;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form :is(input, textarea)::placeholder {
+  color: #65748d;
+}
+
+.admin-layout:has(.areas-tables-page) .space-modal-form :is(input, select, textarea):focus {
+  border-color: rgb(255 159 10 / 70%) !important;
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 10%) !important;
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin: 0.2rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--space-border-soft);
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-actions > button:not(.primary-button) {
+  min-height: 2.55rem;
+  padding: 0 1rem;
+  color: #aeb9c9;
+  border: 1px solid #2b3952;
+  border-radius: 0.68rem;
+  background: #101a2d;
+  font-size: 0.74rem;
+  font-weight: 800;
+  transition: 150ms ease;
+}
+
+.admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-actions > button:not(.primary-button):hover {
+  color: var(--space-text);
+  border-color: #41516d;
+  background: #162238;
+}
+
+@media (max-width: 1180px) {
+  .dashboard .table-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard .table-card-grid,
+  .dashboard .area-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard .space-filters { grid-template-columns: minmax(15rem, 1fr) repeat(2, minmax(9rem, 0.55fr)); }
+  .dashboard .space-search-button { grid-column: 1 / -1; }
+  .dashboard .space-filters.area-filters { grid-template-columns: 1fr auto; }
+  .dashboard .space-filters.area-filters .space-search-button { grid-column: auto; }
+}
+
+@media (max-width: 760px) {
+  .dashboard .space-page-heading { align-items: stretch; flex-direction: column; }
+  .dashboard .space-primary { align-self: flex-start; }
+  .dashboard .table-kpis,
+  .dashboard .table-card-grid,
+  .dashboard .area-grid,
+  .dashboard .space-filters,
+  .dashboard .space-filters.area-filters { grid-template-columns: 1fr; }
+  .dashboard .space-search-button,
+  .dashboard .space-filters.area-filters .space-search-button { grid-column: auto; }
+  .admin-layout:has(.areas-tables-page) .space-modal-form { grid-template-columns: 1fr; }
+  .admin-layout:has(.areas-tables-page) .space-modal-form .wide-field,
+  .admin-layout:has(.areas-tables-page) .areas-tables-modal .modal-actions { grid-column: 1; }
+}

@@ -1,0 +1,60 @@
+/* Final Activity Logs pagination/loading isolation -------------------------
+   Loaded after shared pagination/table placeholder fixes. This screen must
+   never expose the legacy light table canvas while a new page is loading. */
+
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table-wrap,
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table,
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody {
+  background: var(--activity-surface) !important;
+  background-color: var(--activity-surface) !important;
+  background-image: none !important;
+}
+
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody tr,
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody tr:nth-child(even),
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody td {
+  background: var(--activity-surface) !important;
+  background-color: var(--activity-surface) !important;
+  background-image: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Pagination temporarily renders one colspan loading/empty cell. Keep that
+   cell on the real navy canvas instead of transparent/light inherited styles. */
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table tbody > tr:only-child > td[colspan],
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table td.activity-empty {
+  color: var(--activity-muted) !important;
+  background: var(--activity-surface) !important;
+  background-color: var(--activity-surface) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table tbody > tr:only-child:hover > td[colspan],
+.admin-layout:has(.activity-logs-page)
+  .dashboard
+  .activity-table tbody > tr:only-child:focus-within > td[colspan] {
+  background: var(--activity-surface) !important;
+  background-color: var(--activity-surface) !important;
+  box-shadow: none !important;
+}
+
+/* Normal rows can still highlight on hover, but without transitioning through
+   a legacy/light color when React replaces rows after pagination. */
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody tr:hover,
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody tr:nth-child(even):hover,
+.admin-layout:has(.activity-logs-page) .dashboard .activity-table tbody tr:hover > td {
+  background: var(--activity-surface-raised) !important;
+  background-color: var(--activity-surface-raised) !important;
+  transition: none !important;
+  animation: none !important;
+}

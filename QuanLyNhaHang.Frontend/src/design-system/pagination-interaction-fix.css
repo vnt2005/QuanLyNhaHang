@@ -1,0 +1,64 @@
+/* Global pagination interaction fix ----------------------------------------
+   Prevent Chromium/Edge mouse/tap focus paint from flashing a white rectangle
+   when moving between pages. The selector intentionally targets pagination
+   containers only, so normal form controls and action buttons keep their own
+   feature-specific interaction styles.
+
+   Keyboard accessibility is preserved with a deliberate orange focus-visible
+   ring instead of the browser's transient native focus paint. */
+
+.admin-layout :is(
+  .pagination,
+  [class*='pagination'],
+  [class*='-pager'],
+  [class$='-pager']
+) button {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  background-clip: padding-box;
+  outline: none;
+}
+
+/* Mouse/pointer focus must not trigger the native white focus rectangle. */
+.admin-layout :is(
+  .pagination,
+  [class*='pagination'],
+  [class*='-pager'],
+  [class$='-pager']
+) button:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep the pressed frame stable instead of allowing browser-native paint. */
+.admin-layout :is(
+  .pagination,
+  [class*='pagination'],
+  [class*='-pager'],
+  [class$='-pager']
+) button:active {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Accessible keyboard focus that works on both light and dark admin pages. */
+.admin-layout :is(
+  .pagination,
+  [class*='pagination'],
+  [class*='-pager'],
+  [class$='-pager']
+) button:focus-visible {
+  outline: 2px solid #ff9f0a !important;
+  outline-offset: 2px;
+}
+
+/* Firefox still exposes an inner focus border on native buttons. */
+.admin-layout :is(
+  .pagination,
+  [class*='pagination'],
+  [class*='-pager'],
+  [class$='-pager']
+) button::-moz-focus-inner {
+  border: 0;
+}

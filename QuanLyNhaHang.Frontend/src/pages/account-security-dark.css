@@ -1,0 +1,372 @@
+/* Account security dark operations theme.
+   Scoped to the account security screen so the authentication pages remain unchanged. */
+
+.admin-layout:has(.account-security-page) {
+  --security-bg: #050a1b;
+  --security-deep: #020617;
+  --security-surface: #0d172a;
+  --security-surface-2: #111d33;
+  --security-surface-3: #15223a;
+  --security-border: #24324b;
+  --security-border-soft: #1b2940;
+  --security-text: #f6f8fc;
+  --security-soft: #c6d0de;
+  --security-muted: #8293ad;
+  --security-orange: #ff9f0a;
+  --security-orange-hover: #ffad2f;
+  --security-teal: #17d7ae;
+  --security-blue: #4d8dff;
+  --security-danger: #ff6178;
+  color-scheme: dark;
+  background: var(--security-deep);
+}
+
+.admin-layout:has(.account-security-page) .dashboard {
+  background:
+    radial-gradient(circle at 84% -10%, rgb(43 69 116 / 18%), transparent 34rem),
+    radial-gradient(circle at 8% 92%, rgb(23 215 174 / 4%), transparent 28rem),
+    var(--security-bg);
+}
+
+.admin-layout:has(.account-security-page) .topbar {
+  color: var(--security-text);
+  border-bottom-color: var(--security-border);
+  background: rgb(7 14 28 / 95%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 12%);
+}
+
+.admin-layout:has(.account-security-page) .topbar h1,
+.admin-layout:has(.account-security-page) .profile-button strong {
+  color: var(--security-text);
+}
+
+.admin-layout:has(.account-security-page) .profile-button small {
+  color: var(--security-muted);
+}
+
+.admin-layout:has(.account-security-page) .logout,
+.admin-layout:has(.account-security-page) .notification-trigger,
+.admin-layout:has(.account-security-page) .profile-button {
+  color: var(--security-soft);
+  border-color: var(--security-border);
+  background: var(--security-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.account-security-page) .sidebar nav button.active,
+.admin-layout:has(.account-security-page) .sidebar nav button.active:hover {
+  color: var(--security-orange);
+  border-color: rgb(255 159 10 / 16%);
+  background: linear-gradient(90deg, rgb(255 159 10 / 17%), rgb(255 159 10 / 5%));
+  box-shadow: inset 3px 0 0 var(--security-orange);
+}
+
+.admin-layout:has(.account-security-page) .sidebar nav button.active > span {
+  color: var(--security-orange);
+  background: rgb(255 159 10 / 12%);
+}
+
+.admin-layout:has(.account-security-page) .account-security-page {
+  color: var(--security-soft);
+  padding-top: 22px;
+}
+
+.admin-layout:has(.account-security-page) .account-security-header {
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--security-border-soft);
+}
+
+.admin-layout:has(.account-security-page) .account-security-header > div > span,
+.admin-layout:has(.account-security-page) .account-profile-card > div:nth-child(2) > span,
+.admin-layout:has(.account-security-page) .account-security-score > div > span,
+.admin-layout:has(.account-security-page) .account-session-summary > div > span {
+  color: var(--security-orange);
+}
+
+.admin-layout:has(.account-security-page) .account-security-header h2 {
+  color: var(--security-text);
+  font-size: clamp(24px, 2.2vw, 31px);
+  letter-spacing: -0.025em;
+}
+
+.admin-layout:has(.account-security-page) .account-security-header p {
+  color: var(--security-muted);
+  font-size: 11px;
+}
+
+.admin-layout:has(.account-security-page) .account-security-header > button {
+  min-height: 40px;
+  padding: 8px 14px;
+  color: var(--security-soft);
+  border-color: var(--security-border);
+  background: var(--security-surface-2);
+  box-shadow: none;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.admin-layout:has(.account-security-page) .account-security-header > button:hover:not(:disabled) {
+  color: var(--security-text);
+  border-color: #40516e;
+  background: var(--security-surface-3);
+}
+
+.admin-layout:has(.account-security-page) .account-security-alert.error {
+  color: #ff9aa9;
+  border-color: rgb(255 97 120 / 32%);
+  background: rgb(255 97 120 / 8%);
+}
+
+.admin-layout:has(.account-security-page) .account-security-alert.success {
+  color: var(--security-teal);
+  border-color: rgb(23 215 174 / 28%);
+  background: rgb(23 215 174 / 8%);
+}
+
+.admin-layout:has(.account-security-page) .account-security-overview {
+  gap: 16px;
+}
+
+.admin-layout:has(.account-security-page) .account-security-overview > article,
+.admin-layout:has(.account-security-page) .account-sessions-card {
+  color: var(--security-soft);
+  border-color: var(--security-border);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 62%),
+    var(--security-surface);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 10%);
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card,
+.admin-layout:has(.account-security-page) .account-security-score,
+.admin-layout:has(.account-security-page) .account-session-summary {
+  min-height: 186px;
+}
+
+.admin-layout:has(.account-security-page) .account-avatar {
+  color: #041611;
+  background: linear-gradient(135deg, #2ee3ba, #17b793);
+  box-shadow: 0 10px 24px rgb(23 215 174 / 16%);
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card h3,
+.admin-layout:has(.account-security-page) .account-security-score h3,
+.admin-layout:has(.account-security-page) .account-session-summary h3,
+.admin-layout:has(.account-security-page) .account-sessions-card h3,
+.admin-layout:has(.account-security-page) .account-device-info > strong {
+  color: var(--security-text);
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card p,
+.admin-layout:has(.account-security-page) .account-security-score p,
+.admin-layout:has(.account-security-page) .account-session-summary p,
+.admin-layout:has(.account-security-page) .account-sessions-card header p,
+.admin-layout:has(.account-security-page) .account-device-info > span,
+.admin-layout:has(.account-security-page) .account-device-info > small {
+  color: var(--security-muted);
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card dl {
+  border-color: var(--security-border-soft);
+  background: var(--security-border-soft);
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card dl > div {
+  background: #0a1427;
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card dt {
+  color: var(--security-muted);
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card dd {
+  color: var(--security-soft);
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card dd.safe,
+.admin-layout:has(.account-security-page) .account-security-score > strong.safe {
+  color: var(--security-teal);
+}
+
+.admin-layout:has(.account-security-page) .account-profile-card dd.warning,
+.admin-layout:has(.account-security-page) .account-security-score > strong.warning {
+  color: #ffc55e;
+}
+
+.admin-layout:has(.account-security-page) .account-security-score-icon {
+  color: var(--security-teal);
+  border: 1px solid rgb(23 215 174 / 25%);
+  background: rgb(23 215 174 / 10%);
+}
+
+.admin-layout:has(.account-security-page) .account-session-icon {
+  color: var(--security-blue);
+  border: 1px solid rgb(77 141 255 / 25%);
+  background: rgb(77 141 255 / 10%);
+}
+
+.admin-layout:has(.account-security-page) .account-security-score > strong {
+  color: var(--security-teal);
+  border: 1px solid rgb(23 215 174 / 25%);
+  background: rgb(23 215 174 / 8%);
+}
+
+.admin-layout:has(.account-security-page) .account-security-page button.danger {
+  color: #ff94a4;
+  border-color: rgb(255 97 120 / 34%);
+  background: rgb(255 97 120 / 8%);
+}
+
+.admin-layout:has(.account-security-page) .account-security-page button.danger:hover:not(:disabled) {
+  color: #ffb1bd;
+  border-color: rgb(255 97 120 / 48%);
+  background: rgb(255 97 120 / 13%);
+}
+
+.admin-layout:has(.account-security-page) .account-session-summary > button,
+.admin-layout:has(.account-security-page) .account-session-list button {
+  border-color: var(--security-border);
+  box-shadow: none;
+}
+
+.admin-layout:has(.account-security-page) .account-sessions-card > header {
+  padding: 18px 20px;
+  border-bottom-color: var(--security-border-soft);
+  background: #0a1427;
+}
+
+.admin-layout:has(.account-security-page) .account-sessions-card > header > div > span {
+  color: var(--security-orange);
+  border: 1px solid rgb(255 159 10 / 25%);
+  background: rgb(255 159 10 / 10%);
+}
+
+.admin-layout:has(.account-security-page) .account-sessions-card > header > strong {
+  color: #9fb0c6;
+  border: 1px solid var(--security-border);
+  background: var(--security-surface-2);
+}
+
+.admin-layout:has(.account-security-page) .account-session-list {
+  background: var(--security-surface);
+}
+
+.admin-layout:has(.account-security-page) .account-session-list > div {
+  min-height: 72px;
+  padding: 14px 20px;
+  border-bottom-color: var(--security-border-soft);
+  background: var(--security-surface);
+  transition: background-color 150ms ease;
+}
+
+.admin-layout:has(.account-security-page) .account-session-list > div:hover {
+  background: #111e35;
+}
+
+.admin-layout:has(.account-security-page) .account-session-list > div.revoked {
+  background: #091326;
+  opacity: .62;
+}
+
+.admin-layout:has(.account-security-page) .account-session-list > div.revoked:hover {
+  background: #0d182b;
+  opacity: .72;
+}
+
+.admin-layout:has(.account-security-page) .account-device-icon {
+  color: #79b6ff;
+  border: 1px solid rgb(77 141 255 / 22%);
+  background: rgb(77 141 255 / 9%);
+}
+
+.admin-layout:has(.account-security-page) .account-device-info em {
+  color: var(--security-teal);
+  border: 1px solid rgb(23 215 174 / 24%);
+  background: rgb(23 215 174 / 8%);
+}
+
+.admin-layout:has(.account-security-page) .account-session-state.active {
+  color: var(--security-teal);
+  border: 1px solid rgb(23 215 174 / 25%);
+  background: rgb(23 215 174 / 9%);
+}
+
+.admin-layout:has(.account-security-page) .account-session-state.revoked {
+  color: #9cabc0;
+  border: 1px solid #334057;
+  background: #182238;
+}
+
+.admin-layout:has(.account-security-page) .account-session-list button:not(.danger) {
+  color: var(--security-soft);
+  border-color: var(--security-border);
+  background: var(--security-surface-2);
+}
+
+.admin-layout:has(.account-security-page) .account-session-empty {
+  color: var(--security-muted);
+  background: var(--security-surface);
+}
+
+.admin-layout:has(.account-security-page) .account-session-empty .account-security-spinner {
+  border-color: #263750;
+  border-top-color: var(--security-teal);
+}
+
+.admin-layout:has(.account-security-page) :is(
+  .account-security-overview > article,
+  .account-sessions-card,
+  .account-profile-card dl,
+  .account-profile-card dl > div,
+  .account-session-list > div,
+  .account-device-icon,
+  .account-session-state,
+  .account-security-score-icon,
+  .account-session-icon,
+  .account-security-header > button
+) {
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+@media (max-width: 1180px) {
+  .admin-layout:has(.account-security-page) .account-security-overview {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-layout:has(.account-security-page) .account-profile-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-layout:has(.account-security-page) .account-security-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-layout:has(.account-security-page) .account-security-header > button {
+    width: 100%;
+  }
+
+  .admin-layout:has(.account-security-page) .account-security-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-layout:has(.account-security-page) .account-profile-card {
+    grid-column: auto;
+  }
+
+  .admin-layout:has(.account-security-page) .account-profile-card dl {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-layout:has(.account-security-page) .account-session-list > div {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .admin-layout:has(.account-security-page) .account-session-state,
+  .admin-layout:has(.account-security-page) .account-session-list button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

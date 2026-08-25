@@ -1,0 +1,481 @@
+/* Dark restaurant-settings skin. Keeps the existing settings workflows and data intact. */
+
+.admin-layout:has(.restaurant-settings-page) {
+  --rs-bg: #050a1b;
+  --rs-deep: #020617;
+  --rs-surface: #0d172a;
+  --rs-surface-2: #111d33;
+  --rs-surface-3: #15223a;
+  --rs-border: #24324b;
+  --rs-border-soft: #1b2940;
+  --rs-text: #f6f8fc;
+  --rs-soft: #c6d0de;
+  --rs-muted: #8293ad;
+  --rs-orange: #ff9f0a;
+  --rs-orange-hover: #ffad2f;
+  --rs-teal: #17d7ae;
+  --rs-danger: #ff6178;
+  color-scheme: dark;
+  background: var(--rs-deep);
+}
+
+.admin-layout:has(.restaurant-settings-page) .dashboard {
+  background:
+    radial-gradient(circle at 84% -8%, rgb(55 82 135 / 16%), transparent 35rem),
+    var(--rs-bg);
+}
+
+.admin-layout:has(.restaurant-settings-page) .topbar {
+  color: var(--rs-text);
+  border-bottom-color: var(--rs-border);
+  background: rgb(7 14 28 / 96%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .topbar h1,
+.admin-layout:has(.restaurant-settings-page) .profile-button strong {
+  color: var(--rs-text);
+}
+
+.admin-layout:has(.restaurant-settings-page) .profile-button small {
+  color: var(--rs-muted);
+}
+
+.admin-layout:has(.restaurant-settings-page) :is(.logout, .notification-trigger, .profile-button) {
+  color: var(--rs-soft);
+  border-color: var(--rs-border);
+  background: var(--rs-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.restaurant-settings-page) .sidebar nav button.active,
+.admin-layout:has(.restaurant-settings-page) .sidebar nav button.active:hover {
+  color: var(--rs-orange);
+  border-color: rgb(255 159 10 / 20%);
+  background: linear-gradient(90deg, rgb(255 159 10 / 17%), rgb(255 159 10 / 5%));
+  box-shadow: inset 3px 0 0 var(--rs-orange);
+}
+
+.admin-layout:has(.restaurant-settings-page) .sidebar nav button.active > span {
+  color: var(--rs-orange);
+  background: rgb(255 159 10 / 12%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-page {
+  color: var(--rs-soft);
+  gap: 22px;
+  padding-top: 24px;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-toolbar {
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rs-border-soft);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-kicker {
+  color: var(--rs-orange);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-toolbar h2,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-panel-heading h3,
+.admin-layout:has(.restaurant-settings-page) .active-setting-brand h3 {
+  color: var(--rs-text);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-toolbar p,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-panel-heading p,
+.admin-layout:has(.restaurant-settings-page) .active-setting-brand p,
+.admin-layout:has(.restaurant-settings-page) .active-setting-loading {
+  color: var(--rs-muted);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-primary,
+.restaurant-settings-modal .restaurant-settings-primary {
+  color: #201300;
+  border-color: var(--rs-orange, #ff9f0a);
+  background: var(--rs-orange, #ff9f0a);
+  box-shadow: 0 10px 24px rgb(255 159 10 / 16%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-primary:hover:not(:disabled),
+.restaurant-settings-modal .restaurant-settings-primary:hover:not(:disabled) {
+  border-color: var(--rs-orange-hover, #ffad2f);
+  background: var(--rs-orange-hover, #ffad2f);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-secondary,
+.restaurant-settings-modal .restaurant-settings-secondary {
+  color: var(--rs-soft, #c6d0de);
+  border-color: var(--rs-border, #24324b);
+  background: var(--rs-surface, #0d172a);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-secondary:hover:not(:disabled),
+.restaurant-settings-modal .restaurant-settings-secondary:hover:not(:disabled) {
+  color: var(--rs-text, #f6f8fc);
+  border-color: #3a4a68;
+  background: var(--rs-surface-2, #111d33);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-danger,
+.restaurant-settings-modal .restaurant-settings-danger {
+  color: #ff7f91;
+  border-color: rgb(255 97 120 / 35%);
+  background: rgb(255 97 120 / 8%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-card {
+  border-color: var(--rs-border);
+  background:
+    radial-gradient(circle at 92% 5%, rgb(255 159 10 / 8%), transparent 24%),
+    linear-gradient(135deg, #111d33, #0d172a 70%);
+  box-shadow: 0 20px 44px rgb(0 0 0 / 16%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-card::before {
+  background: linear-gradient(var(--rs-orange), #d87800);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-card.empty {
+  border-color: var(--rs-border);
+  background: var(--rs-surface);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-logo {
+  color: var(--rs-orange);
+  border-color: #33425e;
+  background: #081226;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 18%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-status {
+  color: var(--rs-teal);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-status i {
+  background: var(--rs-teal);
+  box-shadow: 0 0 0 4px rgb(23 215 174 / 10%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-contact {
+  color: var(--rs-muted);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-contact a {
+  color: var(--rs-orange);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-operations div {
+  border-color: var(--rs-border);
+  background: #0a1427;
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-operations span {
+  color: var(--rs-muted);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-operations strong {
+  color: var(--rs-text);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-actions button,
+.admin-layout:has(.restaurant-settings-page) .active-setting-empty button {
+  color: var(--rs-soft);
+  border-color: var(--rs-border);
+  background: var(--rs-surface-2);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-actions button.primary,
+.admin-layout:has(.restaurant-settings-page) .active-setting-empty button {
+  color: #201300;
+  border-color: var(--rs-orange);
+  background: var(--rs-orange);
+}
+
+.admin-layout:has(.restaurant-settings-page) .active-setting-empty > span {
+  color: var(--rs-orange);
+  background: rgb(255 159 10 / 10%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-summary > article,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-panel {
+  color: var(--rs-soft);
+  border-color: var(--rs-border);
+  background: linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 55%), var(--rs-surface);
+  box-shadow: 0 16px 32px rgb(0 0 0 / 12%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-summary p,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-summary small {
+  color: var(--rs-muted);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-summary strong {
+  color: var(--rs-text);
+}
+
+.admin-layout:has(.restaurant-settings-page) .summary-icon.blue {
+  color: #5ba2ff;
+  background: rgb(77 141 255 / 12%);
+}
+.admin-layout:has(.restaurant-settings-page) .summary-icon.green {
+  color: var(--rs-teal);
+  background: rgb(23 215 174 / 10%);
+}
+.admin-layout:has(.restaurant-settings-page) .summary-icon.amber {
+  color: var(--rs-orange);
+  background: rgb(255 159 10 / 12%);
+}
+.admin-layout:has(.restaurant-settings-page) .summary-icon.violet {
+  color: #a98bff;
+  background: rgb(169 139 255 / 12%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-panel-heading,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-filters {
+  border-color: var(--rs-border-soft);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-panel-heading > span {
+  color: var(--rs-orange);
+  background: rgb(255 159 10 / 10%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-filters {
+  background: #0a1427;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-filters :is(input, select),
+.restaurant-settings-modal .restaurant-settings-form-fields :is(input, textarea, select) {
+  color: var(--rs-text, #f6f8fc);
+  border-color: var(--rs-border, #24324b);
+  background: #071126;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-filters :is(input, select)::placeholder,
+.restaurant-settings-modal .restaurant-settings-form-fields :is(input, textarea)::placeholder {
+  color: #657894;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-filters :is(input, select):focus,
+.restaurant-settings-modal .restaurant-settings-form-fields :is(input, textarea, select):focus {
+  border-color: var(--rs-orange, #ff9f0a);
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 10%);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-filters > button {
+  color: #201300;
+  border-color: var(--rs-orange);
+  background: var(--rs-orange);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-filters > button.clear {
+  color: var(--rs-soft);
+  border-color: var(--rs-border);
+  background: var(--rs-surface-2);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table-wrap,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table tbody,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table tr,
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table td {
+  background: var(--rs-surface) !important;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table th {
+  color: #8da0bc;
+  border-color: var(--rs-border);
+  background: #081327;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table td {
+  color: var(--rs-soft);
+  border-color: var(--rs-border-soft);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table tbody tr:hover td {
+  background: #121f36 !important;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-table strong {
+  color: var(--rs-text);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-pagination {
+  color: var(--rs-muted);
+  border-color: var(--rs-border);
+  background: var(--rs-surface);
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-settings-pagination button {
+  color: var(--rs-soft);
+  border-color: var(--rs-border);
+  background: var(--rs-surface-2);
+}
+
+/* Modal shell */
+.restaurant-settings-modal-backdrop {
+  background: rgb(2 6 23 / 78%) !important;
+  backdrop-filter: blur(10px);
+}
+
+.restaurant-settings-modal {
+  --rs-bg: #050a1b;
+  --rs-surface: #0d172a;
+  --rs-surface-2: #111d33;
+  --rs-border: #24324b;
+  --rs-border-soft: #1b2940;
+  --rs-text: #f6f8fc;
+  --rs-soft: #c6d0de;
+  --rs-muted: #8293ad;
+  --rs-orange: #ff9f0a;
+  --rs-teal: #17d7ae;
+  --rs-danger: #ff6178;
+  color: var(--rs-soft) !important;
+  border: 1px solid var(--rs-border) !important;
+  background: linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 55%), var(--rs-surface) !important;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 42%) !important;
+}
+
+.restaurant-settings-modal > header,
+.restaurant-settings-modal form > footer,
+.restaurant-settings-modal > footer {
+  color: var(--rs-soft);
+  border-color: var(--rs-border-soft) !important;
+  background: var(--rs-surface) !important;
+}
+
+.restaurant-settings-modal header h2,
+.restaurant-settings-modal header h3,
+.restaurant-settings-modal h2,
+.restaurant-settings-modal h3,
+.restaurant-settings-modal h4,
+.restaurant-settings-modal strong {
+  color: var(--rs-text) !important;
+}
+
+.restaurant-settings-modal header p,
+.restaurant-settings-modal p,
+.restaurant-settings-modal small,
+.restaurant-settings-modal .restaurant-settings-form-fields > label,
+.restaurant-settings-modal .restaurant-settings-form-fields label {
+  color: var(--rs-muted);
+}
+
+.restaurant-settings-modal .restaurant-settings-kicker,
+.restaurant-settings-modal [class*='kicker'] {
+  color: var(--rs-orange) !important;
+}
+
+.restaurant-settings-modal button[aria-label*='Đóng'],
+.restaurant-settings-modal header > button {
+  color: var(--rs-soft) !important;
+  border-color: var(--rs-border) !important;
+  background: var(--rs-surface-2) !important;
+}
+
+.restaurant-settings-form-layout,
+.restaurant-settings-form-fields,
+.restaurant-setting-preview,
+.restaurant-settings-detail,
+.restaurant-settings-detail-grid,
+.restaurant-settings-detail-hero,
+.restaurant-settings-detail-copy,
+.restaurant-settings-detail-item,
+.restaurant-settings-detail-message,
+.restaurant-settings-modal section,
+.restaurant-settings-modal article {
+  border-color: var(--rs-border) !important;
+}
+
+.restaurant-settings-form-layout,
+.restaurant-settings-form-fields {
+  background: transparent !important;
+}
+
+.restaurant-settings-form-fields > section,
+.restaurant-settings-form-fields > div,
+.restaurant-settings-detail-item,
+.restaurant-settings-detail-message {
+  border-color: var(--rs-border) !important;
+  background: #0a1427 !important;
+}
+
+.restaurant-settings-modal .restaurant-setting-preview {
+  border-left-color: var(--rs-border) !important;
+  background: #091326 !important;
+}
+
+.restaurant-settings-modal .restaurant-setting-preview > div,
+.restaurant-settings-modal .restaurant-setting-preview article,
+.restaurant-settings-modal .restaurant-setting-preview section {
+  color: var(--rs-soft) !important;
+  border-color: var(--rs-border) !important;
+  background: #0d172a !important;
+}
+
+.restaurant-settings-modal .restaurant-setting-preview .restaurant-logo {
+  color: var(--rs-orange);
+  border-color: #35435e;
+  background: #081126;
+}
+
+.restaurant-settings-modal .restaurant-settings-detail-hero,
+.restaurant-settings-modal [class*='detail-hero'] {
+  background: linear-gradient(135deg, #111d33, #0d172a) !important;
+}
+
+.restaurant-settings-modal .restaurant-settings-detail-grid > div,
+.restaurant-settings-modal [class*='detail-grid'] > div {
+  color: var(--rs-soft) !important;
+  border-color: var(--rs-border) !important;
+  background: #0a1427 !important;
+}
+
+.restaurant-settings-modal a {
+  color: var(--rs-orange) !important;
+}
+
+.restaurant-settings-modal .restaurant-settings-danger {
+  color: #ff7f91 !important;
+  border-color: rgb(255 97 120 / 35%) !important;
+  background: rgb(255 97 120 / 8%) !important;
+}
+
+.restaurant-settings-alert.success {
+  color: #63e5bd !important;
+  border-color: rgb(23 215 174 / 28%) !important;
+  background: rgb(23 215 174 / 8%) !important;
+}
+
+.restaurant-settings-alert.error,
+.restaurant-settings-modal .modal-alert.error {
+  color: #ff8797 !important;
+  border-color: rgb(255 97 120 / 30%) !important;
+  background: rgb(255 97 120 / 8%) !important;
+}
+
+@media (max-width: 1100px) {
+  .admin-layout:has(.restaurant-settings-page) .active-setting-card {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-layout:has(.restaurant-settings-page) .active-setting-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-layout:has(.restaurant-settings-page) .restaurant-settings-toolbar {
+    align-items: stretch;
+  }
+
+  .admin-layout:has(.restaurant-settings-page) .restaurant-settings-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-layout:has(.restaurant-settings-page) .restaurant-settings-filters {
+    grid-template-columns: 1fr;
+  }
+}
