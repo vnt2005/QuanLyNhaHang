@@ -1,0 +1,147 @@
+/* Final dark-mode overrides for Restaurant Settings.
+   Imported after the legacy and dark styles so light !important rules cannot leak through. */
+
+/* Form controls inside create/edit modal */
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields input:not([type='checkbox']),
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields textarea,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields select,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-grid input:not([type='checkbox']),
+.restaurant-settings-modal.form-modal .restaurant-settings-form-grid textarea,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-grid select {
+  color: #f6f8fc !important;
+  -webkit-text-fill-color: #f6f8fc !important;
+  caret-color: #f6f8fc !important;
+  border: 1px solid #24324b !important;
+  background: #071126 !important;
+  background-color: #071126 !important;
+  box-shadow: none !important;
+  color-scheme: dark;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields input:not([type='checkbox']):hover,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields textarea:hover,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields select:hover {
+  border-color: #334765 !important;
+  background: #09152b !important;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields input:not([type='checkbox']):focus,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields textarea:focus,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields select:focus {
+  outline: none !important;
+  border-color: #ff9f0a !important;
+  background: #071126 !important;
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 12%) !important;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields input::placeholder,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields textarea::placeholder {
+  color: #667a98 !important;
+  -webkit-text-fill-color: #667a98 !important;
+  opacity: 1;
+}
+
+/* Chrome/Edge autofill must stay dark as well. */
+.restaurant-settings-modal.form-modal input:-webkit-autofill,
+.restaurant-settings-modal.form-modal input:-webkit-autofill:hover,
+.restaurant-settings-modal.form-modal input:-webkit-autofill:focus,
+.restaurant-settings-modal.form-modal textarea:-webkit-autofill,
+.restaurant-settings-modal.form-modal textarea:-webkit-autofill:hover,
+.restaurant-settings-modal.form-modal textarea:-webkit-autofill:focus,
+.restaurant-settings-modal.form-modal select:-webkit-autofill {
+  -webkit-text-fill-color: #f6f8fc !important;
+  -webkit-box-shadow: 0 0 0 1000px #071126 inset !important;
+  box-shadow: 0 0 0 1000px #071126 inset !important;
+  border-color: #24324b !important;
+  caret-color: #f6f8fc !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+/* Field grouping and labels */
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields fieldset {
+  border-color: #1b2940 !important;
+  background: transparent !important;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields legend,
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields label {
+  color: #9eacc0 !important;
+}
+
+.restaurant-settings-modal.form-modal .restaurant-settings-form-fields legend > span {
+  color: #201300 !important;
+  background: #ffb43c !important;
+}
+
+/* Receipt preview remains dark rather than falling back to white. */
+.restaurant-settings-modal.form-modal .restaurant-setting-preview,
+.restaurant-settings-modal.form-modal .receipt-preview,
+.restaurant-settings-modal.form-modal .qr-message-preview {
+  color: #c6d0de !important;
+  border-color: #24324b !important;
+  background: #091326 !important;
+  background-color: #091326 !important;
+}
+
+.restaurant-settings-modal.form-modal .receipt-divider {
+  border-color: #24324b !important;
+  background: #24324b !important;
+}
+
+/* Detail modal: the two copy/message cards were still using the old light surface. */
+.restaurant-settings-modal.detail-modal .restaurant-setting-copy-grid,
+.restaurant-settings-modal.detail-modal .restaurant-setting-copy-grid article,
+.restaurant-settings-modal.detail-modal .restaurant-setting-copy-grid > article {
+  border-color: #24324b !important;
+  background: #0a1427 !important;
+  background-color: #0a1427 !important;
+  box-shadow: none !important;
+}
+
+.restaurant-settings-modal.detail-modal .restaurant-setting-copy-grid article span {
+  color: #58c9ef !important;
+}
+
+.restaurant-settings-modal.detail-modal .restaurant-setting-copy-grid article p {
+  color: #9eacc0 !important;
+}
+
+/* Keep all detail information tiles in the same navy family. */
+.restaurant-settings-modal.detail-modal .restaurant-setting-detail-grid > div,
+.restaurant-settings-modal.detail-modal .restaurant-setting-detail-hero {
+  border-color: #24324b !important;
+  background: #0a1427 !important;
+  background-color: #0a1427 !important;
+}
+
+/* Table actions on the settings-history screen must not reintroduce white buttons. */
+.admin-layout:has(.restaurant-settings-page) .restaurant-setting-row-actions button:not(.danger):not(.activate) {
+  color: #c6d0de !important;
+  border-color: #24324b !important;
+  background: #111d33 !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-setting-row-actions button:not(.danger):not(.activate):hover:not(:disabled) {
+  color: #f6f8fc !important;
+  border-color: #3a4a68 !important;
+  background: #15223a !important;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-setting-row-actions .activate {
+  color: #17d7ae !important;
+  border-color: rgb(23 215 174 / 28%) !important;
+  background: rgb(23 215 174 / 9%) !important;
+}
+
+.admin-layout:has(.restaurant-settings-page) .restaurant-setting-row-actions .danger {
+  color: #ff7f91 !important;
+  border-color: rgb(255 97 120 / 34%) !important;
+  background: rgb(255 97 120 / 8%) !important;
+}
+
+/* Native controls can flash light during interaction; keep them on the dark surface. */
+.restaurant-settings-modal :is(input, textarea, select):active,
+.restaurant-settings-modal :is(input, textarea, select):focus-visible {
+  background-color: #071126 !important;
+}
