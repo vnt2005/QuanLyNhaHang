@@ -1,0 +1,575 @@
+/* Promotions dark operations theme
+   Keeps current promotion workflow/data while adapting the visual language
+   to the dark navy + amber admin direction used across the refreshed console. */
+
+.admin-layout:has(.promotions-page) {
+  --promo-bg: #050a1b;
+  --promo-bg-deep: #020617;
+  --promo-surface: #0d172a;
+  --promo-surface-2: #111d33;
+  --promo-surface-3: #15223a;
+  --promo-input: #071024;
+  --promo-border: #24324b;
+  --promo-border-soft: #1b2940;
+  --promo-text: #f6f8fc;
+  --promo-soft: #c6d0de;
+  --promo-muted: #8293ad;
+  --promo-orange: #ff9f0a;
+  --promo-orange-hover: #ffad2f;
+  --promo-teal: #17d7ae;
+  --promo-blue: #4d8dff;
+  --promo-purple: #9d7bff;
+  --promo-danger: #ff6178;
+  color-scheme: dark;
+  background: var(--promo-bg-deep);
+}
+
+.admin-layout:has(.promotions-page) .dashboard {
+  background:
+    radial-gradient(circle at 84% -8%, rgb(43 69 116 / 18%), transparent 34rem),
+    radial-gradient(circle at 10% 94%, rgb(255 159 10 / 4%), transparent 28rem),
+    var(--promo-bg);
+}
+
+.admin-layout:has(.promotions-page) .topbar {
+  color: var(--promo-text);
+  border-bottom-color: var(--promo-border);
+  background: rgb(7 14 28 / 95%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 12%);
+}
+
+.admin-layout:has(.promotions-page) .topbar h1,
+.admin-layout:has(.promotions-page) .profile-button strong {
+  color: var(--promo-text);
+}
+
+.admin-layout:has(.promotions-page) .profile-button small {
+  color: var(--promo-muted);
+}
+
+.admin-layout:has(.promotions-page) .logout,
+.admin-layout:has(.promotions-page) .notification-trigger,
+.admin-layout:has(.promotions-page) .profile-button {
+  color: var(--promo-soft);
+  border-color: var(--promo-border);
+  background: var(--promo-surface);
+  box-shadow: none;
+}
+
+.admin-layout:has(.promotions-page) .sidebar nav button.active,
+.admin-layout:has(.promotions-page) .sidebar nav button.active:hover {
+  color: var(--promo-orange);
+  border-color: rgb(255 159 10 / 16%);
+  background: linear-gradient(90deg, rgb(255 159 10 / 17%), rgb(255 159 10 / 5%));
+  box-shadow: inset 3px 0 0 var(--promo-orange);
+}
+
+.admin-layout:has(.promotions-page) .sidebar nav button.active > span {
+  color: var(--promo-orange);
+  background: rgb(255 159 10 / 12%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-page {
+  color: var(--promo-soft);
+  padding-top: 22px;
+}
+
+.admin-layout:has(.promotions-page) .promotions-toolbar {
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--promo-border-soft);
+}
+
+.admin-layout:has(.promotions-page) .promotions-toolbar h2,
+.admin-layout:has(.promotions-page) .promotions-modal header h3 {
+  color: var(--promo-text);
+}
+
+.admin-layout:has(.promotions-page) .promotions-toolbar p,
+.admin-layout:has(.promotions-page) .promotions-modal header p {
+  color: var(--promo-muted);
+}
+
+.admin-layout:has(.promotions-page) .promotions-kicker {
+  color: var(--promo-orange);
+}
+
+.admin-layout:has(.promotions-page) .promotions-primary,
+.admin-layout:has(.promotions-page) .promotions-filters > button:not(.clear),
+.admin-layout:has(.promotions-page) .promotion-usage-filters > button:not(.clear) {
+  color: #211400;
+  border-color: var(--promo-orange);
+  background: var(--promo-orange);
+  box-shadow: 0 8px 22px rgb(255 159 10 / 18%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-primary:hover:not(:disabled),
+.admin-layout:has(.promotions-page) .promotions-filters > button:not(.clear):hover,
+.admin-layout:has(.promotions-page) .promotion-usage-filters > button:not(.clear):hover {
+  border-color: var(--promo-orange-hover);
+  background: var(--promo-orange-hover);
+}
+
+.admin-layout:has(.promotions-page) .promotions-secondary,
+.admin-layout:has(.promotions-page) .promotions-filters > button.clear,
+.admin-layout:has(.promotions-page) .promotion-usage-filters > button.clear {
+  color: var(--promo-soft);
+  border-color: var(--promo-border);
+  background: var(--promo-surface-2);
+}
+
+.admin-layout:has(.promotions-page) .promotions-apply-button {
+  color: #d9ccff;
+  border-color: rgb(157 123 255 / 45%);
+  background: rgb(157 123 255 / 11%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-danger {
+  color: #ff9aa9;
+  border-color: rgb(255 97 120 / 38%);
+  background: rgb(255 97 120 / 9%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid {
+  gap: 16px;
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid article {
+  min-height: 102px;
+  border-color: var(--promo-border);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 62%),
+    var(--promo-surface);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 10%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid article::after {
+  opacity: .12;
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid p,
+.admin-layout:has(.promotions-page) .promotions-summary-grid small {
+  color: var(--promo-muted);
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid strong {
+  color: var(--promo-text);
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid article.valid {
+  --summary-color: var(--promo-teal);
+  --summary-soft: #0f4c43;
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid article.upcoming {
+  --summary-color: var(--promo-orange);
+  --summary-soft: #5a3c0c;
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid article.applied {
+  --summary-color: var(--promo-blue);
+  --summary-soft: #173769;
+}
+
+.admin-layout:has(.promotions-page) .promotions-summary-grid article.discount {
+  --summary-color: var(--promo-purple);
+  --summary-soft: #37285f;
+}
+
+.admin-layout:has(.promotions-page) .promotion-summary-icon {
+  border: 1px solid color-mix(in srgb, var(--summary-color) 35%, transparent);
+  background: color-mix(in srgb, var(--summary-color) 12%, transparent);
+}
+
+.admin-layout:has(.promotions-page) .promotions-panel {
+  border-color: var(--promo-border);
+  background: var(--promo-surface);
+  box-shadow: 0 14px 36px rgb(0 0 0 / 12%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs {
+  border-bottom-color: var(--promo-border-soft);
+  background: var(--promo-surface-2);
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs button {
+  color: var(--promo-muted);
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs button.active {
+  color: var(--promo-orange);
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs button.active::after {
+  background: var(--promo-orange);
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs button > small {
+  color: var(--promo-muted);
+  background: #1a2840;
+}
+
+.admin-layout:has(.promotions-page) .promotions-tabs button.active > small {
+  color: var(--promo-orange);
+  background: rgb(255 159 10 / 12%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-filters,
+.admin-layout:has(.promotions-page) .promotion-usage-filters {
+  border-bottom-color: var(--promo-border-soft);
+  background: var(--promo-surface);
+}
+
+.admin-layout:has(.promotions-page) :is(
+  .promotions-filters input,
+  .promotions-filters select,
+  .promotion-usage-filters input,
+  .promotion-usage-filters select,
+  .promotion-form-fields input,
+  .promotion-form-fields select,
+  .promotion-form-fields textarea,
+  .apply-promotion-fields select,
+  .apply-promotion-fields textarea,
+  .payment-link-content select
+) {
+  color: var(--promo-text);
+  border-color: var(--promo-border);
+  background: var(--promo-input);
+}
+
+.admin-layout:has(.promotions-page) :is(
+  .promotions-filters input,
+  .promotion-usage-filters input,
+  .promotion-form-fields input,
+  .promotion-form-fields textarea,
+  .apply-promotion-fields textarea
+)::placeholder {
+  color: #65758f;
+}
+
+.admin-layout:has(.promotions-page) :is(
+  .promotions-filters input,
+  .promotions-filters select,
+  .promotion-usage-filters input,
+  .promotion-usage-filters select,
+  .promotion-form-fields input,
+  .promotion-form-fields select,
+  .promotion-form-fields textarea,
+  .apply-promotion-fields select,
+  .apply-promotion-fields textarea,
+  .payment-link-content select
+):focus {
+  border-color: var(--promo-orange);
+  box-shadow: 0 0 0 3px rgb(255 159 10 / 12%);
+}
+
+.admin-layout:has(.promotions-page) .valid-now-filter {
+  color: var(--promo-soft);
+}
+
+.admin-layout:has(.promotions-page) .valid-now-filter input {
+  accent-color: var(--promo-orange);
+}
+
+/* Compact program rows: same data, denser operations-oriented presentation. */
+.admin-layout:has(.promotions-page) .promotion-card-grid {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 16px;
+  background: var(--promo-bg);
+}
+
+.admin-layout:has(.promotions-page) .promotion-card {
+  border-color: var(--promo-border);
+  border-radius: 14px;
+  background: var(--promo-surface);
+  box-shadow: none;
+  transform: none;
+}
+
+.admin-layout:has(.promotions-page) .promotion-card:hover {
+  transform: none;
+  border-color: #334766;
+  background: #101c32;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 12%);
+}
+
+.admin-layout:has(.promotions-page) .promotion-card > header,
+.admin-layout:has(.promotions-page) .promotion-card > footer {
+  border-color: var(--promo-border-soft);
+  background: transparent;
+}
+
+.admin-layout:has(.promotions-page) .promotion-card :is(h3, h4, strong) {
+  color: var(--promo-text);
+}
+
+.admin-layout:has(.promotions-page) .promotion-card :is(p, small, span:not(.promotion-status)) {
+  color: var(--promo-muted);
+}
+
+.admin-layout:has(.promotions-page) .promotion-code > span {
+  color: var(--promo-orange);
+  border: 1px solid rgb(255 159 10 / 25%);
+  background: rgb(255 159 10 / 10%);
+}
+
+.admin-layout:has(.promotions-page) .promotion-status.valid,
+.admin-layout:has(.promotions-page) .promotion-usage-status.applied {
+  color: var(--promo-teal);
+  border-color: rgb(23 215 174 / 28%);
+  background: rgb(23 215 174 / 10%);
+}
+
+.admin-layout:has(.promotions-page) .promotion-status.upcoming {
+  color: #ffc55e;
+  border-color: rgb(255 159 10 / 28%);
+  background: rgb(255 159 10 / 10%);
+}
+
+.admin-layout:has(.promotions-page) .promotion-status:is(.expired,.inactive,.exhausted) {
+  color: #9cacbf;
+  border-color: #334057;
+  background: #182238;
+}
+
+.admin-layout:has(.promotions-page) .promotion-card button,
+.admin-layout:has(.promotions-page) .promotion-card a {
+  color: var(--promo-soft);
+  border-color: var(--promo-border);
+  background: var(--promo-surface-2);
+}
+
+.admin-layout:has(.promotions-page) .promotion-card button:hover,
+.admin-layout:has(.promotions-page) .promotion-card a:hover {
+  color: var(--promo-text);
+  border-color: #40516e;
+  background: var(--promo-surface-3);
+}
+
+.admin-layout:has(.promotions-page) .promotion-card button.danger {
+  color: #ff94a4;
+  border-color: rgb(255 97 120 / 32%);
+  background: rgb(255 97 120 / 8%);
+}
+
+/* Usage history table */
+.admin-layout:has(.promotions-page) .promotion-usage-table-wrap,
+.admin-layout:has(.promotions-page) .promotion-usage-table,
+.admin-layout:has(.promotions-page) .promotion-usage-table tbody,
+.admin-layout:has(.promotions-page) .promotion-usage-table tr,
+.admin-layout:has(.promotions-page) .promotion-usage-table td {
+  background: var(--promo-surface) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table th {
+  color: #8fa2bd;
+  background: #0a1326;
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table td {
+  color: var(--promo-soft);
+  border-top-color: var(--promo-border-soft);
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table td > strong {
+  color: var(--promo-text);
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table td > small {
+  color: var(--promo-muted);
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table tbody tr:hover > td {
+  background: #111e35 !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table td[colspan] {
+  background: var(--promo-surface) !important;
+}
+
+.admin-layout:has(.promotions-page) .promotion-usage-table .discount-value {
+  color: var(--promo-teal);
+}
+
+.admin-layout:has(.promotions-page) .promotions-pagination {
+  color: var(--promo-muted);
+  border-top-color: var(--promo-border-soft);
+  background: var(--promo-surface);
+}
+
+.admin-layout:has(.promotions-page) .promotions-pagination button {
+  color: var(--promo-soft);
+  border-color: var(--promo-border);
+  background: var(--promo-surface-2);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-layout:has(.promotions-page) .promotions-pagination button:hover:not(:disabled) {
+  color: var(--promo-text);
+  border-color: #40516e;
+  background: var(--promo-surface-3);
+}
+
+.admin-layout:has(.promotions-page) .promotions-pagination button:focus:not(:focus-visible),
+.admin-layout:has(.promotions-page) .promotions-pagination button:active {
+  outline: none;
+  box-shadow: none;
+  background: var(--promo-surface-3);
+}
+
+.admin-layout:has(.promotions-page) .promotions-pagination button:focus-visible {
+  outline: 2px solid var(--promo-orange);
+  outline-offset: 2px;
+}
+
+.admin-layout:has(.promotions-page) .promotions-loading,
+.admin-layout:has(.promotions-page) .promotions-empty {
+  color: var(--promo-muted);
+  background: var(--promo-surface);
+}
+
+.admin-layout:has(.promotions-page) .promotions-empty > span {
+  color: var(--promo-orange);
+  background: rgb(255 159 10 / 10%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-empty h3 {
+  color: var(--promo-text);
+}
+
+/* Modal family: create/edit/detail/apply/usage */
+.admin-layout:has(.promotions-page) .promotions-modal-backdrop {
+  background: rgb(2 6 23 / 76%);
+  backdrop-filter: blur(9px);
+}
+
+.admin-layout:has(.promotions-page) .promotions-modal {
+  color: var(--promo-soft);
+  border-color: var(--promo-border);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 58%),
+    var(--promo-surface);
+  box-shadow: 0 28px 80px rgb(0 0 0 / 40%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-modal > header {
+  border-bottom-color: var(--promo-border-soft);
+  background: var(--promo-surface);
+}
+
+.admin-layout:has(.promotions-page) .promotions-modal > header > button {
+  color: var(--promo-muted);
+  border-color: var(--promo-border);
+  background: var(--promo-surface-2);
+}
+
+.admin-layout:has(.promotions-page) .promotions-modal > header > button:hover {
+  color: var(--promo-text);
+  background: var(--promo-surface-3);
+}
+
+.admin-layout:has(.promotions-page) .promotion-form-layout,
+.admin-layout:has(.promotions-page) .promotion-form-fields,
+.admin-layout:has(.promotions-page) .apply-promotion-fields,
+.admin-layout:has(.promotions-page) .payment-link-content {
+  background: transparent;
+}
+
+.admin-layout:has(.promotions-page) .promotion-form-fields label,
+.admin-layout:has(.promotions-page) .apply-promotion-fields label,
+.admin-layout:has(.promotions-page) .payment-link-content label {
+  color: var(--promo-soft);
+}
+
+.admin-layout:has(.promotions-page) .promotions-modal form > footer,
+.admin-layout:has(.promotions-page) .promotions-modal > footer {
+  border-top-color: var(--promo-border-soft);
+  background: var(--promo-surface);
+}
+
+.admin-layout:has(.promotions-page) .promotion-detail-hero {
+  border-color: rgb(255 159 10 / 23%);
+  background:
+    linear-gradient(135deg, rgb(255 159 10 / 8%), transparent 55%),
+    var(--promo-surface-2);
+}
+
+.admin-layout:has(.promotions-page) .promotion-detail-value {
+  color: var(--promo-orange);
+  border-right-color: rgb(255 159 10 / 25%);
+}
+
+.admin-layout:has(.promotions-page) .promotion-detail-hero h4 {
+  color: var(--promo-text);
+}
+
+.admin-layout:has(.promotions-page) .promotion-detail-hero p {
+  color: var(--promo-muted);
+}
+
+.admin-layout:has(.promotions-page) .promotion-detail-grid > div,
+.admin-layout:has(.promotions-page) .usage-detail-links > div,
+.admin-layout:has(.promotions-page) .usage-detail-summary,
+.admin-layout:has(.promotions-page) .usage-detail-amounts > div,
+.admin-layout:has(.promotions-page) .apply-calculation,
+.admin-layout:has(.promotions-page) .apply-success-content {
+  border-color: var(--promo-border);
+  background: var(--promo-surface-2);
+}
+
+.admin-layout:has(.promotions-page) .promotion-detail-grid span,
+.admin-layout:has(.promotions-page) .usage-detail-links span,
+.admin-layout:has(.promotions-page) .usage-detail-summary span,
+.admin-layout:has(.promotions-page) .usage-detail-amounts span,
+.admin-layout:has(.promotions-page) .apply-calculation span {
+  color: var(--promo-muted);
+}
+
+.admin-layout:has(.promotions-page) .promotion-detail-grid strong,
+.admin-layout:has(.promotions-page) .usage-detail-links strong,
+.admin-layout:has(.promotions-page) .usage-detail-summary strong,
+.admin-layout:has(.promotions-page) .usage-detail-amounts strong,
+.admin-layout:has(.promotions-page) .apply-calculation strong {
+  color: var(--promo-text);
+}
+
+.admin-layout:has(.promotions-page) .apply-calculation > div:last-child {
+  border-color: rgb(23 215 174 / 22%);
+  background: rgb(23 215 174 / 8%);
+}
+
+.admin-layout:has(.promotions-page) .apply-calculation > div:last-child strong {
+  color: var(--promo-teal);
+}
+
+.admin-layout:has(.promotions-page) .promotions-alert.error,
+.admin-layout:has(.promotions-page) .modal-alert.error {
+  color: #ff9aa9;
+  border-color: rgb(255 97 120 / 30%);
+  background: rgb(255 97 120 / 8%);
+}
+
+.admin-layout:has(.promotions-page) .promotions-alert.success,
+.admin-layout:has(.promotions-page) .modal-alert.success {
+  color: #72edcf;
+  border-color: rgb(23 215 174 / 28%);
+  background: rgb(23 215 174 / 8%);
+}
+
+@media (max-width: 980px) {
+  .admin-layout:has(.promotions-page) .promotions-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-layout:has(.promotions-page) .promotions-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-layout:has(.promotions-page) .promotions-toolbar {
+    align-items: stretch;
+  }
+}
