@@ -36,6 +36,7 @@ export default function SiteHeader({
     || pathname === '/reservation'
     || pathname === '/orders'
     || pathname === '/account'
+    || pathname === '/login'
     || pathname === '/payment-result'
 
   useEffect(() => {
