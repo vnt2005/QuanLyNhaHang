@@ -118,13 +118,15 @@ export default function App() {
               ? 'Đặt bàn'
               : pathname === '/payment-result'
                 ? 'Kết quả thanh toán'
-                : pathname === '/orders' || pathname === '/account'
-                  ? 'Tài khoản của tôi'
-                  : pathname === '/login'
-                    ? 'Đăng nhập'
-                    : pathname === '/'
-                      ? 'Trang chủ'
-                      : 'Không tìm thấy trang'
+                : pathname === '/orders'
+                  ? 'Đơn của tôi'
+                  : pathname === '/account'
+                    ? 'Tài khoản của tôi'
+                    : pathname === '/login'
+                      ? 'Đăng nhập'
+                      : pathname === '/'
+                        ? 'Trang chủ'
+                        : 'Không tìm thấy trang'
     document.title = `${pageName} | ${restaurantName}`
   }, [data.menuItems, data.restaurant?.restaurantName, menuItemId, pathname])
 
@@ -148,6 +150,8 @@ export default function App() {
     || Boolean(menuItemId)
     || pathname === '/takeaway'
     || pathname === '/reservation'
+    || pathname === '/orders'
+    || pathname === '/account'
     || pathname === '/payment-result'
 
   function content() {
