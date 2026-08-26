@@ -34,6 +34,8 @@ export default function SiteHeader({
     || pathname.startsWith('/menu/')
     || pathname === '/takeaway'
     || pathname === '/reservation'
+    || pathname === '/orders'
+    || pathname === '/account'
     || pathname === '/payment-result'
 
   useEffect(() => {
