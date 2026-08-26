@@ -153,6 +153,7 @@ export default function App() {
     || pathname === '/reservation'
     || pathname === '/orders'
     || pathname === '/account'
+    || pathname === '/login'
     || pathname === '/payment-result'
 
   function content() {
