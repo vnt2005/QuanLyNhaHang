@@ -10,8 +10,7 @@ import {
   logoutCustomer,
   type CustomerSession,
 } from '../api/customerAuth'
-import AuthPanel from '../components/AuthPanel'
-import reservationImage from '../assets/reservation-dining-room.webp'
+import AuthPortal from '../components/AuthPortal'
 import { navigate } from '../navigation'
 
 type AccountTab = 'profile' | 'security'
@@ -30,14 +29,7 @@ export default function AccountPage({
   const [passwordMessage, setPasswordMessage] = useState('')
 
   if (!session) {
-    return (
-      <main className="login-page page-section">
-        <div className="login-layout">
-          <div className="login-photo"><img src={reservationImage} alt="Không gian nhà hàng" /><div><h1>Tài khoản của bạn, riêng một nơi</h1><p>Đăng nhập để quản lý thông tin cá nhân và bảo mật tài khoản khách hàng.</p></div></div>
-          <AuthPanel initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
-        </div>
-      </main>
-    )
+    return <AuthPortal initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
   }
 
   const displayName = [session.ho, session.ten].filter(Boolean).join(' ')
