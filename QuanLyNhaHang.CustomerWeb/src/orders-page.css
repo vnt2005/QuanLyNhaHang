@@ -1,0 +1,128 @@
+.orders-premium-page {
+  width: min(1500px, calc(100vw - 48px));
+  padding-top: 34px;
+  padding-bottom: 76px;
+  color: #2f281f;
+}
+
+.orders-premium-content {
+  min-width: 0;
+  width: 100%;
+}
+
+.orders-premium-page .orders-toolbar {
+  align-items: stretch;
+}
+
+.orders-premium-page label.orders-search {
+  height: 52px;
+  min-height: 52px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 11px;
+  margin: 0;
+  padding: 0 16px;
+  overflow: hidden;
+  border: 1px solid #e2d6c6;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(74, 52, 30, .04);
+}
+
+.orders-premium-page label.orders-search:focus-within {
+  border-color: #c97846;
+  box-shadow: 0 0 0 3px rgba(201, 120, 70, .12);
+}
+
+.orders-premium-page label.orders-search > svg {
+  position: static;
+  width: 19px;
+  height: 19px;
+  min-width: 19px;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 19px;
+  color: #9a8876;
+  transform: none;
+}
+
+.orders-premium-page label.orders-search input {
+  appearance: none;
+  display: block;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  height: 50px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none !important;
+  color: #332b23;
+  line-height: 50px;
+}
+
+.orders-premium-page label.orders-search input:focus {
+  border: 0 !important;
+  outline: 0;
+  box-shadow: none !important;
+}
+
+.orders-premium-page label.orders-search input::placeholder {
+  color: #a6988a;
+  opacity: 1;
+}
+
+.orders-premium-page .customer-order-card-summary {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.account-premium-sidebar .account-orders-shortcut {
+  width: calc(100% - 24px);
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0 12px 10px;
+  border: 1px solid #e4c8a6;
+  border-radius: 12px;
+  background: #fff8ef;
+  color: #8f471f;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.account-premium-sidebar .account-orders-shortcut:hover {
+  background: #fff0de;
+  transform: translateY(-1px);
+}
+
+.account-premium-sidebar .account-orders-shortcut svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 960px) {
+  .orders-premium-page {
+    width: min(100% - 32px, 920px);
+  }
+}
+
+@media (max-width: 680px) {
+  .orders-premium-page {
+    width: min(100% - 24px, 640px);
+    padding-top: 20px;
+  }
+
+  .orders-premium-page label.orders-search {
+    width: 100%;
+  }
+}
