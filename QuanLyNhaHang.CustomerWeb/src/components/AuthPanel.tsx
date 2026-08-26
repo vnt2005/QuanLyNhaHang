@@ -48,6 +48,8 @@ export default function AuthPanel({
   function move(next: Mode, nextMessage = '') {
     setMode(next)
     setCode('')
+    setPassword('')
+    setShowPassword(false)
     setError('')
     setMessage(nextMessage)
   }
