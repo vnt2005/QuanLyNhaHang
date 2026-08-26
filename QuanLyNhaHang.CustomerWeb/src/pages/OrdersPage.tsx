@@ -19,9 +19,8 @@ import {
   type CustomerOrder,
   type CustomerOrderHistory,
 } from '../api/customerOrders'
-import AuthPanel from '../components/AuthPanel'
+import AuthPortal from '../components/AuthPortal'
 import PayOnlineButton from '../components/PayOnlineButton'
-import reservationImage from '../assets/reservation-dining-room.webp'
 import { navigate } from '../navigation'
 
 type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled'
@@ -206,14 +205,7 @@ export default function OrdersPage({
   }, [history?.items, orderFilter, orderSearch])
 
   if (!session) {
-    return (
-      <main className="login-page page-section">
-        <div className="login-layout">
-          <div className="login-photo"><img src={reservationImage} alt="Không gian nhà hàng" /><div><h1>Theo dõi đơn của bạn dễ dàng hơn</h1><p>Đăng nhập để xem lịch sử đơn, trạng thái phục vụ và tiếp tục thanh toán khi cần.</p></div></div>
-          <AuthPanel initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
-        </div>
-      </main>
-    )
+    return <AuthPortal initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
   }
 
   return (
