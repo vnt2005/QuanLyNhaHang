@@ -1,0 +1,269 @@
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  Clock3,
+  CreditCard,
+  MapPin,
+  PackageOpen,
+  RefreshCw,
+  Search,
+  ShoppingBag,
+  UtensilsCrossed,
+} from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { CustomerSession } from '../api/customerAuth'
+import {
+  getCustomerOrders,
+  type CustomerOrder,
+  type CustomerOrderHistory,
+} from '../api/customerOrders'
+import AuthPortal from '../components/AuthPortal'
+import PayOnlineButton from '../components/PayOnlineButton'
+import { navigate } from '../navigation'
+
+type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled'
+
+const terminalStatuses = new Set(['Completed', 'Cancelled'])
+const activeStatuses = new Set(['Pending', 'Confirmed', 'Preparing', 'Cooking', 'Ready', 'Served'])
+
+const statusLabels: Record<string, string> = {
+  Pending: 'Đang chờ',
+  Confirmed: 'Đã xác nhận',
+  Preparing: 'Đang chuẩn bị',
+  Cooking: 'Đang chế biến',
+  Ready: 'Sẵn sàng phục vụ',
+  Served: 'Đã phục vụ',
+  Completed: 'Đã hoàn thành',
+  Cancelled: 'Đã hủy',
+}
+
+const orderFilters: Array<{ value: OrderFilter; label: string }> = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'active', label: 'Đang xử lý' },
+  { value: 'completed', label: 'Hoàn thành' },
+  { value: 'cancelled', label: 'Đã hủy' },
+]
+
+function money(value: number) {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function dateTime(value: string) {
+  return new Intl.DateTimeFormat('vi-VN', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value))
+}
+
+function matchesFilter(order: CustomerOrder, filter: OrderFilter) {
+  if (filter === 'all') return true
+  if (filter === 'active') return activeStatuses.has(order.status)
+  if (filter === 'completed') return order.status === 'Completed'
+  return order.status === 'Cancelled'
+}
+
+function matchesSearch(order: CustomerOrder, query: string) {
+  if (!query) return true
+  const haystack = [
+    order.orderCode,
+    order.restaurantTableName,
+    order.customerName,
+    order.customerPhoneNumber,
+    ...order.items.map(item => item.menuItemName),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase('vi')
+  return haystack.includes(query.toLocaleLowerCase('vi'))
+}
+
+function OrderRow({
+  order,
+  expanded,
+  accessToken,
+  onToggle,
+}: {
+  order: CustomerOrder
+  expanded: boolean
+  accessToken: string
+  onToggle: () => void
+}) {
+  const lastQrToken = localStorage.getItem('customerLastQrToken')
+  const canOrderMore = !terminalStatuses.has(order.status) && Boolean(lastQrToken)
+  const isTakeaway = order.orderType === 'Takeaway'
+
+  return (
+    <article className={expanded ? 'customer-order-card expanded' : 'customer-order-card'}>
+      <button className="customer-order-card-summary" type="button" onClick={onToggle} aria-expanded={expanded}>
+        <div className="customer-order-card-title">
+          <span className="customer-order-type-icon" aria-hidden="true">{isTakeaway ? <ShoppingBag /> : <UtensilsCrossed />}</span>
+          <div>
+            <small>{isTakeaway ? 'Đơn mang về' : 'Dùng tại nhà hàng'}</small>
+            <strong>{order.orderCode}</strong>
+          </div>
+        </div>
+
+        <div className="customer-order-card-meta">
+          <span><CalendarDays aria-hidden="true" />{dateTime(order.createdAt)}</span>
+          <span><MapPin aria-hidden="true" />{isTakeaway ? 'Nhận tại nhà hàng' : order.restaurantTableName}</span>
+          <span><CreditCard aria-hidden="true" />{money(order.totalAmount)}</span>
+        </div>
+
+        <span className={`customer-order-status status-${order.status.toLocaleLowerCase()}`}>
+          {statusLabels[order.status] || order.status}
+        </span>
+        <span className="customer-order-expand" aria-hidden="true">{expanded ? <ChevronDown /> : <ChevronRight />}</span>
+      </button>
+
+      {expanded ? (
+        <div className="customer-order-detail">
+          <div className="customer-order-items-heading">
+            <span>Món ăn</span><span>Số lượng</span><span>Đơn giá</span><span>Thành tiền</span>
+          </div>
+          <div className="customer-order-items">
+            {order.items.map(item => (
+              <div className="customer-order-item-line" key={item.id}>
+                <strong>{item.menuItemName}<small>{item.note || ''}</small></strong>
+                <span>x{item.quantity}</span>
+                <span>{money(item.unitPrice)}</span>
+                <span>{money(item.totalPrice)}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="customer-order-detail-footer">
+            <div className="customer-order-note">
+              <small>Ghi chú</small>
+              <p>{order.note || 'Không có ghi chú cho đơn hàng này.'}</p>
+            </div>
+            <div className="customer-order-total">
+              <small>Tổng giá trị món</small>
+              <strong>{money(order.totalAmount)}</strong>
+            </div>
+          </div>
+
+          {!terminalStatuses.has(order.status) || canOrderMore ? (
+            <div className="customer-order-actions">
+              {!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} className="primary-button compact" /> : null}
+              {canOrderMore ? <button className="secondary-button compact" type="button" onClick={() => navigate(`/qr-order/${encodeURIComponent(lastQrToken!)}`)}>Gọi thêm món</button> : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </article>
+  )
+}
+
+export default function OrdersPage({
+  session,
+  initialMessage,
+  onSessionChanged,
+}: {
+  session: CustomerSession | null
+  initialMessage?: string
+  onSessionChanged: (session: CustomerSession | null) => void
+}) {
+  const [history, setHistory] = useState<CustomerOrderHistory | null>(null)
+  const [page, setPage] = useState(1)
+  const [expandedId, setExpandedId] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [orderSearch, setOrderSearch] = useState('')
+  const [orderFilter, setOrderFilter] = useState<OrderFilter>('all')
+
+  const loadOrders = useCallback(async (targetPage = page) => {
+    if (!session) return
+    setLoading(true)
+    setError('')
+    try {
+      const result = await getCustomerOrders(targetPage, 8)
+      setHistory(result)
+      setPage(result.pageNumber)
+      setExpandedId(current => current && result.items.some(item => item.id === current)
+        ? current
+        : result.items[0]?.id || '')
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không tải được đơn hàng.')
+    } finally {
+      setLoading(false)
+    }
+  }, [page, session])
+
+  useEffect(() => {
+    if (session) void loadOrders(1)
+  }, [session])
+
+  const visibleOrders = useMemo(() => {
+    const query = orderSearch.trim()
+    return history?.items.filter(order => matchesFilter(order, orderFilter) && matchesSearch(order, query)) ?? []
+  }, [history?.items, orderFilter, orderSearch])
+
+  if (!session) {
+    return <AuthPortal initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
+  }
+
+  return (
+    <main className="orders-premium-page page-section">
+      <section className="orders-premium-content">
+        <header className="orders-hero-heading">
+          <div>
+            <span className="orders-eyebrow"><Clock3 aria-hidden="true" /> Theo dõi đơn hàng</span>
+            <h1>Đơn của tôi</h1>
+            <p>Xem trạng thái phục vụ, kiểm tra chi tiết món và tiếp tục thanh toán trong cùng một nơi.</p>
+          </div>
+          <button className="orders-refresh-button" type="button" onClick={() => void loadOrders(page)} disabled={loading}>
+            <RefreshCw className={loading ? 'spin' : ''} aria-hidden="true" />
+            <span>Cập nhật</span>
+          </button>
+        </header>
+
+        <div className="orders-toolbar">
+          <label className="orders-search">
+            <Search aria-hidden="true" />
+            <span className="sr-only">Tìm đơn hàng</span>
+            <input
+              value={orderSearch}
+              onChange={event => setOrderSearch(event.target.value)}
+              placeholder="Tìm mã đơn, bàn hoặc món ăn…"
+              autoComplete="off"
+            />
+          </label>
+          <div className="orders-filter-tabs" role="group" aria-label="Lọc trạng thái đơn hàng">
+            {orderFilters.map(filter => (
+              <button type="button" className={orderFilter === filter.value ? 'active' : ''} aria-pressed={orderFilter === filter.value} onClick={() => setOrderFilter(filter.value)} key={filter.value}>{filter.label}</button>
+            ))}
+          </div>
+        </div>
+
+        {history ? (
+          <div className="orders-result-summary">
+            <span><ClipboardList aria-hidden="true" /> {history.totalCount} đơn trong lịch sử</span>
+            {(orderSearch.trim() || orderFilter !== 'all') ? <small>Đang hiển thị {visibleOrders.length} kết quả trên trang {history.pageNumber}.</small> : <small>Trang {history.pageNumber} / {Math.max(history.totalPages, 1)}</small>}
+          </div>
+        ) : null}
+
+        {error ? <div className="form-notice error" role="alert">{error}</div> : null}
+        {loading && !history ? <div className="orders-loading"><RefreshCw className="spin" /> Đang tải đơn hàng…</div> : null}
+
+        {history?.items.length ? (
+          visibleOrders.length ? (
+            <div className="customer-orders-list">
+              {visibleOrders.map(order => <OrderRow key={order.id} order={order} accessToken={session.token} expanded={expandedId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} />)}
+              {history.totalPages > 1 ? <div className="pagination orders-pagination"><button type="button" disabled={!history.hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trang trước</button><span>Trang {history.pageNumber}/{history.totalPages}</span><button type="button" disabled={!history.hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Trang sau</button></div> : null}
+            </div>
+          ) : (
+            <div className="orders-filter-empty"><Search /><h2>Chưa tìm thấy đơn phù hợp</h2><p>Thử đổi từ khóa hoặc chọn trạng thái khác trong các đơn đang hiển thị.</p><button type="button" onClick={() => { setOrderSearch(''); setOrderFilter('all') }}>Xóa bộ lọc</button></div>
+          )
+        ) : history && !loading ? (
+          <div className="account-empty"><PackageOpen /><h2>Chưa có đơn hàng nào</h2><p>Khi gọi món bằng QR trong lúc đăng nhập, đơn sẽ xuất hiện tại đây.</p><button className="secondary-button" type="button" onClick={() => navigate('/menu')}>Xem thực đơn</button></div>
+        ) : null}
+      </section>
+    </main>
+  )
+}

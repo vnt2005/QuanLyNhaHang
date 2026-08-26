@@ -8,6 +8,10 @@ import './customer-promotion.css'
 import './home-premium.css'
 import './menu-premium.css'
 import './customer-premium-shell.css'
+import './reservation-premium.css'
+import './account-premium.css'
+import './orders-page.css'
+import './auth-premium.css'
 
 if ('scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual'

@@ -27,12 +27,16 @@ export default function SiteHeader({
 }) {
   const [open, setOpen] = useState(false)
   const [cartCount, setCartCount] = useState(() => takeawayCartCount())
-  const accountPath = session ? '/orders' : '/login'
+  const accountPath = session ? '/account' : '/login'
   const accountLabel = session ? [session.ho, session.ten].filter(Boolean).join(' ') : 'Đăng nhập'
   const isPremium = pathname === '/'
     || pathname === '/menu'
     || pathname.startsWith('/menu/')
     || pathname === '/takeaway'
+    || pathname === '/reservation'
+    || pathname === '/orders'
+    || pathname === '/account'
+    || pathname === '/login'
     || pathname === '/payment-result'
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { clearTakeawayCart } from '../takeawayCart'
 import { ApiError, apiRequest } from './client'
 
 const ACCESS_TOKEN_KEY = 'customerAccessToken'
@@ -141,6 +142,12 @@ export function clearCustomerSession() {
   localStorage.removeItem(REFRESH_TOKEN_KEY)
 }
 
+function clearCustomerLogoutState() {
+  clearTakeawayCart()
+  localStorage.removeItem('customerLastQrToken')
+  localStorage.removeItem('customerReturnPath')
+}
+
 function clearCustomerSessionIfCurrent(refreshToken: string) {
   if (localStorage.getItem(REFRESH_TOKEN_KEY) !== refreshToken) return
   clearCustomerSession()
@@ -247,6 +254,7 @@ export async function changeCustomerPassword(input: {
     token,
   )
   clearCustomerSession()
+  clearCustomerLogoutState()
   return envelope.message ?? 'Đổi mật khẩu thành công.'
 }
 
@@ -288,6 +296,7 @@ export function restoreCustomerSession() {
 export async function logoutCustomer() {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY) ?? ''
   clearCustomerSession()
+  clearCustomerLogoutState()
   if (!refreshToken) return
   await apiRequest('/api/auth/logout', {
     method: 'POST',
