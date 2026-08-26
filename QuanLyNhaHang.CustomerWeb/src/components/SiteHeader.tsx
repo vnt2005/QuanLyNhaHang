@@ -33,6 +33,7 @@ export default function SiteHeader({
     || pathname === '/menu'
     || pathname.startsWith('/menu/')
     || pathname === '/takeaway'
+    || pathname === '/reservation'
     || pathname === '/payment-result'
 
   useEffect(() => {

@@ -147,6 +147,7 @@ export default function App() {
     || pathname === '/menu'
     || Boolean(menuItemId)
     || pathname === '/takeaway'
+    || pathname === '/reservation'
     || pathname === '/payment-result'
 
   function content() {
