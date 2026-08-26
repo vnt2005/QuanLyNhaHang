@@ -21,6 +21,7 @@ const MenuPage = lazy(() => import('./pages/MenuPage'))
 const MenuItemDetailPage = lazy(() => import('./pages/MenuItemDetailPage'))
 const TakeawayPage = lazy(() => import('./pages/TakeawayPage'))
 const ReservationPage = lazy(() => import('./pages/ReservationPage'))
+const OrdersPage = lazy(() => import('./pages/OrdersPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const QrOrderPage = lazy(() => import('./pages/QrOrderPage'))
 const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage'))
@@ -164,7 +165,8 @@ export default function App() {
     if (menuItemId) return <MenuItemDetailPage data={data} itemId={menuItemId} />
     if (pathname === '/takeaway') return <TakeawayPage data={data} session={session} />
     if (pathname === '/reservation') return <ReservationPage data={data} session={session} />
-    if (pathname === '/orders' || pathname === '/account' || pathname === '/login') return <AccountPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
+    if (pathname === '/orders') return <OrdersPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
+    if (pathname === '/account' || pathname === '/login') return <AccountPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
     return <main className="not-found page-section"><h1>Không tìm thấy trang</h1><p>Đường dẫn này không tồn tại hoặc đã được thay đổi.</p><button className="primary-button" type="button" onClick={() => navigate('/')}>Về trang chủ</button></main>
   }
 
