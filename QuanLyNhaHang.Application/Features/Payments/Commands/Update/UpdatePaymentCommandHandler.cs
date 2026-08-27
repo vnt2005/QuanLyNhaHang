@@ -25,8 +25,15 @@ public class UpdatePaymentCommandHandler
         if (payment == null)
             throw new Exception("Không tìm thấy thanh toán.");
 
+        if (payment.Status == "Paid")
+        {
+            throw new InvalidOperationException(
+                "Thanh toán đã được ghi nhận và khóa sổ. " +
+                "Không thể sửa số tiền, phương thức hoặc các khoản tính tiền của giao dịch đã thanh toán.");
+        }
+
         if (payment.Status == "Cancelled")
-            throw new Exception("Thanh toán đã hủy, không thể cập nhật.");
+            throw new InvalidOperationException("Thanh toán đã hủy, không thể cập nhật.");
 
         payment.UpdateInfo(
             request.DiscountAmount,
