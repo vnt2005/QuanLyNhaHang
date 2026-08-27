@@ -1,6 +1,6 @@
-/* Standard filter action button ------------------------------------------------
+/* Standard filter and clear-filter action buttons ---------------------------------
    Matches the approved Admin reference: 56x46, amber #ff9f0a, dark label,
-   14px radius. Loaded after page-specific CSS so every real "Lọc" action
+   14px radius. Loaded after page-specific CSS so every real filter action
    keeps the same size and color across modules. */
 .dashboard :is(
   .order-filters > button[type='submit'],
@@ -9,7 +9,15 @@
   .table-qr-filter-submit,
   .revenue-filter-button,
   .promotions-filters > button[type='submit'],
-  .promotion-usage-filters > button[type='submit']
+  .promotion-usage-filters > button[type='submit'],
+  .restaurant-settings-filters > button[type='submit'],
+  .activity-clear,
+  .customer-toolbar > button.secondary,
+  .table-qr-filter-clear,
+  .revenue-reports-page .clear-filter,
+  .promotions-filters > button.clear,
+  .promotion-usage-filters > button.clear,
+  .restaurant-settings-filters > button.clear
 ) {
   display: inline-flex !important;
   align-items: center !important;
@@ -52,7 +60,15 @@
   .table-qr-filter-submit,
   .revenue-filter-button,
   .promotions-filters > button[type='submit'],
-  .promotion-usage-filters > button[type='submit']
+  .promotion-usage-filters > button[type='submit'],
+  .restaurant-settings-filters > button[type='submit'],
+  .activity-clear,
+  .customer-toolbar > button.secondary,
+  .table-qr-filter-clear,
+  .revenue-reports-page .clear-filter,
+  .promotions-filters > button.clear,
+  .promotion-usage-filters > button.clear,
+  .restaurant-settings-filters > button.clear
 ):hover:not(:disabled) {
   color: #211400 !important;
   border-color: #ffad2f !important;
@@ -68,7 +84,15 @@
   .table-qr-filter-submit,
   .revenue-filter-button,
   .promotions-filters > button[type='submit'],
-  .promotion-usage-filters > button[type='submit']
+  .promotion-usage-filters > button[type='submit'],
+  .restaurant-settings-filters > button[type='submit'],
+  .activity-clear,
+  .customer-toolbar > button.secondary,
+  .table-qr-filter-clear,
+  .revenue-reports-page .clear-filter,
+  .promotions-filters > button.clear,
+  .promotion-usage-filters > button.clear,
+  .restaurant-settings-filters > button.clear
 ):focus-visible {
   outline: 2px solid #ffd181 !important;
   outline-offset: 2px;
@@ -81,7 +105,15 @@
   .table-qr-filter-submit,
   .revenue-filter-button,
   .promotions-filters > button[type='submit'],
-  .promotion-usage-filters > button[type='submit']
+  .promotion-usage-filters > button[type='submit'],
+  .restaurant-settings-filters > button[type='submit'],
+  .activity-clear,
+  .customer-toolbar > button.secondary,
+  .table-qr-filter-clear,
+  .revenue-reports-page .clear-filter,
+  .promotions-filters > button.clear,
+  .promotion-usage-filters > button.clear,
+  .restaurant-settings-filters > button.clear
 ):disabled {
   opacity: 0.5;
   cursor: not-allowed;
