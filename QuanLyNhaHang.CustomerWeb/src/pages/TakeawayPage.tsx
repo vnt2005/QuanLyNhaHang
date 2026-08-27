@@ -8,6 +8,7 @@ import {
   type TakeawayOrderResult,
 } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
+import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
 import {
@@ -120,7 +121,11 @@ export default function TakeawayPage({
 
   async function cancelPendingResult() {
     if (!session || !result || result.status !== 'Pending' || cancelling) return
-    if (!window.confirm(`Bạn chắc chắn muốn hủy đơn ${result.orderCode}?`)) return
+
+    const confirmed = await confirmCustomerAction(
+      `Đơn ${result.orderCode} sẽ được hủy nếu vẫn chưa thanh toán và nhà hàng chưa bắt đầu xử lý. Bạn có muốn tiếp tục?`,
+    )
+    if (!confirmed) return
 
     setCancelling(true)
     setError('')
