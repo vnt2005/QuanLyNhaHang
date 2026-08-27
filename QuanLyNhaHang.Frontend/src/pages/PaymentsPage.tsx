@@ -51,6 +51,12 @@ function paidAmountLabel(paymentMethod: string) {
   if (paymentMethod === 'Card') return 'Đã thanh toán thẻ'
   return 'Đã thanh toán'
 }
+
+function isSettledOnlinePayment(payment: Payment) {
+  return payment.paymentMethod === 'BankTransfer'
+    && Boolean(payment.note?.includes('SePay | transactionId='))
+}
+
 const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 const percent = (value: number) => new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(value)
 
@@ -269,6 +275,11 @@ export default function PaymentsPage() {
   }
 
   function openEdit(payment: Payment) {
+    if (isSettledOnlinePayment(payment)) {
+      setError('Thanh toán SePay đã đối soát, không thể sửa số tiền hoặc phương thức.')
+      return
+    }
+
     setEditing(payment)
     setForm({
       orderId: payment.orderId,
@@ -373,6 +384,11 @@ export default function PaymentsPage() {
   }
 
   async function remove(payment: Payment) {
+    if (isSettledOnlinePayment(payment)) {
+      setError('Thanh toán SePay đã đối soát, không thể hủy trực tiếp. Cần xử lý hoàn tiền/đối soát riêng.')
+      return
+    }
+
     if (!await confirmAction(`Hủy thanh toán ${payment.paymentCode}?`)) return
     setSaving(true); setError(''); setMessage('')
     try {
@@ -412,12 +428,12 @@ export default function PaymentsPage() {
       {loading ? <tr><td colSpan={8}>Đang tải...</td></tr> : payments.length === 0 ? <tr><td colSpan={8}>Không có thanh toán phù hợp.</td></tr> : payments.map(payment => <tr key={payment.id}>
         <td><strong>{payment.paymentCode}</strong><small>{payment.note || 'Không ghi chú'}</small></td>
         <td>{new Date(payment.paidAt).toLocaleString('vi-VN')}</td>
-        <td>{methodLabels[payment.paymentMethod] ?? payment.paymentMethod}</td>
+        <td>{methodLabels[payment.paymentMethod] ?? payment.paymentMethod}{isSettledOnlinePayment(payment) ? <small>SePay • đã đối soát</small> : null}</td>
         <td>{money(payment.totalAmount)}</td>
         <td><span>-{money(payment.discountAmount)}</span><small>Phí +{money(payment.serviceChargeAmount)}</small><small>VAT +{money(payment.vatAmount)}</small></td>
         <td><strong>{money(payment.finalAmount)}</strong><small>{payment.paymentMethod === 'Cash' ? `Thối ${money(payment.changeAmount)}` : methodLabels[payment.paymentMethod] ?? payment.paymentMethod}</small></td>
         <td><span className={`payment-status ${payment.status.toLowerCase()}`}>{payment.status === 'Paid' ? 'Đã thanh toán' : 'Đã hủy'}</span></td>
-        <td><div className="payment-actions"><button disabled={saving || payment.status === 'Cancelled'} onClick={() => openEdit(payment)}>Sửa</button><button className="danger" disabled={saving || payment.status === 'Cancelled'} onClick={() => void remove(payment)}>Hủy</button></div></td>
+        <td><div className="payment-actions"><button disabled={saving || payment.status === 'Cancelled' || isSettledOnlinePayment(payment)} title={isSettledOnlinePayment(payment) ? 'Giao dịch SePay đã đối soát, không thể sửa.' : undefined} onClick={() => openEdit(payment)}>Sửa</button><button className="danger" disabled={saving || payment.status === 'Cancelled' || isSettledOnlinePayment(payment)} title={isSettledOnlinePayment(payment) ? 'Không thể hủy trực tiếp giao dịch SePay đã đối soát.' : undefined} onClick={() => void remove(payment)}>Hủy</button></div></td>
       </tr>)}</tbody></table></div>
 
     <div className="pagination"><span>Trang {page}/{totalPages} • {totalCount} thanh toán</span><div><button disabled={page <= 1 || loading} onClick={() => void loadPayments(page - 1)}>Trước</button><button disabled={page >= totalPages || loading} onClick={() => void loadPayments(page + 1)}>Sau</button></div></div>
