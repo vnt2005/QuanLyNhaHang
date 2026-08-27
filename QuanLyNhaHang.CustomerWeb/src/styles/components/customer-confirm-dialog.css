@@ -1,0 +1,160 @@
+.customer-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(31, 24, 18, .42);
+  backdrop-filter: blur(4px);
+}
+
+.customer-confirm-dialog {
+  position: relative;
+  width: min(430px, 100%);
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 16px;
+  border: 1px solid #ead7c5;
+  border-radius: 20px;
+  padding: 24px;
+  background: #fffdf9;
+  box-shadow: 0 28px 80px rgba(42, 29, 18, .24);
+}
+
+.customer-confirm-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: #fff0eb;
+  color: #bd4936;
+}
+
+.customer-confirm-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+.customer-confirm-copy {
+  min-width: 0;
+  padding-right: 18px;
+}
+
+.customer-confirm-copy > span {
+  display: block;
+  margin-bottom: 6px;
+  color: #b46a42;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.customer-confirm-copy h2 {
+  margin: 0 0 8px;
+  color: #35291f;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.customer-confirm-copy p {
+  margin: 0;
+  color: #766658;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.customer-confirm-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #8e7b69;
+  cursor: pointer;
+}
+
+.customer-confirm-close:hover {
+  background: #f7eee5;
+}
+
+.customer-confirm-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.customer-confirm-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.customer-confirm-actions button {
+  min-width: 108px;
+  min-height: 40px;
+  border-radius: 11px;
+  padding: 0 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.customer-confirm-keep {
+  border: 1px solid #ddd0c3;
+  background: #fff;
+  color: #5f5145;
+}
+
+.customer-confirm-keep:hover,
+.customer-confirm-keep:focus-visible {
+  border-color: #c9b4a1;
+  background: #fbf6f0;
+}
+
+.customer-confirm-danger {
+  border: 1px solid #bd4936;
+  background: #bd4936;
+  color: #fff;
+}
+
+.customer-confirm-danger:hover,
+.customer-confirm-danger:focus-visible {
+  border-color: #a53d2e;
+  background: #a53d2e;
+}
+
+@media (max-width: 520px) {
+  .customer-confirm-backdrop {
+    padding: 16px;
+  }
+
+  .customer-confirm-dialog {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 13px;
+    border-radius: 17px;
+    padding: 20px;
+  }
+
+  .customer-confirm-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .customer-confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .customer-confirm-actions button {
+    min-width: 0;
+  }
+}
