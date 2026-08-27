@@ -12,6 +12,36 @@ namespace QuanLyNhaHang.IntegrationTests.Business;
 public sealed class QrOrderAbuseTests
 {
     [Fact]
+    public async Task AnonymousQrOrder_RejectsMoreThanFiveOfSameItem()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        var scenario = await SeedScenarioAsync(factory);
+        using var client = factory.CreateHttpsClient();
+
+        using var response = await client.PostAsJsonAsync(
+            $"/api/qr-order/{scenario.Token}/orders",
+            new
+            {
+                note = "Thử gọi quá giới hạn một món",
+                items = new[]
+                {
+                    new
+                    {
+                        menuItemId = scenario.MenuItemId,
+                        quantity = 6,
+                        note = (string?)null
+                    }
+                }
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        Assert.Contains(
+            "1 đến 5",
+            json.RootElement.GetProperty("message").GetString());
+    }
+
+    [Fact]
     public async Task AnonymousQrOrder_BlocksFourthBurstForSameTable()
     {
         using var factory = new ApiWebApplicationFactory();
