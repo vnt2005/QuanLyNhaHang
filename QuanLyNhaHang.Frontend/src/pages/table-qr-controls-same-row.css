@@ -1,6 +1,5 @@
-/* QR desktop controls: URL settings and filters share one horizontal row.
-   Loaded last to override earlier stacked QR layout rules without forcing the
-   page wider than the dashboard viewport. */
+/* QR desktop controls: URL settings and filters share one horizontal row,
+   but are presented as two distinct control groups with clear spacing. */
 
 .admin-layout:has(.table-qr-page) .dashboard .table-qr-page {
   width: 100% !important;
@@ -13,7 +12,7 @@
 @media (min-width: 1280px) {
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-page {
     grid-template-columns: minmax(0, .96fr) minmax(0, 1.04fr) !important;
-    column-gap: 0 !important;
+    column-gap: 18px !important;
     row-gap: 14px !important;
   }
 
@@ -33,8 +32,7 @@
     box-sizing: border-box !important;
   }
 
-  /* Same row, left half: customer ordering URL. The copy and URL field size
-     themselves from their actual content instead of reserving empty space. */
+  /* Left group: customer ordering URL. */
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings {
     order: 5 !important;
     grid-column: 1 !important;
@@ -44,17 +42,18 @@
     grid-template-rows: 46px !important;
     align-items: center !important;
     justify-content: start !important;
-    gap: 10px !important;
+    gap: 12px !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    min-height: 68px !important;
-    height: 68px !important;
-    padding: 10px 12px !important;
+    min-height: 76px !important;
+    height: 76px !important;
+    padding: 14px 16px !important;
     box-sizing: border-box !important;
-    border-right: 0 !important;
-    border-bottom: 0 !important;
-    border-radius: 0 !important;
+    border: 1px solid var(--qr-border) !important;
+    border-radius: 14px !important;
+    background: #0b1528 !important;
+    box-shadow: none !important;
     overflow: hidden !important;
   }
 
@@ -84,6 +83,7 @@
     width: auto !important;
     min-width: 170px !important;
     max-width: 320px !important;
+    height: 46px !important;
     box-sizing: border-box !important;
   }
 
@@ -91,11 +91,12 @@
     width: 104px !important;
     min-width: 104px !important;
     max-width: 104px !important;
+    height: 46px !important;
     padding: 0 8px !important;
     box-sizing: border-box !important;
   }
 
-  /* Same row, right half: search + two selects + filter actions. */
+  /* Right group: search + filters + actions. */
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
     order: 5 !important;
     grid-column: 2 !important;
@@ -105,17 +106,18 @@
     grid-auto-flow: column !important;
     align-items: center !important;
     justify-content: stretch !important;
-    gap: 10px !important;
+    gap: 12px !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    min-height: 68px !important;
-    height: 68px !important;
-    padding: 10px 12px !important;
+    min-height: 76px !important;
+    height: 76px !important;
+    padding: 14px 16px !important;
     box-sizing: border-box !important;
-    border-left: 1px solid var(--qr-border-soft) !important;
-    border-bottom: 0 !important;
-    border-radius: 0 !important;
+    border: 1px solid var(--qr-border) !important;
+    border-radius: 14px !important;
+    background: #0b1528 !important;
+    box-shadow: none !important;
     overflow: hidden !important;
   }
 
@@ -124,6 +126,7 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
+    height: 46px !important;
     box-sizing: border-box !important;
   }
 
@@ -131,6 +134,7 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
+    height: 46px !important;
     box-sizing: border-box !important;
   }
 
@@ -151,8 +155,7 @@
   }
 }
 
-/* Below desktop width, let the earlier responsive QR rules stack the controls
-   naturally instead of creating a horizontal page scrollbar. */
+/* Below desktop width, let the earlier responsive QR rules stack naturally. */
 @media (max-width: 1279px) {
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-page {
     grid-template-columns: minmax(0, 1fr) !important;
