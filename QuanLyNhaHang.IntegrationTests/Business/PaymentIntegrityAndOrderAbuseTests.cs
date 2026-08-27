@@ -28,14 +28,14 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
                 phoneNumber = "0901000001",
                 items = new[]
                 {
-                    new { menuItemId, quantity = 21 }
+                    new { menuItemId, quantity = 6 }
                 }
             });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         using var json = await ReadJsonAsync(response);
         Assert.Contains(
-            "1 đến 20",
+            "1 đến 5",
             json.RootElement.GetProperty("message").GetString());
     }
 
