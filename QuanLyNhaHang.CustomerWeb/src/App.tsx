@@ -8,6 +8,7 @@ import {
   getCustomerSiteBootstrap,
   type CustomerSiteBootstrap,
 } from './services/customerSite'
+import { CustomerConfirmDialogHost } from './components/CustomerConfirmDialog'
 import SiteFooter from './components/SiteFooter'
 import SiteHeader from './components/SiteHeader'
 import StatusPanel from './components/StatusPanel'
@@ -130,13 +131,13 @@ function CustomerApplication({ pathname }: { pathname: string }) {
   )
 }
 
-
 export default function App() {
   const pathname = useCustomerPath()
 
   return (
     <CustomerSessionProvider pathname={pathname}>
       <CustomerApplication pathname={pathname} />
+      <CustomerConfirmDialogHost />
     </CustomerSessionProvider>
   )
 }
