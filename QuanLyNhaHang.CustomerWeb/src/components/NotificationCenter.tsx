@@ -127,18 +127,18 @@ export default function NotificationCenter({
     unreadCount: number
   }) => {
     const previousIds = knownIdsRef.current
-    const latestNewUnread = feedInitializedRef.current
-      ? feed.items.find(item => !item.isRead && !previousIds.has(item.id)) ?? null
-      : null
+    const newUnreadNotifications = feedInitializedRef.current
+      ? feed.items.filter(item => !item.isRead && !previousIds.has(item.id))
+      : []
 
     knownIdsRef.current = new Set(feed.items.map(item => item.id))
     feedInitializedRef.current = true
     setItems(feed.items)
     setUnreadCount(feed.unreadCount)
 
-    if (latestNewUnread) {
-      setToast(latestNewUnread)
-      emitOrderChanged(latestNewUnread)
+    if (newUnreadNotifications.length > 0) {
+      setToast(newUnreadNotifications[0])
+      newUnreadNotifications.forEach(emitOrderChanged)
     }
   }, [emitOrderChanged])
 
