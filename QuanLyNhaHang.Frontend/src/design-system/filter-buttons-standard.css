@@ -1,0 +1,88 @@
+/* Standard filter action button ------------------------------------------------
+   Matches the approved Admin reference: 56x46, amber #ff9f0a, dark label,
+   14px radius. Loaded after page-specific CSS so every real "Lọc" action
+   keeps the same size and color across modules. */
+.dashboard :is(
+  .order-filters > button[type='submit'],
+  .payment-filters > button[type='submit'],
+  .menu-filters:not(.category-filter) > button[type='submit'],
+  .table-qr-filter-submit,
+  .revenue-filter-button,
+  .promotions-filters > button[type='submit'],
+  .promotion-usage-filters > button[type='submit']
+) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 56px !important;
+  width: 56px !important;
+  min-width: 56px !important;
+  max-width: 56px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  color: #211400 !important;
+  border: 1px solid #ff9f0a !important;
+  border-radius: 14px !important;
+  background: #ff9f0a !important;
+  box-shadow: 0 8px 22px rgb(255 159 10 / 18%) !important;
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+  transform: none !important;
+}
+
+/* The approved reference contains only the "Lọc" label. */
+.dashboard .revenue-filter-button > svg {
+  display: none !important;
+}
+
+.dashboard :is(
+  .order-filters > button[type='submit'],
+  .payment-filters > button[type='submit'],
+  .menu-filters:not(.category-filter) > button[type='submit'],
+  .table-qr-filter-submit,
+  .revenue-filter-button,
+  .promotions-filters > button[type='submit'],
+  .promotion-usage-filters > button[type='submit']
+):hover:not(:disabled) {
+  color: #211400 !important;
+  border-color: #ffad2f !important;
+  background: #ffad2f !important;
+  box-shadow: 0 10px 24px rgb(255 159 10 / 24%) !important;
+  transform: none !important;
+}
+
+.dashboard :is(
+  .order-filters > button[type='submit'],
+  .payment-filters > button[type='submit'],
+  .menu-filters:not(.category-filter) > button[type='submit'],
+  .table-qr-filter-submit,
+  .revenue-filter-button,
+  .promotions-filters > button[type='submit'],
+  .promotion-usage-filters > button[type='submit']
+):focus-visible {
+  outline: 2px solid #ffd181 !important;
+  outline-offset: 2px;
+}
+
+.dashboard :is(
+  .order-filters > button[type='submit'],
+  .payment-filters > button[type='submit'],
+  .menu-filters:not(.category-filter) > button[type='submit'],
+  .table-qr-filter-submit,
+  .revenue-filter-button,
+  .promotions-filters > button[type='submit'],
+  .promotion-usage-filters > button[type='submit']
+):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
