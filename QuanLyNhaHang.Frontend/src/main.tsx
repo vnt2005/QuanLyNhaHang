@@ -63,6 +63,7 @@ import './pages/restaurant-settings-final-fix.css'
 import './pages/auth-portal-dark.css'
 import './design-system/action-buttons.css'
 import './design-system/action-icons.css'
+import './design-system/action-icons-final-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
