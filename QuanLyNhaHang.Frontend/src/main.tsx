@@ -69,6 +69,7 @@ import './design-system/action-icons-center-fix.css'
 import './design-system/menu-category-stop-icon.css'
 import './design-system/tab-scrollbar-fix.css'
 import './design-system/filter-buttons-standard.css'
+import './pages/table-qr-layout-polish.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
