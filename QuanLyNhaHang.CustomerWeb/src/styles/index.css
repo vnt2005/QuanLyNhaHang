@@ -1,5 +1,5 @@
 /* Ordered style manifest for CustomerWeb. Keep cascade order stable. */
-@import './styles.css';
+@import './global.css';
 @import './menu-item-detail.css';
 @import './takeaway.css';
 @import './customer-promotion.css';
