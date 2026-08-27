@@ -115,6 +115,11 @@
   height: 17px;
 }
 
+.current-order-view > .customer-order-cancel-button {
+  width: 100%;
+  margin-top: 10px;
+}
+
 .customer-order-cancel-hint {
   margin: 10px 0 0;
   color: #8c7561;
