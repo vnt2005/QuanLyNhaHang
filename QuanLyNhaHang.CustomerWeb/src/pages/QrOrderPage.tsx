@@ -26,7 +26,7 @@ import { navigate } from '../utils/navigation'
 
 type Cart = Record<string, number>
 
-const MAX_ITEM_QUANTITY = 20
+const MAX_ITEM_QUANTITY = 5
 const MAX_ORDER_QUANTITY = 50
 const terminalStatuses = new Set(['Completed', 'Cancelled'])
 const statusLabels: Record<string, string> = {
