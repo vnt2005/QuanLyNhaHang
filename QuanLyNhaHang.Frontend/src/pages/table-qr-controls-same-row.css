@@ -33,15 +33,17 @@
     box-sizing: border-box !important;
   }
 
-  /* Same row, left half: customer ordering URL. */
+  /* Same row, left half: customer ordering URL. The copy and URL field size
+     themselves from their actual content instead of reserving empty space. */
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings {
     order: 5 !important;
     grid-column: 1 !important;
     grid-row: auto !important;
     display: grid !important;
-    grid-template-columns: 38px minmax(120px, 160px) minmax(180px, 1fr) 104px !important;
+    grid-template-columns: 38px max-content max-content 104px !important;
     grid-template-rows: 46px !important;
     align-items: center !important;
+    justify-content: start !important;
     gap: 10px !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -57,6 +59,8 @@
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-copy {
+    width: max-content !important;
+    max-width: 205px !important;
     min-width: 0 !important;
     overflow: hidden !important;
   }
@@ -70,14 +74,16 @@
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings label {
+    width: max-content !important;
     min-width: 0 !important;
-    max-width: 100% !important;
+    max-width: 320px !important;
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings input {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
+    field-sizing: content;
+    width: auto !important;
+    min-width: 170px !important;
+    max-width: 320px !important;
     box-sizing: border-box !important;
   }
 
