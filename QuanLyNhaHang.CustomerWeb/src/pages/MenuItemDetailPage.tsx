@@ -3,7 +3,10 @@ import { useState } from 'react'
 import type { CustomerSiteBootstrap } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import { navigate } from '../utils/navigation'
-import { addTakeawayItem } from '../utils/takeawayCart'
+import {
+  addTakeawayItem,
+  MAX_TAKEAWAY_ITEM_QUANTITY,
+} from '../utils/takeawayCart'
 
 function currency(value: number, code: string) {
   return new Intl.NumberFormat('vi-VN', {
@@ -34,8 +37,9 @@ export default function MenuItemDetailPage({
   }
 
   function addToTakeaway(goToCart: boolean) {
-    addTakeawayItem(item!.id, quantity)
-    setMessage(`Đã thêm ${quantity} phần ${item!.name} vào giỏ mang về.`)
+    const cart = addTakeawayItem(item!.id, quantity)
+    const quantityInCart = cart[item!.id] || 0
+    setMessage(`Giỏ mang về hiện có ${quantityInCart} phần ${item!.name}.`)
     if (goToCart) navigate('/takeaway')
   }
 
@@ -54,9 +58,9 @@ export default function MenuItemDetailPage({
 
           {item.isAvailable ? (
             <div className="menu-detail-takeaway">
-              <div><strong>Đặt món mang về</strong><p>Không cần chọn bàn. Chọn số lượng rồi thêm vào giỏ mang về.</p></div>
+              <div><strong>Đặt món mang về</strong><p>Mỗi món tối đa {MAX_TAKEAWAY_ITEM_QUANTITY} phần trong một đơn.</p></div>
               <div className="menu-detail-order-row">
-                <div className="menu-detail-quantity"><button type="button" aria-label="Giảm số lượng" disabled={quantity <= 1} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus /></button><span>{quantity}</span><button type="button" aria-label="Tăng số lượng" disabled={quantity >= 99} onClick={() => setQuantity(value => Math.min(99, value + 1))}><Plus /></button></div>
+                <div className="menu-detail-quantity"><button type="button" aria-label="Giảm số lượng" disabled={quantity <= 1} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus /></button><span>{quantity}</span><button type="button" aria-label="Tăng số lượng" disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY} onClick={() => setQuantity(value => Math.min(MAX_TAKEAWAY_ITEM_QUANTITY, value + 1))}><Plus /></button></div>
                 <button className="secondary-button" type="button" onClick={() => addToTakeaway(false)}><ShoppingBag /> Thêm vào giỏ</button>
                 <button className="primary-button" type="button" onClick={() => addToTakeaway(true)}>Đặt mang về ngay</button>
               </div>
