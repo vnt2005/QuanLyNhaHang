@@ -71,6 +71,7 @@ import './design-system/tab-scrollbar-fix.css'
 import './design-system/filter-buttons-standard.css'
 import './pages/table-qr-layout-polish.css'
 import './pages/table-qr-filter-row-fix.css'
+import './pages/table-qr-url-inside-panel.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
