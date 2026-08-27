@@ -1,6 +1,6 @@
 const CART_KEY = 'customerTakeawayCart:v1'
 export const TAKEAWAY_CART_EVENT = 'takeaway-cart-changed'
-export const MAX_TAKEAWAY_ITEM_QUANTITY = 20
+export const MAX_TAKEAWAY_ITEM_QUANTITY = 5
 export const MAX_TAKEAWAY_CART_QUANTITY = 50
 
 export type TakeawayCart = Record<string, number>
