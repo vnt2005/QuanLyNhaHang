@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Notifications;
+using QuanLyNhaHang.Application.Common.Orders;
 using QuanLyNhaHang.Application.Features.Notifications.DTOs;
+using QuanLyNhaHang.Application.Features.QrOrders.Commands.Create;
 using QuanLyNhaHang.Application.Features.QrOrders.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -27,11 +29,7 @@ public sealed class CreateTakeawayOrderCommandHandler
         CreateTakeawayOrderCommand request,
         CancellationToken cancellationToken)
     {
-        if (request.Items is null || request.Items.Count == 0)
-            throw new ArgumentException("Đơn mang về phải có ít nhất một món.");
-
-        if (request.Items.Count > 50)
-            throw new ArgumentException("Một đơn không được vượt quá 50 dòng món.");
+        ValidateItems(request.Items);
 
         if (string.IsNullOrWhiteSpace(request.CustomerName))
             throw new ArgumentException("Vui lòng nhập tên người nhận món.");
@@ -44,15 +42,6 @@ public sealed class CreateTakeawayOrderCommandHandler
 
         if (request.PhoneNumber.Trim().Length > 30)
             throw new ArgumentException("Số điện thoại không được vượt quá 30 ký tự.");
-
-        foreach (var item in request.Items)
-        {
-            if (item.MenuItemId == Guid.Empty)
-                throw new ArgumentException("Món ăn không hợp lệ.");
-
-            if (item.Quantity <= 0 || item.Quantity > 99)
-                throw new ArgumentException("Số lượng mỗi món phải từ 1 đến 99.");
-        }
 
         var menuItemIds = request.Items
             .Select(x => x.MenuItemId)
@@ -83,6 +72,33 @@ public sealed class CreateTakeawayOrderCommandHandler
 
             if (!isActiveCustomer)
                 throw new UnauthorizedAccessException("Tài khoản khách hàng không còn hợp lệ.");
+        }
+
+        var recentWindowStart = DateTime.UtcNow.Subtract(
+            CustomerOrderLimits.TakeawayDuplicateWindow);
+        var normalizedPhoneNumber = request.PhoneNumber.Trim();
+
+        var recentOpenTakeawayOrders = _context.Orders
+            .AsNoTracking()
+            .Where(x =>
+                x.OrderType == "Takeaway" &&
+                x.Status != "Completed" &&
+                x.Status != "Cancelled" &&
+                x.CreatedAt >= recentWindowStart);
+
+        var hasRecentOpenTakeaway = request.CustomerUserId.HasValue
+            ? await recentOpenTakeawayOrders.AnyAsync(
+                x => x.CustomerUserId == request.CustomerUserId.Value,
+                cancellationToken)
+            : await recentOpenTakeawayOrders.AnyAsync(
+                x => x.CustomerPhoneNumber == normalizedPhoneNumber,
+                cancellationToken);
+
+        if (hasRecentOpenTakeaway)
+        {
+            throw new InvalidOperationException(
+                "Bạn đang có một đơn mang về chưa hoàn tất trong 30 phút gần đây. " +
+                "Vui lòng hoàn tất thanh toán hoặc chờ nhân viên xử lý đơn hiện tại trước khi tạo đơn mới.");
         }
 
         var order = Order.CreateTakeaway(
@@ -172,6 +188,51 @@ public sealed class CreateTakeawayOrderCommandHandler
                 Note = x.Note
             }).ToList()
         };
+    }
+
+    private static void ValidateItems(
+        IReadOnlyCollection<CreateQrOrderItemCommand>? items)
+    {
+        if (items is null || items.Count == 0)
+            throw new ArgumentException("Đơn mang về phải có ít nhất một món.");
+
+        if (items.Count > CustomerOrderLimits.MaxOrderLines)
+        {
+            throw new ArgumentException(
+                $"Một đơn không được vượt quá {CustomerOrderLimits.MaxOrderLines} dòng món.");
+        }
+
+        foreach (var item in items)
+        {
+            if (item.MenuItemId == Guid.Empty)
+                throw new ArgumentException("Món ăn không hợp lệ.");
+
+            if (item.Quantity <= 0 ||
+                item.Quantity > CustomerOrderLimits.MaxQuantityPerMenuItem)
+            {
+                throw new ArgumentException(
+                    $"Số lượng mỗi món phải từ 1 đến {CustomerOrderLimits.MaxQuantityPerMenuItem}.");
+            }
+        }
+
+        var duplicatedItemOverLimit = items
+            .GroupBy(x => x.MenuItemId)
+            .Any(group =>
+                group.Sum(x => x.Quantity) >
+                CustomerOrderLimits.MaxQuantityPerMenuItem);
+
+        if (duplicatedItemOverLimit)
+        {
+            throw new ArgumentException(
+                $"Tổng số lượng của cùng một món không được vượt quá {CustomerOrderLimits.MaxQuantityPerMenuItem}.");
+        }
+
+        var totalQuantity = items.Sum(x => x.Quantity);
+        if (totalQuantity > CustomerOrderLimits.MaxTotalQuantity)
+        {
+            throw new ArgumentException(
+                $"Tổng số lượng món trong một đơn không được vượt quá {CustomerOrderLimits.MaxTotalQuantity}.");
+        }
     }
 
     private static string GenerateOrderCode()
