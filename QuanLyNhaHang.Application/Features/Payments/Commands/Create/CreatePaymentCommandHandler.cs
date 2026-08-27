@@ -29,6 +29,10 @@ public class CreatePaymentCommandHandler
         var existedPayment = await _context.Payments.AnyAsync(x => x.OrderId == request.OrderId && x.Status == "Paid", cancellationToken);
         if (existedPayment) throw new InvalidOperationException("Đơn hàng này đã được thanh toán.");
 
+        await EnsureManualPaymentIsSafeAsync(
+            request.OrderId,
+            cancellationToken);
+
         var orderItems = await _context.OrderItems.Where(x => x.OrderId == request.OrderId && x.Status != "Cancelled").ToListAsync(cancellationToken);
         if (!orderItems.Any()) throw new InvalidOperationException("Đơn hàng chưa có món để thanh toán.");
         if (orderItems.Any(x => x.Status == "Pending" || x.Status == "Cooking"))
@@ -110,5 +114,57 @@ public class CreatePaymentCommandHandler
             CreatedAt = payment.CreatedAt,
             UpdatedAt = payment.UpdatedAt
         };
+    }
+
+    private async Task EnsureManualPaymentIsSafeAsync(
+        Guid orderId,
+        CancellationToken cancellationToken)
+    {
+        var attempts = await _context.PaymentAttempts
+            .Where(attempt =>
+                attempt.OrderId == orderId &&
+                (attempt.Status == PaymentAttempt.CreatingStatus ||
+                 attempt.Status == PaymentAttempt.PendingStatus ||
+                 attempt.Status == PaymentAttempt.PaidStatus ||
+                 attempt.Status == PaymentAttempt.RequiresReviewStatus))
+            .OrderByDescending(attempt => attempt.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        if (attempts.Count == 0)
+            return;
+
+        var now = DateTime.UtcNow;
+
+        foreach (var attempt in attempts)
+        {
+            if (attempt.Status == PaymentAttempt.CreatingStatus ||
+                attempt.Status == PaymentAttempt.PendingStatus)
+            {
+                if (attempt.ExpiresAt <= now)
+                {
+                    attempt.MarkExpired();
+                    continue;
+                }
+
+                throw new InvalidOperationException(
+                    "Đơn hàng đang có phiên thanh toán online còn hiệu lực. " +
+                    "Không được thu tiền thủ công trong lúc khách có thể vẫn đang chuyển khoản. " +
+                    "Hãy để khách hoàn tất, hủy phiên online hoặc chờ phiên hết hạn trước khi thanh toán tại quầy.");
+            }
+
+            if (attempt.Status == PaymentAttempt.RequiresReviewStatus)
+            {
+                throw new InvalidOperationException(
+                    "Đơn hàng có giao dịch online đang chờ đối soát. " +
+                    "Không được thu thêm tiền cho đến khi giao dịch này được xử lý.");
+            }
+
+            if (attempt.Status == PaymentAttempt.PaidStatus)
+            {
+                throw new InvalidOperationException(
+                    "Nhà cung cấp đã ghi nhận đơn hàng này thanh toán online. " +
+                    "Không được tạo thêm thanh toán thủ công.");
+            }
+        }
     }
 }
