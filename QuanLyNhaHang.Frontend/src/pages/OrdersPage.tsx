@@ -31,7 +31,7 @@ const statuses: { value: OrderStatus; label: string }[] = [
 const emptyForm: CreateOrderForm = {
   restaurantTableId: '',
   note: '',
-  items: [{ menuItemId: '', quantity: 1, note: '' }],
+  items: [],
 }
 const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 
@@ -129,7 +129,7 @@ export default function OrdersPage() {
     setCreateForm({
       ...emptyForm,
       restaurantTableId: options[0].id,
-      items: emptyForm.items.map(item => ({ ...item })),
+      items: [],
     })
     setCreateOpen(true)
   }
