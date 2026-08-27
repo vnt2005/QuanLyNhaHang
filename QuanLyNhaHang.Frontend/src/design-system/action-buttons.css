@@ -1,0 +1,598 @@
+/* Unified Admin action buttons -------------------------------------------
+ * Shared interaction language inspired by mature product design systems:
+ * - one strong primary action per area
+ * - neutral secondary actions
+ * - compact icon actions in data rows
+ * - warning for reversible disable/pause actions
+ * - danger reserved for destructive delete/cancel/remove actions
+ *
+ * This file is intentionally loaded after feature skins so old page-specific
+ * button rules cannot make identical actions look unrelated.
+ */
+
+.dashboard {
+  --action-surface: #ffffff;
+  --action-surface-hover: #f8fafc;
+  --action-border: #d7e0eb;
+  --action-border-strong: #b8c5d6;
+  --action-text: #334155;
+  --action-text-muted: #64748b;
+  --action-primary: #f08a00;
+  --action-primary-hover: #d97706;
+  --action-primary-text: #1b1003;
+  --action-detail: #2563eb;
+  --action-detail-soft: #eff6ff;
+  --action-detail-border: #bfdbfe;
+  --action-edit: #b45309;
+  --action-edit-soft: #fff7ed;
+  --action-edit-border: #fed7aa;
+  --action-success: #15803d;
+  --action-success-soft: #f0fdf4;
+  --action-success-border: #bbf7d0;
+  --action-warning: #b45309;
+  --action-warning-soft: #fffbeb;
+  --action-warning-border: #fde68a;
+  --action-danger: #dc2626;
+  --action-danger-soft: #fef2f2;
+  --action-danger-border: #fecaca;
+  --action-focus: rgb(255 157 0 / 38%);
+  --action-shadow: 0 4px 12px rgb(15 23 42 / 8%);
+}
+
+/* Dark admin modules use the same semantic hierarchy with dark surfaces. */
+.dashboard
+  :is(
+    .live-dashboard-page,
+    .orders-page,
+    .kitchen-page,
+    .payments-page,
+    .employees-page,
+    .customers-page,
+    .scheduling-page,
+    .access-page,
+    .invoices-page,
+    .revenue-reports-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .reservations-page,
+    .table-qr-page,
+    .menu-page,
+    .promotions-page,
+    .account-security-page,
+    .restaurant-settings-page
+  ) {
+  --action-surface: #0f1b31;
+  --action-surface-hover: #172640;
+  --action-border: #2a3b5b;
+  --action-border-strong: #3a4f73;
+  --action-text: #dce6f3;
+  --action-text-muted: #94a3b8;
+  --action-primary: #ff9d00;
+  --action-primary-hover: #ffad2f;
+  --action-primary-text: #211300;
+  --action-detail: #78a9ff;
+  --action-detail-soft: rgb(59 130 246 / 11%);
+  --action-detail-border: rgb(96 165 250 / 35%);
+  --action-edit: #ffb347;
+  --action-edit-soft: rgb(255 157 0 / 10%);
+  --action-edit-border: rgb(255 157 0 / 34%);
+  --action-success: #52d3a5;
+  --action-success-soft: rgb(34 197 94 / 9%);
+  --action-success-border: rgb(82 211 165 / 34%);
+  --action-warning: #f4b94f;
+  --action-warning-soft: rgb(245 158 11 / 10%);
+  --action-warning-border: rgb(244 185 79 / 36%);
+  --action-danger: #ff6b86;
+  --action-danger-soft: rgb(244 63 94 / 9%);
+  --action-danger-border: rgb(255 107 134 / 34%);
+  --action-focus: rgb(255 157 0 / 42%);
+  --action-shadow: none;
+}
+
+/* Primary and secondary controls ---------------------------------------- */
+.dashboard
+  :is(
+    .primary-button,
+    .inventory-primary,
+    .promotions-primary,
+    .restaurant-settings-primary,
+    .table-qr-primary,
+    .activity-refresh,
+    .operation-submit
+  ) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 2.5rem !important;
+  gap: 0.5rem !important;
+  padding: 0 1rem !important;
+  border: 1px solid color-mix(in srgb, var(--action-primary) 78%, white) !important;
+  border-radius: 0.625rem !important;
+  color: var(--action-primary-text) !important;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--action-primary) 88%, white),
+    var(--action-primary)
+  ) !important;
+  box-shadow: 0 8px 20px rgb(255 139 0 / 16%) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+
+.dashboard
+  :is(
+    .primary-button,
+    .inventory-primary,
+    .promotions-primary,
+    .restaurant-settings-primary,
+    .table-qr-primary,
+    .activity-refresh,
+    .operation-submit
+  ):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--action-primary-hover) 76%, white) !important;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--action-primary-hover) 88%, white),
+    var(--action-primary-hover)
+  ) !important;
+  box-shadow: 0 10px 24px rgb(255 139 0 / 22%) !important;
+  transform: translateY(-1px);
+}
+
+.dashboard
+  :is(
+    .secondary-button,
+    .inventory-secondary,
+    .promotions-secondary,
+    .restaurant-settings-secondary,
+    .table-qr-filter-clear,
+    .secondary
+  ) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 2.5rem !important;
+  gap: 0.5rem !important;
+  padding: 0 1rem !important;
+  border: 1px solid var(--action-border) !important;
+  border-radius: 0.625rem !important;
+  color: var(--action-text) !important;
+  background: var(--action-surface) !important;
+  box-shadow: var(--action-shadow) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+}
+
+.dashboard
+  :is(
+    .secondary-button,
+    .inventory-secondary,
+    .promotions-secondary,
+    .restaurant-settings-secondary,
+    .table-qr-filter-clear,
+    .secondary
+  ):hover:not(:disabled) {
+  border-color: var(--action-border-strong) !important;
+  color: var(--action-text) !important;
+  background: var(--action-surface-hover) !important;
+}
+
+/* Repeated action groups ------------------------------------------------- */
+.dashboard
+  :is(
+    .row-actions,
+    .customer-actions,
+    .reservation-actions,
+    .payment-actions,
+    .invoice-actions,
+    .revenue-actions,
+    .inventory-row-actions,
+    .promotion-usage-actions,
+    .restaurant-setting-row-actions,
+    .employee-row-actions,
+    .area-actions,
+    .table-actions,
+    .menu-actions,
+    .order-actions,
+    .kitchen-actions,
+    .promotion-actions,
+    .table-qr-actions
+  ) {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap;
+  gap: 0.45rem !important;
+}
+
+.dashboard
+  :is(
+    .row-actions,
+    .customer-actions,
+    .reservation-actions,
+    .payment-actions,
+    .invoice-actions,
+    .revenue-actions,
+    .inventory-row-actions,
+    .promotion-usage-actions,
+    .restaurant-setting-row-actions,
+    .employee-row-actions,
+    .area-actions,
+    .table-actions,
+    .menu-actions,
+    .order-actions,
+    .kitchen-actions,
+    .promotion-actions,
+    .table-qr-actions
+  )
+  button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 2.25rem;
+  min-height: 2.25rem !important;
+  gap: 0.4rem;
+  padding: 0 0.625rem !important;
+  border: 1px solid var(--action-border) !important;
+  border-radius: 0.625rem !important;
+  color: var(--action-text) !important;
+  background: var(--action-surface) !important;
+  box-shadow: none !important;
+  font-size: 0.75rem !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease !important;
+}
+
+.dashboard
+  :is(
+    .row-actions,
+    .customer-actions,
+    .reservation-actions,
+    .payment-actions,
+    .invoice-actions,
+    .revenue-actions,
+    .inventory-row-actions,
+    .promotion-usage-actions,
+    .restaurant-setting-row-actions,
+    .employee-row-actions,
+    .area-actions,
+    .table-actions,
+    .menu-actions,
+    .order-actions,
+    .kitchen-actions,
+    .promotion-actions,
+    .table-qr-actions
+  )
+  button:hover:not(:disabled) {
+  border-color: var(--action-border-strong) !important;
+  background: var(--action-surface-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* Icon-only actions stay compact and have a predictable hit target. */
+.dashboard
+  :is(.row-actions, .employee-row-actions)
+  button:has(> svg):not(:has(> span)) {
+  width: 2.25rem;
+  padding: 0 !important;
+}
+
+.dashboard
+  :is(
+    .row-actions,
+    .customer-actions,
+    .reservation-actions,
+    .payment-actions,
+    .invoice-actions,
+    .revenue-actions,
+    .inventory-row-actions,
+    .promotion-usage-actions,
+    .restaurant-setting-row-actions,
+    .employee-row-actions,
+    .area-actions,
+    .table-actions,
+    .menu-actions,
+    .order-actions,
+    .kitchen-actions,
+    .promotion-actions,
+    .table-qr-actions
+  )
+  button
+  svg {
+  flex: 0 0 auto;
+  width: 1rem !important;
+  height: 1rem !important;
+  stroke-width: 1.9;
+}
+
+.dashboard
+  :is(
+    .primary-button,
+    .inventory-primary,
+    .promotions-primary,
+    .restaurant-settings-primary,
+    .table-qr-primary,
+    .activity-refresh,
+    .operation-submit
+  )
+  svg {
+  width: 1.0625rem !important;
+  height: 1.0625rem !important;
+}
+
+/* Semantic appearances --------------------------------------------------- */
+/* Detail / view / inspect: cool blue, informative but not dominant. */
+.dashboard
+  button:is(
+    [aria-label*='Chi tiết'],
+    [aria-label*='Xem'],
+    [title*='Chi tiết'],
+    [title*='Xem']
+  ) {
+  color: var(--action-detail) !important;
+  border-color: var(--action-detail-border) !important;
+  background: var(--action-detail-soft) !important;
+}
+
+.dashboard
+  button:is(
+    [aria-label*='Chi tiết'],
+    [aria-label*='Xem'],
+    [title*='Chi tiết'],
+    [title*='Xem']
+  ):hover:not(:disabled) {
+  border-color: var(--action-detail) !important;
+  background: color-mix(in srgb, var(--action-detail-soft) 76%, var(--action-detail) 24%) !important;
+}
+
+/* Edit: warm amber/orange outline. */
+.dashboard
+  button:is(
+    [aria-label='Sửa'],
+    [aria-label*='Sửa '],
+    [title*='Sửa'],
+    [aria-label*='Chỉnh sửa'],
+    [title*='Chỉnh sửa']
+  ) {
+  color: var(--action-edit) !important;
+  border-color: var(--action-edit-border) !important;
+  background: var(--action-edit-soft) !important;
+}
+
+.dashboard
+  button:is(
+    [aria-label='Sửa'],
+    [aria-label*='Sửa '],
+    [title*='Sửa'],
+    [aria-label*='Chỉnh sửa'],
+    [title*='Chỉnh sửa']
+  ):hover:not(:disabled) {
+  border-color: var(--action-edit) !important;
+  background: color-mix(in srgb, var(--action-edit-soft) 78%, var(--action-edit) 22%) !important;
+}
+
+/* Positive / selected / restore actions: green. */
+.dashboard
+  button:is(
+    [aria-label*='Kích hoạt'],
+    [title*='Kích hoạt'],
+    [aria-label*='Khôi phục'],
+    [title*='Khôi phục'],
+    [aria-label*='Đánh dấu'],
+    [title*='Đánh dấu'],
+    [aria-label*='Hoàn thành'],
+    [title*='Hoàn thành'],
+    [aria-pressed='true']
+  ) {
+  color: var(--action-success) !important;
+  border-color: var(--action-success-border) !important;
+  background: var(--action-success-soft) !important;
+}
+
+.dashboard
+  button:is(
+    [aria-label*='Kích hoạt'],
+    [title*='Kích hoạt'],
+    [aria-label*='Khôi phục'],
+    [title*='Khôi phục'],
+    [aria-label*='Đánh dấu'],
+    [title*='Đánh dấu'],
+    [aria-label*='Hoàn thành'],
+    [title*='Hoàn thành'],
+    [aria-pressed='true']
+  ):hover:not(:disabled) {
+  border-color: var(--action-success) !important;
+  background: color-mix(in srgb, var(--action-success-soft) 78%, var(--action-success) 22%) !important;
+}
+
+/* Reversible operational risk: amber warning, not destructive red. */
+.dashboard
+  button:is(
+    [aria-label*='Vô hiệu'],
+    [title*='Vô hiệu'],
+    [aria-label*='Ngừng'],
+    [title*='Ngừng'],
+    [aria-label*='Tạm dừng'],
+    [title*='Tạm dừng'],
+    [aria-label*='Khóa'],
+    [title*='Khóa']
+  ) {
+  color: var(--action-warning) !important;
+  border-color: var(--action-warning-border) !important;
+  background: var(--action-warning-soft) !important;
+}
+
+.dashboard
+  button:is(
+    [aria-label*='Vô hiệu'],
+    [title*='Vô hiệu'],
+    [aria-label*='Ngừng'],
+    [title*='Ngừng'],
+    [aria-label*='Tạm dừng'],
+    [title*='Tạm dừng'],
+    [aria-label*='Khóa'],
+    [title*='Khóa']
+  ):hover:not(:disabled) {
+  border-color: var(--action-warning) !important;
+  background: color-mix(in srgb, var(--action-warning-soft) 76%, var(--action-warning) 24%) !important;
+}
+
+/* Truly destructive actions: red. */
+.dashboard
+  button:is(
+    .danger,
+    [aria-label*='Xóa'],
+    [title*='Xóa'],
+    [aria-label*='Hủy'],
+    [title*='Hủy'],
+    [aria-label*='Gỡ'],
+    [title*='Gỡ'],
+    [aria-label*='Thu hồi'],
+    [title*='Thu hồi']
+  ) {
+  color: var(--action-danger) !important;
+  border-color: var(--action-danger-border) !important;
+  background: var(--action-danger-soft) !important;
+}
+
+.dashboard
+  button:is(
+    .danger,
+    [aria-label*='Xóa'],
+    [title*='Xóa'],
+    [aria-label*='Hủy'],
+    [title*='Hủy'],
+    [aria-label*='Gỡ'],
+    [title*='Gỡ'],
+    [aria-label*='Thu hồi'],
+    [title*='Thu hồi']
+  ):hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: var(--action-danger) !important;
+  background: var(--action-danger) !important;
+}
+
+/* A generic .danger class is still allowed to mean disable on older pages;
+   semantic labels take precedence so reversible actions remain warning. */
+.dashboard
+  button:is(
+    [aria-label*='Vô hiệu'],
+    [title*='Vô hiệu'],
+    [aria-label*='Ngừng'],
+    [title*='Ngừng'],
+    [aria-label*='Tạm dừng'],
+    [title*='Tạm dừng']
+  ) {
+  color: var(--action-warning) !important;
+  border-color: var(--action-warning-border) !important;
+  background: var(--action-warning-soft) !important;
+}
+
+/* Common primary verbs even when a legacy page forgot the shared class. */
+.dashboard
+  :is(
+    .employees-page,
+    .customers-page,
+    .scheduling-page,
+    .access-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .reservations-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .invoices-page,
+    .revenue-reports-page,
+    .table-qr-page,
+    .restaurant-settings-page,
+    .promotions-page,
+    .inventory-page,
+    .account-security-page
+  )
+  button:is(
+    [aria-label^='Thêm '],
+    [aria-label^='Tạo '],
+    [aria-label^='Lưu '],
+    [aria-label^='Cập nhật ']
+  ) {
+  border-color: color-mix(in srgb, var(--action-primary) 78%, white) !important;
+  color: var(--action-primary-text) !important;
+  background: var(--action-primary) !important;
+  font-weight: 800 !important;
+}
+
+/* Interaction states ----------------------------------------------------- */
+.dashboard button:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--action-focus) !important;
+}
+
+.dashboard button:disabled,
+.dashboard button[aria-disabled='true'] {
+  opacity: 0.46 !important;
+  filter: saturate(0.6);
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.dashboard button:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+/* Keep the action column visually stable in dense tables. */
+.dashboard
+  :is(
+    .row-actions,
+    .customer-actions,
+    .reservation-actions,
+    .payment-actions,
+    .invoice-actions,
+    .revenue-actions,
+    .inventory-row-actions,
+    .promotion-usage-actions,
+    .restaurant-setting-row-actions,
+    .employee-row-actions
+  ) {
+  min-width: max-content;
+}
+
+@media (max-width: 720px) {
+  .dashboard
+    :is(
+      .primary-button,
+      .inventory-primary,
+      .promotions-primary,
+      .restaurant-settings-primary,
+      .table-qr-primary,
+      .activity-refresh,
+      .operation-submit
+    ) {
+    min-height: 2.625rem !important;
+  }
+
+  .dashboard
+    :is(
+      .row-actions,
+      .customer-actions,
+      .reservation-actions,
+      .payment-actions,
+      .invoice-actions,
+      .revenue-actions,
+      .inventory-row-actions,
+      .promotion-usage-actions,
+      .restaurant-setting-row-actions,
+      .employee-row-actions
+    )
+    button {
+    min-width: 2.5rem;
+    min-height: 2.5rem !important;
+  }
+}
