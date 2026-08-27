@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Commands.Delete;
 
@@ -25,6 +26,22 @@ public class DeletePaymentCommandHandler
         {
             throw new KeyNotFoundException(
                 "Không tìm thấy thanh toán.");
+        }
+
+        var isSettledOnlinePayment = await _context.PaymentAttempts
+            .AsNoTracking()
+            .AnyAsync(
+                attempt =>
+                    attempt.PaymentId == payment.Id &&
+                    attempt.Status == PaymentAttempt.PaidStatus,
+                cancellationToken);
+
+        if (isSettledOnlinePayment)
+        {
+            throw new InvalidOperationException(
+                "Thanh toán online đã được ngân hàng/SePay ghi nhận. " +
+                "Không thể hủy trực tiếp trong hệ thống vì thao tác này không hoàn tiền cho khách. " +
+                "Hãy thực hiện đối soát hoặc quy trình hoàn tiền riêng.");
         }
 
         var order = await _context.Orders

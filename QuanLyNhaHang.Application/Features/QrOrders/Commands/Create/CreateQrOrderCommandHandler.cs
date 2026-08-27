@@ -4,6 +4,7 @@ using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Extensions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Notifications;
+using QuanLyNhaHang.Application.Common.Orders;
 using QuanLyNhaHang.Application.Features.Notifications.DTOs;
 using QuanLyNhaHang.Application.Features.QrOrders.DTOs;
 using QuanLyNhaHang.Domain.Entities;
@@ -51,26 +52,7 @@ public class CreateQrOrderCommandHandler
                 "Bàn không tồn tại hoặc đã ngừng hoạt động.");
         }
 
-        if (request.Items is null || request.Items.Count == 0)
-        {
-            throw new ArgumentException(
-                "Order phải có ít nhất một món.");
-        }
-
-        if (request.Items.Count > 50)
-            throw new ArgumentException("Một order không được vượt quá 50 dòng món.");
-
-        foreach (var item in request.Items)
-        {
-            if (item.MenuItemId == Guid.Empty)
-                throw new ArgumentException("Món ăn không hợp lệ.");
-
-            if (item.Quantity <= 0 || item.Quantity > 99)
-            {
-                throw new ArgumentException(
-                    "Số lượng mỗi món phải từ 1 đến 99.");
-            }
-        }
+        ValidateItems(request.Items);
 
         var menuItemIds = request.Items
             .Select(x => x.MenuItemId)
@@ -90,15 +72,36 @@ public class CreateQrOrderCommandHandler
                 "Có món không tồn tại hoặc hiện không phục vụ.");
         }
 
+        var burstWindowStart = DateTime.UtcNow.Subtract(
+            CustomerOrderLimits.DineInBurstWindow);
+        var recentTableOrderCount = await _context.Orders
+            .AsNoTracking()
+            .CountAsync(
+                x =>
+                    x.RestaurantTableId == table.Id &&
+                    x.OrderType == "DineIn" &&
+                    x.Status != "Cancelled" &&
+                    x.CreatedAt >= burstWindowStart,
+                cancellationToken);
+
+        if (recentTableOrderCount >=
+            CustomerOrderLimits.MaxDineInOrdersPerBurstWindow)
+        {
+            throw new InvalidOperationException(
+                $"Bàn này đã gửi {CustomerOrderLimits.MaxDineInOrdersPerBurstWindow} lượt gọi món " +
+                "trong thời gian rất ngắn. Vui lòng chờ ít phút trước khi gửi thêm.");
+        }
+
         var orderCode = GenerateOrderCode();
 
         if (request.CustomerUserId.HasValue)
         {
+            var customerUserId = request.CustomerUserId.Value;
             var isActiveCustomer = await _context.Users
                 .AsNoTracking()
                 .AnyAsync(
                     x =>
-                        x.Id == request.CustomerUserId.Value &&
+                        x.Id == customerUserId &&
                         x.Role == SystemRoles.Customer &&
                         x.IsActive &&
                         x.IsEmailVerified,
@@ -203,6 +206,54 @@ public class CreateQrOrderCommandHandler
                 Note = x.Note
             }).ToList()
         };
+    }
+
+    private static void ValidateItems(
+        IReadOnlyCollection<CreateQrOrderItemCommand>? items)
+    {
+        if (items is null || items.Count == 0)
+        {
+            throw new ArgumentException(
+                "Order phải có ít nhất một món.");
+        }
+
+        if (items.Count > CustomerOrderLimits.MaxOrderLines)
+        {
+            throw new ArgumentException(
+                $"Một order không được vượt quá {CustomerOrderLimits.MaxOrderLines} dòng món.");
+        }
+
+        foreach (var item in items)
+        {
+            if (item.MenuItemId == Guid.Empty)
+                throw new ArgumentException("Món ăn không hợp lệ.");
+
+            if (item.Quantity <= 0 ||
+                item.Quantity > CustomerOrderLimits.MaxQuantityPerMenuItem)
+            {
+                throw new ArgumentException(
+                    $"Số lượng mỗi món phải từ 1 đến {CustomerOrderLimits.MaxQuantityPerMenuItem}.");
+            }
+        }
+
+        var duplicatedItemOverLimit = items
+            .GroupBy(x => x.MenuItemId)
+            .Any(group =>
+                group.Sum(x => x.Quantity) >
+                CustomerOrderLimits.MaxQuantityPerMenuItem);
+
+        if (duplicatedItemOverLimit)
+        {
+            throw new ArgumentException(
+                $"Tổng số lượng của cùng một món không được vượt quá {CustomerOrderLimits.MaxQuantityPerMenuItem}.");
+        }
+
+        var totalQuantity = items.Sum(x => x.Quantity);
+        if (totalQuantity > CustomerOrderLimits.MaxTotalQuantity)
+        {
+            throw new ArgumentException(
+                $"Tổng số lượng món trong một order không được vượt quá {CustomerOrderLimits.MaxTotalQuantity}.");
+        }
     }
 
     private static string GenerateOrderCode()

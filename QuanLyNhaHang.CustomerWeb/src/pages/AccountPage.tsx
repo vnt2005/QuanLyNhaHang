@@ -9,9 +9,9 @@ import {
   changeCustomerPassword,
   logoutCustomer,
   type CustomerSession,
-} from '../api/customerAuth'
+} from '../services/customerAuth'
 import AuthPortal from '../components/AuthPortal'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 
 type AccountTab = 'profile' | 'security'
 

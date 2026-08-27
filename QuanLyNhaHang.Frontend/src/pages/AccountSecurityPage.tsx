@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import {
   useCallback,
   useEffect,
@@ -15,7 +15,7 @@ import {
   type AuthSession,
   type CurrentSession,
   type LoginResult,
-} from '../api/auth'
+} from '../services/auth'
 
 type AccountSecurityPageProps = {
   auth: LoginResult

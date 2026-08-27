@@ -82,10 +82,10 @@ public sealed class CreateOnlinePaymentCommandHandler
                 });
         }
 
-        if (!CustomerPaymentAccessService.CanStartOnlinePayment(order.Status))
+        if (!CustomerPaymentAccessService.CanStartOnlinePayment(order))
         {
             return CustomerPaymentResult<CustomerPaymentInstructionDto>.Conflict(
-                CustomerPaymentAccessService.GetPaymentUnavailableMessage(order.Status),
+                CustomerPaymentAccessService.GetPaymentUnavailableMessage(order),
                 order.Status);
         }
 

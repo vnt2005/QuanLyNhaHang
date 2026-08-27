@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
-import { getEmployees, type Employee } from '../api/employees'
+import { getEmployees, type Employee } from '../services/employees'
 import {
   createEmployeeShift,
   createShift,
@@ -14,9 +14,9 @@ import {
   type EmployeeShiftForm,
   type Shift,
   type ShiftForm,
-} from '../api/shifts'
-import { confirmAction } from '../design-system/confirmDialog'
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+} from '../services/shifts'
+import { confirmAction } from '../components/ConfirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 
 const PAGE_SIZE = 10
 

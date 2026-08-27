@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   changeMenuCategoryStatus,
@@ -16,7 +16,7 @@ import {
   type MenuCategoryForm,
   type MenuItem,
   type MenuItemForm,
-} from '../api/menu'
+} from '../services/menu'
 
 const emptyCategory: MenuCategoryForm = { name: '', description: '', displayOrder: 0 }
 const emptyItem: MenuItemForm = { menuCategoryId: '', name: '', description: '', price: 0, imageUrl: '' }

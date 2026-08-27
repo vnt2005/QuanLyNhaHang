@@ -83,6 +83,61 @@
   padding-bottom: 20px;
 }
 
+.orders-premium-page .customer-order-actions {
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.customer-order-cancel-button {
+  width: auto;
+  min-width: 108px;
+  min-height: 36px;
+  height: 36px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-self: flex-end;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid #d8a9a1;
+  border-radius: 9px;
+  background: #fff7f5;
+  color: #a33b2e;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.customer-order-cancel-button:hover:not(:disabled) {
+  border-color: #c98075;
+  background: #fff0ed;
+  transform: translateY(-1px);
+}
+
+.customer-order-cancel-button:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+.customer-order-cancel-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.current-order-view > .customer-order-cancel-button {
+  width: auto;
+  margin-top: 10px;
+}
+
+.customer-order-cancel-hint {
+  margin: 10px 23px 18px;
+  color: #8c7561;
+  font-size: .88rem;
+}
+
 .account-premium-sidebar .account-orders-shortcut {
   width: calc(100% - 24px);
   min-height: 46px;
@@ -124,5 +179,9 @@
 
   .orders-premium-page label.orders-search {
     width: 100%;
+  }
+
+  .customer-order-cancel-button {
+    min-width: 104px;
   }
 }

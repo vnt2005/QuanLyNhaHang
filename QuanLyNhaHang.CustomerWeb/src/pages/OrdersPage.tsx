@@ -11,17 +11,21 @@ import {
   Search,
   ShoppingBag,
   UtensilsCrossed,
+  XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
+import type { CustomerSession } from '../services/customerAuth'
 import {
+  cancelCustomerOrder,
   getCustomerOrders,
   type CustomerOrder,
   type CustomerOrderHistory,
-} from '../api/customerOrders'
+} from '../services/customerOrders'
+import { CUSTOMER_ORDER_CHANGED_EVENT } from '../services/notifications'
 import AuthPortal from '../components/AuthPortal'
+import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 
 type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled'
 
@@ -87,16 +91,21 @@ function OrderRow({
   order,
   expanded,
   accessToken,
+  cancelling,
   onToggle,
+  onCancel,
 }: {
   order: CustomerOrder
   expanded: boolean
   accessToken: string
+  cancelling: boolean
   onToggle: () => void
+  onCancel: () => void
 }) {
   const lastQrToken = localStorage.getItem('customerLastQrToken')
-  const canOrderMore = !terminalStatuses.has(order.status) && Boolean(lastQrToken)
   const isTakeaway = order.orderType === 'Takeaway'
+  const canOrderMore = !isTakeaway && !terminalStatuses.has(order.status) && Boolean(lastQrToken)
+  const canCancel = order.status === 'Pending'
 
   return (
     <article className={expanded ? 'customer-order-card expanded' : 'customer-order-card'}>
@@ -151,8 +160,23 @@ function OrderRow({
           {!terminalStatuses.has(order.status) || canOrderMore ? (
             <div className="customer-order-actions">
               {!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} className="primary-button compact" /> : null}
+              {canCancel ? (
+                <button
+                  className="customer-order-cancel-button compact"
+                  type="button"
+                  disabled={cancelling}
+                  onClick={onCancel}
+                >
+                  <XCircle aria-hidden="true" />
+                  {cancelling ? 'Đang hủy…' : 'Hủy đơn'}
+                </button>
+              ) : null}
               {canOrderMore ? <button className="secondary-button compact" type="button" onClick={() => navigate(`/qr-order/${encodeURIComponent(lastQrToken!)}`)}>Gọi thêm món</button> : null}
             </div>
+          ) : null}
+
+          {canCancel ? (
+            <p className="customer-order-cancel-hint">Bạn chỉ có thể tự hủy khi đơn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán cần đối soát.</p>
           ) : null}
         </div>
       ) : null}
@@ -174,10 +198,12 @@ export default function OrdersPage({
   const [expandedId, setExpandedId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+  const [cancellingId, setCancellingId] = useState('')
   const [orderSearch, setOrderSearch] = useState('')
   const [orderFilter, setOrderFilter] = useState<OrderFilter>('all')
 
-  const loadOrders = useCallback(async (targetPage = page) => {
+  const loadOrders = useCallback(async (targetPage: number) => {
     if (!session) return
     setLoading(true)
     setError('')
@@ -193,16 +219,49 @@ export default function OrdersPage({
     } finally {
       setLoading(false)
     }
-  }, [page, session])
+  }, [session?.userId])
 
   useEffect(() => {
     if (session) void loadOrders(1)
-  }, [session])
+  }, [session?.userId, loadOrders])
+
+  useEffect(() => {
+    if (!session) return
+
+    const refreshFromNotification = () => {
+      void loadOrders(page)
+    }
+
+    window.addEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
+    return () => window.removeEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
+  }, [loadOrders, page, session?.userId])
 
   const visibleOrders = useMemo(() => {
     const query = orderSearch.trim()
     return history?.items.filter(order => matchesFilter(order, orderFilter) && matchesSearch(order, query)) ?? []
   }, [history?.items, orderFilter, orderSearch])
+
+  async function cancelOrder(order: CustomerOrder) {
+    if (cancellingId || order.status !== 'Pending') return
+
+    const confirmed = await confirmCustomerAction(
+      `Đơn ${order.orderCode} sẽ được hủy nếu vẫn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán. Bạn có muốn tiếp tục?`,
+    )
+    if (!confirmed) return
+
+    setCancellingId(order.id)
+    setError('')
+    setMessage('')
+    try {
+      const result = await cancelCustomerOrder(order.id)
+      setMessage(result.message || `Đã hủy đơn ${order.orderCode}.`)
+      await loadOrders(page)
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không hủy được đơn hàng.')
+    } finally {
+      setCancellingId('')
+    }
+  }
 
   if (!session) {
     return <AuthPortal initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
@@ -215,7 +274,7 @@ export default function OrdersPage({
           <div>
             <span className="orders-eyebrow"><Clock3 aria-hidden="true" /> Theo dõi đơn hàng</span>
             <h1>Đơn của tôi</h1>
-            <p>Xem trạng thái phục vụ, kiểm tra chi tiết món và tiếp tục thanh toán trong cùng một nơi.</p>
+            <p>Xem trạng thái phục vụ, kiểm tra chi tiết món, thanh toán hoặc hủy đơn còn đang chờ trong cùng một nơi.</p>
           </div>
           <button className="orders-refresh-button" type="button" onClick={() => void loadOrders(page)} disabled={loading}>
             <RefreshCw className={loading ? 'spin' : ''} aria-hidden="true" />
@@ -248,13 +307,24 @@ export default function OrdersPage({
           </div>
         ) : null}
 
+        {message ? <div className="form-notice success" role="status">{message}</div> : null}
         {error ? <div className="form-notice error" role="alert">{error}</div> : null}
         {loading && !history ? <div className="orders-loading"><RefreshCw className="spin" /> Đang tải đơn hàng…</div> : null}
 
         {history?.items.length ? (
           visibleOrders.length ? (
             <div className="customer-orders-list">
-              {visibleOrders.map(order => <OrderRow key={order.id} order={order} accessToken={session.token} expanded={expandedId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} />)}
+              {visibleOrders.map(order => (
+                <OrderRow
+                  key={order.id}
+                  order={order}
+                  accessToken={session.token}
+                  expanded={expandedId === order.id}
+                  cancelling={cancellingId === order.id}
+                  onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)}
+                  onCancel={() => void cancelOrder(order)}
+                />
+              ))}
               {history.totalPages > 1 ? <div className="pagination orders-pagination"><button type="button" disabled={!history.hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trang trước</button><span>Trang {history.pageNumber}/{history.totalPages}</span><button type="button" disabled={!history.hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Trang sau</button></div> : null}
             </div>
           ) : (

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Features.CustomerOrders.Commands.Cancel;
 using QuanLyNhaHang.Application.Features.CustomerOrders.Commands.Claim;
 using QuanLyNhaHang.Application.Features.CustomerOrders.Commands.Create;
 using QuanLyNhaHang.Application.Features.CustomerOrders.Queries.GetHistory;
@@ -77,6 +78,24 @@ public class CustomerOrdersController : ControllerBase
         {
             success = true,
             message = "Đã lưu đơn vào tài khoản khách hàng."
+        });
+    }
+
+    [HttpPost("{orderId:guid}/cancel")]
+    [EnableRateLimiting("OrderItemMutation")]
+    [IdempotentRequest("customer-order-cancel")]
+    public async Task<IActionResult> CancelOrder(Guid orderId)
+    {
+        var cancelled = await _mediator.Send(
+            new CancelCustomerOrderCommand(orderId));
+
+        if (!cancelled)
+            return NotFound(new { message = "Không tìm thấy đơn hàng của bạn." });
+
+        return Ok(new
+        {
+            success = true,
+            message = "Đã hủy đơn hàng. Nhà hàng đã được thông báo."
         });
     }
 }

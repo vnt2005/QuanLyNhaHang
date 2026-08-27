@@ -71,14 +71,21 @@ public sealed class CustomerPaymentAccessService
         return validQr ? order : null;
     }
 
-    public static bool CanStartOnlinePayment(string orderStatus)
-        => PayableOrderStatuses.Contains(orderStatus);
+    public static bool CanStartOnlinePayment(Order order)
+    {
+        if (order.OrderType == "Takeaway" && order.Status == "Pending")
+            return true;
 
-    public static string GetPaymentUnavailableMessage(string orderStatus)
-        => orderStatus switch
+        return PayableOrderStatuses.Contains(order.Status);
+    }
+
+    public static string GetPaymentUnavailableMessage(Order order)
+        => order.Status switch
         {
+            "Pending" when order.OrderType == "DineIn" =>
+                "Đơn tại bàn đang chờ nhà hàng xác nhận. Vui lòng thanh toán sau khi nhà hàng bắt đầu xử lý món.",
             "Pending" =>
-                "Đơn hàng đang chờ nhà hàng xác nhận. Vui lòng thanh toán sau khi nhà hàng bắt đầu chuẩn bị món.",
+                "Đơn hàng đang chờ thanh toán trước khi nhà hàng bắt đầu chuẩn bị món.",
             "Cancelled" =>
                 "Đơn hàng đã hủy, không thể thanh toán.",
             "Completed" =>

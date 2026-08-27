@@ -63,6 +63,26 @@ public class ChangeOrderStatusCommandHandler
         var status = request.Status.Trim();
         var effectiveStatus = status;
 
+        if (order.OrderType == "Takeaway" &&
+            order.Status == "Pending" &&
+            status == "Cooking")
+        {
+            var paid = await _context.Payments
+                .AsNoTracking()
+                .AnyAsync(
+                    payment =>
+                        payment.OrderId == order.Id &&
+                        payment.Status == "Paid",
+                    cancellationToken);
+
+            if (!paid)
+            {
+                throw new InvalidOperationException(
+                    "Đơn mang về từ CustomerWeb chưa thanh toán. " +
+                    "Không được chuyển sang chế biến trước khi hệ thống ghi nhận Payment Paid.");
+            }
+        }
+
         switch (status)
         {
             case "Pending":

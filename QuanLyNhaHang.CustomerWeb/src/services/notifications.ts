@@ -2,6 +2,7 @@ import { API_BASE_URL, apiRequest } from './client'
 
 const HUB_PATH = '/hubs/admin-notifications'
 const RECORD_SEPARATOR = '\u001e'
+export const CUSTOMER_ORDER_CHANGED_EVENT = 'customer-order-changed'
 
 export type CustomerNotification = {
   id: string

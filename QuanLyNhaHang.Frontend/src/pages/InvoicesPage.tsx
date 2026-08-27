@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { getPayments, type Payment } from '../api/payments'
+import { getPayments, type Payment } from '../services/payments'
 import {
   ADMIN_NOTIFICATION_EVENT,
   type AdminNotification,
-} from '../api/notifications'
+} from '../services/notifications'
 import {
   cancelInvoice,
   createInvoice,
@@ -11,9 +11,9 @@ import {
   getInvoices,
   updateInvoice,
   type Invoice,
-} from '../api/invoices'
-import { confirmAction } from '../design-system/confirmDialog'
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+} from '../services/invoices'
+import { confirmAction } from '../components/ConfirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 
 const methods = [
   'BankTransfer',

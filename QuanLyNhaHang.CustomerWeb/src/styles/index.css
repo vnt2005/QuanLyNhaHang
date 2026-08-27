@@ -1,0 +1,13 @@
+/* Ordered style manifest for CustomerWeb. Keep cascade order stable. */
+@import './global.css';
+@import './menu-item-detail.css';
+@import './takeaway.css';
+@import './customer-promotion.css';
+@import './home-premium.css';
+@import './menu-premium.css';
+@import './customer-premium-shell.css';
+@import './reservation-premium.css';
+@import './account-premium.css';
+@import './orders-page.css';
+@import './auth-premium.css';
+@import './components/customer-confirm-dialog.css';

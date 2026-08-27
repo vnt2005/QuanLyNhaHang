@@ -8,24 +8,29 @@ import {
   ShoppingBag,
   UserRound,
   Utensils,
+  XCircle,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
-import { claimCustomerOrder, type CustomerOrder } from '../api/customerOrders'
+import type { CustomerSession } from '../services/customerAuth'
+import { cancelCustomerOrder, claimCustomerOrder, type CustomerOrder } from '../services/customerOrders'
+import { CUSTOMER_ORDER_CHANGED_EVENT } from '../services/notifications'
 import {
   createQrOrder,
   getQrOrder,
   getQrOrderContext,
   type QrMenuItem,
   type QrOrderTable,
-} from '../api/qrOrders'
+} from '../services/qrOrders'
+import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
 import StatusPanel from '../components/StatusPanel'
 import heroImage from '../assets/hero-vietnamese-table.webp'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 
 type Cart = Record<string, number>
 
+const MAX_ITEM_QUANTITY = 5
+const MAX_ORDER_QUANTITY = 50
 const terminalStatuses = new Set(['Completed', 'Cancelled'])
 const statusLabels: Record<string, string> = {
   Pending: 'Đã tiếp nhận',
@@ -38,9 +43,35 @@ const statusLabels: Record<string, string> = {
   Cancelled: 'Đã hủy',
 }
 
+function normalizeCart(value: Cart): Cart {
+  const normalized: Cart = {}
+  let remaining = MAX_ORDER_QUANTITY
+
+  for (const [itemId, rawQuantity] of Object.entries(value)) {
+    if (remaining <= 0) break
+
+    const numericQuantity = Number(rawQuantity)
+    if (!Number.isFinite(numericQuantity)) continue
+
+    const quantity = Math.min(
+      MAX_ITEM_QUANTITY,
+      Math.max(0, Math.floor(numericQuantity)),
+      remaining,
+    )
+
+    if (quantity <= 0) continue
+    normalized[itemId] = quantity
+    remaining -= quantity
+  }
+
+  return normalized
+}
+
 function readCart(token: string): Cart {
   try {
-    return JSON.parse(localStorage.getItem(`customerQrCart:${token}`) || '{}') as Cart
+    return normalizeCart(
+      JSON.parse(localStorage.getItem(`customerQrCart:${token}`) || '{}') as Cart,
+    )
   } catch {
     return {}
   }
@@ -72,6 +103,7 @@ export default function QrOrderPage({
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -99,7 +131,7 @@ export default function QrOrderPage({
   useEffect(() => { void load() }, [token])
 
   useEffect(() => {
-    localStorage.setItem(`customerQrCart:${token}`, JSON.stringify(cart))
+    localStorage.setItem(`customerQrCart:${token}`, JSON.stringify(normalizeCart(cart)))
   }, [cart, token])
 
   useEffect(() => {
@@ -113,6 +145,22 @@ export default function QrOrderPage({
     return () => window.clearInterval(timer)
   }, [currentOrder?.id, currentOrder?.status, token])
 
+  useEffect(() => {
+    if (!currentOrder) return
+
+    const refreshFromNotification = (event: Event) => {
+      const detail = (event as CustomEvent<{ orderId?: string }>).detail
+      if (detail?.orderId !== currentOrder.id) return
+
+      void getQrOrder(token, currentOrder.id)
+        .then(setCurrentOrder)
+        .catch(() => undefined)
+    }
+
+    window.addEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
+    return () => window.removeEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
+  }, [currentOrder?.id, token])
+
   const categories = useMemo(() => ['Tất cả', ...Array.from(new Set(items.map(item => item.menuCategoryName)))], [items])
   const filteredItems = useMemo(() => {
     const query = keyword.trim().toLocaleLowerCase('vi')
@@ -124,7 +172,20 @@ export default function QrOrderPage({
 
   function change(itemId: string, delta: number) {
     setCart(current => {
-      const quantity = Math.max(0, Math.min(99, (current[itemId] || 0) + delta))
+      const currentQuantity = current[itemId] || 0
+      const quantityWithoutCurrentItem = Object.entries(current)
+        .filter(([id]) => id !== itemId)
+        .reduce((sum, [, quantity]) => sum + quantity, 0)
+      const remainingForItem = Math.max(0, MAX_ORDER_QUANTITY - quantityWithoutCurrentItem)
+      const quantity = Math.max(
+        0,
+        Math.min(
+          MAX_ITEM_QUANTITY,
+          remainingForItem,
+          currentQuantity + delta,
+        ),
+      )
+
       if (!quantity) {
         const next = { ...current }
         delete next[itemId]
@@ -136,6 +197,17 @@ export default function QrOrderPage({
 
   async function submitOrder() {
     if (!selected.length || submitting) return
+
+    if (totalQuantity > MAX_ORDER_QUANTITY) {
+      setError(`Một lượt gọi món chỉ được tối đa ${MAX_ORDER_QUANTITY} phần.`)
+      return
+    }
+
+    if (selected.some(entry => entry.quantity > MAX_ITEM_QUANTITY)) {
+      setError(`Mỗi món chỉ được tối đa ${MAX_ITEM_QUANTITY} phần trong một lượt gọi.`)
+      return
+    }
+
     setSubmitting(true)
     setError('')
     setSuccess('')
@@ -172,6 +244,28 @@ export default function QrOrderPage({
     }
   }
 
+  async function cancelCurrentOrder() {
+    if (!session || !currentOrder || currentOrder.status !== 'Pending' || cancelling) return
+
+    const confirmed = await confirmCustomerAction(
+      `Đơn ${currentOrder.orderCode} sẽ được hủy nếu vẫn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán. Bạn có muốn tiếp tục?`,
+    )
+    if (!confirmed) return
+
+    setCancelling(true)
+    setError('')
+    setSuccess('')
+    try {
+      const response = await cancelCustomerOrder(currentOrder.id)
+      setCurrentOrder({ ...currentOrder, status: 'Cancelled' })
+      setSuccess(response.message || `Đã hủy đơn ${currentOrder.orderCode}.`)
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không hủy được đơn hàng.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   function signIn() {
     localStorage.setItem('customerReturnPath', window.location.pathname)
     navigate('/login')
@@ -200,14 +294,14 @@ export default function QrOrderPage({
                 return (
                   <article className="qr-menu-item" key={item.id}>
                     <img src={item.imageUrl || heroImage} className={!item.imageUrl ? `fallback-crop crop-${index % 3 + 1}` : ''} alt={item.name} />
-                    <div><small>{item.menuCategoryName}</small><h2>{item.name}</h2><p>{item.description || 'Món ăn được chuẩn bị tươi mới trong ngày.'}</p><footer><strong>{formatMoney(item.price)}</strong><div className="quantity-control">{quantity ? <button type="button" aria-label={`Bớt ${item.name}`} onClick={() => change(item.id, -1)}><Minus /></button> : null}{quantity ? <span>{quantity}</span> : null}<button className="add" type="button" aria-label={`Thêm ${item.name}`} onClick={() => change(item.id, 1)}><Plus /></button></div></footer></div>
+                    <div><small>{item.menuCategoryName}</small><h2>{item.name}</h2><p>{item.description || 'Món ăn được chuẩn bị tươi mới trong ngày.'}</p><footer><strong>{formatMoney(item.price)}</strong><div className="quantity-control">{quantity ? <button type="button" aria-label={`Bớt ${item.name}`} onClick={() => change(item.id, -1)}><Minus /></button> : null}{quantity ? <span>{quantity}</span> : null}<button className="add" type="button" aria-label={`Thêm ${item.name}`} disabled={quantity >= MAX_ITEM_QUANTITY || totalQuantity >= MAX_ORDER_QUANTITY} onClick={() => change(item.id, 1)}><Plus /></button></div></footer></div>
                   </article>
                 )
               })}
             </div>
           </section>
           <aside className="qr-cart-panel">
-            <div className="qr-cart-title"><ShoppingBag /><div><h2>Giỏ gọi món</h2><p>{totalQuantity ? `${totalQuantity} món đã chọn` : 'Chưa chọn món'}</p></div></div>
+            <div className="qr-cart-title"><ShoppingBag /><div><h2>Giỏ gọi món</h2><p>{totalQuantity ? `${totalQuantity}/${MAX_ORDER_QUANTITY} phần đã chọn • tối đa ${MAX_ITEM_QUANTITY}/món` : 'Chưa chọn món'}</p></div></div>
             {!session ? <button className="qr-signin-hint" type="button" onClick={signIn}><UserRound /><span><strong>Đăng nhập để lưu lịch sử</strong><small>Khách chưa đăng nhập vẫn có thể gọi món.</small></span></button> : <p className="qr-signed-in"><CheckCircle2 /> Đơn sẽ được lưu vào tài khoản {session.ten}.</p>}
             {selected.length ? <div className="qr-cart-lines">{selected.map(entry => <div key={entry.item.id}><span><strong>{entry.item.name}</strong><small>{entry.quantity} × {formatMoney(entry.item.price)}</small></span><strong>{formatMoney(entry.item.price * entry.quantity)}</strong></div>)}</div> : <div className="qr-cart-empty"><ShoppingBag /><p>Thêm món từ thực đơn để bắt đầu.</p></div>}
             <label className="qr-order-note">Ghi chú chung<textarea value={orderNote} onChange={event => setOrderNote(event.target.value)} maxLength={300} placeholder="Ví dụ: lên món cùng lúc…" /></label>
@@ -222,6 +316,7 @@ export default function QrOrderPage({
           <div className="current-order-lines">{currentOrder.items.map(item => <div key={item.id}><span><strong>{item.menuItemName}</strong><small>{item.note || statusLabels[item.status] || item.status}</small></span><span>{item.quantity}</span><strong>{formatMoney(item.totalPrice)}</strong></div>)}</div>
           <footer><span>Tạm tính món</span><strong>{formatMoney(currentOrder.totalAmount)}</strong></footer>
           {!terminalStatuses.has(currentOrder.status) ? <PayOnlineButton orderId={currentOrder.id} qrToken={token} accessToken={session?.token} className="primary-button full" /> : null}
+          {session && currentOrder.status === 'Pending' ? <button className="customer-order-cancel-button" type="button" disabled={cancelling} onClick={() => void cancelCurrentOrder()}><XCircle aria-hidden="true" /> {cancelling ? 'Đang hủy…' : 'Hủy đơn'}</button> : null}
           {!terminalStatuses.has(currentOrder.status) ? <button className="secondary-button" type="button" onClick={() => setView('menu')}>Gọi thêm món</button> : null}
         </section>
       ) : (

@@ -17,7 +17,7 @@ import {
   verifyCustomerEmail,
   verifyCustomerTwoFactor,
   type CustomerSession,
-} from '../../api/customerAuth'
+} from '../../services/customerAuth'
 
 type AuthMode =
   | 'login'

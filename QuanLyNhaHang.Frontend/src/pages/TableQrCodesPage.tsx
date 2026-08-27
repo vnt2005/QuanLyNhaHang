@@ -1,8 +1,8 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
-import { getSelectableTables, type RestaurantTable } from '../api/areasTables'
+import { getSelectableTables, type RestaurantTable } from '../services/areasTables'
 import {
   createTableQrCode,
   deactivateTableQrCode,
@@ -11,7 +11,7 @@ import {
   updateTableQrCode,
   type TableQrCode,
   type TableQrCodeStatus,
-} from '../api/tableQrCodes'
+} from '../services/tableQrCodes'
 
 const PAGE_SIZE = 8
 const CLIENT_URL_STORAGE_KEY = 'tableQrCodeClientBaseUrl'

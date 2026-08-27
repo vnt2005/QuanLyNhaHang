@@ -5,17 +5,18 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
-import { ApiError } from '../api/client'
+import type { CustomerSession } from '../services/customerAuth'
+import { ApiError } from '../services/client'
 import {
   connectCustomerNotificationStream,
+  CUSTOMER_ORDER_CHANGED_EVENT,
   getCustomerNotificationFeed,
   markAllCustomerNotificationsRead,
   markCustomerNotificationRead,
   type CustomerNotification,
-} from '../api/notifications'
-import { navigate } from '../navigation'
-import './NotificationCenter.css'
+} from '../services/notifications'
+import { navigate } from '../utils/navigation'
+import '../styles/components/notification-center.css'
 
 const REALTIME_REFRESH_COOLDOWN_MS = 60_000
 
@@ -52,7 +53,7 @@ function statusLabel(type: string) {
   if (type.endsWith('.Cooking')) return 'Đang nấu'
   if (type.endsWith('.Served')) return 'Đã phục vụ'
   if (type.endsWith('.Completed')) return 'Hoàn tất'
-  if (type.endsWith('.Cancelled')) return 'Đã hủy'
+  if (type.endsWith('.Cancelled') || type.endsWith('.CancelledByCustomer')) return 'Đã hủy'
   if (type.startsWith('Order.')) return 'Đơn hàng'
   if (type.startsWith('Reservation.')) return 'Đặt bàn'
   return 'Cập nhật'
@@ -76,6 +77,7 @@ export default function NotificationCenter({
   const [toast, setToast] = useState<CustomerNotification | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const knownIdsRef = useRef(new Set<string>())
+  const feedInitializedRef = useRef(false)
   const refreshRequestRef = useRef<Promise<CustomerSession | null> | null>(null)
   const realtimeRefreshAtRef = useRef(0)
 
@@ -108,14 +110,37 @@ export default function NotificationCenter({
     }
   }, [refreshSession, session.token])
 
+  const emitOrderChanged = useCallback((notification: CustomerNotification) => {
+    if (!notification.entityId) return
+    if (!notification.type.startsWith('Order.') && !notification.type.startsWith('Payment.')) return
+
+    window.dispatchEvent(new CustomEvent(CUSTOMER_ORDER_CHANGED_EVENT, {
+      detail: {
+        orderId: notification.entityId,
+        type: notification.type,
+      },
+    }))
+  }, [])
+
   const applyFeed = useCallback((feed: {
     items: CustomerNotification[]
     unreadCount: number
   }) => {
+    const previousIds = knownIdsRef.current
+    const newUnreadNotifications = feedInitializedRef.current
+      ? feed.items.filter(item => !item.isRead && !previousIds.has(item.id))
+      : []
+
     knownIdsRef.current = new Set(feed.items.map(item => item.id))
+    feedInitializedRef.current = true
     setItems(feed.items)
     setUnreadCount(feed.unreadCount)
-  }, [])
+
+    if (newUnreadNotifications.length > 0) {
+      setToast(newUnreadNotifications[0])
+      newUnreadNotifications.forEach(emitOrderChanged)
+    }
+  }, [emitOrderChanged])
 
   useEffect(() => {
     let active = true
@@ -161,6 +186,7 @@ export default function NotificationCenter({
         if (isNew && !notification.isRead) {
           setUnreadCount(current => current + 1)
           setToast(notification)
+          emitOrderChanged(notification)
         }
       },
       state => {
@@ -195,6 +221,7 @@ export default function NotificationCenter({
     }
   }, [
     applyFeed,
+    emitOrderChanged,
     refreshSession,
     requestWithRefresh,
     session.token,

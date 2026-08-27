@@ -1,13 +1,13 @@
 import { AlertTriangle, CheckCircle2, Clock3, RefreshCw, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
+import type { CustomerSession } from '../services/customerAuth'
 import {
   cancelCustomerPaymentAttempt,
   getCustomerPaymentStatus,
   type CustomerPaymentStatus,
-} from '../api/customerPayments'
-import { navigate } from '../navigation'
-import '../payment.css'
+} from '../services/customerPayments'
+import { navigate } from '../utils/navigation'
+import '../styles/payment.css'
 
 function money(value?: number | null) {
   if (value == null) return ''

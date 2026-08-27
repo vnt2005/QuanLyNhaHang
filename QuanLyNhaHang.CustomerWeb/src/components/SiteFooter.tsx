@@ -1,7 +1,7 @@
 import { CalendarDays, Clock3, Mail, MapPin, Phone, UtensilsCrossed } from 'lucide-react'
 import type { MouseEvent } from 'react'
-import type { PublicRestaurant } from '../api/customerSite'
-import { navigate } from '../navigation'
+import type { PublicRestaurant } from '../services/customerSite'
+import { navigate } from '../utils/navigation'
 
 export default function SiteFooter({ restaurant, home = false }: { restaurant: PublicRestaurant | null; home?: boolean }) {
   const name = restaurant?.restaurantName || 'Nhà Hàng'

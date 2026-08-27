@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { useEffect, useMemo, useState } from 'react'
 import {
   getKitchenHistory,
@@ -8,7 +8,7 @@ import {
   type KitchenItemStatus,
   type KitchenOrder,
   type KitchenOrderItem,
-} from '../api/kitchen'
+} from '../services/kitchen'
 
 const activeStatuses: { value: KitchenItemStatus; label: string }[] = [
   { value: 'Pending', label: 'Chờ bếp' },

@@ -1,8 +1,8 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { getSelectableTables, getTables, type RestaurantTable } from '../api/areasTables'
-import { getMenuItems, type MenuItem } from '../api/menu'
+import { getSelectableTables, getTables, type RestaurantTable } from '../services/areasTables'
+import { getMenuItems, type MenuItem } from '../services/menu'
 import {
   addOrderItem,
   cancelOrderItem,
@@ -17,7 +17,7 @@ import {
   type CreateOrderLine,
   type Order,
   type OrderStatus,
-} from '../api/orders'
+} from '../services/orders'
 
 const statuses: { value: OrderStatus; label: string }[] = [
   { value: 'Pending', label: 'Chờ xử lý' },

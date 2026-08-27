@@ -9,10 +9,10 @@ import {
   UtensilsCrossed,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { CustomerSiteBootstrap, PublicMenuItem } from '../api/customerSite'
+import type { CustomerSiteBootstrap, PublicMenuItem } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import reservationImage from '../assets/reservation-dining-room.webp'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 
 function currency(value: number, code = 'VND') {
   return new Intl.NumberFormat('vi-VN', {

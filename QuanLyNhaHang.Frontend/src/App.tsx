@@ -1,14 +1,10 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import {
-  clearStoredAuth,
-  getStoredRefreshToken,
-  logoutSession,
-  refreshSession,
-  storeAuthResult,
-  type LoginResult,
-} from './api/auth'
+  AdminSessionProvider,
+  useAdminSession,
+} from './context/AdminSessionContext'
 import AuthPage from './pages/AuthPage'
-import { ConfirmDialogHost } from './design-system/confirmDialog'
+import { ConfirmDialogHost } from './components/ConfirmDialog'
 import NotificationCenter from './components/NotificationCenter'
 
 const loadAccessManagementPage = () => import('./pages/AccessManagementPage')
@@ -192,7 +188,6 @@ const navigation: NavigationItem[] = [
   },
 ]
 
-const ADMIN_ROLES = new Set(['Admin', 'Manager', 'Cashier', 'Kitchen', 'Staff'])
 
 function getQrOrderToken() {
   if (typeof window === 'undefined') return null
@@ -202,23 +197,6 @@ function getQrOrderToken() {
     return decodeURIComponent(match[1])
   } catch {
     return match[1]
-  }
-}
-
-function getRefreshDelay(token: string) {
-  const fallbackDelay = 10 * 60 * 1000
-  try {
-    const payloadPart = token.split('.')[1]
-    if (!payloadPart) return fallbackDelay
-    const normalized = payloadPart
-      .replace(/-/g, '+')
-      .replace(/_/g, '/')
-      .padEnd(Math.ceil(payloadPart.length / 4) * 4, '=')
-    const payload = JSON.parse(window.atob(normalized)) as { exp?: number }
-    if (typeof payload.exp !== 'number') return fallbackDelay
-    return Math.max(payload.exp * 1000 - Date.now() - 60_000, 1_000)
-  } catch {
-    return fallbackDelay
   }
 }
 
@@ -277,121 +255,21 @@ function CustomerWebsiteRedirect({ token }: { token: string }) {
   )
 }
 
-export default function App() {
-  const qrOrderToken = getQrOrderToken()
-  const [result, setResult] = useState<LoginResult | null>(null)
+function AdminConsole() {
+  const {
+    acceptAuthentication,
+    authMessage,
+    clearSession,
+    loggingOut,
+    logout,
+    restoringSession,
+    result,
+  } = useAdminSession()
   const [activeItem, setActiveItem] = useState('Tổng quan')
-  const [restoringSession, setRestoringSession] = useState(true)
-  const [authMessage, setAuthMessage] = useState('')
-  const [loggingOut, setLoggingOut] = useState(false)
-
-  const clearSession = useCallback((message = '') => {
-    clearStoredAuth()
-    setResult(null)
-    setActiveItem('Tổng quan')
-    setAuthMessage(message)
-  }, [])
-
-  const acceptAuthentication = useCallback(
-    async (nextResult: LoginResult): Promise<string | void> => {
-      if (!nextResult.token || !nextResult.refreshToken) {
-        clearStoredAuth()
-        return 'Backend không trả về phiên đăng nhập hợp lệ.'
-      }
-      if (!nextResult.role || !ADMIN_ROLES.has(nextResult.role)) {
-        try {
-          await logoutSession(nextResult.refreshToken)
-        } catch {
-          // The local session is still cleared when the server is unavailable.
-        }
-        clearStoredAuth()
-        return 'Tài khoản khách hàng không thể truy cập cổng quản trị.'
-      }
-
-      storeAuthResult(nextResult)
-      setResult(nextResult)
-      setAuthMessage('')
-    },
-    [],
-  )
 
   useEffect(() => {
-    if (qrOrderToken) {
-      setRestoringSession(false)
-      return
-    }
-
-    let disposed = false
-    const refreshToken = getStoredRefreshToken()
-    if (!refreshToken) {
-      setRestoringSession(false)
-      return () => {
-        disposed = true
-      }
-    }
-
-    async function restoreSession() {
-      try {
-        const restored = await refreshSession(refreshToken)
-        if (disposed) return
-        const rejection = await acceptAuthentication(restored)
-        if (rejection && !disposed) setAuthMessage(rejection)
-      } catch {
-        if (!disposed) {
-          clearSession(
-            'Phiên đăng nhập trước đã hết hạn. Vui lòng đăng nhập lại.',
-          )
-        }
-      } finally {
-        if (!disposed) setRestoringSession(false)
-      }
-    }
-
-    void restoreSession()
-    return () => {
-      disposed = true
-    }
-  }, [acceptAuthentication, clearSession, qrOrderToken])
-
-  useEffect(() => {
-    if (qrOrderToken || !result?.token || !result.refreshToken) return
-    let disposed = false
-    const refreshToken = result.refreshToken
-    const timer = window.setTimeout(async () => {
-      try {
-        const refreshed = await refreshSession(refreshToken)
-        if (disposed) return
-        const rejection = await acceptAuthentication(refreshed)
-        if (rejection) clearSession(rejection)
-      } catch {
-        if (!disposed) {
-          clearSession('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
-        }
-      }
-    }, getRefreshDelay(result.token))
-
-    return () => {
-      disposed = true
-      window.clearTimeout(timer)
-    }
-  }, [acceptAuthentication, clearSession, qrOrderToken, result?.refreshToken, result?.token])
-
-  if (qrOrderToken) {
-    return <CustomerWebsiteRedirect token={qrOrderToken} />
-  }
-
-  async function handleLogout() {
-    const refreshToken = result?.refreshToken ?? getStoredRefreshToken()
-    setLoggingOut(true)
-    try {
-      await logoutSession(refreshToken)
-    } catch {
-      // Local credentials must still be removed if the backend is unavailable.
-    } finally {
-      clearSession('Bạn đã đăng xuất an toàn khỏi thiết bị này.')
-      setLoggingOut(false)
-    }
-  }
+    if (!result) setActiveItem('Tổng quan')
+  }, [result])
 
   if (restoringSession) {
     return (
@@ -570,7 +448,7 @@ export default function App() {
             <button
               type="button"
               className="logout"
-              onClick={() => void handleLogout()}
+              onClick={() => void logout()}
               disabled={loggingOut}
             >
               {loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}
@@ -583,5 +461,20 @@ export default function App() {
       </main>
       <ConfirmDialogHost />
     </div>
+  )
+}
+
+
+export default function App() {
+  const qrOrderToken = getQrOrderToken()
+
+  if (qrOrderToken) {
+    return <CustomerWebsiteRedirect token={qrOrderToken} />
+  }
+
+  return (
+    <AdminSessionProvider>
+      <AdminConsole />
+    </AdminSessionProvider>
   )
 }

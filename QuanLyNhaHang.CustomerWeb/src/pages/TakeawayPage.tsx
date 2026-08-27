@@ -1,20 +1,24 @@
-import { CheckCircle2, Minus, PackageOpen, Plus, ShoppingBag, UserRound } from 'lucide-react'
+import { CheckCircle2, Minus, PackageOpen, Plus, ShoppingBag, UserRound, XCircle } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
+import type { CustomerSession } from '../services/customerAuth'
+import { cancelCustomerOrder } from '../services/customerOrders'
 import {
   createTakeawayOrder,
   type CustomerSiteBootstrap,
   type TakeawayOrderResult,
-} from '../api/customerSite'
+} from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
+import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 import {
   clearTakeawayCart,
+  MAX_TAKEAWAY_CART_QUANTITY,
+  MAX_TAKEAWAY_ITEM_QUANTITY,
   readTakeawayCart,
   setTakeawayItemQuantity,
   type TakeawayCart,
-} from '../takeawayCart'
+} from '../utils/takeawayCart'
 
 function money(value: number, code = 'VND') {
   return new Intl.NumberFormat('vi-VN', {
@@ -37,6 +41,7 @@ export default function TakeawayPage({
   const [pickupTime, setPickupTime] = useState('')
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<TakeawayOrderResult | null>(null)
 
@@ -59,6 +64,16 @@ export default function TakeawayPage({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!lines.length || submitting) return
+
+    if (totalQuantity > MAX_TAKEAWAY_CART_QUANTITY) {
+      setError(`Một đơn chỉ được tối đa ${MAX_TAKEAWAY_CART_QUANTITY} phần.`)
+      return
+    }
+
+    if (lines.some(line => line.quantity > MAX_TAKEAWAY_ITEM_QUANTITY)) {
+      setError(`Mỗi món chỉ được tối đa ${MAX_TAKEAWAY_ITEM_QUANTITY} phần.`)
+      return
+    }
 
     if (!customerName.trim() || !phoneNumber.trim()) {
       setError('Vui lòng nhập tên và số điện thoại người nhận món.')
@@ -104,20 +119,53 @@ export default function TakeawayPage({
     }
   }
 
+  async function cancelPendingResult() {
+    if (!session || !result || result.status !== 'Pending' || cancelling) return
+
+    const confirmed = await confirmCustomerAction(
+      `Đơn ${result.orderCode} sẽ được hủy nếu vẫn chưa thanh toán và nhà hàng chưa bắt đầu xử lý. Bạn có muốn tiếp tục?`,
+    )
+    if (!confirmed) return
+
+    setCancelling(true)
+    setError('')
+    try {
+      await cancelCustomerOrder(result.id)
+      setResult(current => current ? { ...current, status: 'Cancelled' } : current)
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không hủy được đơn hàng.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   if (result) {
+    const cancelled = result.status === 'Cancelled'
     return (
       <main className="takeaway-page page-section">
         <section className="takeaway-success">
-          <CheckCircle2 />
-          <h1>Đã nhận đơn mang về</h1>
-          <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. Nhà hàng sẽ chuẩn bị món theo yêu cầu.</p>
-          {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể.</p>}
-          <p>Bạn có thể thanh toán online sau khi nhà hàng xác nhận và bắt đầu chuẩn bị món. Trạng thái thanh toán sẽ tự cập nhật tại đây.</p>
-          <PayOnlineButton orderId={result.id} accessToken={session?.token} />
+          {cancelled ? <XCircle /> : <CheckCircle2 />}
+          <h1>{cancelled ? 'Đơn mang về đã hủy' : 'Đã nhận đơn mang về'}</h1>
+          <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. {cancelled ? 'Đơn đã được hủy và nhà hàng đã nhận thông báo.' : 'Đơn đang chờ thanh toán trước khi bếp bắt đầu chuẩn bị.'}</p>
+          {!cancelled ? (
+            <>
+              {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể sau khi ghi nhận thanh toán.</p>}
+              <p>Hãy thanh toán online ngay bên dưới. Khi SePay xác nhận đủ tiền, nhà hàng mới có thể chuyển đơn sang chế biến.</p>
+              <p>Để tránh đơn trùng/spam, hệ thống sẽ không nhận thêm đơn mang về mới trong 30 phút nếu đơn này vẫn chưa hoàn tất.</p>
+              <PayOnlineButton orderId={result.id} accessToken={session?.token} />
+            </>
+          ) : null}
+          {error ? <div className="form-notice error" role="alert">{error}</div> : null}
           <div>
-            <button className="secondary-button" type="button" onClick={() => { setResult(null); navigate('/menu') }}>Đặt thêm món</button>
+            {!cancelled && session ? (
+              <button className="customer-order-cancel-button" type="button" disabled={cancelling} onClick={() => void cancelPendingResult()}>
+                <XCircle aria-hidden="true" /> {cancelling ? 'Đang hủy…' : 'Hủy đơn'}
+              </button>
+            ) : null}
+            <button className="secondary-button" type="button" onClick={() => { setResult(null); navigate('/menu') }}>Xem thực đơn</button>
             {session ? <button className="secondary-button" type="button" onClick={() => navigate('/orders')}>Xem Đơn của tôi</button> : <button className="secondary-button" type="button" onClick={signIn}>Đăng nhập cho lần sau</button>}
           </div>
+          {!session && !cancelled ? <p>Đơn đặt khi chưa đăng nhập không thể tự hủy bằng tài khoản vì hệ thống chưa có thông tin xác thực chủ đơn. Vui lòng liên hệ nhà hàng nếu cần hủy.</p> : null}
         </section>
       </main>
     )
@@ -143,13 +191,13 @@ export default function TakeawayPage({
       ) : (
         <form className="takeaway-layout" onSubmit={submit}>
           <section className="takeaway-cart">
-            <div className="takeaway-section-title"><div><h2>Giỏ mang về</h2><p>{totalQuantity} phần đã chọn</p></div><button type="button" className="text-link" onClick={() => navigate('/menu')}>+ Thêm món</button></div>
+            <div className="takeaway-section-title"><div><h2>Giỏ mang về</h2><p>{totalQuantity}/{MAX_TAKEAWAY_CART_QUANTITY} phần đã chọn • tối đa {MAX_TAKEAWAY_ITEM_QUANTITY} phần/món</p></div><button type="button" className="text-link" onClick={() => navigate('/menu')}>+ Thêm món</button></div>
             <div className="takeaway-lines">
               {lines.map(({ item, quantity }, index) => (
                 <article key={item.id}>
                   <img src={item.imageUrl || heroImage} className={!item.imageUrl ? `fallback-crop crop-${index % 3 + 1}` : ''} alt={item.name} />
                   <div className="takeaway-line-copy"><small>{item.menuCategoryName}</small><strong>{item.name}</strong><span>{money(item.price, data.restaurant?.currency)}</span></div>
-                  <div className="takeaway-quantity"><button type="button" aria-label={`Bớt ${item.name}`} onClick={() => changeQuantity(item.id, quantity - 1)}><Minus /></button><span>{quantity}</span><button type="button" aria-label={`Thêm ${item.name}`} onClick={() => changeQuantity(item.id, quantity + 1)}><Plus /></button></div>
+                  <div className="takeaway-quantity"><button type="button" aria-label={`Bớt ${item.name}`} onClick={() => changeQuantity(item.id, quantity - 1)}><Minus /></button><span>{quantity}</span><button type="button" aria-label={`Thêm ${item.name}`} disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY || totalQuantity >= MAX_TAKEAWAY_CART_QUANTITY} onClick={() => changeQuantity(item.id, quantity + 1)}><Plus /></button></div>
                   <strong>{money(item.price * quantity, data.restaurant?.currency)}</strong>
                 </article>
               ))}

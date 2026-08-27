@@ -140,14 +140,12 @@ public sealed class ProcessPaymentWebhookCommandHandler
             return true;
         }
 
-        if (!CustomerPaymentAccessService.CanStartOnlinePayment(order.Status))
+        if (!CustomerPaymentAccessService.CanStartOnlinePayment(order))
         {
             attempt.MarkRequiresReview(
                 transaction.Amount,
                 transaction.TransactionId,
-                order.Status == "Pending"
-                    ? "PaidBeforeOrderConfirmation"
-                    : $"PaidWhenOrderStatusNotPayable:{order.Status}",
+                $"PaidWhenOrderStatusNotPayable:{order.Status}",
                 "PAID");
             await _context.SaveChangesAsync(cancellationToken);
             return true;

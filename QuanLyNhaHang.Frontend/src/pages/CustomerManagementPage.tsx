@@ -1,4 +1,4 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import {
   type FormEvent,
   useEffect,
@@ -10,12 +10,12 @@ import {
   updateUser,
   type UserAccount,
   type UserFilters,
-} from '../api/access'
+} from '../services/access'
 import {
   getReservations,
   type Reservation,
   type ReservationStatus,
-} from '../api/reservations'
+} from '../services/reservations'
 
 type CustomerFilter = 'all' | 'active' | 'locked' | 'unverified'
 

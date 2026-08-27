@@ -1,7 +1,7 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
-import { getSelectableTables, type RestaurantTable } from '../api/areasTables'
+import { getSelectableTables, type RestaurantTable } from '../services/areasTables'
 import {
   cancelReservation,
   createReservation,
@@ -12,7 +12,7 @@ import {
   type Reservation,
   type ReservationInput,
   type ReservationStatus,
-} from '../api/reservations'
+} from '../services/reservations'
 
 const PAGE_SIZE = 12
 

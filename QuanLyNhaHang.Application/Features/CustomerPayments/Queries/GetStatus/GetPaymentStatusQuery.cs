@@ -87,7 +87,7 @@ public sealed class GetPaymentStatusQueryHandler
 
         if (payment == null &&
             latestAttempt != null &&
-            !CustomerPaymentAccessService.CanStartOnlinePayment(order.Status) &&
+            !CustomerPaymentAccessService.CanStartOnlinePayment(order) &&
             (latestAttempt.Status == PaymentAttempt.CreatingStatus ||
              latestAttempt.Status == PaymentAttempt.PendingStatus))
         {
@@ -101,14 +101,14 @@ public sealed class GetPaymentStatusQueryHandler
 
         var paymentChannel = _paymentChannelReadiness.GetSnapshot();
         var orderCanStartOnlinePayment =
-            CustomerPaymentAccessService.CanStartOnlinePayment(order.Status);
+            CustomerPaymentAccessService.CanStartOnlinePayment(order);
         var canPay = payment == null &&
                      orderCanStartOnlinePayment &&
                      paymentChannel.Ready;
         var paymentUnavailableReason = payment != null
             ? null
             : !orderCanStartOnlinePayment
-                ? CustomerPaymentAccessService.GetPaymentUnavailableMessage(order.Status)
+                ? CustomerPaymentAccessService.GetPaymentUnavailableMessage(order)
                 : !paymentChannel.Ready
                     ? CustomerPaymentAccessService.GetWebhookUnavailableMessage()
                     : null;

@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   deleteActivityLog,
@@ -9,7 +9,7 @@ import {
   type ActivityLog,
   type ActivityLogFilters,
   type ActivityLogSummary,
-} from '../api/activityLogs'
+} from '../services/activityLogs'
 
 const PAGE_SIZE = 15
 

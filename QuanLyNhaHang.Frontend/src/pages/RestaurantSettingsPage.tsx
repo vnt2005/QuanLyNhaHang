@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   createRestaurantSetting,
@@ -10,7 +10,7 @@ import {
   updateRestaurantSetting,
   type RestaurantSetting,
   type RestaurantSettingInput,
-} from '../api/restaurantSettings'
+} from '../services/restaurantSettings'
 
 const PAGE_SIZE = 8
 
