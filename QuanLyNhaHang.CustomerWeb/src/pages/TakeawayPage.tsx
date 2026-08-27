@@ -1,6 +1,7 @@
-import { CheckCircle2, Minus, PackageOpen, Plus, ShoppingBag, UserRound } from 'lucide-react'
+import { CheckCircle2, Minus, PackageOpen, Plus, ShoppingBag, UserRound, XCircle } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
 import type { CustomerSession } from '../services/customerAuth'
+import { cancelCustomerOrder } from '../services/customerOrders'
 import {
   createTakeawayOrder,
   type CustomerSiteBootstrap,
@@ -39,6 +40,7 @@ export default function TakeawayPage({
   const [pickupTime, setPickupTime] = useState('')
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<TakeawayOrderResult | null>(null)
 
@@ -116,21 +118,49 @@ export default function TakeawayPage({
     }
   }
 
+  async function cancelPendingResult() {
+    if (!session || !result || result.status !== 'Pending' || cancelling) return
+    if (!window.confirm(`Bạn chắc chắn muốn hủy đơn ${result.orderCode}?`)) return
+
+    setCancelling(true)
+    setError('')
+    try {
+      await cancelCustomerOrder(result.id)
+      setResult(current => current ? { ...current, status: 'Cancelled' } : current)
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không hủy được đơn hàng.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   if (result) {
+    const cancelled = result.status === 'Cancelled'
     return (
       <main className="takeaway-page page-section">
         <section className="takeaway-success">
-          <CheckCircle2 />
-          <h1>Đã nhận đơn mang về</h1>
-          <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. Đơn đang chờ thanh toán trước khi bếp bắt đầu chuẩn bị.</p>
-          {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể sau khi ghi nhận thanh toán.</p>}
-          <p>Hãy thanh toán online ngay bên dưới. Khi SePay xác nhận đủ tiền, nhà hàng mới có thể chuyển đơn sang chế biến.</p>
-          <p>Để tránh đơn trùng/spam, hệ thống sẽ không nhận thêm đơn mang về mới trong 30 phút nếu đơn này vẫn chưa hoàn tất.</p>
-          <PayOnlineButton orderId={result.id} accessToken={session?.token} />
+          {cancelled ? <XCircle /> : <CheckCircle2 />}
+          <h1>{cancelled ? 'Đơn mang về đã hủy' : 'Đã nhận đơn mang về'}</h1>
+          <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. {cancelled ? 'Đơn đã được hủy và nhà hàng đã nhận thông báo.' : 'Đơn đang chờ thanh toán trước khi bếp bắt đầu chuẩn bị.'}</p>
+          {!cancelled ? (
+            <>
+              {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể sau khi ghi nhận thanh toán.</p>}
+              <p>Hãy thanh toán online ngay bên dưới. Khi SePay xác nhận đủ tiền, nhà hàng mới có thể chuyển đơn sang chế biến.</p>
+              <p>Để tránh đơn trùng/spam, hệ thống sẽ không nhận thêm đơn mang về mới trong 30 phút nếu đơn này vẫn chưa hoàn tất.</p>
+              <PayOnlineButton orderId={result.id} accessToken={session?.token} />
+            </>
+          ) : null}
+          {error ? <div className="form-notice error" role="alert">{error}</div> : null}
           <div>
+            {!cancelled && session ? (
+              <button className="customer-order-cancel-button" type="button" disabled={cancelling} onClick={() => void cancelPendingResult()}>
+                <XCircle aria-hidden="true" /> {cancelling ? 'Đang hủy…' : 'Hủy đơn'}
+              </button>
+            ) : null}
             <button className="secondary-button" type="button" onClick={() => { setResult(null); navigate('/menu') }}>Xem thực đơn</button>
             {session ? <button className="secondary-button" type="button" onClick={() => navigate('/orders')}>Xem Đơn của tôi</button> : <button className="secondary-button" type="button" onClick={signIn}>Đăng nhập cho lần sau</button>}
           </div>
+          {!session && !cancelled ? <p>Đơn đặt khi chưa đăng nhập không thể tự hủy bằng tài khoản vì hệ thống chưa có thông tin xác thực chủ đơn. Vui lòng liên hệ nhà hàng nếu cần hủy.</p> : null}
         </section>
       </main>
     )
