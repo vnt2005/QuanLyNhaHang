@@ -1,5 +1,7 @@
 /* Absolute centering lock for every compact action icon.
  * Loaded last so no legacy/page-specific ::before rule can move the glyph.
+ * IMPORTANT: do not use `inset: auto` here; it resets top/left and pushes
+ * the pseudo icon back toward its static position near the top of the button.
  */
 .dashboard :is(
   .customer-actions > button:nth-child(1),
@@ -66,7 +68,6 @@
   left: 50% !important;
   right: auto !important;
   bottom: auto !important;
-  inset: auto !important;
   display: block !important;
   width: var(--ref-action-icon, 1.125rem) !important;
   height: var(--ref-action-icon, 1.125rem) !important;
