@@ -127,6 +127,57 @@ public sealed class CustomerOrderCancellationTests
         Assert.Equal("Pending", persistedOrder.Status);
     }
 
+    [Fact]
+    public async Task AdminCancellation_CreatesCustomerNotification()
+    {
+        const string password = "Password123!";
+        using var factory = new ApiWebApplicationFactory();
+        var scenario = await SeedQrScenarioAsync(factory);
+
+        using var customerClient = factory.CreateHttpsClient();
+        var customerUserId = await AuthenticateCustomerAsync(
+            factory,
+            customerClient,
+            $"admin-cancel-customer-{Guid.NewGuid():N}@example.com",
+            password);
+        var orderId = await CreateCustomerOrderAsync(
+            customerClient,
+            scenario);
+
+        using var adminClient = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(
+            factory,
+            adminClient,
+            $"admin-cancel-{Guid.NewGuid():N}@example.com",
+            password);
+
+        using var response = await adminClient.PatchAsJsonAsync(
+            $"/api/orders/{orderId}/status",
+            new
+            {
+                id = orderId,
+                status = "Cancelled"
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+        var order = await context.Orders
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == orderId);
+        Assert.Equal("Cancelled", order.Status);
+
+        Assert.True(await context.Notifications
+            .AsNoTracking()
+            .AnyAsync(item =>
+                item.UserId == customerUserId &&
+                item.EntityId == orderId &&
+                item.Type == "Order.Cancelled" &&
+                !item.IsRead));
+    }
+
     private static async Task<Guid> CreateCustomerOrderAsync(
         HttpClient client,
         QrScenario scenario)
@@ -210,6 +261,25 @@ public sealed class CustomerOrderCancellationTests
             password,
             role: SystemRoles.Customer);
 
+        await AuthenticateAsync(client, email, password);
+        return userId;
+    }
+
+    private static async Task AuthenticateAdminAsync(
+        ApiWebApplicationFactory factory,
+        HttpClient client,
+        string email,
+        string password)
+    {
+        await factory.SeedUserAsync(email, password);
+        await AuthenticateAsync(client, email, password);
+    }
+
+    private static async Task AuthenticateAsync(
+        HttpClient client,
+        string email,
+        string password)
+    {
         using var response = await client.PostAsJsonAsync(
             "/api/auth/login",
             new { email, password });
@@ -224,7 +294,6 @@ public sealed class CustomerOrderCancellationTests
         Assert.False(string.IsNullOrWhiteSpace(token));
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
-        return userId;
     }
 
     private static async Task<JsonDocument> ReadJsonAsync(
