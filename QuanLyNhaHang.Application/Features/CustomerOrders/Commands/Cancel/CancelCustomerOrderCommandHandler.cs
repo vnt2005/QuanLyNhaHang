@@ -96,13 +96,6 @@ public sealed class CancelCustomerOrderCommandHandler
                 "Vui lòng liên hệ nhà hàng để được hỗ trợ.");
         }
 
-        foreach (var attempt in paymentAttempts.Where(attempt =>
-                     attempt.Status == PaymentAttempt.CreatingStatus ||
-                     attempt.Status == PaymentAttempt.PendingStatus))
-        {
-            attempt.MarkCancelled("CustomerCancelledOrder");
-        }
-
         var orderItems = await _context.OrderItems
             .Where(item => item.OrderId == order.Id)
             .ToListAsync(cancellationToken);
@@ -111,6 +104,13 @@ public sealed class CancelCustomerOrderCommandHandler
         {
             throw new InvalidOperationException(
                 "Một hoặc nhiều món đã được bếp xử lý nên đơn không thể tự hủy.");
+        }
+
+        foreach (var attempt in paymentAttempts.Where(attempt =>
+                     attempt.Status == PaymentAttempt.CreatingStatus ||
+                     attempt.Status == PaymentAttempt.PendingStatus))
+        {
+            attempt.MarkCancelled("CustomerCancelledOrder");
         }
 
         order.Cancel();
