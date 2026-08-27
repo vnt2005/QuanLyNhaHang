@@ -103,7 +103,9 @@
   }
 
   /* Right side: search + status + activity + Filter + Clear filter.
-     Explicit column-gap prevents the selects/buttons from visually touching. */
+     The two nth-of-type rules below intentionally override the older
+     table-qr-filter-row-fix.css 190px !important widths. Without this,
+     each select overflows its grid track and visually touches the next control. */
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
     order: 5 !important;
     grid-column: 2 !important;
@@ -157,20 +159,30 @@
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters > select:nth-of-type(1) {
     grid-column: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 138px !important;
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters > select:nth-of-type(2) {
     grid-column: 3 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 138px !important;
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-submit {
     grid-column: 4 !important;
     width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-clear {
     grid-column: 5 !important;
     width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
   }
 }
 
