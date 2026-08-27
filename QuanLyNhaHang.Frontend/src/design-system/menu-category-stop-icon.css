@@ -1,0 +1,57 @@
+/* Category stop action: match the supplied amber pause-icon reference. */
+.dashboard .category-card .menu-card-actions > button.danger {
+  position: relative !important;
+  display: inline-block !important;
+  flex: 0 0 var(--ref-action-size, 2.875rem) !important;
+  width: var(--ref-action-size, 2.875rem) !important;
+  min-width: var(--ref-action-size, 2.875rem) !important;
+  max-width: var(--ref-action-size, 2.875rem) !important;
+  height: var(--ref-action-size, 2.875rem) !important;
+  min-height: var(--ref-action-size, 2.875rem) !important;
+  max-height: var(--ref-action-size, 2.875rem) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid var(--ref-action-warning-border, #806027) !important;
+  border-radius: var(--ref-action-radius, 0.75rem) !important;
+  color: var(--ref-action-warning, #efb34f) !important;
+  background: var(--ref-action-warning-bg, rgb(245 158 11 / 9%)) !important;
+  box-shadow: none !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  overflow: hidden !important;
+  vertical-align: middle !important;
+}
+
+.dashboard .category-card .menu-card-actions > button.danger::before {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  display: block !important;
+  width: var(--ref-action-icon, 1.125rem) !important;
+  height: var(--ref-action-icon, 1.125rem) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: currentColor !important;
+  content: '' !important;
+  transform: translate(-50%, -50%) !important;
+  transform-origin: center center !important;
+  pointer-events: none !important;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M9.5 9v6M14.5 9v6'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M9.5 9v6M14.5 9v6'/%3E%3C/svg%3E") !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-size: contain !important;
+  mask-size: contain !important;
+}
+
+.dashboard .category-card .menu-card-actions > button.danger:hover:not(:disabled) {
+  color: #ffd071 !important;
+  border-color: #b7801e !important;
+  background: rgb(245 158 11 / 16%) !important;
+  filter: none !important;
+  transform: translateY(-1px) !important;
+}

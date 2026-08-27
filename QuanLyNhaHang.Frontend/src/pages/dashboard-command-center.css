@@ -446,8 +446,8 @@
 
 .live-dashboard-y-axis {
   flex-basis: 76px;
-  color: #62718b;
-  font-size: 0.68rem;
+  color: #91a0b6;
+  font-size: 0.72rem;
 }
 
 .live-dashboard-bars {
@@ -487,8 +487,8 @@
 }
 
 .live-dashboard-bar-column > small {
-  color: #65738b;
-  font-size: 0.64rem;
+  color: #91a0b6;
+  font-size: 0.7rem;
 }
 
 /* Order tracker card: same data as today, styled like a compact real-time rail. */
@@ -584,6 +584,21 @@
 .live-dashboard-ranking em,
 .live-dashboard-stock-list em {
   color: #718099 !important;
+}
+
+/* Numeric values need stronger contrast than surrounding metadata on the
+   dark surface, especially at the compact sizes used by the dashboard. */
+.live-dashboard-ranking small {
+  color: #9cabc2 !important;
+  font-size: 0.72rem;
+}
+
+.live-dashboard-ranking > div > b {
+  color: #dce7f7;
+  font-size: 0.8rem;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
 .live-dashboard-empty {

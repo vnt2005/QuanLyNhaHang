@@ -1,0 +1,16 @@
+/* Prevent compact command tabs from exposing a native vertical scrollbar.
+   Keep horizontal scrolling available on narrow screens without showing
+   platform-specific scrollbar chrome. */
+.dashboard :is(.scheduling-tabs, .access-tabs) {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+}
+
+.dashboard :is(.scheduling-tabs, .access-tabs)::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}

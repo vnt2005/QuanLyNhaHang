@@ -1,0 +1,89 @@
+/* Absolute centering lock for every compact action icon.
+ * Loaded last so no legacy/page-specific ::before rule can move the glyph.
+ * IMPORTANT: do not use `inset: auto` here; it resets top/left and pushes
+ * the pseudo icon back toward its static position near the top of the button.
+ */
+.dashboard :is(
+  .customer-actions > button:nth-child(1),
+  .customer-actions > button:nth-child(2),
+  .activity-row-actions > button:nth-child(1),
+  .activity-row-actions > button.danger,
+  .areas-tables-page .card-actions > button:nth-child(1),
+  .areas-tables-page .card-actions > button.danger,
+  .table-qr-card > footer > button:nth-child(1),
+  .table-qr-card > footer > button:nth-child(2),
+  .table-qr-card > footer > button:nth-child(3),
+  .order-card-actions > button:first-child,
+  .order-card-actions > button.danger,
+  .payment-actions > button:first-child,
+  .payment-actions > button.danger,
+  .menu-card-actions > button:first-child,
+  .menu-item-card .menu-card-actions > button:nth-child(2),
+  .menu-item-card .menu-card-actions > button.danger,
+  .promotion-card > footer > button:nth-child(1),
+  .promotion-card > footer > button:nth-child(2),
+  .promotion-card > footer > button.apply,
+  .promotion-card > footer > button.danger,
+  .promotion-card > footer > button.activate,
+  .promotion-usage-actions > button:first-child,
+  .promotion-usage-actions > button:nth-child(2),
+  .promotion-usage-actions > button.danger
+) {
+  position: relative !important;
+  display: inline-block !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.dashboard :is(
+  .customer-actions > button:nth-child(1),
+  .customer-actions > button:nth-child(2),
+  .activity-row-actions > button:nth-child(1),
+  .activity-row-actions > button.danger,
+  .areas-tables-page .card-actions > button:nth-child(1),
+  .areas-tables-page .card-actions > button.danger,
+  .table-qr-card > footer > button:nth-child(1),
+  .table-qr-card > footer > button:nth-child(2),
+  .table-qr-card > footer > button:nth-child(3),
+  .order-card-actions > button:first-child,
+  .order-card-actions > button.danger,
+  .payment-actions > button:first-child,
+  .payment-actions > button.danger,
+  .menu-card-actions > button:first-child,
+  .menu-item-card .menu-card-actions > button:nth-child(2),
+  .menu-item-card .menu-card-actions > button.danger,
+  .promotion-card > footer > button:nth-child(1),
+  .promotion-card > footer > button:nth-child(2),
+  .promotion-card > footer > button.apply,
+  .promotion-card > footer > button.danger,
+  .promotion-card > footer > button.activate,
+  .promotion-usage-actions > button:first-child,
+  .promotion-usage-actions > button:nth-child(2),
+  .promotion-usage-actions > button.danger
+)::before {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  display: block !important;
+  width: var(--ref-action-icon, 1.125rem) !important;
+  height: var(--ref-action-icon, 1.125rem) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: translate(-50%, -50%) !important;
+  transform-origin: center center !important;
+  background: currentColor !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  content: '' !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-size: contain !important;
+  mask-size: contain !important;
+}

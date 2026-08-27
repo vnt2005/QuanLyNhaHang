@@ -61,6 +61,18 @@ import './pages/account-security-dark.css'
 import './pages/restaurant-settings-dark.css'
 import './pages/restaurant-settings-final-fix.css'
 import './pages/auth-portal-dark.css'
+import './design-system/action-buttons.css'
+import './design-system/action-icons.css'
+import './design-system/action-icons-final-fix.css'
+import './design-system/action-icons-reference-standard.css'
+import './design-system/action-icons-center-fix.css'
+import './design-system/menu-category-stop-icon.css'
+import './design-system/tab-scrollbar-fix.css'
+import './design-system/filter-buttons-standard.css'
+import './pages/table-qr-layout-polish.css'
+import './pages/table-qr-filter-row-fix.css'
+import './pages/table-qr-url-inside-panel.css'
+import './pages/table-qr-controls-same-row.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

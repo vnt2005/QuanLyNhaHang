@@ -1,0 +1,74 @@
+/* Final QR filter-row placement ------------------------------------------------
+   Prevent older responsive rules from stretching the two selects to full width.
+   Desktop keeps search + status + activity + filter + clear-filter on one row. */
+
+@media (min-width: 700px) {
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
+    display: grid !important;
+    grid-template-columns: minmax(220px, 320px) 190px 190px 56px 56px !important;
+    grid-auto-flow: column !important;
+    align-items: center !important;
+    justify-content: start !important;
+    gap: 10px !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-search {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters > select:nth-of-type(1) {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters > select:nth-of-type(2) {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-submit {
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-clear {
+    grid-column: 5 !important;
+    grid-row: 1 !important;
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+  }
+}
+
+@media (max-width: 699px) {
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-search {
+    grid-column: 1 / -1 !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters > select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-submit,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-clear {
+    justify-self: start !important;
+  }
+}

@@ -1,0 +1,289 @@
+/* Final alignment + color lock for compact admin action icons.
+ * Loaded after action-icons.css so legacy/page-specific button rules cannot
+ * move the glyph off-center or wash out the semantic colors.
+ */
+
+.dashboard {
+  --action-icon-eye-color: #6ea2ff;
+  --action-icon-eye-border: rgb(96 165 250 / 72%);
+  --action-icon-eye-bg: rgb(37 99 235 / 14%);
+
+  --action-icon-pen-color: #ffad24;
+  --action-icon-pen-border: rgb(255 157 0 / 72%);
+  --action-icon-pen-bg: rgb(255 157 0 / 13%);
+
+  --action-icon-trash-color: #ff4f7d;
+  --action-icon-trash-border: rgb(255 79 125 / 70%);
+  --action-icon-trash-bg: rgb(255 79 125 / 13%);
+
+  --action-icon-warn-color: #f5bd57;
+  --action-icon-warn-border: rgb(245 189 87 / 68%);
+  --action-icon-warn-bg: rgb(245 158 11 / 12%);
+
+  --action-icon-ok-color: #57d9ad;
+  --action-icon-ok-border: rgb(87 217 173 / 66%);
+  --action-icon-ok-bg: rgb(34 197 94 / 11%);
+}
+
+/* Keep every compact action perfectly centered regardless of the old page CSS. */
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .customer-actions > button:nth-child(2),
+    .activity-row-actions > button:nth-child(1),
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .areas-tables-page .card-actions > button.danger,
+    .table-qr-card > footer > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .order-card-actions > button:first-child,
+    .order-card-actions > button.danger,
+    .payment-actions > button:first-child,
+    .payment-actions > button.danger,
+    .menu-card-actions > button:first-child,
+    .menu-item-card .menu-card-actions > button:nth-child(2),
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-card > footer > button:nth-child(2),
+    .promotion-card > footer > button.apply,
+    .promotion-card > footer > button.danger,
+    .promotion-card > footer > button.activate,
+    .promotion-usage-actions > button:first-child,
+    .promotion-usage-actions > button.danger
+  ) {
+  display: inline-grid !important;
+  place-items: center !important;
+  align-items: center !important;
+  justify-content: center !important;
+  align-self: center !important;
+  flex: 0 0 var(--action-icon-size) !important;
+  width: var(--action-icon-size) !important;
+  min-width: var(--action-icon-size) !important;
+  max-width: var(--action-icon-size) !important;
+  height: var(--action-icon-size) !important;
+  min-height: var(--action-icon-size) !important;
+  max-height: var(--action-icon-size) !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-radius: var(--action-icon-radius) !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  transform: none;
+}
+
+/* If a page styles button pseudo-elements, neutralize that positioning here. */
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .customer-actions > button:nth-child(2),
+    .activity-row-actions > button:nth-child(1),
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .areas-tables-page .card-actions > button.danger,
+    .table-qr-card > footer > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .order-card-actions > button:first-child,
+    .order-card-actions > button.danger,
+    .payment-actions > button:first-child,
+    .payment-actions > button.danger,
+    .menu-card-actions > button:first-child,
+    .menu-item-card .menu-card-actions > button:nth-child(2),
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-card > footer > button:nth-child(2),
+    .promotion-card > footer > button.apply,
+    .promotion-card > footer > button.danger,
+    .promotion-card > footer > button.activate,
+    .promotion-usage-actions > button:first-child,
+    .promotion-usage-actions > button.danger
+  )::before {
+  position: static !important;
+  inset: auto !important;
+  display: block !important;
+  flex: none !important;
+  width: var(--action-icon-glyph) !important;
+  height: var(--action-icon-glyph) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: currentColor !important;
+  transform: none !important;
+}
+
+/* Center action groups vertically but keep each page's original horizontal layout. */
+.dashboard
+  :is(
+    .customer-actions,
+    .activity-row-actions,
+    .areas-tables-page .card-actions,
+    .table-qr-card > footer,
+    .order-card-actions,
+    .payment-actions,
+    .menu-card-actions,
+    .promotion-card > footer,
+    .promotion-usage-actions
+  ) {
+  align-items: center !important;
+  column-gap: 0.625rem !important;
+  row-gap: 0.625rem !important;
+}
+
+/* Eye / detail. */
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .activity-row-actions > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(1),
+    .order-card-actions > button:first-child,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-usage-actions > button:first-child
+  ) {
+  color: var(--action-icon-eye-color) !important;
+  border-color: var(--action-icon-eye-border) !important;
+  background: var(--action-icon-eye-bg) !important;
+  box-shadow: inset 0 0 0 1px rgb(96 165 250 / 4%) !important;
+}
+
+/* Edit / pen. */
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(2),
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .payment-actions > button:first-child,
+    .menu-card-actions > button:first-child,
+    .promotion-card > footer > button:nth-child(2)
+  ) {
+  color: var(--action-icon-pen-color) !important;
+  border-color: var(--action-icon-pen-border) !important;
+  background: var(--action-icon-pen-bg) !important;
+  box-shadow: inset 0 0 0 1px rgb(255 157 0 / 4%) !important;
+}
+
+/* Delete / cancel / trash. */
+.dashboard
+  :is(
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button.danger,
+    .order-card-actions > button.danger,
+    .payment-actions > button.danger,
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-usage-actions > button.danger
+  ) {
+  color: var(--action-icon-trash-color) !important;
+  border-color: var(--action-icon-trash-border) !important;
+  background: var(--action-icon-trash-bg) !important;
+  box-shadow: inset 0 0 0 1px rgb(255 79 125 / 4%) !important;
+}
+
+/* Menu unavailable + promotion disable. */
+.dashboard .menu-item-card:has(.status-badge.active) .menu-card-actions > button:nth-child(2),
+.dashboard .promotion-card > footer > button.danger {
+  color: var(--action-icon-warn-color) !important;
+  border-color: var(--action-icon-warn-border) !important;
+  background: var(--action-icon-warn-bg) !important;
+  box-shadow: inset 0 0 0 1px rgb(245 189 87 / 4%) !important;
+}
+
+/* Restore/apply/activate. */
+.dashboard .menu-item-card:has(.status-badge.inactive) .menu-card-actions > button:nth-child(2),
+.dashboard .promotion-card > footer > button.apply,
+.dashboard .promotion-card > footer > button.activate {
+  color: var(--action-icon-ok-color) !important;
+  border-color: var(--action-icon-ok-border) !important;
+  background: var(--action-icon-ok-bg) !important;
+  box-shadow: inset 0 0 0 1px rgb(87 217 173 / 4%) !important;
+}
+
+/* Do not wash semantic colors out on hover. */
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .activity-row-actions > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(1),
+    .order-card-actions > button:first-child,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-usage-actions > button:first-child
+  ):hover:not(:disabled) {
+  color: #8ab5ff !important;
+  border-color: #6ea2ff !important;
+  background: rgb(37 99 235 / 23%) !important;
+}
+
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(2),
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .payment-actions > button:first-child,
+    .menu-card-actions > button:first-child,
+    .promotion-card > footer > button:nth-child(2)
+  ):hover:not(:disabled) {
+  color: #ffc14f !important;
+  border-color: #ffad24 !important;
+  background: rgb(255 157 0 / 22%) !important;
+}
+
+.dashboard
+  :is(
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button.danger,
+    .order-card-actions > button.danger,
+    .payment-actions > button.danger,
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-usage-actions > button.danger
+  ):hover:not(:disabled) {
+  color: #ff7197 !important;
+  border-color: #ff4f7d !important;
+  background: rgb(255 79 125 / 22%) !important;
+}
+
+.dashboard .promotion-card > footer > button.danger:hover:not(:disabled),
+.dashboard .menu-item-card:has(.status-badge.active) .menu-card-actions > button:nth-child(2):hover:not(:disabled) {
+  color: #ffd078 !important;
+  border-color: #f5bd57 !important;
+  background: rgb(245 158 11 / 21%) !important;
+}
+
+.dashboard .promotion-card > footer > button.apply:hover:not(:disabled),
+.dashboard .promotion-card > footer > button.activate:hover:not(:disabled),
+.dashboard .menu-item-card:has(.status-badge.inactive) .menu-card-actions > button:nth-child(2):hover:not(:disabled) {
+  color: #7be4c0 !important;
+  border-color: #57d9ad !important;
+  background: rgb(34 197 94 / 20%) !important;
+}
+
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .customer-actions > button:nth-child(2),
+    .activity-row-actions > button:nth-child(1),
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .areas-tables-page .card-actions > button.danger,
+    .table-qr-card > footer > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .order-card-actions > button:first-child,
+    .order-card-actions > button.danger,
+    .payment-actions > button:first-child,
+    .payment-actions > button.danger,
+    .menu-card-actions > button:first-child,
+    .menu-item-card .menu-card-actions > button:nth-child(2),
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-card > footer > button:nth-child(2),
+    .promotion-card > footer > button.apply,
+    .promotion-card > footer > button.danger,
+    .promotion-card > footer > button.activate,
+    .promotion-usage-actions > button:first-child,
+    .promotion-usage-actions > button.danger
+  ):disabled {
+  opacity: 0.5 !important;
+  filter: none !important;
+  transform: none !important;
+}
