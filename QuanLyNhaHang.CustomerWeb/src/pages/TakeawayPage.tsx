@@ -11,6 +11,8 @@ import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
 import {
   clearTakeawayCart,
+  MAX_TAKEAWAY_CART_QUANTITY,
+  MAX_TAKEAWAY_ITEM_QUANTITY,
   readTakeawayCart,
   setTakeawayItemQuantity,
   type TakeawayCart,
@@ -59,6 +61,16 @@ export default function TakeawayPage({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!lines.length || submitting) return
+
+    if (totalQuantity > MAX_TAKEAWAY_CART_QUANTITY) {
+      setError(`Một đơn chỉ được tối đa ${MAX_TAKEAWAY_CART_QUANTITY} phần.`)
+      return
+    }
+
+    if (lines.some(line => line.quantity > MAX_TAKEAWAY_ITEM_QUANTITY)) {
+      setError(`Mỗi món chỉ được tối đa ${MAX_TAKEAWAY_ITEM_QUANTITY} phần.`)
+      return
+    }
 
     if (!customerName.trim() || !phoneNumber.trim()) {
       setError('Vui lòng nhập tên và số điện thoại người nhận món.')
@@ -113,9 +125,10 @@ export default function TakeawayPage({
           <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. Nhà hàng sẽ chuẩn bị món theo yêu cầu.</p>
           {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể.</p>}
           <p>Bạn có thể thanh toán online sau khi nhà hàng xác nhận và bắt đầu chuẩn bị món. Trạng thái thanh toán sẽ tự cập nhật tại đây.</p>
+          <p>Để tránh đơn trùng/spam, hệ thống sẽ không nhận thêm đơn mang về mới trong 30 phút nếu đơn này vẫn chưa hoàn tất.</p>
           <PayOnlineButton orderId={result.id} accessToken={session?.token} />
           <div>
-            <button className="secondary-button" type="button" onClick={() => { setResult(null); navigate('/menu') }}>Đặt thêm món</button>
+            <button className="secondary-button" type="button" onClick={() => { setResult(null); navigate('/menu') }}>Xem thực đơn</button>
             {session ? <button className="secondary-button" type="button" onClick={() => navigate('/orders')}>Xem Đơn của tôi</button> : <button className="secondary-button" type="button" onClick={signIn}>Đăng nhập cho lần sau</button>}
           </div>
         </section>
@@ -143,13 +156,13 @@ export default function TakeawayPage({
       ) : (
         <form className="takeaway-layout" onSubmit={submit}>
           <section className="takeaway-cart">
-            <div className="takeaway-section-title"><div><h2>Giỏ mang về</h2><p>{totalQuantity} phần đã chọn</p></div><button type="button" className="text-link" onClick={() => navigate('/menu')}>+ Thêm món</button></div>
+            <div className="takeaway-section-title"><div><h2>Giỏ mang về</h2><p>{totalQuantity}/{MAX_TAKEAWAY_CART_QUANTITY} phần đã chọn • tối đa {MAX_TAKEAWAY_ITEM_QUANTITY} phần/món</p></div><button type="button" className="text-link" onClick={() => navigate('/menu')}>+ Thêm món</button></div>
             <div className="takeaway-lines">
               {lines.map(({ item, quantity }, index) => (
                 <article key={item.id}>
                   <img src={item.imageUrl || heroImage} className={!item.imageUrl ? `fallback-crop crop-${index % 3 + 1}` : ''} alt={item.name} />
                   <div className="takeaway-line-copy"><small>{item.menuCategoryName}</small><strong>{item.name}</strong><span>{money(item.price, data.restaurant?.currency)}</span></div>
-                  <div className="takeaway-quantity"><button type="button" aria-label={`Bớt ${item.name}`} onClick={() => changeQuantity(item.id, quantity - 1)}><Minus /></button><span>{quantity}</span><button type="button" aria-label={`Thêm ${item.name}`} onClick={() => changeQuantity(item.id, quantity + 1)}><Plus /></button></div>
+                  <div className="takeaway-quantity"><button type="button" aria-label={`Bớt ${item.name}`} onClick={() => changeQuantity(item.id, quantity - 1)}><Minus /></button><span>{quantity}</span><button type="button" aria-label={`Thêm ${item.name}`} disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY || totalQuantity >= MAX_TAKEAWAY_CART_QUANTITY} onClick={() => changeQuantity(item.id, quantity + 1)}><Plus /></button></div>
                   <strong>{money(item.price * quantity, data.restaurant?.currency)}</strong>
                 </article>
               ))}
