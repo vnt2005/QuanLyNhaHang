@@ -1,0 +1,438 @@
+/* Reference-standard compact action controls -----------------------------
+ * Final visual lock based on the supplied button references.
+ * This file is loaded last on purpose: feature/page CSS must not change
+ * action-button size, alignment, spacing or semantic tint.
+ */
+
+.dashboard {
+  --ref-action-size: 2.875rem; /* 46px, matches supplied reference */
+  --ref-action-radius: 0.75rem;
+  --ref-action-icon: 1.125rem;
+  --ref-action-gap: 0.625rem;
+  --ref-action-base: #0d1930;
+  --ref-action-neutral: #9aa9bd;
+  --ref-action-neutral-border: #31415f;
+  --ref-action-neutral-bg: #0c172b;
+  --ref-action-eye: #5d92f7;
+  --ref-action-eye-border: #315f9f;
+  --ref-action-eye-bg: rgb(37 99 235 / 10%);
+  --ref-action-edit: #ffab18;
+  --ref-action-edit-border: #8a5b00;
+  --ref-action-edit-bg: rgb(245 158 11 / 9%);
+  --ref-action-positive: #45d2a7;
+  --ref-action-positive-border: #237a68;
+  --ref-action-positive-bg: rgb(16 185 129 / 9%);
+  --ref-action-danger: #ff4f7d;
+  --ref-action-danger-border: #7d3150;
+  --ref-action-danger-bg: rgb(244 63 94 / 10%);
+  --ref-action-warning: #efb34f;
+  --ref-action-warning-border: #806027;
+  --ref-action-warning-bg: rgb(245 158 11 / 9%);
+}
+
+/* Action rows: same rhythm everywhere. */
+.dashboard :is(
+  .customer-actions,
+  .activity-row-actions,
+  .areas-tables-page .card-actions,
+  .table-qr-card > footer,
+  .order-card-actions,
+  .payment-actions,
+  .menu-card-actions,
+  .promotion-card > footer,
+  .promotion-usage-actions
+) {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  align-items: center !important;
+  gap: var(--ref-action-gap) !important;
+  min-width: max-content;
+}
+
+/* Cards/tables keep action groups aligned to the right where applicable. */
+.dashboard :is(
+  .activity-row-actions,
+  .areas-tables-page .card-actions,
+  .order-card-actions,
+  .payment-actions,
+  .menu-card-actions,
+  .promotion-usage-actions
+) {
+  justify-content: flex-end !important;
+}
+
+/* Promotion footer previously pushed the disable button to the far edge.
+   Keep all compact actions together like the supplied reference. */
+.dashboard .promotion-card > footer {
+  justify-content: flex-start !important;
+}
+
+/* QR card actions use the reference row instead of a wide CTA. */
+.dashboard .table-qr-card > footer {
+  justify-content: flex-start !important;
+  padding: 0.75rem 1rem !important;
+}
+
+/* All icon-only controls -------------------------------------------------- */
+.dashboard :is(
+  .customer-actions > button:nth-child(1),
+  .customer-actions > button:nth-child(2),
+  .activity-row-actions > button:nth-child(1),
+  .activity-row-actions > button.danger,
+  .areas-tables-page .card-actions > button:nth-child(1),
+  .areas-tables-page .card-actions > button.danger,
+  .table-qr-card > footer > button:nth-child(1),
+  .table-qr-card > footer > button:nth-child(2),
+  .table-qr-card > footer > button:nth-child(3),
+  .order-card-actions > button:first-child,
+  .order-card-actions > button.danger,
+  .payment-actions > button:first-child,
+  .payment-actions > button.danger,
+  .menu-card-actions > button:first-child,
+  .menu-item-card .menu-card-actions > button:nth-child(2),
+  .menu-item-card .menu-card-actions > button.danger,
+  .promotion-card > footer > button:nth-child(1),
+  .promotion-card > footer > button:nth-child(2),
+  .promotion-card > footer > button.apply,
+  .promotion-card > footer > button.danger,
+  .promotion-card > footer > button.activate,
+  .promotion-usage-actions > button:first-child,
+  .promotion-usage-actions > button:nth-child(2),
+  .promotion-usage-actions > button.danger
+) {
+  position: relative !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  flex: 0 0 var(--ref-action-size) !important;
+  width: var(--ref-action-size) !important;
+  min-width: var(--ref-action-size) !important;
+  max-width: var(--ref-action-size) !important;
+  height: var(--ref-action-size) !important;
+  min-height: var(--ref-action-size) !important;
+  max-height: var(--ref-action-size) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid var(--ref-action-neutral-border) !important;
+  border-radius: var(--ref-action-radius) !important;
+  color: var(--ref-action-neutral) !important;
+  background: var(--ref-action-neutral-bg) !important;
+  box-shadow: none !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  text-indent: 0 !important;
+  white-space: nowrap;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  vertical-align: middle !important;
+  transform: none !important;
+}
+
+/* Hide old inline SVGs because one shared mask must define the visual. */
+.dashboard :is(
+  .customer-actions > button,
+  .areas-tables-page .card-actions > button
+) > svg {
+  display: none !important;
+}
+
+/* One centered glyph box for every action. */
+.dashboard :is(
+  .customer-actions > button:nth-child(1),
+  .customer-actions > button:nth-child(2),
+  .activity-row-actions > button:nth-child(1),
+  .activity-row-actions > button.danger,
+  .areas-tables-page .card-actions > button:nth-child(1),
+  .areas-tables-page .card-actions > button.danger,
+  .table-qr-card > footer > button:nth-child(1),
+  .table-qr-card > footer > button:nth-child(2),
+  .table-qr-card > footer > button:nth-child(3),
+  .order-card-actions > button:first-child,
+  .order-card-actions > button.danger,
+  .payment-actions > button:first-child,
+  .payment-actions > button.danger,
+  .menu-card-actions > button:first-child,
+  .menu-item-card .menu-card-actions > button:nth-child(2),
+  .menu-item-card .menu-card-actions > button.danger,
+  .promotion-card > footer > button:nth-child(1),
+  .promotion-card > footer > button:nth-child(2),
+  .promotion-card > footer > button.apply,
+  .promotion-card > footer > button.danger,
+  .promotion-card > footer > button.activate,
+  .promotion-usage-actions > button:first-child,
+  .promotion-usage-actions > button:nth-child(2),
+  .promotion-usage-actions > button.danger
+)::before {
+  position: static !important;
+  inset: auto !important;
+  display: block !important;
+  width: var(--ref-action-icon) !important;
+  height: var(--ref-action-icon) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: currentColor !important;
+  content: '' !important;
+  transform: none !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-size: contain !important;
+  mask-size: contain !important;
+}
+
+/* Eye -------------------------------------------------------------------- */
+.dashboard :is(
+  .customer-actions > button:nth-child(1),
+  .activity-row-actions > button:nth-child(1),
+  .table-qr-card > footer > button:nth-child(1),
+  .order-card-actions > button:first-child,
+  .promotion-card > footer > button:nth-child(1),
+  .promotion-usage-actions > button:first-child
+) {
+  color: var(--ref-action-eye) !important;
+  border-color: var(--ref-action-eye-border) !important;
+  background: var(--ref-action-eye-bg) !important;
+}
+
+.dashboard :is(
+  .customer-actions > button:nth-child(1),
+  .activity-row-actions > button:nth-child(1),
+  .table-qr-card > footer > button:nth-child(1),
+  .order-card-actions > button:first-child,
+  .promotion-card > footer > button:nth-child(1),
+  .promotion-usage-actions > button:first-child
+)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z'/%3E%3Ccircle cx='12' cy='12' r='2.6'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z'/%3E%3Ccircle cx='12' cy='12' r='2.6'/%3E%3C/svg%3E") !important;
+}
+
+/* Pen -------------------------------------------------------------------- */
+.dashboard :is(
+  .customer-actions > button:nth-child(2),
+  .areas-tables-page .card-actions > button:nth-child(1),
+  .table-qr-card > footer > button:nth-child(2),
+  .payment-actions > button:first-child,
+  .menu-card-actions > button:first-child,
+  .promotion-card > footer > button:nth-child(2)
+) {
+  color: var(--ref-action-edit) !important;
+  border-color: var(--ref-action-edit-border) !important;
+  background: var(--ref-action-edit-bg) !important;
+}
+
+.dashboard :is(
+  .customer-actions > button:nth-child(2),
+  .areas-tables-page .card-actions > button:nth-child(1),
+  .table-qr-card > footer > button:nth-child(2),
+  .payment-actions > button:first-child,
+  .menu-card-actions > button:first-child,
+  .promotion-card > footer > button:nth-child(2)
+)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 19 3.8-.8L18 9a2.1 2.1 0 0 0-3-3l-9.2 9.2L5 19Z'/%3E%3Cpath d='m13.8 7.2 3 3'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 19 3.8-.8L18 9a2.1 2.1 0 0 0-3-3l-9.2 9.2L5 19Z'/%3E%3Cpath d='m13.8 7.2 3 3'/%3E%3C/svg%3E") !important;
+}
+
+/* Download: turn the QR card's wide Tải PNG control into reference icon. */
+.dashboard .table-qr-card > footer > button:nth-child(3) {
+  color: var(--ref-action-neutral) !important;
+  border-color: var(--ref-action-neutral-border) !important;
+  background: var(--ref-action-neutral-bg) !important;
+}
+
+.dashboard .table-qr-card > footer > button:nth-child(3)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3Cpath d='M5 20h14'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3Cpath d='M5 20h14'/%3E%3C/svg%3E") !important;
+}
+
+/* Trash / destructive ---------------------------------------------------- */
+.dashboard :is(
+  .activity-row-actions > button.danger,
+  .areas-tables-page .card-actions > button.danger,
+  .order-card-actions > button.danger,
+  .payment-actions > button.danger,
+  .menu-item-card .menu-card-actions > button.danger,
+  .promotion-usage-actions > button.danger
+) {
+  color: var(--ref-action-danger) !important;
+  border-color: var(--ref-action-danger-border) !important;
+  background: var(--ref-action-danger-bg) !important;
+}
+
+.dashboard :is(
+  .activity-row-actions > button.danger,
+  .areas-tables-page .card-actions > button.danger,
+  .order-card-actions > button.danger,
+  .payment-actions > button.danger,
+  .menu-item-card .menu-card-actions > button.danger,
+  .promotion-usage-actions > button.danger
+)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7h14M9 7V4.5h6V7m2 0-.8 13H7.8L7 7'/%3E%3Cpath d='M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7h14M9 7V4.5h6V7m2 0-.8 13H7.8L7 7'/%3E%3Cpath d='M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E") !important;
+}
+
+/* Menu unavailable ------------------------------------------------------- */
+.dashboard .menu-item-card:has(.status-badge.active) .menu-card-actions > button:nth-child(2) {
+  color: var(--ref-action-warning) !important;
+  border-color: var(--ref-action-warning-border) !important;
+  background: var(--ref-action-warning-bg) !important;
+}
+.dashboard .menu-item-card:has(.status-badge.active) .menu-card-actions > button:nth-child(2)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m6 18 12-12'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m6 18 12-12'/%3E%3C/svg%3E") !important;
+}
+
+.dashboard .menu-item-card:has(.status-badge.inactive) .menu-card-actions > button:nth-child(2) {
+  color: var(--ref-action-positive) !important;
+  border-color: var(--ref-action-positive-border) !important;
+  background: var(--ref-action-positive-bg) !important;
+}
+.dashboard .menu-item-card:has(.status-badge.inactive) .menu-card-actions > button:nth-child(2)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m8.3 12.2 2.4 2.4 5-5.3'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m8.3 12.2 2.4 2.4 5-5.3'/%3E%3C/svg%3E") !important;
+}
+
+/* Promotion apply = positive compact action. */
+.dashboard .promotion-card > footer > button.apply {
+  color: var(--ref-action-positive) !important;
+  border-color: var(--ref-action-positive-border) !important;
+  background: var(--ref-action-positive-bg) !important;
+}
+.dashboard .promotion-card > footer > button.apply::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7.5h16v9H4z'/%3E%3Cpath d='M8 7.5V5.8M16 7.5V5.8M8 12h8M12 9v6'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7.5h16v9H4z'/%3E%3Cpath d='M8 7.5V5.8M16 7.5V5.8M8 12h8M12 9v6'/%3E%3C/svg%3E") !important;
+}
+
+/* Promotion disable = red circle-X like supplied reference, not a warning dot. */
+.dashboard .promotion-card > footer > button.danger {
+  color: var(--ref-action-danger) !important;
+  border-color: var(--ref-action-danger-border) !important;
+  background: var(--ref-action-danger-bg) !important;
+}
+.dashboard .promotion-card > footer > button.danger::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m9.3 9.3 5.4 5.4m0-5.4-5.4 5.4'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m9.3 9.3 5.4 5.4m0-5.4-5.4 5.4'/%3E%3C/svg%3E") !important;
+}
+
+.dashboard .promotion-card > footer > button.activate {
+  color: var(--ref-action-positive) !important;
+  border-color: var(--ref-action-positive-border) !important;
+  background: var(--ref-action-positive-bg) !important;
+}
+.dashboard .promotion-card > footer > button.activate::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m8.2 12.2 2.5 2.5 5.2-5.4'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m8.2 12.2 2.5 2.5 5.2-5.4'/%3E%3C/svg%3E") !important;
+}
+
+/* Promotion payment-link: compact neutral link icon instead of wide text. */
+.dashboard .promotion-usage-actions > button:nth-child(2):not(.danger) {
+  color: var(--ref-action-neutral) !important;
+  border-color: var(--ref-action-neutral-border) !important;
+  background: var(--ref-action-neutral-bg) !important;
+}
+.dashboard .promotion-usage-actions > button:nth-child(2):not(.danger)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.1.1l1.8-1.8a5 5 0 0 0-7.1-7.1L10.7 5.3'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.1-.1l-1.8 1.8a5 5 0 0 0 7.1 7.1l1.1-1.1'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.1.1l1.8-1.8a5 5 0 0 0-7.1-7.1L10.7 5.3'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.1-.1l-1.8 1.8a5 5 0 0 0 7.1 7.1l1.1-1.1'/%3E%3C/svg%3E") !important;
+}
+
+/* Order status is a control, not an icon action; keep it beside the buttons
+   at the exact same height so the action row does not look crooked. */
+.dashboard .order-card-actions > select {
+  height: var(--ref-action-size) !important;
+  min-height: var(--ref-action-size) !important;
+  margin: 0 !important;
+  border-radius: var(--ref-action-radius) !important;
+  align-self: center !important;
+}
+
+/* Keep action columns centered vertically in table rows/cards. */
+.dashboard :is(
+  .activity-table td:last-child,
+  .payment-table-wrap td:last-child,
+  .promotion-usage-table td:last-child
+) {
+  vertical-align: middle !important;
+}
+
+/* Hover: slightly brighter tint without filling the entire button. */
+.dashboard :is(
+  .customer-actions,
+  .activity-row-actions,
+  .areas-tables-page .card-actions,
+  .table-qr-card > footer,
+  .order-card-actions,
+  .payment-actions,
+  .menu-card-actions,
+  .promotion-card > footer,
+  .promotion-usage-actions
+) > button:hover:not(:disabled) {
+  filter: brightness(1.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dashboard :is(
+  .customer-actions,
+  .activity-row-actions,
+  .areas-tables-page .card-actions,
+  .table-qr-card > footer,
+  .order-card-actions,
+  .payment-actions,
+  .menu-card-actions,
+  .promotion-card > footer,
+  .promotion-usage-actions
+) > button:active:not(:disabled) {
+  filter: brightness(1.05) !important;
+  transform: translateY(0) !important;
+}
+
+.dashboard :is(
+  .customer-actions,
+  .activity-row-actions,
+  .areas-tables-page .card-actions,
+  .table-qr-card > footer,
+  .order-card-actions,
+  .payment-actions,
+  .menu-card-actions,
+  .promotion-card > footer,
+  .promotion-usage-actions
+) > button:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgb(96 165 250 / 20%) !important;
+}
+
+.dashboard :is(
+  .customer-actions,
+  .activity-row-actions,
+  .areas-tables-page .card-actions,
+  .table-qr-card > footer,
+  .order-card-actions,
+  .payment-actions,
+  .menu-card-actions,
+  .promotion-card > footer,
+  .promotion-usage-actions
+) > button:disabled {
+  opacity: 0.45 !important;
+  filter: saturate(0.65) !important;
+  transform: none !important;
+}
+
+@media (max-width: 720px) {
+  .dashboard {
+    --ref-action-size: 2.75rem;
+    --ref-action-gap: 0.5rem;
+  }
+
+  .dashboard :is(
+    .activity-row-actions,
+    .areas-tables-page .card-actions,
+    .table-qr-card > footer,
+    .order-card-actions,
+    .payment-actions,
+    .menu-card-actions,
+    .promotion-card > footer,
+    .promotion-usage-actions
+  ) {
+    flex-wrap: wrap !important;
+  }
+}
