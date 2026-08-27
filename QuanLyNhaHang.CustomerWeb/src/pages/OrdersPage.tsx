@@ -202,7 +202,7 @@ export default function OrdersPage({
   const [orderSearch, setOrderSearch] = useState('')
   const [orderFilter, setOrderFilter] = useState<OrderFilter>('all')
 
-  const loadOrders = useCallback(async (targetPage = page) => {
+  const loadOrders = useCallback(async (targetPage: number) => {
     if (!session) return
     setLoading(true)
     setError('')
@@ -218,11 +218,11 @@ export default function OrdersPage({
     } finally {
       setLoading(false)
     }
-  }, [page, session])
+  }, [session?.userId])
 
   useEffect(() => {
     if (session) void loadOrders(1)
-  }, [session, loadOrders])
+  }, [session?.userId, loadOrders])
 
   useEffect(() => {
     if (!session) return
@@ -233,7 +233,7 @@ export default function OrdersPage({
 
     window.addEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
     return () => window.removeEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
-  }, [loadOrders, page, session])
+  }, [loadOrders, page, session?.userId])
 
   const visibleOrders = useMemo(() => {
     const query = orderSearch.trim()
