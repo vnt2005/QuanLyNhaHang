@@ -72,3 +72,10 @@ export function claimCustomerOrder(qrToken: string, orderId: string) {
     },
   )
 }
+
+export function cancelCustomerOrder(orderId: string) {
+  return authorizedRequest<{ success: boolean; message: string }>(
+    `/api/customer/orders/${encodeURIComponent(orderId)}/cancel`,
+    { method: 'POST' },
+  )
+}
