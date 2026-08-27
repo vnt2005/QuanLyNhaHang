@@ -23,6 +23,7 @@ import {
 } from '../services/customerOrders'
 import { CUSTOMER_ORDER_CHANGED_EVENT } from '../services/notifications'
 import AuthPortal from '../components/AuthPortal'
+import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
 
@@ -242,7 +243,11 @@ export default function OrdersPage({
 
   async function cancelOrder(order: CustomerOrder) {
     if (cancellingId || order.status !== 'Pending') return
-    if (!window.confirm(`Bạn chắc chắn muốn hủy đơn ${order.orderCode}?`)) return
+
+    const confirmed = await confirmCustomerAction(
+      `Đơn ${order.orderCode} sẽ được hủy nếu vẫn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán. Bạn có muốn tiếp tục?`,
+    )
+    if (!confirmed) return
 
     setCancellingId(order.id)
     setError('')
