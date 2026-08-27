@@ -21,6 +21,7 @@ import {
   type QrMenuItem,
   type QrOrderTable,
 } from '../services/qrOrders'
+import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
 import StatusPanel from '../components/StatusPanel'
 import heroImage from '../assets/hero-vietnamese-table.webp'
@@ -245,7 +246,11 @@ export default function QrOrderPage({
 
   async function cancelCurrentOrder() {
     if (!session || !currentOrder || currentOrder.status !== 'Pending' || cancelling) return
-    if (!window.confirm(`Bạn chắc chắn muốn hủy đơn ${currentOrder.orderCode}?`)) return
+
+    const confirmed = await confirmCustomerAction(
+      `Đơn ${currentOrder.orderCode} sẽ được hủy nếu vẫn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán. Bạn có muốn tiếp tục?`,
+    )
+    if (!confirmed) return
 
     setCancelling(true)
     setError('')
