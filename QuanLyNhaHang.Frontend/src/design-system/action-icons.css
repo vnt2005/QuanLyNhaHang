@@ -1,0 +1,329 @@
+/* Shared icon-only actions -------------------------------------------------
+ * Visual language follows the supplied references: compact rounded-square
+ * actions with a yellow edit pen, pink/red trash can and blue detail eye.
+ * The controls keep their original text in the DOM for accessible names;
+ * only the visual text is collapsed here.
+ */
+
+.dashboard {
+  --action-icon-size: 2.5rem;
+  --action-icon-radius: 0.75rem;
+  --action-icon-glyph: 1.1rem;
+  --action-icon-edit: #ffab2e;
+  --action-icon-edit-border: rgb(255 157 0 / 48%);
+  --action-icon-edit-bg: rgb(255 157 0 / 7%);
+  --action-icon-delete: #ff4f7d;
+  --action-icon-delete-border: rgb(255 79 125 / 48%);
+  --action-icon-delete-bg: rgb(255 79 125 / 7%);
+  --action-icon-view: #5f96ff;
+  --action-icon-view-border: rgb(95 150 255 / 45%);
+  --action-icon-view-bg: rgb(59 130 246 / 8%);
+  --action-icon-warning: #f4b94f;
+  --action-icon-warning-border: rgb(244 185 79 / 46%);
+  --action-icon-warning-bg: rgb(245 158 11 / 8%);
+  --action-icon-success: #52d3a5;
+  --action-icon-success-border: rgb(82 211 165 / 42%);
+  --action-icon-success-bg: rgb(34 197 94 / 8%);
+}
+
+/* Every selector below is deliberately scoped to an action area so ordinary
+   form buttons such as Lọc, Lưu, Tải PNG, pagination, etc. keep their labels. */
+.dashboard
+  :is(
+    .customer-actions > button,
+    .activity-row-actions > button,
+    .areas-tables-page .card-actions > button,
+    .table-qr-card > footer > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .order-card-actions > button,
+    .payment-actions > button,
+    .menu-card-actions > button,
+    .promotion-card > footer > button,
+    .promotion-usage-actions > button
+  ) {
+  position: relative;
+}
+
+/* Icon-only button box. --------------------------------------------------- */
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .customer-actions > button:nth-child(2),
+    .activity-row-actions > button:nth-child(1),
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .areas-tables-page .card-actions > button.danger,
+    .table-qr-card > footer > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .order-card-actions > button:first-child,
+    .order-card-actions > button.danger,
+    .payment-actions > button:first-child,
+    .payment-actions > button.danger,
+    .menu-card-actions > button:first-child,
+    .menu-item-card .menu-card-actions > button:nth-child(2),
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-card > footer > button:nth-child(2),
+    .promotion-card > footer > button.apply,
+    .promotion-card > footer > button.danger,
+    .promotion-card > footer > button.activate,
+    .promotion-usage-actions > button:first-child,
+    .promotion-usage-actions > button.danger
+  ) {
+  width: var(--action-icon-size) !important;
+  min-width: var(--action-icon-size) !important;
+  height: var(--action-icon-size) !important;
+  min-height: var(--action-icon-size) !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  border-radius: var(--action-icon-radius) !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  overflow: hidden;
+}
+
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .customer-actions > button:nth-child(2),
+    .areas-tables-page .card-actions > button,
+    .table-qr-card > footer > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2)
+  )
+  > svg {
+  display: none !important;
+}
+
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .customer-actions > button:nth-child(2),
+    .activity-row-actions > button:nth-child(1),
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .areas-tables-page .card-actions > button.danger,
+    .table-qr-card > footer > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .order-card-actions > button:first-child,
+    .order-card-actions > button.danger,
+    .payment-actions > button:first-child,
+    .payment-actions > button.danger,
+    .menu-card-actions > button:first-child,
+    .menu-item-card .menu-card-actions > button:nth-child(2),
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-card > footer > button:nth-child(2),
+    .promotion-card > footer > button.apply,
+    .promotion-card > footer > button.danger,
+    .promotion-card > footer > button.activate,
+    .promotion-usage-actions > button:first-child,
+    .promotion-usage-actions > button.danger
+  )::before {
+  display: block;
+  width: var(--action-icon-glyph);
+  height: var(--action-icon-glyph);
+  background: currentColor;
+  content: '';
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Detail / eye ------------------------------------------------------------ */
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .activity-row-actions > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(1),
+    .order-card-actions > button:first-child,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-usage-actions > button:first-child
+  ) {
+  color: var(--action-icon-view) !important;
+  border-color: var(--action-icon-view-border) !important;
+  background: var(--action-icon-view-bg) !important;
+}
+
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(1),
+    .activity-row-actions > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(1),
+    .order-card-actions > button:first-child,
+    .promotion-card > footer > button:nth-child(1),
+    .promotion-usage-actions > button:first-child
+  )::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z'/%3E%3Ccircle cx='12' cy='12' r='2.6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z'/%3E%3Ccircle cx='12' cy='12' r='2.6'/%3E%3C/svg%3E");
+}
+
+/* Edit / pen -------------------------------------------------------------- */
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(2),
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .payment-actions > button:first-child,
+    .menu-card-actions > button:first-child,
+    .promotion-card > footer > button:nth-child(2)
+  ) {
+  color: var(--action-icon-edit) !important;
+  border-color: var(--action-icon-edit-border) !important;
+  background: var(--action-icon-edit-bg) !important;
+}
+
+.dashboard
+  :is(
+    .customer-actions > button:nth-child(2),
+    .areas-tables-page .card-actions > button:nth-child(1),
+    .table-qr-card > footer > button:nth-child(2),
+    .payment-actions > button:first-child,
+    .menu-card-actions > button:first-child,
+    .promotion-card > footer > button:nth-child(2)
+  )::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 19 3.8-.8L18 9a2.1 2.1 0 0 0-3-3l-9.2 9.2L5 19Z'/%3E%3Cpath d='m13.8 7.2 3 3'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 19 3.8-.8L18 9a2.1 2.1 0 0 0-3-3l-9.2 9.2L5 19Z'/%3E%3Cpath d='m13.8 7.2 3 3'/%3E%3C/svg%3E");
+}
+
+/* Delete / cancel / trash ------------------------------------------------- */
+.dashboard
+  :is(
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button.danger,
+    .order-card-actions > button.danger,
+    .payment-actions > button.danger,
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-usage-actions > button.danger
+  ) {
+  color: var(--action-icon-delete) !important;
+  border-color: var(--action-icon-delete-border) !important;
+  background: var(--action-icon-delete-bg) !important;
+}
+
+.dashboard
+  :is(
+    .activity-row-actions > button.danger,
+    .areas-tables-page .card-actions > button.danger,
+    .order-card-actions > button.danger,
+    .payment-actions > button.danger,
+    .menu-item-card .menu-card-actions > button.danger,
+    .promotion-usage-actions > button.danger
+  )::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7h14M9 7V4.5h6V7m2 0-.8 13H7.8L7 7'/%3E%3Cpath d='M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7h14M9 7V4.5h6V7m2 0-.8 13H7.8L7 7'/%3E%3Cpath d='M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E");
+}
+
+/* Menu availability toggle. The same control changes meaning with state. */
+.dashboard
+  .menu-item-card:has(.status-badge.active)
+  .menu-card-actions
+  > button:nth-child(2) {
+  color: var(--action-icon-warning) !important;
+  border-color: var(--action-icon-warning-border) !important;
+  background: var(--action-icon-warning-bg) !important;
+}
+
+.dashboard
+  .menu-item-card:has(.status-badge.active)
+  .menu-card-actions
+  > button:nth-child(2)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m6 18 12-12'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m6 18 12-12'/%3E%3C/svg%3E");
+}
+
+.dashboard
+  .menu-item-card:has(.status-badge.inactive)
+  .menu-card-actions
+  > button:nth-child(2) {
+  color: var(--action-icon-success) !important;
+  border-color: var(--action-icon-success-border) !important;
+  background: var(--action-icon-success-bg) !important;
+}
+
+.dashboard
+  .menu-item-card:has(.status-badge.inactive)
+  .menu-card-actions
+  > button:nth-child(2)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m8.3 12.2 2.4 2.4 5-5.3'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m8.3 12.2 2.4 2.4 5-5.3'/%3E%3C/svg%3E");
+}
+
+/* Promotion-specific operational actions. -------------------------------- */
+.dashboard .promotion-card > footer > button.apply {
+  color: var(--action-icon-success) !important;
+  border-color: var(--action-icon-success-border) !important;
+  background: var(--action-icon-success-bg) !important;
+}
+
+.dashboard .promotion-card > footer > button.apply::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7.5h16v9H4z'/%3E%3Cpath d='M8 7.5V5.8M16 7.5V5.8M8 12h8M12 9v6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7.5h16v9H4z'/%3E%3Cpath d='M8 7.5V5.8M16 7.5V5.8M8 12h8M12 9v6'/%3E%3C/svg%3E");
+}
+
+.dashboard .promotion-card > footer > button.danger {
+  color: var(--action-icon-warning) !important;
+  border-color: var(--action-icon-warning-border) !important;
+  background: var(--action-icon-warning-bg) !important;
+}
+
+.dashboard .promotion-card > footer > button.danger::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7v5M12 16h.01'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7v5M12 16h.01'/%3E%3C/svg%3E");
+}
+
+.dashboard .promotion-card > footer > button.activate {
+  color: var(--action-icon-success) !important;
+  border-color: var(--action-icon-success-border) !important;
+  background: var(--action-icon-success-bg) !important;
+}
+
+.dashboard .promotion-card > footer > button.activate::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m8.2 12.2 2.5 2.5 5.2-5.4'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='m8.2 12.2 2.5 2.5 5.2-5.4'/%3E%3C/svg%3E");
+}
+
+/* Preserve the compact reference look on hover/focus instead of filling the
+   whole button with a saturated semantic color. */
+.dashboard
+  :is(
+    .customer-actions,
+    .activity-row-actions,
+    .areas-tables-page .card-actions,
+    .table-qr-card > footer,
+    .order-card-actions,
+    .payment-actions,
+    .menu-card-actions,
+    .promotion-card > footer,
+    .promotion-usage-actions
+  )
+  > button:hover:not(:disabled) {
+  filter: brightness(1.16);
+  transform: translateY(-1px) !important;
+}
+
+.dashboard
+  :is(
+    .customer-actions,
+    .activity-row-actions,
+    .areas-tables-page .card-actions,
+    .table-qr-card > footer,
+    .order-card-actions,
+    .payment-actions,
+    .menu-card-actions,
+    .promotion-card > footer,
+    .promotion-usage-actions
+  )
+  > button:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgb(95 150 255 / 20%) !important;
+}
+
+@media (max-width: 720px) {
+  .dashboard {
+    --action-icon-size: 2.625rem;
+    --action-icon-glyph: 1.125rem;
+  }
+}
