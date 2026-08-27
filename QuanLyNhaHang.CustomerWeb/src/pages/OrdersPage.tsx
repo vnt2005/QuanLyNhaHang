@@ -222,7 +222,7 @@ export default function OrdersPage({
 
   useEffect(() => {
     if (session) void loadOrders(1)
-  }, [session])
+  }, [session, loadOrders])
 
   useEffect(() => {
     if (!session) return
