@@ -164,18 +164,21 @@ public sealed class CustomerOrderCancellationTests
         await context.Database.EnsureCreatedAsync();
 
         var area = new Area($"Khu hủy {Guid.NewGuid():N}", null);
+        var tableName = $"Bàn hủy {Guid.NewGuid():N}";
+        var categoryName = $"Món hủy {Guid.NewGuid():N}";
+        var menuItemName = $"Món test hủy {Guid.NewGuid():N}";
         var table = new RestaurantTable(
             area.Id,
-            $"Bàn hủy {Guid.NewGuid():N}"[..20],
+            tableName[..Math.Min(tableName.Length, 20)],
             4,
             null);
         var category = new MenuCategory(
-            $"Món hủy {Guid.NewGuid():N}"[..20],
+            categoryName[..Math.Min(categoryName.Length, 20)],
             null,
             1);
         var menuItem = new MenuItem(
             category.Id,
-            $"Món test hủy {Guid.NewGuid():N}"[..30],
+            menuItemName[..Math.Min(menuItemName.Length, 30)],
             null,
             75_000m,
             null);
