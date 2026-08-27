@@ -1,0 +1,380 @@
+/* QR management layout polish -------------------------------------------------
+   Keeps all existing QR data/actions intact while reducing vertical waste and
+   making the page easier to scan on desktop. Loaded last so older page skins
+   cannot re-expand the layout. */
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-page {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px !important;
+  width: min(100%, 100rem);
+  margin: 0 auto;
+  padding: 12px 0 28px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-page > :is(
+  .table-qr-toolbar,
+  .table-qr-alert,
+  .table-qr-url-settings,
+  .table-qr-summary-grid,
+  .table-qr-panel
+) {
+  min-width: 0;
+}
+
+/* Header: keep hierarchy but remove the large empty vertical band. */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar {
+  align-items: center !important;
+  gap: 20px;
+  min-height: 0;
+  padding: 4px 0 14px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar > div::before {
+  margin-bottom: 5px !important;
+  font-size: 11px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-kicker {
+  display: inline-block;
+  margin-bottom: 3px;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar h2 {
+  margin: 0 0 4px !important;
+  font-size: clamp(27px, 2vw, 34px) !important;
+  line-height: 1.08;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar p {
+  max-width: 760px;
+  margin: 0 !important;
+  line-height: 1.45;
+}
+
+/* URL settings: compact two-row card on wide screens, single flow on narrow. */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center;
+  gap: 9px 12px !important;
+  min-height: 0;
+  padding: 13px 14px !important;
+  border-radius: 14px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-icon {
+  grid-column: 1;
+  grid-row: 1;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 11px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-copy {
+  grid-column: 2 / -1;
+  grid-row: 1;
+  gap: 2px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-copy strong {
+  font-size: 13px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-copy span {
+  font-size: 10px !important;
+  line-height: 1.35;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings label {
+  grid-column: 1 / 3;
+  grid-row: 2;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings input {
+  height: 42px;
+  padding-block: 0 !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings > button {
+  grid-column: 3;
+  grid-row: 2;
+  height: 42px;
+  min-height: 42px !important;
+  padding: 0 14px !important;
+  white-space: nowrap;
+}
+
+/* KPI block: denser cards. */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card {
+  min-height: 86px !important;
+  gap: 10px !important;
+  padding: 12px 13px !important;
+  border-radius: 14px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 11px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card div {
+  gap: 1px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card p {
+  font-size: 11px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card strong {
+  font-size: 23px !important;
+  line-height: 1.05;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-card small {
+  font-size: 9px !important;
+}
+
+/* Make the list one cohesive panel instead of several detached blocks. */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel {
+  overflow: hidden !important;
+  border: 1px solid var(--qr-border) !important;
+  border-radius: 16px !important;
+  background: var(--qr-surface) !important;
+  background-image: none !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel-heading {
+  align-items: center !important;
+  padding: 13px 15px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--qr-border-soft) !important;
+  border-radius: 0 !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel-heading h3 {
+  margin: 0 0 3px !important;
+  font-size: 16px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel-heading p {
+  font-size: 10px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-panel-heading > span {
+  padding: 5px 9px !important;
+  font-size: 9px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
+  grid-template-columns: minmax(240px, 1.65fr) minmax(155px, .72fr) minmax(155px, .72fr) 56px 56px !important;
+  align-items: center;
+  gap: 9px !important;
+  padding: 11px 14px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--qr-border-soft) !important;
+  background: #0b1528 !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-filters :is(input, select) {
+  height: 46px !important;
+  min-height: 46px !important;
+  padding-block: 0 !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-search input {
+  padding-left: 35px !important;
+}
+
+/* Cards: more information per viewport, while retaining every field/action. */
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)) !important;
+  align-items: start;
+  gap: 11px !important;
+  padding: 12px !important;
+  background: var(--qr-bg) !important;
+  background-image: none !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card {
+  align-self: start;
+  border-radius: 13px !important;
+  box-shadow: none !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card:hover {
+  transform: none !important;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 13%) !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card > header {
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 10px 11px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-table-name {
+  gap: 8px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-table-name > span {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 9px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-table-name strong {
+  font-size: 13px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-table-name small {
+  margin-top: 2px !important;
+  font-size: 9px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-status {
+  padding: 5px 8px !important;
+  font-size: 9px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-content {
+  grid-template-columns: 96px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 11px !important;
+  padding: 11px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-image.compact {
+  width: 96px !important;
+  height: 96px !important;
+  padding: 6px !important;
+  border-radius: 11px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-info {
+  gap: 7px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-info > div {
+  gap: 2px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-info span {
+  font-size: 9px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-info :is(strong, code) {
+  font-size: 10px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-info code {
+  padding: 4px 6px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card-info p {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  -webkit-line-clamp: 1 !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-card > footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
+  min-height: 0 !important;
+  padding: 9px 11px !important;
+}
+
+.admin-layout:has(.table-qr-page) .dashboard .table-qr-pagination {
+  min-height: 48px;
+  padding: 8px 14px !important;
+}
+
+/* Desktop command-center composition: URL card + KPI block share the same row. */
+@media (min-width: 1600px) {
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-page {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-alert,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-panel {
+    grid-column: 1 / -1;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings {
+    grid-column: 1 / span 4;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-grid {
+    grid-column: 5 / -1;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
+    grid-template-columns: minmax(0, 1fr) minmax(150px, .65fr) minmax(150px, .65fr) 56px 56px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-toolbar {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-search {
+    grid-column: 1 / -1;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-copy {
+    grid-column: 2;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings label,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings > button {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-summary-grid,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-card-content {
+    grid-template-columns: 82px minmax(0, 1fr) !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-image.compact {
+    width: 82px !important;
+    height: 82px !important;
+  }
+}
