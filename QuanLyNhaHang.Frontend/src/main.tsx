@@ -65,6 +65,7 @@ import './design-system/action-buttons.css'
 import './design-system/action-icons.css'
 import './design-system/action-icons-final-fix.css'
 import './design-system/action-icons-reference-standard.css'
+import './design-system/action-icons-center-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
