@@ -122,9 +122,9 @@ export default function TakeawayPage({
         <section className="takeaway-success">
           <CheckCircle2 />
           <h1>Đã nhận đơn mang về</h1>
-          <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. Nhà hàng sẽ chuẩn bị món theo yêu cầu.</p>
-          {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể.</p>}
-          <p>Bạn có thể thanh toán online sau khi nhà hàng xác nhận và bắt đầu chuẩn bị món. Trạng thái thanh toán sẽ tự cập nhật tại đây.</p>
+          <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. Đơn đang chờ thanh toán trước khi bếp bắt đầu chuẩn bị.</p>
+          {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể sau khi ghi nhận thanh toán.</p>}
+          <p>Hãy thanh toán online ngay bên dưới. Khi SePay xác nhận đủ tiền, nhà hàng mới có thể chuyển đơn sang chế biến.</p>
           <p>Để tránh đơn trùng/spam, hệ thống sẽ không nhận thêm đơn mang về mới trong 30 phút nếu đơn này vẫn chưa hoàn tất.</p>
           <PayOnlineButton orderId={result.id} accessToken={session?.token} />
           <div>
