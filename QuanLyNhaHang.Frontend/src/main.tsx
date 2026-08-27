@@ -72,6 +72,7 @@ import './design-system/filter-buttons-standard.css'
 import './pages/table-qr-layout-polish.css'
 import './pages/table-qr-filter-row-fix.css'
 import './pages/table-qr-url-inside-panel.css'
+import './pages/table-qr-controls-same-row.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
