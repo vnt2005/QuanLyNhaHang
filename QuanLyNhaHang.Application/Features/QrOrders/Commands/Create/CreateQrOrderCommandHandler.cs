@@ -72,6 +72,26 @@ public class CreateQrOrderCommandHandler
                 "Có món không tồn tại hoặc hiện không phục vụ.");
         }
 
+        var burstWindowStart = DateTime.UtcNow.Subtract(
+            CustomerOrderLimits.DineInBurstWindow);
+        var recentTableOrderCount = await _context.Orders
+            .AsNoTracking()
+            .CountAsync(
+                x =>
+                    x.RestaurantTableId == table.Id &&
+                    x.OrderType == "DineIn" &&
+                    x.Status != "Cancelled" &&
+                    x.CreatedAt >= burstWindowStart,
+                cancellationToken);
+
+        if (recentTableOrderCount >=
+            CustomerOrderLimits.MaxDineInOrdersPerBurstWindow)
+        {
+            throw new InvalidOperationException(
+                $"Bàn này đã gửi {CustomerOrderLimits.MaxDineInOrdersPerBurstWindow} lượt gọi món " +
+                "trong thời gian rất ngắn. Vui lòng chờ ít phút trước khi gửi thêm.");
+        }
+
         var orderCode = GenerateOrderCode();
 
         if (request.CustomerUserId.HasValue)
@@ -91,27 +111,6 @@ public class CreateQrOrderCommandHandler
             {
                 throw new UnauthorizedAccessException(
                     "Tài khoản khách hàng không còn hợp lệ.");
-            }
-
-            var burstWindowStart = DateTime.UtcNow.Subtract(
-                CustomerOrderLimits.DineInBurstWindow);
-            var recentOrderCount = await _context.Orders
-                .AsNoTracking()
-                .CountAsync(
-                    x =>
-                        x.CustomerUserId == customerUserId &&
-                        x.RestaurantTableId == table.Id &&
-                        x.OrderType == "DineIn" &&
-                        x.Status != "Cancelled" &&
-                        x.CreatedAt >= burstWindowStart,
-                    cancellationToken);
-
-            if (recentOrderCount >=
-                CustomerOrderLimits.MaxDineInOrdersPerBurstWindow)
-            {
-                throw new InvalidOperationException(
-                    "Bạn đã gửi nhiều lượt gọi món trong thời gian ngắn. " +
-                    "Vui lòng chờ ít phút trước khi gửi thêm.");
             }
         }
 
