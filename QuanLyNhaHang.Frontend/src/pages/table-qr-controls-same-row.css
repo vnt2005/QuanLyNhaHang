@@ -1,5 +1,5 @@
-/* QR desktop controls: URL settings and filters share one horizontal row,
-   but are presented as two distinct control groups with clear spacing. */
+/* QR desktop controls: keep URL + filters on one horizontal row, while spacing
+   every individual control clearly. Do not render them as two detached cards. */
 
 .admin-layout:has(.table-qr-page) .dashboard .table-qr-page {
   width: 100% !important;
@@ -12,7 +12,7 @@
 @media (min-width: 1280px) {
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-page {
     grid-template-columns: minmax(0, .96fr) minmax(0, 1.04fr) !important;
-    column-gap: 18px !important;
+    column-gap: 22px !important;
     row-gap: 14px !important;
   }
 
@@ -32,7 +32,7 @@
     box-sizing: border-box !important;
   }
 
-  /* Left group: customer ordering URL. */
+  /* Left side: URL controls. Keep it visually part of the same row. */
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings {
     order: 5 !important;
     grid-column: 1 !important;
@@ -42,17 +42,19 @@
     grid-template-rows: 46px !important;
     align-items: center !important;
     justify-content: start !important;
-    gap: 12px !important;
+    column-gap: 14px !important;
+    row-gap: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    min-height: 76px !important;
-    height: 76px !important;
-    padding: 14px 16px !important;
+    min-height: 68px !important;
+    height: 68px !important;
+    margin: 0 !important;
+    padding: 10px 8px !important;
     box-sizing: border-box !important;
-    border: 1px solid var(--qr-border) !important;
-    border-radius: 14px !important;
-    background: #0b1528 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
     box-shadow: none !important;
     overflow: hidden !important;
   }
@@ -61,6 +63,7 @@
     width: max-content !important;
     max-width: 205px !important;
     min-width: 0 !important;
+    margin: 0 !important;
     overflow: hidden !important;
   }
 
@@ -76,6 +79,7 @@
     width: max-content !important;
     min-width: 0 !important;
     max-width: 320px !important;
+    margin: 0 !important;
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-url-settings input {
@@ -84,6 +88,7 @@
     min-width: 170px !important;
     max-width: 320px !important;
     height: 46px !important;
+    margin: 0 !important;
     box-sizing: border-box !important;
   }
 
@@ -92,33 +97,44 @@
     min-width: 104px !important;
     max-width: 104px !important;
     height: 46px !important;
+    margin: 0 !important;
     padding: 0 8px !important;
     box-sizing: border-box !important;
   }
 
-  /* Right group: search + filters + actions. */
+  /* Right side: search + status + activity + Filter + Clear filter.
+     Explicit column-gap prevents the selects/buttons from visually touching. */
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters {
     order: 5 !important;
     grid-column: 2 !important;
     grid-row: auto !important;
     display: grid !important;
-    grid-template-columns: minmax(150px, 1fr) minmax(118px, 130px) minmax(118px, 130px) 56px 56px !important;
+    grid-template-columns: minmax(150px, 1fr) minmax(122px, 138px) minmax(122px, 138px) 56px 56px !important;
     grid-auto-flow: column !important;
     align-items: center !important;
     justify-content: stretch !important;
-    gap: 12px !important;
+    column-gap: 16px !important;
+    row-gap: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    min-height: 76px !important;
-    height: 76px !important;
-    padding: 14px 16px !important;
+    min-height: 68px !important;
+    height: 68px !important;
+    margin: 0 !important;
+    padding: 10px 8px !important;
     box-sizing: border-box !important;
-    border: 1px solid var(--qr-border) !important;
-    border-radius: 14px !important;
-    background: #0b1528 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
     box-shadow: none !important;
     overflow: hidden !important;
+  }
+
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-search,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filters > select,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-submit,
+  .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-clear {
+    margin: 0 !important;
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-search,
@@ -135,6 +151,7 @@
     min-width: 0 !important;
     max-width: 100% !important;
     height: 46px !important;
+    margin: 0 !important;
     box-sizing: border-box !important;
   }
 
@@ -148,10 +165,12 @@
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-submit {
     grid-column: 4 !important;
+    width: 56px !important;
   }
 
   .admin-layout:has(.table-qr-page) .dashboard .table-qr-filter-clear {
     grid-column: 5 !important;
+    width: 56px !important;
   }
 }
 
