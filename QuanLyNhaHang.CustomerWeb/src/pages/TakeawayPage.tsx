@@ -1,20 +1,20 @@
 import { CheckCircle2, Minus, PackageOpen, Plus, ShoppingBag, UserRound } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
+import type { CustomerSession } from '../services/customerAuth'
 import {
   createTakeawayOrder,
   type CustomerSiteBootstrap,
   type TakeawayOrderResult,
-} from '../api/customerSite'
+} from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import PayOnlineButton from '../components/PayOnlineButton'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 import {
   clearTakeawayCart,
   readTakeawayCart,
   setTakeawayItemQuantity,
   type TakeawayCart,
-} from '../takeawayCart'
+} from '../utils/takeawayCart'
 
 function money(value: number, code = 'VND') {
   return new Intl.NumberFormat('vi-VN', {

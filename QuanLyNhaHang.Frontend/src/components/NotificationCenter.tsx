@@ -17,7 +17,7 @@ import {
   normalizeNotification,
   NOTIFICATIONS_HUB_URL,
   type AdminNotification,
-} from '../api/notifications'
+} from '../services/notifications'
 
 type NotificationCenterProps = {
   onNavigate: (target: string) => void

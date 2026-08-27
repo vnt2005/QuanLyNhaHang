@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   changeTableStatus,
@@ -17,7 +17,7 @@ import {
   type RestaurantTable,
   type RestaurantTableForm,
   type TableStatus,
-} from '../api/areasTables'
+} from '../services/areasTables'
 
 const emptyArea: AreaForm = { name: '', description: '' }
 const emptyTable: RestaurantTableForm = { areaId: '', name: '', capacity: 4, note: '' }

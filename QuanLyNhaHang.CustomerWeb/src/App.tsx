@@ -1,20 +1,17 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import {
-  clearCustomerSession,
-  CustomerSessionRefreshSupersededError,
-  hasCustomerSession,
-  restoreCustomerSession,
-  type CustomerSession,
-} from './api/customerAuth'
-import { accessTokenRefreshDelay } from './api/accessToken'
+  CustomerSessionProvider,
+  useCustomerSession,
+} from './context/CustomerSessionContext'
+import { useCustomerPath } from './hooks/useCustomerPath'
 import {
   getCustomerSiteBootstrap,
   type CustomerSiteBootstrap,
-} from './api/customerSite'
+} from './services/customerSite'
 import SiteFooter from './components/SiteFooter'
 import SiteHeader from './components/SiteHeader'
 import StatusPanel from './components/StatusPanel'
-import { getQrToken, navigate } from './navigation'
+import { getQrToken, navigate } from './utils/navigation'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
 const MenuPage = lazy(() => import('./pages/MenuPage'))
@@ -43,24 +40,17 @@ function PageLoading() {
   return <main className="page-section"><StatusPanel kind="loading" title="Đang mở trang…" message="Nội dung đang được chuẩn bị cho bạn." /></main>
 }
 
-export default function App() {
-  const [pathname, setPathname] = useState(window.location.pathname)
+function CustomerApplication({ pathname }: { pathname: string }) {
+  const {
+    handleSessionChanged,
+    refreshCustomerSession,
+    session,
+    sessionMessage,
+  } = useCustomerSession()
   const [data, setData] = useState<CustomerSiteBootstrap>(emptyData)
   const [loadingData, setLoadingData] = useState(true)
   const [dataError, setDataError] = useState('')
-  const [session, setSession] = useState<CustomerSession | null>(null)
-  const [sessionMessage, setSessionMessage] = useState('')
   const menuItemId = getMenuItemId(pathname)
-
-  useEffect(() => {
-    const update = () => setPathname(window.location.pathname)
-    window.addEventListener('popstate', update)
-    return () => window.removeEventListener('popstate', update)
-  }, [])
-
-  useLayoutEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-  }, [pathname])
 
   async function loadData() {
     setLoadingData(true)
@@ -71,38 +61,6 @@ export default function App() {
   }
 
   useEffect(() => { void loadData() }, [])
-
-  const refreshCustomerSession = useCallback(async () => {
-    try {
-      const nextSession = await restoreCustomerSession()
-      setSession(nextSession)
-      setSessionMessage('')
-      return nextSession
-    } catch (exception) {
-      if (exception instanceof CustomerSessionRefreshSupersededError) return null
-      clearCustomerSession()
-      setSession(null)
-      setSessionMessage('Phiên đăng nhập trước đã hết hạn. Vui lòng đăng nhập lại.')
-      return null
-    }
-  }, [])
-
-  useEffect(() => {
-    if (hasCustomerSession()) void refreshCustomerSession()
-  }, [refreshCustomerSession])
-
-  useEffect(() => {
-    if (!session?.token) return
-
-    const delay = accessTokenRefreshDelay(session.token)
-    if (delay == null) return
-
-    const timer = window.setTimeout(
-      () => void refreshCustomerSession(),
-      Math.min(delay, 2_147_483_647),
-    )
-    return () => window.clearTimeout(timer)
-  }, [refreshCustomerSession, session?.token])
 
   useEffect(() => {
     const restaurantName = data.restaurant?.restaurantName || 'Nhà Hàng'
@@ -130,19 +88,6 @@ export default function App() {
                         : 'Không tìm thấy trang'
     document.title = `${pageName} | ${restaurantName}`
   }, [data.menuItems, data.restaurant?.restaurantName, menuItemId, pathname])
-
-  const handleSessionChanged = useCallback((nextSession: CustomerSession | null) => {
-    setSession(nextSession)
-    if (!nextSession) return
-    setSessionMessage('')
-    const returnPath = localStorage.getItem('customerReturnPath')
-    if (returnPath) {
-      localStorage.removeItem('customerReturnPath')
-      navigate(returnPath)
-    } else if (pathname === '/login') {
-      navigate('/orders')
-    }
-  }, [pathname])
 
   const qrToken = getQrToken(pathname)
   const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/reservation' || Boolean(menuItemId)
@@ -182,5 +127,16 @@ export default function App() {
       <Suspense fallback={<PageLoading />}>{content()}</Suspense>
       <SiteFooter restaurant={data.restaurant} home={premiumCustomerChrome} />
     </div>
+  )
+}
+
+
+export default function App() {
+  const pathname = useCustomerPath()
+
+  return (
+    <CustomerSessionProvider pathname={pathname}>
+      <CustomerApplication pathname={pathname} />
+    </CustomerSessionProvider>
   )
 }

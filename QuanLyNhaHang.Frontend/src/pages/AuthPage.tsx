@@ -14,7 +14,7 @@ import {
   resetPassword,
   verifyEmail,
   type LoginResult,
-} from '../api/auth'
+} from '../services/auth'
 
 type AuthMode =
   | 'login'

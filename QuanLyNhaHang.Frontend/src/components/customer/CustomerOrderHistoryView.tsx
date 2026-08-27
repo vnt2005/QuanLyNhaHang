@@ -3,10 +3,10 @@ import {
   CustomerOrderApiError,
   getCustomerOrders,
   type CustomerOrderHistory,
-} from '../../api/customerOrders'
-import type { CustomerSession } from '../../api/customerAuth'
-import type { QrOrderResult, QrOrderTable } from '../../api/qrOrders'
-import { CustomerHeader, formatMoney } from '../qr-order/QrOrderUi'
+} from '../../services/customerOrders'
+import type { CustomerSession } from '../../services/customerAuth'
+import type { QrOrderResult, QrOrderTable } from '../../services/qrOrders'
+import { CustomerHeader, formatMoney } from '../orders/QrOrderUi'
 
 type CustomerOrderHistoryViewProps = {
   table: QrOrderTable

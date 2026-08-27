@@ -5,17 +5,17 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
-import { ApiError } from '../api/client'
+import type { CustomerSession } from '../services/customerAuth'
+import { ApiError } from '../services/client'
 import {
   connectCustomerNotificationStream,
   getCustomerNotificationFeed,
   markAllCustomerNotificationsRead,
   markCustomerNotificationRead,
   type CustomerNotification,
-} from '../api/notifications'
-import { navigate } from '../navigation'
-import './NotificationCenter.css'
+} from '../services/notifications'
+import { navigate } from '../utils/navigation'
+import '../styles/components/notification-center.css'
 
 const REALTIME_REFRESH_COOLDOWN_MS = 60_000
 

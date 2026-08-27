@@ -8,9 +8,9 @@ import {
   Utensils,
 } from 'lucide-react'
 import { useDeferredValue, useMemo, useState } from 'react'
-import type { CustomerSiteBootstrap } from '../api/customerSite'
+import type { CustomerSiteBootstrap } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 
 const pageSize = 12
 

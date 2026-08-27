@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   createRole,
@@ -17,7 +17,7 @@ import {
   type RoleForm,
   type UserAccount,
   type UserForm,
-} from '../api/access'
+} from '../services/access'
 
 const emptyRoleForm: RoleForm = {
   name: '',

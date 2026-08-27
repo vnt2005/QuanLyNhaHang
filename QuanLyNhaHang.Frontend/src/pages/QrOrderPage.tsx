@@ -6,7 +6,7 @@ import {
   type QrOrderMenuItem,
   type QrOrderResult,
   type QrOrderTable,
-} from '../api/qrOrders'
+} from '../services/qrOrders'
 import {
   clearCustomerSession,
   getStoredCustomerAccessToken,
@@ -14,10 +14,10 @@ import {
   logoutCustomer,
   restoreCustomerSession,
   type CustomerSession,
-} from '../api/customerAuth'
-import { claimCustomerOrder } from '../api/customerOrders'
-import CustomerAccountView from './customer-auth/CustomerAccountView'
-import CustomerOrderHistoryView from './customer-orders/CustomerOrderHistoryView'
+} from '../services/customerAuth'
+import { claimCustomerOrder } from '../services/customerOrders'
+import CustomerAccountView from '../components/customer/CustomerAccountView'
+import CustomerOrderHistoryView from '../components/customer/CustomerOrderHistoryView'
 import {
   BottomNavigation,
   CartBar,
@@ -28,7 +28,7 @@ import {
   SuccessDialog,
   type CartEntry,
   type CustomerView,
-} from './qr-order/QrOrderUi'
+} from '../components/orders/QrOrderUi'
 import {
   clearCurrentQrOrderId,
   clearQrCart,
@@ -36,7 +36,7 @@ import {
   readQrCart,
   writeCurrentQrOrderId,
   writeQrCart,
-} from './qr-order/qrOrderStorage'
+} from '../utils/qrOrderStorage'
 
 type QrOrderPageProps = {
   token: string

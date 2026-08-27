@@ -13,15 +13,15 @@ import {
   UtensilsCrossed,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
+import type { CustomerSession } from '../services/customerAuth'
 import {
   getCustomerOrders,
   type CustomerOrder,
   type CustomerOrderHistory,
-} from '../api/customerOrders'
+} from '../services/customerOrders'
 import AuthPortal from '../components/AuthPortal'
 import PayOnlineButton from '../components/PayOnlineButton'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 
 type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled'
 

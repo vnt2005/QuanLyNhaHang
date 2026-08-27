@@ -4,7 +4,7 @@ import {
   applyCustomerPromotion,
   getAppliedCustomerPromotion,
   type CustomerPromotion,
-} from '../api/customerPromotions'
+} from '../services/customerPromotions'
 
 function money(value: number) {
   return new Intl.NumberFormat('vi-VN', {

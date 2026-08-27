@@ -1,9 +1,9 @@
 import { Clock3, Menu, Phone, ShoppingBag, UserRound, UtensilsCrossed, X } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
-import type { PublicRestaurant } from '../api/customerSite'
-import { navigate } from '../navigation'
-import { TAKEAWAY_CART_EVENT, takeawayCartCount } from '../takeawayCart'
+import type { CustomerSession } from '../services/customerAuth'
+import type { PublicRestaurant } from '../services/customerSite'
+import { navigate } from '../utils/navigation'
+import { TAKEAWAY_CART_EVENT, takeawayCartCount } from '../utils/takeawayCart'
 import NotificationCenter from './NotificationCenter'
 
 const links = [

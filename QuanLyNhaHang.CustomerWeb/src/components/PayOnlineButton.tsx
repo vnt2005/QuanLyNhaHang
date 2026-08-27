@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import {
   createCustomerPaymentQr,
   getCustomerPaymentStatus,
-} from '../api/customerPayments'
-import { navigate } from '../navigation'
+} from '../services/customerPayments'
+import { navigate } from '../utils/navigation'
 import PromotionCodeBox from './PromotionCodeBox'
 
 const terminalOrderStatuses = new Set(['Completed', 'Cancelled'])

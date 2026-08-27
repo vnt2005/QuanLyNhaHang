@@ -1,9 +1,9 @@
 import { CalendarDays, ChevronLeft, Minus, Plus, QrCode, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
-import type { CustomerSiteBootstrap } from '../api/customerSite'
+import type { CustomerSiteBootstrap } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
-import { navigate } from '../navigation'
-import { addTakeawayItem } from '../takeawayCart'
+import { navigate } from '../utils/navigation'
+import { addTakeawayItem } from '../utils/takeawayCart'
 
 function currency(value: number, code: string) {
   return new Intl.NumberFormat('vi-VN', {

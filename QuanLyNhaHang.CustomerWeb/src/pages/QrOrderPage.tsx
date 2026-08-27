@@ -10,19 +10,19 @@ import {
   Utensils,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
-import { claimCustomerOrder, type CustomerOrder } from '../api/customerOrders'
+import type { CustomerSession } from '../services/customerAuth'
+import { claimCustomerOrder, type CustomerOrder } from '../services/customerOrders'
 import {
   createQrOrder,
   getQrOrder,
   getQrOrderContext,
   type QrMenuItem,
   type QrOrderTable,
-} from '../api/qrOrders'
+} from '../services/qrOrders'
 import PayOnlineButton from '../components/PayOnlineButton'
 import StatusPanel from '../components/StatusPanel'
 import heroImage from '../assets/hero-vietnamese-table.webp'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 
 type Cart = Record<string, number>
 

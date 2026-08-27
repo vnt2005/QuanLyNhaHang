@@ -1,6 +1,6 @@
-import type { CustomerSession } from '../api/customerAuth'
+import type { CustomerSession } from '../services/customerAuth'
 import reservationImage from '../assets/reservation-dining-room.webp'
-import { navigate } from '../navigation'
+import { navigate } from '../utils/navigation'
 import AuthPanel from './AuthPanel'
 
 export default function AuthPortal({

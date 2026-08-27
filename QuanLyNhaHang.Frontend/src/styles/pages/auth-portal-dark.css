@@ -63,7 +63,7 @@ body:has(.auth-shell) {
   background:
     linear-gradient(180deg, rgba(4, 9, 24, 0.16) 0%, rgba(4, 9, 24, 0.42) 44%, rgba(4, 9, 24, 0.96) 100%),
     linear-gradient(100deg, rgba(4, 10, 27, 0.78) 0%, rgba(4, 10, 27, 0.2) 72%),
-    url('../assets/auth-restaurant-interior.webp') center / cover no-repeat;
+    url('../../assets/auth-restaurant-interior.webp') center / cover no-repeat;
 }
 
 .auth-brand-panel::before {
@@ -115,7 +115,7 @@ body:has(.auth-shell) {
   border-radius: 50%;
   background:
     linear-gradient(rgba(8, 14, 29, 0.1), rgba(8, 14, 29, 0.1)),
-    url('../assets/auth-restaurant-interior.webp') center / cover no-repeat;
+    url('../../assets/auth-restaurant-interior.webp') center / cover no-repeat;
   box-shadow:
     0 0 0 4px rgba(5, 12, 28, 0.72),
     0 9px 28px rgba(0, 0, 0, 0.32);

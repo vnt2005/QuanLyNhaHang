@@ -3,7 +3,7 @@ import type {
   QrOrderMenuItem,
   QrOrderResult,
   QrOrderTable,
-} from '../../api/qrOrders'
+} from '../../services/qrOrders'
 
 export type CustomerView = 'menu' | 'order' | 'account'
 

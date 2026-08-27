@@ -20,7 +20,7 @@ import {
   verifyCustomerEmail,
   verifyCustomerTwoFactor,
   type CustomerSession,
-} from '../api/customerAuth'
+} from '../services/customerAuth'
 
 type Mode = 'login' | 'register' | 'verify' | 'twoFactor' | 'forgot' | 'reset'
 

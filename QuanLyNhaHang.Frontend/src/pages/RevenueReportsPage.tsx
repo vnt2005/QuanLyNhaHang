@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   cancelRevenueReport,
@@ -10,11 +10,11 @@ import {
   updateRevenueReport,
   type RevenueReport,
   type RevenueSummary,
-} from '../api/revenueReports'
+} from '../services/revenueReports'
 import {
   ADMIN_NOTIFICATION_EVENT,
   type AdminNotification,
-} from '../api/notifications'
+} from '../services/notifications'
 
 const statusLabels: Record<string, string> = {
   Generated: 'Đã tạo',

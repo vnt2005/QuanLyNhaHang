@@ -6,9 +6,9 @@ import {
   updateEmployee,
   type Employee,
   type EmployeeForm,
-} from '../api/employees'
-import { confirmAction } from '../design-system/confirmDialog'
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
+} from '../services/employees'
+import { confirmAction } from '../components/ConfirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 
 const emptyForm: EmployeeForm = {
   employeeCode: '',

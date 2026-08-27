@@ -1,5 +1,5 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   applyPromotion,
@@ -22,7 +22,7 @@ import {
   type PromotionOrder,
   type PromotionPayment,
   type PromotionUsage,
-} from '../api/promotions'
+} from '../services/promotions'
 
 const PROMOTION_PAGE_SIZE = 8
 const USAGE_PAGE_SIZE = 10

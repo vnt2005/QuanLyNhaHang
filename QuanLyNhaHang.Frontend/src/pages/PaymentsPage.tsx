@@ -1,17 +1,17 @@
-import { useAutoDismissMessage } from '../design-system/useAutoDismissMessage'
-import { confirmAction } from '../design-system/confirmDialog'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { confirmAction } from '../components/ConfirmDialog'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { getOrders, type Order } from '../api/orders'
+import { getOrders, type Order } from '../services/orders'
 import {
   applyPromotion,
   cancelPromotionUsage,
   getAppliedPromotionUsages,
   type PromotionUsage,
-} from '../api/promotions'
+} from '../services/promotions'
 import {
   getRestaurantSettings,
   type RestaurantSetting,
-} from '../api/restaurantSettings'
+} from '../services/restaurantSettings'
 import {
   cancelPayment,
   createPayment,
@@ -19,12 +19,12 @@ import {
   updatePayment,
   type CreatePaymentForm,
   type Payment,
-} from '../api/payments'
-import { calculateConfiguredCharges } from '../paymentCalculations'
+} from '../services/payments'
+import { calculateConfiguredCharges } from '../utils/paymentCalculations'
 import {
   ADMIN_NOTIFICATION_EVENT,
   type AdminNotification,
-} from '../api/notifications'
+} from '../services/notifications'
 
 const methods = [
   'BankTransfer',

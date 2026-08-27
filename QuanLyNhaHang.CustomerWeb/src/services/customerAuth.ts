@@ -1,4 +1,4 @@
-import { clearTakeawayCart } from '../takeawayCart'
+import { clearTakeawayCart } from '../utils/takeawayCart'
 import { ApiError, apiRequest } from './client'
 
 const ACCESS_TOKEN_KEY = 'customerAccessToken'

@@ -7,7 +7,7 @@ import {
 import {
   getDashboard,
   type DashboardData,
-} from '../api/dashboard'
+} from '../services/dashboard'
 
 type DashboardPageProps = {
   name: string

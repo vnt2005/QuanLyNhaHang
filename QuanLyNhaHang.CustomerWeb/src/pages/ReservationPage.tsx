@@ -9,12 +9,12 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
-import type { CustomerSession } from '../api/customerAuth'
+import type { CustomerSession } from '../services/customerAuth'
 import {
   createCustomerReservation,
   type CustomerReservationResult,
   type CustomerSiteBootstrap,
-} from '../api/customerSite'
+} from '../services/customerSite'
 import reservationImage from '../assets/reservation-dining-room.webp'
 
 const quickGuestCounts = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20]
