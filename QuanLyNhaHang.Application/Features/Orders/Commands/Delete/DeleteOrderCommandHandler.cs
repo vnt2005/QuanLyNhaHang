@@ -1,16 +1,22 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Features.Notifications.DTOs;
+using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Orders.Commands.Delete;
 
 public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, bool>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IAdminNotificationPublisher _notificationPublisher;
 
-    public DeleteOrderCommandHandler(IApplicationDbContext context)
+    public DeleteOrderCommandHandler(
+        IApplicationDbContext context,
+        IAdminNotificationPublisher notificationPublisher)
     {
         _context = context;
+        _notificationPublisher = notificationPublisher;
     }
 
     public async Task<bool> Handle(
@@ -47,7 +53,31 @@ public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, boo
             table.MarkAvailable();
         }
 
+        Notification? customerNotification = null;
+        if (order.CustomerUserId.HasValue)
+        {
+            customerNotification = new Notification(
+                order.CustomerUserId.Value,
+                "Order.Cancelled",
+                "Đơn đã bị hủy",
+                $"Đơn {order.OrderCode} đã bị nhà hàng hủy. Vui lòng liên hệ nhà hàng nếu bạn cần hỗ trợ.",
+                "warning",
+                "/orders",
+                order.Id);
+            await _context.Notifications.AddAsync(
+                customerNotification,
+                cancellationToken);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (customerNotification is not null)
+        {
+            await _notificationPublisher.PublishAsync(
+                [NotificationDto.FromEntity(customerNotification)],
+                cancellationToken);
+        }
+
         return true;
     }
 }
