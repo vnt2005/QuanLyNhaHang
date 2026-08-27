@@ -1,76 +1,89 @@
-import { CalendarDays, ChevronLeft, Minus, Plus, QrCode, ShoppingBag } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronLeft, Minus, Plus, ShoppingBag } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import type { CustomerSiteBootstrap } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import { navigate } from '../utils/navigation'
 import {
   addTakeawayItem,
   MAX_TAKEAWAY_ITEM_QUANTITY,
+  readTakeawayCart,
 } from '../utils/takeawayCart'
 
-function currency(value: number, code: string) {
+function money(value: number, currency = 'VND') {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
-    currency: code || 'VND',
+    currency: currency || 'VND',
     maximumFractionDigits: 0,
   }).format(value)
 }
 
 export default function MenuItemDetailPage({
   data,
-  itemId,
+  menuItemId,
 }: {
   data: CustomerSiteBootstrap
-  itemId: string
+  menuItemId: string
 }) {
-  const item = data.menuItems.find(menuItem => menuItem.id === itemId)
+  const item = useMemo(
+    () => data.menuItems.find(menuItem => menuItem.id === menuItemId) ?? null,
+    [data.menuItems, menuItemId],
+  )
   const [quantity, setQuantity] = useState(1)
   const [message, setMessage] = useState('')
 
   if (!item) {
     return (
       <main className="menu-item-detail-page page-section">
-        <button className="text-link back-link" type="button" onClick={() => navigate('/menu')}><ChevronLeft /> Quay lại thực đơn</button>
-        <div className="menu-detail-missing"><h1>Không tìm thấy món ăn</h1><p>Món này có thể đã ngừng phục vụ hoặc đường dẫn không còn hợp lệ.</p><button className="primary-button" type="button" onClick={() => navigate('/menu')}>Xem thực đơn</button></div>
+        <section className="menu-item-detail-missing">
+          <h1>Không tìm thấy món</h1>
+          <p>Món này có thể đã ngừng phục vụ hoặc đường dẫn không còn hợp lệ.</p>
+          <button className="secondary-button" type="button" onClick={() => navigate('/menu')}>Quay lại thực đơn</button>
+        </section>
       </main>
     )
   }
 
-  function addToTakeaway(goToCart: boolean) {
+  function addToCart() {
+    const before = readTakeawayCart()[item!.id] || 0
     const cart = addTakeawayItem(item!.id, quantity)
-    const quantityInCart = cart[item!.id] || 0
-    setMessage(`Giỏ mang về hiện có ${quantityInCart} phần ${item!.name}.`)
-    if (goToCart) navigate('/takeaway')
+    const after = cart[item!.id] || 0
+    const added = Math.max(0, after - before)
+
+    if (added <= 0) {
+      setMessage(`Mỗi món chỉ được tối đa ${MAX_TAKEAWAY_ITEM_QUANTITY} phần trong một đơn.`)
+      return
+    }
+
+    setMessage(
+      after >= MAX_TAKEAWAY_ITEM_QUANTITY
+        ? `Giỏ hiện có ${after} phần ${item!.name}, đã đạt giới hạn ${MAX_TAKEAWAY_ITEM_QUANTITY} phần/món.`
+        : `Đã thêm ${added} phần ${item!.name} vào giỏ mang về.`,
+    )
   }
 
   return (
     <main className="menu-item-detail-page page-section">
       <button className="text-link back-link" type="button" onClick={() => navigate('/menu')}><ChevronLeft /> Quay lại thực đơn</button>
-
-      <section className="menu-detail-card">
-        <div className="menu-detail-media"><img src={item.imageUrl || heroImage} alt={item.name} /></div>
-        <div className="menu-detail-content">
-          <span className="menu-detail-category">{item.menuCategoryName}</span>
+      <section className="menu-item-detail-card">
+        <div className="menu-item-detail-image">
+          <img src={item.imageUrl || heroImage} className={item.imageUrl ? '' : 'fallback-crop crop-2'} alt={item.name} />
+          <span>{item.menuCategoryName}</span>
+        </div>
+        <div className="menu-item-detail-copy">
+          <span className="page-kicker">CHI TIẾT MÓN</span>
           <h1>{item.name}</h1>
-          <p className="menu-detail-description">{item.description || 'Món ăn được chế biến tươi mới trong ngày.'}</p>
-
-          <div className="menu-detail-meta"><strong>{currency(item.price, data.restaurant?.currency || 'VND')}</strong><span className={item.isAvailable ? 'available' : 'unavailable'}>{item.isAvailable ? 'Còn món' : 'Hết món'}</span></div>
-
-          {item.isAvailable ? (
-            <div className="menu-detail-takeaway">
-              <div><strong>Đặt món mang về</strong><p>Mỗi món tối đa {MAX_TAKEAWAY_ITEM_QUANTITY} phần trong một đơn.</p></div>
-              <div className="menu-detail-order-row">
-                <div className="menu-detail-quantity"><button type="button" aria-label="Giảm số lượng" disabled={quantity <= 1} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus /></button><span>{quantity}</span><button type="button" aria-label="Tăng số lượng" disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY} onClick={() => setQuantity(value => Math.min(MAX_TAKEAWAY_ITEM_QUANTITY, value + 1))}><Plus /></button></div>
-                <button className="secondary-button" type="button" onClick={() => addToTakeaway(false)}><ShoppingBag /> Thêm vào giỏ</button>
-                <button className="primary-button" type="button" onClick={() => addToTakeaway(true)}>Đặt mang về ngay</button>
-              </div>
-              {message ? <p className="menu-detail-added" role="status"><span>{message}</span> <button type="button" className="text-link" onClick={() => navigate('/takeaway')}>Xem giỏ</button></p> : null}
+          <p>{item.description || 'Món ăn được chuẩn bị tươi mới trong ngày theo tiêu chuẩn của nhà hàng.'}</p>
+          <strong className="menu-item-detail-price">{money(item.price, data.restaurant?.currency)}</strong>
+          <div className="menu-item-detail-order">
+            <div className="menu-item-detail-quantity">
+              <button type="button" aria-label="Giảm số lượng" disabled={quantity <= 1} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus /></button>
+              <span>{quantity}</span>
+              <button type="button" aria-label="Tăng số lượng" disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY} onClick={() => setQuantity(value => Math.min(MAX_TAKEAWAY_ITEM_QUANTITY, value + 1))}><Plus /></button>
             </div>
-          ) : null}
-
-          <div className="menu-detail-qr-note"><QrCode aria-hidden="true" /><div><strong>Ăn tại quán?</strong><p>Quét mã QR đặt trên bàn để gọi món đúng bàn. Đơn mang về không cần QR.</p></div></div>
-
-          <div className="menu-detail-actions"><button className="secondary-button" type="button" onClick={() => navigate('/menu')}>Xem món khác</button><button className="secondary-button" type="button" onClick={() => navigate('/reservation')}>Đặt bàn <CalendarDays /></button></div>
+            <button className="primary-button" type="button" onClick={addToCart}><ShoppingBag /> Thêm vào giỏ mang về</button>
+          </div>
+          <small className="menu-item-detail-limit">Tối đa {MAX_TAKEAWAY_ITEM_QUANTITY} phần cho mỗi món trong một đơn.</small>
+          {message ? <div className="form-notice success">{message}</div> : null}
         </div>
       </section>
     </main>
