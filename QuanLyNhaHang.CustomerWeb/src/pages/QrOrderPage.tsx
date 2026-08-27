@@ -8,10 +8,12 @@ import {
   ShoppingBag,
   UserRound,
   Utensils,
+  XCircle,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { CustomerSession } from '../services/customerAuth'
-import { claimCustomerOrder, type CustomerOrder } from '../services/customerOrders'
+import { cancelCustomerOrder, claimCustomerOrder, type CustomerOrder } from '../services/customerOrders'
+import { CUSTOMER_ORDER_CHANGED_EVENT } from '../services/notifications'
 import {
   createQrOrder,
   getQrOrder,
@@ -100,6 +102,7 @@ export default function QrOrderPage({
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -140,6 +143,22 @@ export default function QrOrderPage({
     const timer = window.setInterval(() => void refreshOrder(), 10_000)
     return () => window.clearInterval(timer)
   }, [currentOrder?.id, currentOrder?.status, token])
+
+  useEffect(() => {
+    if (!currentOrder) return
+
+    const refreshFromNotification = (event: Event) => {
+      const detail = (event as CustomEvent<{ orderId?: string }>).detail
+      if (detail?.orderId !== currentOrder.id) return
+
+      void getQrOrder(token, currentOrder.id)
+        .then(setCurrentOrder)
+        .catch(() => undefined)
+    }
+
+    window.addEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
+    return () => window.removeEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
+  }, [currentOrder?.id, token])
 
   const categories = useMemo(() => ['Tất cả', ...Array.from(new Set(items.map(item => item.menuCategoryName)))], [items])
   const filteredItems = useMemo(() => {
@@ -224,6 +243,24 @@ export default function QrOrderPage({
     }
   }
 
+  async function cancelCurrentOrder() {
+    if (!session || !currentOrder || currentOrder.status !== 'Pending' || cancelling) return
+    if (!window.confirm(`Bạn chắc chắn muốn hủy đơn ${currentOrder.orderCode}?`)) return
+
+    setCancelling(true)
+    setError('')
+    setSuccess('')
+    try {
+      const response = await cancelCustomerOrder(currentOrder.id)
+      setCurrentOrder({ ...currentOrder, status: 'Cancelled' })
+      setSuccess(response.message || `Đã hủy đơn ${currentOrder.orderCode}.`)
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không hủy được đơn hàng.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   function signIn() {
     localStorage.setItem('customerReturnPath', window.location.pathname)
     navigate('/login')
@@ -274,6 +311,7 @@ export default function QrOrderPage({
           <div className="current-order-lines">{currentOrder.items.map(item => <div key={item.id}><span><strong>{item.menuItemName}</strong><small>{item.note || statusLabels[item.status] || item.status}</small></span><span>{item.quantity}</span><strong>{formatMoney(item.totalPrice)}</strong></div>)}</div>
           <footer><span>Tạm tính món</span><strong>{formatMoney(currentOrder.totalAmount)}</strong></footer>
           {!terminalStatuses.has(currentOrder.status) ? <PayOnlineButton orderId={currentOrder.id} qrToken={token} accessToken={session?.token} className="primary-button full" /> : null}
+          {session && currentOrder.status === 'Pending' ? <button className="customer-order-cancel-button" type="button" disabled={cancelling} onClick={() => void cancelCurrentOrder()}><XCircle aria-hidden="true" /> {cancelling ? 'Đang hủy…' : 'Hủy đơn'}</button> : null}
           {!terminalStatuses.has(currentOrder.status) ? <button className="secondary-button" type="button" onClick={() => setView('menu')}>Gọi thêm món</button> : null}
         </section>
       ) : (
