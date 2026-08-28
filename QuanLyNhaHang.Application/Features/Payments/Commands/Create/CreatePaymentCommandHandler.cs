@@ -124,7 +124,7 @@ public class CreatePaymentCommandHandler
             userId,
             "Payment.Paid",
             "Đã ghi nhận thanh toán",
-            $"Đơn {order.OrderCode} đã thanh toán {payment.FinalAmount:N0} đ bằng {payment.PaymentMethod}.",
+            $"Đơn {order.OrderCode} đã được ghi nhận thanh toán thành công.",
             "success",
             "Thanh toán",
             order.Id)));
