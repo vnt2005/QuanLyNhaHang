@@ -48,7 +48,16 @@ public class GetOrdersWithPaginatedListQueryHandler
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             var status = request.Status.Trim();
-            query = query.Where(x => x.Order.Status == status);
+            if (request.OnlyUnpaid == true && status == "Served")
+            {
+                query = query.Where(x =>
+                    x.Order.Status == "Served" ||
+                    (x.Order.OrderType == "Takeaway" && x.Order.Status == "Ready"));
+            }
+            else
+            {
+                query = query.Where(x => x.Order.Status == status);
+            }
         }
 
         if (request.IsActive.HasValue)
