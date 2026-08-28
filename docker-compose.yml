@@ -92,7 +92,7 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/gateway-health || exit 1"]
       interval: 10s
