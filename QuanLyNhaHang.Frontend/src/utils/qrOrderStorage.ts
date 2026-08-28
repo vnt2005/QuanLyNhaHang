@@ -13,13 +13,28 @@ function storageKey(prefix: string, token: string) {
 }
 
 function getStorage() {
-  return typeof window === 'undefined' ? null : window.localStorage
+  return typeof window === 'undefined' ? null : window.sessionStorage
+}
+
+function removeLegacyValue(key: string) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(key)
+  } catch {
+    // Legacy cleanup is best effort.
+  }
+}
+
+function scopedKey(prefix: string, token: string) {
+  const key = storageKey(prefix, token)
+  removeLegacyValue(key)
+  return key
 }
 
 export function readQrCart(token: string) {
   const empty = { quantities: {}, itemNotes: {} }
   try {
-    const raw = getStorage()?.getItem(storageKey(CART_PREFIX, token))
+    const raw = getStorage()?.getItem(scopedKey(CART_PREFIX, token))
     if (!raw) return empty
     const parsed = JSON.parse(raw) as Partial<StoredCart>
     if (parsed.version !== CART_VERSION) return empty
@@ -50,11 +65,12 @@ export function writeQrCart(
   try {
     const storage = getStorage()
     if (!storage) return
+    const key = scopedKey(CART_PREFIX, token)
     if (Object.keys(quantities).length === 0) {
-      storage.removeItem(storageKey(CART_PREFIX, token))
+      storage.removeItem(key)
       return
     }
-    storage.setItem(storageKey(CART_PREFIX, token), JSON.stringify({
+    storage.setItem(key, JSON.stringify({
       version: CART_VERSION,
       quantities,
       itemNotes,
@@ -66,7 +82,8 @@ export function writeQrCart(
 
 export function clearQrCart(token: string) {
   try {
-    getStorage()?.removeItem(storageKey(CART_PREFIX, token))
+    const key = scopedKey(CART_PREFIX, token)
+    getStorage()?.removeItem(key)
   } catch {
     // The server order has already succeeded, so storage cleanup is best effort.
   }
@@ -74,7 +91,7 @@ export function clearQrCart(token: string) {
 
 export function readCurrentQrOrderId(token: string) {
   try {
-    return getStorage()?.getItem(storageKey(ORDER_PREFIX, token)) || null
+    return getStorage()?.getItem(scopedKey(ORDER_PREFIX, token)) || null
   } catch {
     return null
   }
@@ -82,7 +99,7 @@ export function readCurrentQrOrderId(token: string) {
 
 export function writeCurrentQrOrderId(token: string, orderId: string) {
   try {
-    getStorage()?.setItem(storageKey(ORDER_PREFIX, token), orderId)
+    getStorage()?.setItem(scopedKey(ORDER_PREFIX, token), orderId)
   } catch {
     // The current screen still holds the order when storage is unavailable.
   }
@@ -90,7 +107,8 @@ export function writeCurrentQrOrderId(token: string, orderId: string) {
 
 export function clearCurrentQrOrderId(token: string) {
   try {
-    getStorage()?.removeItem(storageKey(ORDER_PREFIX, token))
+    const key = scopedKey(ORDER_PREFIX, token)
+    getStorage()?.removeItem(key)
   } catch {
     // Ignore storage cleanup errors.
   }
