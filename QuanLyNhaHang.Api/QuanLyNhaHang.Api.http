@@ -1,6 +1,6 @@
-@QuanLyNhaHang.Api_HostAddress = http://localhost:5240
+@QuanLyNhaHang.Api_HostAddress = http://localhost:8080
 
-GET {{QuanLyNhaHang.Api_HostAddress}}/weatherforecast/
+GET {{QuanLyNhaHang.Api_HostAddress}}/health
 Accept: application/json
 
 ###
