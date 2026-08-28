@@ -26,7 +26,6 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
             ?? throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
         if (order.Status == "Completed") throw new InvalidOperationException("Đơn hàng này đã hoàn tất thanh toán.");
         if (order.Status == "Cancelled") throw new InvalidOperationException("Đơn hàng đã hủy, không thể thanh toán.");
-
         if (await _context.Payments.AnyAsync(x => x.OrderId == request.OrderId && x.Status == "Paid", cancellationToken))
             throw new InvalidOperationException("Đơn hàng này đã được thanh toán.");
 
@@ -116,7 +115,6 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
                 (attempt.Status == PaymentAttempt.CreatingStatus || attempt.Status == PaymentAttempt.PendingStatus || attempt.Status == PaymentAttempt.PaidStatus || attempt.Status == PaymentAttempt.RequiresReviewStatus))
             .OrderByDescending(attempt => attempt.CreatedAt)
             .ToListAsync(cancellationToken);
-
         var now = DateTime.UtcNow;
         foreach (var attempt in attempts)
         {
