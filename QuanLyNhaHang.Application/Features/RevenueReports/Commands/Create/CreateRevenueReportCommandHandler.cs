@@ -51,7 +51,15 @@ public class CreateRevenueReportCommandHandler
             throw new Exception(
                 "Không có giao dịch đã thanh toán trong khoảng thời gian này.");
 
-        var totalPayments = payments.Count;
+        var paymentIds = payments.Select(payment => payment.Id).ToList();
+        var totalInvoices = await _context.Invoices
+            .AsNoTracking()
+            .CountAsync(
+                invoice =>
+                    paymentIds.Contains(invoice.PaymentId) &&
+                    invoice.Status != "Cancelled",
+                cancellationToken);
+
         var totalOrders = payments
             .Select(payment => payment.OrderId)
             .Distinct()
@@ -66,7 +74,7 @@ public class CreateRevenueReportCommandHandler
         var report = new RevenueReport(
             fromDate,
             toDate,
-            totalPayments,
+            totalInvoices,
             totalOrders,
             totalAmount,
             totalDiscountAmount,
