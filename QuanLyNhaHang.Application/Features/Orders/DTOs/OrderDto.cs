@@ -22,6 +22,8 @@ public class OrderDto
 
     public decimal TotalAmount { get; set; }
 
+    public bool IsPaid { get; set; }
+
     public string? Note { get; set; }
 
     public bool IsActive { get; set; }
