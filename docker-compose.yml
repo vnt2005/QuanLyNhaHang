@@ -44,8 +44,10 @@ services:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_HTTP_PORTS: "8080"
       Hosting__DisableHttpsRedirection: "true"
-      Cors__AllowedOrigins__0: "${FRONTEND_ORIGIN:-http://localhost:5173}"
-      Cors__AllowedOrigins__1: "${CUSTOMER_FRONTEND_ORIGIN:-http://localhost:5174}"
+      Cors__AllowedOrigins__0: "${DEV_ADMIN_ORIGIN:-http://localhost:5173}"
+      Cors__AllowedOrigins__1: "${DEV_CUSTOMER_ORIGIN:-http://localhost:5174}"
+      Cors__AllowedOrigins__2: "${DOCKER_ADMIN_ORIGIN:-http://localhost:4173}"
+      Cors__AllowedOrigins__3: "${DOCKER_CUSTOMER_ORIGIN:-http://localhost:4174}"
       Database__ApplyMigrationsOnStartup: "true"
       Database__SyncPermissionCatalogOnStartup: "true"
       ConnectionStrings__DefaultConnection: >-
@@ -92,10 +94,6 @@ services:
       api:
         condition: service_started
     healthcheck:
-      # Gateway health must only prove that Nginx itself is alive. The selected
-      # backend can legitimately switch between Visual Studio and Docker during
-      # local development, so backend readiness must not make Compose mark the
-      # gateway unhealthy.
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/gateway-health || exit 1"]
       interval: 10s
       timeout: 5s
@@ -110,9 +108,9 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: "${BROWSER_API_BASE_URL:-http://localhost:8080}"
-        VITE_CUSTOMER_APP_URL: "${CUSTOMER_FRONTEND_ORIGIN:-http://localhost:5174}"
+        VITE_CUSTOMER_APP_URL: "${DOCKER_CUSTOMER_ORIGIN:-http://localhost:4174}"
     ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      - "${DOCKER_ADMIN_PORT:-4173}:80"
     depends_on:
       api-gateway:
         condition: service_healthy
@@ -126,7 +124,7 @@ services:
       args:
         VITE_API_BASE_URL: "${BROWSER_API_BASE_URL:-http://localhost:8080}"
     ports:
-      - "${CUSTOMER_FRONTEND_PORT:-5174}:80"
+      - "${DOCKER_CUSTOMER_PORT:-4174}:80"
     depends_on:
       api-gateway:
         condition: service_healthy
