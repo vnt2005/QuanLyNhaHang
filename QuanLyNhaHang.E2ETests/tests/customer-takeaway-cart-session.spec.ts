@@ -54,18 +54,20 @@ test('CustomerWeb: giỏ localStorage cũ bị xóa và không xuất hiện ở
 })
 
 test('CustomerWeb: giỏ chỉ tồn tại trong tab hiện tại và vẫn giữ khi F5', async ({ context, page }) => {
-  await page.addInitScript(key => {
+  await mockBootstrap(page)
+  await page.goto(`${customerURL}/takeaway`)
+
+  await page.evaluate(key => {
     sessionStorage.setItem(key, JSON.stringify({ 'menu-1': 1 }))
   }, cartKey)
-  await mockBootstrap(page)
-
-  await page.goto(`${customerURL}/takeaway`)
-  await expect(page.getByText('Vi Cá Mập', { exact: true }).first()).toBeVisible()
-
   await page.reload()
+
   await expect(page.getByText('Vi Cá Mập', { exact: true }).first()).toBeVisible()
   expect(await page.evaluate(key => sessionStorage.getItem(key), cartKey))
     .toContain('menu-1')
+
+  await page.reload()
+  await expect(page.getByText('Vi Cá Mập', { exact: true }).first()).toBeVisible()
 
   const newTab = await context.newPage()
   await mockBootstrap(newTab)
