@@ -204,7 +204,27 @@ public sealed class ProcessPaymentWebhookCommandHandler
         promotionUsage?.SetPayment(payment.Id);
 
         order.UpdateTotalAmount(quote.Subtotal);
-        if (order.Status == "Served")
+
+        if (order.OrderType == "Takeaway" &&
+            order.Status is "Ready" or "Served")
+        {
+            var orderItems = await _context.OrderItems
+                .Where(item => item.OrderId == order.Id)
+                .ToListAsync(cancellationToken);
+            var activeItems = orderItems
+                .Where(item => item.Status != "Cancelled")
+                .ToList();
+
+            if (activeItems.Count > 0 &&
+                activeItems.All(item => item.Status is "Ready" or "Served"))
+            {
+                foreach (var item in activeItems.Where(item => item.Status == "Ready"))
+                    item.MarkServed();
+
+                order.MarkCompleted();
+            }
+        }
+        else if (order.Status == "Served")
         {
             order.MarkCompleted();
             if (order.RestaurantTableId.HasValue)
@@ -230,8 +250,11 @@ public sealed class ProcessPaymentWebhookCommandHandler
                 order.CustomerUserId.Value,
                 "Payment.Paid",
                 "Thanh toán thành công",
-                $"Đơn {order.OrderCode} đã thanh toán " +
-                $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua {_paymentGateway.Provider}.",
+                order.Status == "Completed"
+                    ? $"Đơn {order.OrderCode} đã thanh toán " +
+                      $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua {_paymentGateway.Provider} và đã hoàn tất."
+                    : $"Đơn {order.OrderCode} đã thanh toán " +
+                      $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua {_paymentGateway.Provider}.",
                 "success",
                 "/orders",
                 order.Id));
@@ -251,8 +274,11 @@ public sealed class ProcessPaymentWebhookCommandHandler
             userId,
             "Payment.PaidFromCustomer",
             "Đã nhận chuyển khoản QR",
-            $"Đơn {order.OrderCode} vừa thanh toán " +
-            $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua {_paymentGateway.Provider}.",
+            order.Status == "Completed"
+                ? $"Đơn {order.OrderCode} vừa thanh toán " +
+                  $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua {_paymentGateway.Provider} và đã tự động hoàn tất."
+                : $"Đơn {order.OrderCode} vừa thanh toán " +
+                  $"{quote.FinalAmount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ qua {_paymentGateway.Provider}.",
             "success",
             "Hóa đơn",
             order.Id)));
