@@ -81,7 +81,7 @@ test('CustomerWeb: đăng nhập mới không bị refresh cũ xóa phiên', asy
   })
 
   await page.addInitScript(() => {
-    localStorage.setItem('customerRefreshToken', 'stale-refresh-token')
+    sessionStorage.setItem('customerRefreshToken', 'stale-refresh-token')
   })
   await mockAuthenticatedCustomerData(page)
   await page.route(`${apiURL}/api/auth/refresh`, async route => {
@@ -111,11 +111,11 @@ test('CustomerWeb: đăng nhập mới không bị refresh cũ xóa phiên', asy
     .fill('customer-session@example.com')
   await page.getByLabel('Mật khẩu *', { exact: true })
     .fill('Customer-Test-2026!')
-  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click()
+  await page.getByRole('button', { name: 'Đăng nhập ngay', exact: true }).click()
 
   await expect(page.getByRole('heading', { name: 'Đơn của tôi' })).toBeVisible()
   await expect.poll(() => page.evaluate(
-    () => localStorage.getItem('customerRefreshToken'),
+    () => sessionStorage.getItem('customerRefreshToken'),
   )).toBe('login-refresh-token')
 
   releaseRefresh()
@@ -124,7 +124,7 @@ test('CustomerWeb: đăng nhập mới không bị refresh cũ xóa phiên', asy
 
   await expect(page.getByRole('heading', { name: 'Đơn của tôi' })).toBeVisible()
   await expect.poll(() => page.evaluate(
-    () => localStorage.getItem('customerRefreshToken'),
+    () => sessionStorage.getItem('customerRefreshToken'),
   )).toBe('login-refresh-token')
 })
 
@@ -133,7 +133,7 @@ test('CustomerWeb: hub 401 chỉ được làm mới phiên một lần', async 
   const hubUrls: string[] = []
 
   await page.addInitScript(() => {
-    localStorage.setItem('customerRefreshToken', 'initial-refresh-token')
+    sessionStorage.setItem('customerRefreshToken', 'initial-refresh-token')
   })
   await mockAuthenticatedCustomerData(page)
   await page.route(`${apiURL}/api/auth/refresh`, route => {
@@ -160,4 +160,73 @@ test('CustomerWeb: hub 401 chỉ được làm mới phiên một lần', async 
 
   expect(refreshCount).toBe(2)
   expect(hubUrls.every(url => url.startsWith(apiURL))).toBeTruthy()
+})
+
+test('CustomerWeb: refresh token cũ trong localStorage không tự đăng nhập lại', async ({ page }) => {
+  let refreshCount = 0
+
+  await page.addInitScript(() => {
+    localStorage.setItem('customerRefreshToken', 'legacy-persistent-token')
+  })
+  await page.route(`${apiURL}/api/auth/refresh`, route => {
+    refreshCount += 1
+    return route.fulfill({ status: 500 })
+  })
+
+  await page.goto(`${customerURL}/orders`)
+
+  await expect(page.getByRole('heading', { name: 'Đăng nhập tài khoản' }))
+    .toBeVisible()
+  await expect.poll(() => page.evaluate(
+    () => localStorage.getItem('customerRefreshToken'),
+  )).toBeNull()
+  expect(refreshCount).toBe(0)
+})
+
+test('CustomerWeb: mở URL ở tab mới bắt đầu ở trạng thái chưa đăng nhập', async ({ context, page }) => {
+  let refreshCount = 0
+
+  await page.route(`${apiURL}/api/auth/login`, route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(authEnvelope('tab-refresh-token', 20)),
+  }))
+  await mockAuthenticatedCustomerData(page)
+  await page.route(`${apiURL}/api/auth/refresh`, route => {
+    refreshCount += 1
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(authEnvelope('tab-refresh-token-rotated', 21)),
+    })
+  })
+  await page.route(
+    `${apiURL}/hubs/admin-notifications/negotiate?*`,
+    route => route.fulfill({ status: 503 }),
+  )
+
+  await page.goto(`${customerURL}/orders`)
+  await page.getByLabel('Email *', { exact: true })
+    .fill('customer-session@example.com')
+  await page.getByLabel('Mật khẩu *', { exact: true })
+    .fill('Customer-Test-2026!')
+  await page.getByRole('button', { name: 'Đăng nhập ngay', exact: true }).click()
+
+  await expect(page.getByRole('heading', { name: 'Đơn của tôi' })).toBeVisible()
+  await expect.poll(() => page.evaluate(
+    () => sessionStorage.getItem('customerRefreshToken'),
+  )).toBe('tab-refresh-token')
+
+  const newTab = await context.newPage()
+  await newTab.goto(`${customerURL}/orders`)
+
+  await expect(newTab.getByRole('heading', { name: 'Đăng nhập tài khoản' }))
+    .toBeVisible()
+  expect(await newTab.evaluate(
+    () => sessionStorage.getItem('customerRefreshToken'),
+  )).toBeNull()
+  expect(await newTab.evaluate(
+    () => localStorage.getItem('customerRefreshToken'),
+  )).toBeNull()
+  expect(refreshCount).toBe(0)
 })
