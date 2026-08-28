@@ -107,7 +107,8 @@ services:
       context: ./QuanLyNhaHang.Frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: "http://localhost:8080"
+        # Browser gọi /api và /hubs cùng origin 4173; Nginx frontend proxy nội bộ.
+        VITE_API_BASE_URL: ""
         VITE_CUSTOMER_APP_URL: "http://localhost:4174"
     ports:
       - "4173:80"
@@ -122,7 +123,8 @@ services:
       context: ./QuanLyNhaHang.CustomerWeb
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: "http://localhost:8080"
+        # Browser gọi /api và /hubs cùng origin 4174.
+        VITE_API_BASE_URL: ""
     ports:
       - "4174:80"
     depends_on:
