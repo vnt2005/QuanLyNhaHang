@@ -118,9 +118,14 @@ public sealed class UnpaidTakeawayOrderExpiryTests
     }
 
     [Fact]
-    public async Task ReadyPaidTakeaway_IsNeverCancelledByExpiryProcessor()
+    public async Task ReadyPaidTakeaway_IsCompleted_AndNeverCancelledByProcessor()
     {
         using var factory = new ApiWebApplicationFactory();
+
+        var customerId = await factory.SeedUserAsync(
+            $"paid-completion-customer-{Guid.NewGuid():N}@example.com",
+            "Password123!",
+            role: SystemRoles.Customer);
 
         Guid orderId;
         Guid orderItemId;
@@ -147,6 +152,8 @@ public sealed class UnpaidTakeawayOrderExpiryTests
                 "0901000021",
                 null,
                 null);
+            order.AssignCustomer(customerId);
+
             var orderItem = new OrderItem(
                 order.Id,
                 menuItem.Id,
@@ -183,6 +190,7 @@ public sealed class UnpaidTakeawayOrderExpiryTests
         {
             var processor = processorScope.ServiceProvider
                 .GetRequiredService<UnpaidTakeawayOrderExpiryProcessor>();
+            await processor.CompletePaidFinishedAsync();
             await processor.CancelExpiredAsync(gracePeriod: TimeSpan.Zero);
         }
 
@@ -195,8 +203,15 @@ public sealed class UnpaidTakeawayOrderExpiryTests
         var itemAfterSweep = await verificationContext.OrderItems
             .AsNoTracking()
             .SingleAsync(item => item.Id == orderItemId);
+        var completionNotification = await verificationContext.Notifications
+            .AsNoTracking()
+            .SingleAsync(notification =>
+                notification.UserId == customerId &&
+                notification.EntityId == orderId &&
+                notification.Type == "Order.CompletedAfterPayment");
 
-        Assert.Equal("Ready", orderAfterSweep.Status);
-        Assert.Equal("Ready", itemAfterSweep.Status);
+        Assert.Equal("Completed", orderAfterSweep.Status);
+        Assert.Equal("Served", itemAfterSweep.Status);
+        Assert.Equal("Đơn đã hoàn tất", completionNotification.Title);
     }
 }
