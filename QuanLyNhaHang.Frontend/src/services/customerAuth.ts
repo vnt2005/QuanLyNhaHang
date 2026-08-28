@@ -70,6 +70,15 @@ export type CustomerPasswordInput = {
 
 const refreshRequests = new Map<string, Promise<CustomerSession>>()
 
+function removeLegacyPersistentCustomerSession() {
+  localStorage.removeItem(CUSTOMER_REFRESH_TOKEN_KEY)
+}
+
+function storedCustomerRefreshToken() {
+  removeLegacyPersistentCustomerSession()
+  return sessionStorage.getItem(CUSTOMER_REFRESH_TOKEN_KEY) ?? ''
+}
+
 function getErrorMessage(body: unknown, status: number) {
   if (body && typeof body === 'object') {
     const value = body as ApiProblem
@@ -129,7 +138,8 @@ async function requireCustomerRole(result: CustomerAuthResult) {
 
 function storeCustomerSession(session: CustomerSession) {
   sessionStorage.setItem(CUSTOMER_ACCESS_TOKEN_KEY, session.token)
-  localStorage.setItem(CUSTOMER_REFRESH_TOKEN_KEY, session.refreshToken)
+  sessionStorage.setItem(CUSTOMER_REFRESH_TOKEN_KEY, session.refreshToken)
+  removeLegacyPersistentCustomerSession()
 }
 
 function toCustomerSession(result: CustomerAuthResult): CustomerSession {
@@ -179,12 +189,13 @@ async function authOutcome(
 }
 
 export function hasStoredCustomerSession() {
-  return Boolean(localStorage.getItem(CUSTOMER_REFRESH_TOKEN_KEY))
+  return Boolean(storedCustomerRefreshToken())
 }
 
 export function clearCustomerSession() {
   sessionStorage.removeItem(CUSTOMER_ACCESS_TOKEN_KEY)
-  localStorage.removeItem(CUSTOMER_REFRESH_TOKEN_KEY)
+  sessionStorage.removeItem(CUSTOMER_REFRESH_TOKEN_KEY)
+  removeLegacyPersistentCustomerSession()
 }
 
 export function getStoredCustomerAccessToken() {
@@ -288,7 +299,7 @@ export async function changeCustomerPassword(input: CustomerPasswordInput) {
 }
 
 export function restoreCustomerSession(): Promise<CustomerSession> {
-  const refreshToken = localStorage.getItem(CUSTOMER_REFRESH_TOKEN_KEY) ?? ''
+  const refreshToken = storedCustomerRefreshToken()
   if (!refreshToken) return Promise.reject(new Error('Không có phiên khách hàng đã lưu.'))
 
   const existing = refreshRequests.get(refreshToken)
@@ -317,7 +328,7 @@ export function restoreCustomerSession(): Promise<CustomerSession> {
 }
 
 export async function logoutCustomer() {
-  const refreshToken = localStorage.getItem(CUSTOMER_REFRESH_TOKEN_KEY) ?? ''
+  const refreshToken = storedCustomerRefreshToken()
   clearCustomerSession()
   if (!refreshToken) return 'Đã đăng xuất.'
   const envelope = await request<never>('/api/auth/logout', {
