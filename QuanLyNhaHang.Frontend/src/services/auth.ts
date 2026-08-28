@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export type LoginRequest = {
   email: string
@@ -146,7 +146,7 @@ async function request<T>(
     })
   } catch {
     throw new AuthApiError(
-      'Không kết nối được API Gateway 8080. Vui lòng kiểm tra Docker/API đang chạy.',
+      'Không kết nối được API của hệ thống. Vui lòng kiểm tra Docker/API đang chạy.',
       0,
     )
   }
