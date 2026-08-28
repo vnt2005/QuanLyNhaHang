@@ -26,6 +26,9 @@ export type CustomerOrder = {
   orderCode: string
   status: string
   totalAmount: number
+  paidAmount?: number | null
+  paymentMethod?: string | null
+  paidAt?: string | null
   note?: string | null
   createdAt: string
   items: OrderItem[]
