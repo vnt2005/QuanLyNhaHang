@@ -85,7 +85,7 @@ public sealed class CustomerPaymentAccessService
             "Pending" when order.OrderType == "DineIn" =>
                 "Đơn tại bàn đang chờ nhà hàng xác nhận. Vui lòng thanh toán sau khi nhà hàng bắt đầu xử lý món.",
             "Pending" =>
-                "Đơn hàng đang chờ thanh toán trước khi nhà hàng bắt đầu chuẩn bị món.",
+                "Đơn mang về đang chờ nhà hàng tiếp nhận. Bạn không bắt buộc thanh toán trước khi bếp bắt đầu chuẩn bị món.",
             "Cancelled" =>
                 "Đơn hàng đã hủy, không thể thanh toán.",
             "Completed" =>
