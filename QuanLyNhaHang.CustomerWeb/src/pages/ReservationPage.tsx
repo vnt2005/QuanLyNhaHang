@@ -8,7 +8,7 @@ import {
   UserRound,
   UsersRound,
 } from 'lucide-react'
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { CustomerSession } from '../services/customerAuth'
 import {
   createCustomerReservation,
@@ -17,7 +17,7 @@ import {
 } from '../services/customerSite'
 import reservationImage from '../assets/reservation-dining-room.webp'
 
-const quickGuestCounts = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20]
+const quickGuestCounts = [1, 2, 3, 4, 5, 6, 8, 10]
 const quickGuestCountSet = new Set(quickGuestCounts)
 const otherGuestCounts = Array.from({ length: 20 }, (_, index) => index + 1)
   .filter(value => !quickGuestCountSet.has(value))
@@ -83,11 +83,33 @@ function suggestedTimes(openingTime?: string | null, closingTime?: string | null
   return Array.from(new Set([...preferred, ...fallback]))
 }
 
-function SectionHeading({ icon, step, children }: { icon: ReactNode; step: number; children: ReactNode }) {
+function displayDate(value: string) {
+  const date = new Date(`${value}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('vi-VN', {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)
+}
+
+function SectionHeading({
+  step,
+  title,
+  description,
+}: {
+  step: number
+  title: string
+  description: string
+}) {
   return (
     <div className="reservation-section-heading">
-      <span className="reservation-section-icon" aria-hidden="true">{icon}</span>
-      <h2><span>{step}.</span> {children}</h2>
+      <span className="reservation-step-number" aria-hidden="true">{step}</span>
+      <div>
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
     </div>
   )
 }
@@ -132,6 +154,9 @@ export default function ReservationPage({
   )
   const openingTime = clockValue(data.restaurant?.openingTime)
   const closingTime = clockValue(data.restaurant?.closingTime)
+  const openingHours = openingTime && closingTime
+    ? `${openingTime} – ${closingTime}`
+    : 'Đang cập nhật'
 
   useEffect(() => {
     if (!eligibleTables.some(table => table.id === tableId)) {
@@ -177,95 +202,147 @@ export default function ReservationPage({
   return (
     <main className="reservation-page page-section">
       <div className="reservation-shell">
+        <header className="reservation-page-heading">
+          <div>
+            <h1>Đặt bàn</h1>
+            <p>Chọn thời gian, bàn phù hợp và gửi yêu cầu. Nhà hàng sẽ xác nhận lại với bạn trước giờ dùng bữa.</p>
+          </div>
+          <div className="reservation-heading-info" aria-label="Thông tin nhà hàng">
+            <span><Clock3 aria-hidden="true" /><small>Giờ mở cửa</small><strong>{openingHours}</strong></span>
+            <span><Phone aria-hidden="true" /><small>Hỗ trợ</small><strong>{data.restaurant?.phoneNumber || 'Đang cập nhật'}</strong></span>
+          </div>
+        </header>
+
         <div className="reservation-layout">
           <section className="reservation-content">
-            <header className="reservation-card-intro">
-              <h1>Đặt bàn cho dịp của bạn</h1>
-              <p className="page-lead">Chọn thời gian và không gian phù hợp. Nhà hàng sẽ tiếp nhận và xác nhận yêu cầu của bạn.</p>
-            </header>
-
             {error ? <div className="form-notice error reservation-form-notice" role="alert">{error}</div> : null}
 
-            <form className="reservation-form" onSubmit={submit}>
-              <section className="reservation-form-section" aria-labelledby="reservation-customer-heading">
-                <div id="reservation-customer-heading">
-                  <SectionHeading icon={<UserRound />} step={1}>Thông tin khách hàng</SectionHeading>
-                </div>
-                <div className="form-row">
-                  <label>Họ và tên *<input value={customerName} onChange={event => setCustomerName(event.target.value)} required minLength={2} autoComplete="name" /></label>
-                  <label>Số điện thoại *<input type="tel" value={phoneNumber} onChange={event => setPhoneNumber(event.target.value)} required pattern={'[0-9 +\\(\\)\\-]{9,15}'} autoComplete="tel" /></label>
-                </div>
-                <label>Email nhận xác nhận<input type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" /></label>
-              </section>
-
+            <form id="reservation-booking-form" className="reservation-form" onSubmit={submit}>
               <section className="reservation-form-section" aria-labelledby="reservation-time-heading">
                 <div id="reservation-time-heading">
-                  <SectionHeading icon={<CalendarDays />} step={2}>Thời gian &amp; số lượng khách</SectionHeading>
+                  <SectionHeading
+                    step={1}
+                    title="Chọn lịch dùng bữa"
+                    description="Chọn số khách, ngày và khung giờ bạn muốn đến nhà hàng."
+                  />
                 </div>
 
-                <div className="reservation-guest-picker">
-                  <p>Số lượng khách: <strong>{numberOfGuests} khách</strong></p>
-                  <div className="reservation-guest-options" role="group" aria-label="Chọn nhanh số lượng khách">
-                    {quickGuestCounts.map(value => (
-                      <button
-                        className={numberOfGuests === value ? 'selected' : ''}
-                        type="button"
-                        aria-pressed={numberOfGuests === value}
-                        onClick={() => setNumberOfGuests(value)}
-                        key={value}
-                      >
-                        {value}
-                      </button>
-                    ))}
-                    <select
-                      className={quickGuestCountSet.has(numberOfGuests) ? '' : 'selected'}
-                      aria-label="Chọn số lượng khách khác"
-                      value={quickGuestCountSet.has(numberOfGuests) ? '' : numberOfGuests}
-                      onChange={event => {
-                        if (event.target.value) setNumberOfGuests(Number(event.target.value))
-                      }}
-                    >
-                      <option value="">Khác</option>
-                      {otherGuestCounts.map(value => <option value={value} key={value}>{value} khách</option>)}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-row reservation-date-time-row">
-                  <label>Ngày đặt bàn *<input type="date" min={tomorrow()} value={date} onChange={event => setDate(event.target.value)} required /></label>
-                  <label>Giờ đã chọn *<input type="time" value={time} onChange={event => setTime(event.target.value)} required /></label>
-                </div>
-
-                {timeOptions.length ? (
-                  <div className="reservation-time-picker">
-                    <p>Chọn nhanh giờ dùng bữa:</p>
-                    <div role="group" aria-label="Chọn nhanh giờ dùng bữa">
-                      {timeOptions.map(value => (
+                <div className="reservation-schedule-grid">
+                  <div className="reservation-guest-picker">
+                    <span className="reservation-field-title"><UsersRound aria-hidden="true" /> Số khách</span>
+                    <div className="reservation-guest-options" role="group" aria-label="Chọn nhanh số lượng khách">
+                      {quickGuestCounts.map(value => (
                         <button
-                          className={time === value ? 'selected' : ''}
+                          className={numberOfGuests === value ? 'selected' : ''}
                           type="button"
-                          aria-pressed={time === value}
-                          onClick={() => setTime(value)}
+                          aria-pressed={numberOfGuests === value}
+                          onClick={() => setNumberOfGuests(value)}
                           key={value}
                         >
                           {value}
                         </button>
                       ))}
+                      <select
+                        className={quickGuestCountSet.has(numberOfGuests) ? '' : 'selected'}
+                        aria-label="Chọn số lượng khách khác"
+                        value={quickGuestCountSet.has(numberOfGuests) ? '' : numberOfGuests}
+                        onChange={event => {
+                          if (event.target.value) setNumberOfGuests(Number(event.target.value))
+                        }}
+                      >
+                        <option value="">Khác</option>
+                        {otherGuestCounts.map(value => <option value={value} key={value}>{value} khách</option>)}
+                      </select>
                     </div>
                   </div>
-                ) : null}
+
+                  <label className="reservation-date-field">
+                    <span className="reservation-field-title"><CalendarDays aria-hidden="true" /> Ngày đặt bàn</span>
+                    <input type="date" min={tomorrow()} value={date} onChange={event => setDate(event.target.value)} required />
+                  </label>
+                </div>
+
+                <div className="reservation-time-picker">
+                  <div className="reservation-time-picker-heading">
+                    <span className="reservation-field-title"><Clock3 aria-hidden="true" /> Giờ dùng bữa</span>
+                    <small>Đang chọn <strong>{time}</strong></small>
+                  </div>
+                  <div role="group" aria-label="Chọn nhanh giờ dùng bữa">
+                    {timeOptions.map(value => (
+                      <button
+                        className={time === value ? 'selected' : ''}
+                        type="button"
+                        aria-pressed={time === value}
+                        onClick={() => setTime(value)}
+                        key={value}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                  <label className="reservation-custom-time">
+                    <span>Giờ khác</span>
+                    <input type="time" value={time} onChange={event => setTime(event.target.value)} required />
+                  </label>
+                </div>
               </section>
 
-              <section className="reservation-form-section reservation-final-section" aria-labelledby="reservation-table-heading">
+              <section className="reservation-form-section" aria-labelledby="reservation-table-heading">
                 <div id="reservation-table-heading">
-                  <SectionHeading icon={<MapPin />} step={3}>Chọn khu vực &amp; bàn</SectionHeading>
+                  <SectionHeading
+                    step={2}
+                    title="Chọn bàn phù hợp"
+                    description={`${eligibleTables.length} bàn đang phù hợp với nhóm ${numberOfGuests} khách.`}
+                  />
                 </div>
-                <label>Khu vực / bàn *
-                  <select value={tableId} onChange={event => setTableId(event.target.value)} required disabled={!eligibleTables.length}>
-                    {eligibleTables.length ? eligibleTables.map(table => <option key={table.id} value={table.id}>{table.areaName} – {table.name} (tối đa {table.capacity} khách)</option>) : <option value="">Không có bàn phù hợp</option>}
-                  </select>
-                </label>
-                <label>Ghi chú<textarea value={note} onChange={event => setNote(event.target.value)} maxLength={300} placeholder="Ví dụ: ưu tiên bàn gần cửa sổ, có trẻ nhỏ…" /><small className="character-count">{note.length}/300</small></label>
+
+                {eligibleTables.length ? (
+                  <div className="reservation-table-options" role="group" aria-label="Chọn bàn đặt trước">
+                    {eligibleTables.map(table => {
+                      const selected = table.id === tableId
+                      return (
+                        <button
+                          className={selected ? 'reservation-table-option selected' : 'reservation-table-option'}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => setTableId(table.id)}
+                          key={table.id}
+                        >
+                          <span className="reservation-table-option-icon"><MapPin aria-hidden="true" /></span>
+                          <span className="reservation-table-option-copy">
+                            <small>{table.areaName}</small>
+                            <strong>{table.name}</strong>
+                            <span>Tối đa {table.capacity} khách</span>
+                          </span>
+                          <span className="reservation-table-check" aria-hidden="true"><CheckCircle2 /></span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="reservation-no-table">
+                    <UsersRound aria-hidden="true" />
+                    <div><strong>Chưa có bàn phù hợp</strong><p>Hãy giảm số lượng khách hoặc liên hệ nhà hàng để được hỗ trợ.</p></div>
+                  </div>
+                )}
+              </section>
+
+              <section className="reservation-form-section reservation-final-section" aria-labelledby="reservation-customer-heading">
+                <div id="reservation-customer-heading">
+                  <SectionHeading
+                    step={3}
+                    title="Thông tin liên hệ"
+                    description="Thông tin này được dùng để nhà hàng xác nhận yêu cầu đặt bàn."
+                  />
+                </div>
+
+                <div className="form-row">
+                  <label>Họ và tên *<input value={customerName} onChange={event => setCustomerName(event.target.value)} required minLength={2} autoComplete="name" /></label>
+                  <label>Số điện thoại *<input type="tel" value={phoneNumber} onChange={event => setPhoneNumber(event.target.value)} required pattern={'[0-9 +\\(\\)\\-]{9,15}'} autoComplete="tel" /></label>
+                </div>
+                <label>Email nhận xác nhận<input type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" /></label>
+                <label>Ghi chú cho nhà hàng<textarea value={note} onChange={event => setNote(event.target.value)} maxLength={300} placeholder="Ví dụ: ưu tiên bàn gần cửa sổ, có trẻ nhỏ, sinh nhật…" /><small className="character-count">{note.length}/300</small></label>
+
                 <button className="primary-button full reservation-submit" disabled={busy || !eligibleTables.length}>
                   <CalendarDays aria-hidden="true" />
                   {busy ? 'Đang gửi yêu cầu…' : 'Gửi yêu cầu đặt bàn'}
@@ -274,55 +351,55 @@ export default function ReservationPage({
                 {result ? (
                   <div className="reservation-success" role="status" aria-live="polite">
                     <CheckCircle2 />
-                    <div><strong>Yêu cầu đặt bàn đã được gửi thành công!</strong><p>Nhà hàng sẽ liên hệ xác nhận với bạn trong thời gian sớm nhất.</p><small>Mã yêu cầu: #{result.reservationCode}</small></div>
+                    <div>
+                      <strong>Yêu cầu đặt bàn đã được gửi thành công!</strong>
+                      <p>Nhà hàng sẽ liên hệ xác nhận với bạn trong thời gian sớm nhất.</p>
+                      <small>Mã yêu cầu: #{result.reservationCode}</small>
+                    </div>
                   </div>
                 ) : null}
               </section>
             </form>
           </section>
 
-          <aside className="reservation-sidebar" aria-label="Bàn đang chọn và hỗ trợ đặt bàn">
-            <section className="reservation-table-card">
-              <div className="reservation-table-media">
+          <aside className="reservation-sidebar" aria-label="Tóm tắt yêu cầu đặt bàn">
+            <section className="reservation-summary-card">
+              <div className="reservation-summary-media">
                 <img src={reservationImage} alt="Không gian bàn ăn tại nhà hàng" />
                 <span><MapPin aria-hidden="true" /> Bàn đang chọn</span>
               </div>
-              <div className="reservation-table-body">
+
+              <div className="reservation-summary-body">
                 {selectedTable ? (
-                  <>
+                  <div className="reservation-summary-table">
                     <small>{selectedTable.areaName}</small>
                     <h2>{selectedTable.name}</h2>
-                    <p>Bàn phù hợp với số khách bạn đã chọn và đang chờ nhà hàng xác nhận.</p>
-                    <dl>
-                      <div><dt>Số khách đã chọn</dt><dd>{numberOfGuests} khách</dd></div>
-                      <div><dt>Sức chứa tối đa</dt><dd>{selectedTable.capacity} khách</dd></div>
-                    </dl>
-                  </>
+                    <p>Phù hợp với nhóm của bạn và đang chờ nhà hàng xác nhận.</p>
+                  </div>
                 ) : (
                   <div className="reservation-table-empty">
                     <UsersRound aria-hidden="true" />
                     <h2>Chưa có bàn phù hợp</h2>
-                    <p>Hãy giảm số lượng khách hoặc liên hệ nhà hàng để được hỗ trợ.</p>
+                    <p>Điều chỉnh số lượng khách để xem bàn khả dụng.</p>
                   </div>
                 )}
-              </div>
-            </section>
 
-            <section className="reservation-support-card">
-              <h2><ShieldCheck aria-hidden="true" /> Thông tin đặt bàn</h2>
-              <div className="reservation-contact-row">
-                <Clock3 aria-hidden="true" />
-                <div><span>Giờ mở cửa</span><strong>{openingTime && closingTime ? `${openingTime} – ${closingTime}` : 'Đang cập nhật'}</strong></div>
+                <dl className="reservation-summary-facts">
+                  <div><dt><CalendarDays aria-hidden="true" /> Ngày</dt><dd>{displayDate(date)}</dd></div>
+                  <div><dt><Clock3 aria-hidden="true" /> Giờ</dt><dd>{time}</dd></div>
+                  <div><dt><UsersRound aria-hidden="true" /> Số khách</dt><dd>{numberOfGuests} khách</dd></div>
+                  <div><dt><MapPin aria-hidden="true" /> Bàn</dt><dd>{selectedTable ? `${selectedTable.areaName} · ${selectedTable.name}` : 'Chưa chọn'}</dd></div>
+                </dl>
+
+                <div className="reservation-summary-support">
+                  <h3><ShieldCheck aria-hidden="true" /> Nhà hàng sẽ xác nhận trước</h3>
+                  <p>Yêu cầu đặt bàn chưa được xem là xác nhận cho đến khi nhà hàng phản hồi.</p>
+                  <div>
+                    <span><Clock3 aria-hidden="true" /><small>Giờ mở cửa</small><strong>{openingHours}</strong></span>
+                    <span><Phone aria-hidden="true" /><small>Hotline</small><strong>{data.restaurant?.phoneNumber || 'Đang cập nhật'}</strong></span>
+                  </div>
+                </div>
               </div>
-              <div className="reservation-contact-row">
-                <Phone aria-hidden="true" />
-                <div><span>Hỗ trợ đặt bàn</span><strong>{data.restaurant?.phoneNumber || 'Đang cập nhật'}</strong></div>
-              </div>
-              <ul>
-                <li><CheckCircle2 aria-hidden="true" /> Nhà hàng sẽ liên hệ xác nhận yêu cầu.</li>
-                <li><CheckCircle2 aria-hidden="true" /> Hỗ trợ nhóm đông người và dịp đặc biệt.</li>
-                <li><CheckCircle2 aria-hidden="true" /> Ghi chú được chuyển đến bộ phận phục vụ.</li>
-              </ul>
             </section>
           </aside>
         </div>
