@@ -80,6 +80,35 @@ services:
     init: true
     restart: unless-stopped
 
+  admin-web:
+    image: quan-ly-nha-hang-admin-web:local
+    build:
+      context: ./QuanLyNhaHang.Frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "${BROWSER_API_BASE_URL:-http://localhost:8080}"
+        VITE_CUSTOMER_APP_URL: "${CUSTOMER_FRONTEND_ORIGIN:-http://localhost:5174}"
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  customer-web:
+    image: quan-ly-nha-hang-customer-web:local
+    build:
+      context: ./QuanLyNhaHang.CustomerWeb
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "${BROWSER_API_BASE_URL:-http://localhost:8080}"
+    ports:
+      - "${CUSTOMER_FRONTEND_PORT:-5174}:80"
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   sqlserver-data:
   mailpit-data:
