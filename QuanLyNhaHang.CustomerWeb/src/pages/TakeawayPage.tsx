@@ -146,11 +146,11 @@ export default function TakeawayPage({
         <section className="takeaway-success">
           {cancelled ? <XCircle /> : <CheckCircle2 />}
           <h1>{cancelled ? 'Đơn mang về đã hủy' : 'Đã nhận đơn mang về'}</h1>
-          <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. {cancelled ? 'Đơn đã được hủy và nhà hàng đã nhận thông báo.' : 'Đơn đang chờ thanh toán trước khi bếp bắt đầu chuẩn bị.'}</p>
+          <p>Mã đơn của bạn là <strong>{result.orderCode}</strong>. {cancelled ? 'Đơn đã được hủy và nhà hàng đã nhận thông báo.' : 'Nhà hàng có thể tiếp nhận và bắt đầu chuẩn bị món ngay, bạn không bắt buộc phải thanh toán trước.'}</p>
           {!cancelled ? (
             <>
-              {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị sớm nhất có thể sau khi ghi nhận thanh toán.</p>}
-              <p>Hãy thanh toán online ngay bên dưới. Khi SePay xác nhận đủ tiền, nhà hàng mới có thể chuyển đơn sang chế biến.</p>
+              {result.pickupTime ? <p>Thời gian nhận dự kiến: <strong>{new Date(result.pickupTime).toLocaleString('vi-VN')}</strong></p> : <p>Nhà hàng sẽ chuẩn bị món sớm nhất có thể sau khi tiếp nhận đơn.</p>}
+              <p>Bạn có thể thanh toán online ngay bên dưới hoặc thanh toán sau. Khi bếp hoàn thành toàn bộ món, nếu đơn vẫn chưa được ghi nhận thanh toán thì hệ thống bắt đầu thời hạn <strong>5 phút</strong>; quá 5 phút chưa thanh toán, đơn sẽ tự động hủy và cả bạn lẫn nhà hàng đều nhận thông báo.</p>
               <p>Để tránh đơn trùng/spam, hệ thống sẽ không nhận thêm đơn mang về mới trong 30 phút nếu đơn này vẫn chưa hoàn tất.</p>
               <PayOnlineButton orderId={result.id} accessToken={session?.token} />
             </>
