@@ -30,8 +30,13 @@ public sealed class UnpaidTakeawayOrderExpiryProcessor
     }
 
     public async Task<int> CancelExpiredAsync(
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        TimeSpan? gracePeriod = null)
     {
+        var effectiveGracePeriod = gracePeriod ?? PaymentGracePeriod;
+        if (effectiveGracePeriod < TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(gracePeriod));
+
         var candidateIds = await _context.Orders
             .AsNoTracking()
             .Where(order =>
@@ -51,8 +56,11 @@ public sealed class UnpaidTakeawayOrderExpiryProcessor
 
             try
             {
-                await using var transaction = await _context.Database
-                    .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+                await using var transaction = _context.Database.IsRelational()
+                    ? await _context.Database.BeginTransactionAsync(
+                        IsolationLevel.Serializable,
+                        cancellationToken)
+                    : null;
 
                 var order = await _context.Orders
                     .FirstOrDefaultAsync(
@@ -64,7 +72,8 @@ public sealed class UnpaidTakeawayOrderExpiryProcessor
                     order.OrderType != "Takeaway" ||
                     order.Status != "Ready")
                 {
-                    await transaction.RollbackAsync(cancellationToken);
+                    if (transaction is not null)
+                        await transaction.RollbackAsync(cancellationToken);
                     continue;
                 }
 
@@ -78,7 +87,8 @@ public sealed class UnpaidTakeawayOrderExpiryProcessor
 
                 if (alreadyPaid)
                 {
-                    await transaction.RollbackAsync(cancellationToken);
+                    if (transaction is not null)
+                        await transaction.RollbackAsync(cancellationToken);
                     continue;
                 }
 
@@ -90,7 +100,8 @@ public sealed class UnpaidTakeawayOrderExpiryProcessor
                         attempt.Status == PaymentAttempt.PaidStatus ||
                         attempt.Status == PaymentAttempt.RequiresReviewStatus))
                 {
-                    await transaction.RollbackAsync(cancellationToken);
+                    if (transaction is not null)
+                        await transaction.RollbackAsync(cancellationToken);
                     continue;
                 }
 
@@ -106,14 +117,16 @@ public sealed class UnpaidTakeawayOrderExpiryProcessor
                         item.Status != "Ready" ||
                         !item.CompletedAt.HasValue))
                 {
-                    await transaction.RollbackAsync(cancellationToken);
+                    if (transaction is not null)
+                        await transaction.RollbackAsync(cancellationToken);
                     continue;
                 }
 
                 var readyAt = activeItems.Max(item => item.CompletedAt!.Value);
-                if (DateTime.UtcNow - readyAt < PaymentGracePeriod)
+                if (DateTime.UtcNow - readyAt < effectiveGracePeriod)
                 {
-                    await transaction.RollbackAsync(cancellationToken);
+                    if (transaction is not null)
+                        await transaction.RollbackAsync(cancellationToken);
                     continue;
                 }
 
@@ -169,7 +182,8 @@ public sealed class UnpaidTakeawayOrderExpiryProcessor
                 }
 
                 await _context.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
+                if (transaction is not null)
+                    await transaction.CommitAsync(cancellationToken);
 
                 if (notifications.Count > 0)
                 {
@@ -182,7 +196,7 @@ public sealed class UnpaidTakeawayOrderExpiryProcessor
                 _logger.LogInformation(
                     "Đã tự động hủy đơn mang về {OrderCode} do chưa thanh toán sau {GraceMinutes} phút kể từ lúc bếp hoàn thành.",
                     order.OrderCode,
-                    PaymentGracePeriod.TotalMinutes);
+                    effectiveGracePeriod.TotalMinutes);
             }
             catch (DbUpdateConcurrencyException exception)
             {
