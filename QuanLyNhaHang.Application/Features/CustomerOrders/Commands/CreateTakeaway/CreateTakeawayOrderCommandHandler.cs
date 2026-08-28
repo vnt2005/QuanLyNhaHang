@@ -84,7 +84,10 @@ public sealed class CreateTakeawayOrderCommandHandler
                 x.OrderType == "Takeaway" &&
                 x.Status != "Completed" &&
                 x.Status != "Cancelled" &&
-                x.CreatedAt >= recentWindowStart);
+                x.CreatedAt >= recentWindowStart &&
+                !_context.Payments.Any(payment =>
+                    payment.OrderId == x.Id &&
+                    payment.Status == "Paid"));
 
         var hasRecentOpenTakeaway = request.CustomerUserId.HasValue
             ? await recentOpenTakeawayOrders.AnyAsync(
