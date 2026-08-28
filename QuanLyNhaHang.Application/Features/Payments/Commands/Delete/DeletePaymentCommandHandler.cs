@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
-using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Commands.Delete;
 
@@ -28,32 +27,16 @@ public class DeletePaymentCommandHandler
                 "Không tìm thấy thanh toán.");
         }
 
-        var isSettledOnlinePayment = await _context.PaymentAttempts
-            .AsNoTracking()
-            .AnyAsync(
-                attempt =>
-                    attempt.PaymentId == payment.Id &&
-                    attempt.Status == PaymentAttempt.PaidStatus,
-                cancellationToken);
+        if (payment.Status == "Cancelled")
+            return true;
 
-        if (isSettledOnlinePayment)
+        if (payment.Status == "Paid")
         {
             throw new InvalidOperationException(
-                "Thanh toán online đã được ngân hàng/SePay ghi nhận. " +
-                "Không thể hủy trực tiếp trong hệ thống vì thao tác này không hoàn tiền cho khách. " +
-                "Hãy thực hiện đối soát hoặc quy trình hoàn tiền riêng.");
+                "Thanh toán đã được ghi nhận Paid và đã chốt vào hóa đơn/báo cáo. Không thể hủy trực tiếp vì thao tác này không hoàn tiền cho khách. Hãy thực hiện đối soát hoặc quy trình hoàn tiền riêng.");
         }
 
-        var order = await _context.Orders
-            .FirstOrDefaultAsync(
-                x => x.Id == payment.OrderId,
-                cancellationToken);
-
-        if (order == null)
-        {
-            throw new InvalidOperationException(
-                "Không tìm thấy order của thanh toán.");
-        }
+        payment.Cancel();
 
         var activeInvoices = await _context.Invoices
             .Where(x =>
@@ -61,17 +44,8 @@ public class DeletePaymentCommandHandler
                 x.Status != "Cancelled")
             .ToListAsync(cancellationToken);
 
-        payment.Cancel();
-
         foreach (var invoice in activeInvoices)
-        {
             invoice.Cancel();
-        }
-
-        if (order.Status == "Completed")
-        {
-            order.MarkServed();
-        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
