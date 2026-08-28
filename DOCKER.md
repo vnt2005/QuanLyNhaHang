@@ -10,56 +10,76 @@ Tại thư mục gốc của repository, tạo file cấu hình local:
 Copy-Item .env.example .env
 ```
 
-Mở `.env` và thay mật khẩu SQL Server, JWT secret cùng thông tin SMTP. File
-`.env` chứa bí mật và đã được Git bỏ qua; không commit hoặc gửi file này cho
-người khác.
+Mở `.env` và thay mật khẩu SQL Server, JWT secret cùng thông tin SMTP/SePay cần dùng. File `.env` chứa bí mật và đã được Git bỏ qua; không commit hoặc gửi file này cho người khác.
 
-## Khởi động
+## Khởi động toàn bộ hệ thống
 
 ```powershell
-docker compose up --build -d
+docker compose up -d --build
 ```
 
-Compose sẽ:
+Compose sẽ khởi động toàn bộ local stack:
 
-1. Khởi động SQL Server 2022 Developer và lưu dữ liệu trong Docker volume.
-2. Build API bằng .NET 10 rồi chạy container bằng user không phải `root`.
-3. Chờ SQL Server sẵn sàng và tự áp dụng Entity Framework migrations.
+1. SQL Server 2022 Developer và giữ dữ liệu trong Docker volume.
+2. Mailpit để nhận email local.
+3. API .NET và tự áp dụng Entity Framework migrations local.
+4. Web App Admin, build bằng Vite và serve qua Nginx.
+5. CustomerWeb, build bằng Vite và serve qua Nginx.
 
-Kiểm tra trạng thái và log:
+Sau khi các container chạy:
+
+- Web App Admin: `http://localhost:5173`
+- Website khách hàng: `http://localhost:5174`
+- API health: `http://localhost:8080/health`
+- OpenAPI JSON: `http://localhost:8080/openapi/v1.json`
+- Mailpit: `http://localhost:8025`
+- SQL Server: `localhost,1433`
+
+Không cần chạy `npm run dev` riêng cho hai frontend khi dùng Docker Compose theo cách này.
+
+## Kiểm tra trạng thái và log
 
 ```powershell
 docker compose ps
 docker compose logs -f api
+docker compose logs -f admin-web
+docker compose logs -f customer-web
 ```
 
-Mặc định:
+Nếu vừa cập nhật code từ GitHub, chỉ cần chạy lại:
 
-- Health check API: `http://localhost:8080/health`
-- OpenAPI JSON: `http://localhost:8080/openapi/v1.json`
-- SQL Server: `localhost,1433`
+```powershell
+git pull --ff-only origin main
+docker compose up -d --build
+```
 
-Có thể đổi cổng bằng `API_PORT` và `SQLSERVER_PORT` trong `.env`.
+Docker sẽ build lại các image bị thay đổi rồi chạy phiên bản mới.
 
-## Dừng hoặc đặt lại dữ liệu
+## Đổi cổng local
 
-Dừng container nhưng giữ database:
+Các giá trị mặc định nằm trong `.env.example`:
+
+```text
+API_PORT=8080
+FRONTEND_PORT=5173
+CUSTOMER_FRONTEND_PORT=5174
+BROWSER_API_BASE_URL=http://localhost:8080
+FRONTEND_ORIGIN=http://localhost:5173
+CUSTOMER_FRONTEND_ORIGIN=http://localhost:5174
+```
+
+Nếu đổi cổng API hoặc frontend, hãy đổi đồng bộ `BROWSER_API_BASE_URL` và các `*_ORIGIN` để browser và CORS dùng cùng địa chỉ.
+
+## Dừng hệ thống nhưng giữ dữ liệu
 
 ```powershell
 docker compose down
 ```
 
-Xóa container và toàn bộ database local trong Docker volume:
-
-```powershell
-docker compose down -v
-```
-
-Lệnh có `-v` xóa dữ liệu và không thể hoàn tác.
+Lệnh trên dừng/xóa container nhưng **không xóa Docker volume SQL Server**, nên database local vẫn được giữ.
 
 ## Lưu ý triển khai
 
-`Database__ApplyMigrationsOnStartup=true` chỉ được bật trong Compose local.
-Khi triển khai production, hãy quản lý migration bằng một bước phát hành riêng
-và lưu connection string, JWT secret, SMTP credentials trong secret manager của
-nền tảng triển khai.
+Hai frontend trong Compose local được build thành static assets và serve bằng Nginx. Các biến `VITE_*` được truyền vào lúc Docker build, vì vậy khi đổi `BROWSER_API_BASE_URL` hoặc URL CustomerWeb cần chạy lại `docker compose up -d --build`.
+
+`Database__ApplyMigrationsOnStartup=true` chỉ được bật trong Compose local. Khi triển khai production, hãy quản lý migration bằng một bước phát hành riêng và lưu connection string, JWT secret, SMTP credentials trong secret manager của nền tảng triển khai.
