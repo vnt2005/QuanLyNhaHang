@@ -224,7 +224,7 @@ export default function TakeawayPage({
             <div className="takeaway-pickup-strip">
               <div>
                 <MapPin aria-hidden="true" />
-                <span><small>Nhận món</small><strong>{data.restaurant?.name || 'Tại nhà hàng'}</strong></span>
+                <span><small>Nhận món</small><strong>{data.restaurant?.restaurantName || 'Tại nhà hàng'}</strong></span>
               </div>
               <div>
                 <Clock3 aria-hidden="true" />
