@@ -46,6 +46,17 @@ public class UpdateOrderItemQuantityCommandHandler
             throw new Exception("Không thể sửa món trong order đã hủy.");
         }
 
+        var hasPaidPayment = await _context.Payments
+            .AsNoTracking()
+            .AnyAsync(
+                payment => payment.OrderId == order.Id && payment.Status == "Paid",
+                cancellationToken);
+        if (hasPaidPayment)
+        {
+            throw new InvalidOperationException(
+                "Đơn hàng đã thanh toán. Không thể đổi số lượng món vì sẽ làm lệch số tiền đã thu, hóa đơn và báo cáo doanh thu.");
+        }
+
         var orderItems = await _context.OrderItems
             .Where(x => x.OrderId == order.Id)
             .ToListAsync(cancellationToken);
