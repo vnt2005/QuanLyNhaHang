@@ -35,11 +35,11 @@ public class CreatePaymentCommandHandler
         var existedPayment = await _context.Payments.AnyAsync(x => x.OrderId == request.OrderId && x.Status == "Paid", cancellationToken);
         if (existedPayment) throw new InvalidOperationException("Đơn hàng này đã được thanh toán.");
 
-        await EnsureManualPaymentIsSafeAsync(
-            request.OrderId,
-            cancellationToken);
+        await EnsureManualPaymentIsSafeAsync(request.OrderId, cancellationToken);
 
-        var orderItems = await _context.OrderItems.Where(x => x.OrderId == request.OrderId && x.Status != "Cancelled").ToListAsync(cancellationToken);
+        var orderItems = await _context.OrderItems
+            .Where(x => x.OrderId == request.OrderId && x.Status != "Cancelled")
+            .ToListAsync(cancellationToken);
         if (!orderItems.Any()) throw new InvalidOperationException("Đơn hàng chưa có món để thanh toán.");
         if (orderItems.Any(x => x.Status == "Pending" || x.Status == "Cooking"))
             throw new InvalidOperationException("Đơn hàng còn món chưa hoàn thành, chưa thể thanh toán.");
@@ -48,7 +48,8 @@ public class CreatePaymentCommandHandler
             if (item.Status == "Ready") item.MarkServed();
 
         var totalAmount = orderItems.Sum(x => x.TotalPrice);
-        var appliedPromotionUsage = await _context.PromotionUsages.FirstOrDefaultAsync(x => x.OrderId == request.OrderId && x.Status == "Applied", cancellationToken);
+        var appliedPromotionUsage = await _context.PromotionUsages
+            .FirstOrDefaultAsync(x => x.OrderId == request.OrderId && x.Status == "Applied", cancellationToken);
         var discountAmount = appliedPromotionUsage?.DiscountAmount ?? request.DiscountAmount;
 
         var serviceChargeAmount = request.ServiceChargeAmount;
@@ -61,7 +62,6 @@ public class CreatePaymentCommandHandler
                 .OrderByDescending(item => item.UpdatedAt ?? item.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
             var afterDiscount = Math.Max(0, totalAmount - discountAmount);
-
             serviceChargeAmount = 0;
             vatAmount = decimal.Round(
                 afterDiscount * (settings?.DefaultVatPercent ?? 0) / 100m,
@@ -87,7 +87,8 @@ public class CreatePaymentCommandHandler
 
         if (order.RestaurantTableId.HasValue)
         {
-            var table = await _context.RestaurantTables.FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId.Value, cancellationToken);
+            var table = await _context.RestaurantTables
+                .FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId.Value, cancellationToken);
             table?.MarkAvailable();
         }
 
@@ -176,11 +177,9 @@ public class CreatePaymentCommandHandler
             .OrderByDescending(attempt => attempt.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        if (attempts.Count == 0)
-            return;
+        if (attempts.Count == 0) return;
 
         var now = DateTime.UtcNow;
-
         foreach (var attempt in attempts)
         {
             if (attempt.Status == PaymentAttempt.CreatingStatus ||
@@ -201,15 +200,13 @@ public class CreatePaymentCommandHandler
             if (attempt.Status == PaymentAttempt.RequiresReviewStatus)
             {
                 throw new InvalidOperationException(
-                    "Đơn hàng có giao dịch online đang chờ đối soát. " +
-                    "Không được thu thêm tiền cho đến khi giao dịch này được xử lý.");
+                    "Đơn hàng có giao dịch online đang chờ đối soát. Không được thu thêm tiền cho đến khi giao dịch này được xử lý.");
             }
 
             if (attempt.Status == PaymentAttempt.PaidStatus)
             {
                 throw new InvalidOperationException(
-                    "Nhà cung cấp đã ghi nhận đơn hàng này thanh toán online. " +
-                    "Không được tạo thêm thanh toán thủ công.");
+                    "Nhà cung cấp đã ghi nhận đơn hàng này thanh toán online. Không được tạo thêm thanh toán thủ công.");
             }
         }
     }
