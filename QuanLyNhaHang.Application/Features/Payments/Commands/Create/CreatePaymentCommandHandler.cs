@@ -67,7 +67,7 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
         var notifications = new List<Notification>();
         if (order.CustomerUserId.HasValue)
             notifications.Add(new Notification(order.CustomerUserId.Value, "Payment.Paid", "Thanh toán thành công", $"Đơn {order.OrderCode} đã được ghi nhận thanh toán thành công.", "success", "/orders", order.Id));
-        var adminUserIds = await _context.Users.AsNoTracking().Where(user => user.IsActive && user.IsEmailVerified && AdminNotificationAudience.OrderAndReservationRoles.Contains(user.Role)).Select(user => user.Id).ToListAsync(cancellationToken);
+        var adminUserIds = await _context.Users.AsNoTracking().Where(user => user.IsActive && user.IsEmailVerified && AdminNotificationAudience.OrderRoles.Contains(user.Role)).Select(user => user.Id).ToListAsync(cancellationToken);
         notifications.AddRange(adminUserIds.Select(userId => new Notification(userId, "Payment.Paid", "Đã ghi nhận thanh toán", $"Đơn {order.OrderCode} đã được ghi nhận thanh toán thành công.", "success", "Thanh toán", order.Id)));
         if (notifications.Count > 0) await _context.Notifications.AddRangeAsync(notifications, cancellationToken);
 
