@@ -93,6 +93,11 @@ function orderItemsPreview(order: CustomerOrder) {
   return order.items.length > 1 ? `${firstLabel} · +${order.items.length - 1} món` : firstLabel
 }
 
+function readLastQrToken() {
+  localStorage.removeItem('customerLastQrToken')
+  return sessionStorage.getItem('customerLastQrToken')
+}
+
 function OrderRow({
   order,
   expanded,
@@ -108,7 +113,7 @@ function OrderRow({
   onToggle: () => void
   onCancel: () => void
 }) {
-  const lastQrToken = localStorage.getItem('customerLastQrToken')
+  const lastQrToken = readLastQrToken()
   const isTakeaway = order.orderType === 'Takeaway'
   const canOrderMore = !isTakeaway && !terminalStatuses.has(order.status) && Boolean(lastQrToken)
   const canCancel = order.status === 'Pending'
