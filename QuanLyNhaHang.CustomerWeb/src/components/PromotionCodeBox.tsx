@@ -83,7 +83,7 @@ export default function PromotionCodeBox({
         <Tag />
         <div>
           <strong>Mã khuyến mãi</strong>
-          <small>Mỗi đơn áp dụng tối đa một mã trước khi tạo QR thanh toán.</small>
+          <small>Nếu đã mở QR thanh toán trước đó, hệ thống sẽ tự hủy QR cũ khi bạn áp mã và tạo QR mới theo số tiền sau giảm ở lần thanh toán tiếp theo.</small>
         </div>
       </div>
 
