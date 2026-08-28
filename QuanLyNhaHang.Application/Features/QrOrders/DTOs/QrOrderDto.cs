@@ -22,6 +22,12 @@ public class QrOrderDto
 
     public decimal TotalAmount { get; set; }
 
+    public decimal? PaidAmount { get; set; }
+
+    public string? PaymentMethod { get; set; }
+
+    public DateTime? PaidAt { get; set; }
+
     public string? Note { get; set; }
 
     public DateTime CreatedAt { get; set; }

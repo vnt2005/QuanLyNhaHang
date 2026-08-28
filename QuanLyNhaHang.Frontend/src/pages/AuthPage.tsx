@@ -399,7 +399,7 @@ export default function AuthPage({
         </div>
 
         <div className="auth-brand-footer">
-          <span>REST API 7134</span>
+          <span>API GATEWAY 8080</span>
           <strong><i /> Live Secure</strong>
         </div>
       </section>
@@ -620,76 +620,49 @@ export default function AuthPage({
                 </label>
               </div>
               <button className="auth-submit" disabled={loading}>
-                {loading ? 'Đang tạo tài khoản…' : 'Đăng ký và nhận mã'}
+                {loading ? 'Đang đăng ký…' : 'Tạo tài khoản'}
               </button>
               <small className="auth-hint">
-                Hệ thống không tạo phiên đăng nhập cho tới khi email được xác minh.
+                Sau khi tạo tài khoản, hệ thống sẽ gửi mã xác minh email.
               </small>
             </form>
-          )}
-
-          {mode === 'registration-complete' && (
-            <div className="auth-registration-complete">
-              <span>✓</span>
-              <strong>Tài khoản Customer đã được kích hoạt</strong>
-              <p>
-                {email} đã xác minh thành công. Tài khoản này dùng cho dịch vụ
-                khách hàng và không có quyền truy cập Admin Portal.
-              </p>
-              <button
-                type="button"
-                className="auth-secondary"
-                onClick={() => changeMode('login')}
-              >
-                Quay lại đăng nhập nhân viên
-              </button>
-            </div>
           )}
 
           {mode === 'verify-email' && (
             <form onSubmit={submitVerifyEmail}>
               <label>
-                Email cần xác minh
+                Email
                 <input
                   type="email"
                   autoComplete="email"
                   value={email}
                   onChange={event => setEmail(event.target.value)}
                   required
-                  autoFocus={!email}
                 />
               </label>
               <label>
                 Mã xác minh
                 <input
-                  className="auth-code-input"
+                  type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   maxLength={6}
-                  placeholder="000000"
                   value={code}
-                  onChange={event => setCode(
-                    event.target.value.replace(/\D/g, '').slice(0, 6),
-                  )}
+                  onChange={event => setCode(event.target.value.replace(/\D/g, ''))}
                   required
-                  autoFocus={Boolean(email)}
                 />
               </label>
               <button className="auth-submit" disabled={loading}>
                 {loading ? 'Đang xác minh…' : 'Xác minh email'}
               </button>
               <button
-                className="auth-secondary"
+                className="auth-secondary-action"
                 type="button"
-                onClick={() => void resendEmailVerification()}
+                onClick={resendEmailVerification}
                 disabled={loading}
               >
                 Gửi lại mã xác minh
               </button>
-              <small className="auth-hint">
-                Mã có hiệu lực trong 10 phút. Sau 5 lần nhập sai, yêu cầu xác
-                minh sẽ bị khóa 15 phút.
-              </small>
             </form>
           )}
 
@@ -700,7 +673,6 @@ export default function AuthPage({
                 <input
                   type="email"
                   autoComplete="email"
-                  placeholder="admin@nhahang.vn"
                   value={email}
                   onChange={event => setEmail(event.target.value)}
                   required
@@ -710,35 +682,31 @@ export default function AuthPage({
               <button className="auth-submit" disabled={loading}>
                 {loading ? 'Đang gửi mã…' : 'Gửi mã đặt lại mật khẩu'}
               </button>
-              <small className="auth-hint">
-                Vì lý do bảo mật, hệ thống không tiết lộ email có tồn tại hay không.
-              </small>
             </form>
           )}
 
           {mode === 'reset-password' && (
             <form onSubmit={submitResetPassword}>
-              <div className="auth-email-chip">
-                <span>@</span>
-                <div>
-                  <small>Đặt lại mật khẩu cho</small>
-                  <strong>{email}</strong>
-                </div>
-              </div>
+              <label>
+                Email
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={event => setEmail(event.target.value)}
+                  required
+                />
+              </label>
               <label>
                 Mã đặt lại mật khẩu
                 <input
-                  className="auth-code-input"
+                  type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   maxLength={6}
-                  placeholder="000000"
                   value={code}
-                  onChange={event => setCode(
-                    event.target.value.replace(/\D/g, '').slice(0, 6),
-                  )}
+                  onChange={event => setCode(event.target.value.replace(/\D/g, ''))}
                   required
-                  autoFocus
                 />
               </label>
               <label>
@@ -769,10 +737,25 @@ export default function AuthPage({
             </form>
           )}
 
-          <footer>
-            <span>◈</span>
-            Kết nối được mã hóa · Không lưu mật khẩu trên trình duyệt
-          </footer>
+          {mode === 'registration-complete' && (
+            <div className="auth-registration-complete">
+              <div className="auth-registration-complete-icon" aria-hidden="true">
+                ✓
+              </div>
+              <strong>Tài khoản khách hàng đã sẵn sàng.</strong>
+              <p>
+                Email đã xác minh thành công. Bạn có thể chuyển sang website
+                khách hàng và đăng nhập bằng tài khoản vừa tạo.
+              </p>
+              <button
+                className="auth-submit"
+                type="button"
+                onClick={() => changeMode('login')}
+              >
+                Quay lại đăng nhập
+              </button>
+            </div>
+          )}
         </div>
       </section>
     </main>

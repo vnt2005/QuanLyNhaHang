@@ -9,6 +9,10 @@ import {
   type KitchenOrder,
   type KitchenOrderItem,
 } from '../services/kitchen'
+import {
+  ADMIN_NOTIFICATION_EVENT,
+  type AdminNotification,
+} from '../services/notifications'
 
 const activeStatuses: { value: KitchenItemStatus; label: string }[] = [
   { value: 'Pending', label: 'Chờ bếp' },
@@ -86,6 +90,19 @@ export default function KitchenPage() {
     void loadData()
     const timer = window.setInterval(() => void loadData(true), 15000)
     return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    const refreshKitchen = (event: Event) => {
+      const notification = (event as CustomEvent<AdminNotification>).detail
+      if (!notification ||
+          (!notification.type.startsWith('Order.') &&
+           !notification.type.startsWith('Payment.'))) return
+      void loadData(true)
+    }
+
+    window.addEventListener(ADMIN_NOTIFICATION_EVENT, refreshKitchen)
+    return () => window.removeEventListener(ADMIN_NOTIFICATION_EVENT, refreshKitchen)
   }, [])
 
   async function changeStatus(item: KitchenOrderItem, status: KitchenItemStatus) {

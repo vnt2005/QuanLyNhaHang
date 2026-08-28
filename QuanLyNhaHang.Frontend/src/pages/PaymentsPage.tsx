@@ -57,6 +57,10 @@ function isSettledOnlinePayment(payment: Payment) {
     && Boolean(payment.note?.includes('SePay | transactionId='))
 }
 
+function isLockedPayment(payment: Payment) {
+  return payment.status === 'Paid'
+}
+
 const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 const percent = (value: number) => new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(value)
 
@@ -123,6 +127,8 @@ export default function PaymentsPage() {
 
   async function loadEligibleOrders() {
     try {
+      // Backend coi Served + OnlyUnpaid là danh sách thu tiền tại quầy và
+      // đồng thời đưa Takeaway Ready chưa Paid vào đây theo nghiệp vụ mới.
       const result = await getOrders('', '', 'Served', 1, 100, true)
       setEligibleOrders(result.items ?? [])
     } catch (exception) {
@@ -275,8 +281,8 @@ export default function PaymentsPage() {
   }
 
   function openEdit(payment: Payment) {
-    if (isSettledOnlinePayment(payment)) {
-      setError('Thanh toán SePay đã đối soát, không thể sửa số tiền hoặc phương thức.')
+    if (isLockedPayment(payment)) {
+      setError('Thanh toán đã Paid và đã chốt vào hóa đơn/báo cáo nên không thể sửa số tiền hoặc phương thức.')
       return
     }
 
@@ -384,8 +390,8 @@ export default function PaymentsPage() {
   }
 
   async function remove(payment: Payment) {
-    if (isSettledOnlinePayment(payment)) {
-      setError('Thanh toán SePay đã đối soát, không thể hủy trực tiếp. Cần xử lý hoàn tiền/đối soát riêng.')
+    if (isLockedPayment(payment)) {
+      setError('Thanh toán đã Paid nên không thể hủy trực tiếp. Cần xử lý hoàn tiền/đối soát riêng.')
       return
     }
 
@@ -433,7 +439,7 @@ export default function PaymentsPage() {
         <td><span>-{money(payment.discountAmount)}</span><small>Phí +{money(payment.serviceChargeAmount)}</small><small>VAT +{money(payment.vatAmount)}</small></td>
         <td><strong>{money(payment.finalAmount)}</strong><small>{payment.paymentMethod === 'Cash' ? `Thối ${money(payment.changeAmount)}` : methodLabels[payment.paymentMethod] ?? payment.paymentMethod}</small></td>
         <td><span className={`payment-status ${payment.status.toLowerCase()}`}>{payment.status === 'Paid' ? 'Đã thanh toán' : 'Đã hủy'}</span></td>
-        <td><div className="payment-actions"><button disabled={saving || payment.status === 'Cancelled' || isSettledOnlinePayment(payment)} title={isSettledOnlinePayment(payment) ? 'Giao dịch SePay đã đối soát, không thể sửa.' : undefined} onClick={() => openEdit(payment)}>Sửa</button><button className="danger" disabled={saving || payment.status === 'Cancelled' || isSettledOnlinePayment(payment)} title={isSettledOnlinePayment(payment) ? 'Không thể hủy trực tiếp giao dịch SePay đã đối soát.' : undefined} onClick={() => void remove(payment)}>Hủy</button></div></td>
+        <td><div className="payment-actions"><button disabled={saving || payment.status === 'Cancelled' || isLockedPayment(payment)} title={isLockedPayment(payment) ? 'Thanh toán Paid đã được khóa để bảo toàn hóa đơn và báo cáo.' : undefined} onClick={() => openEdit(payment)}>Sửa</button><button className="danger" disabled={saving || payment.status === 'Cancelled' || isLockedPayment(payment)} title={isLockedPayment(payment) ? 'Không thể hủy trực tiếp thanh toán đã Paid.' : undefined} onClick={() => void remove(payment)}>Hủy</button></div></td>
       </tr>)}</tbody></table></div>
 
     <div className="pagination"><span>Trang {page}/{totalPages} • {totalCount} thanh toán</span><div><button disabled={page <= 1 || loading} onClick={() => void loadPayments(page - 1)}>Trước</button><button disabled={page >= totalPages || loading} onClick={() => void loadPayments(page + 1)}>Sau</button></div></div>

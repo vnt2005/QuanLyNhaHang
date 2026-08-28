@@ -18,6 +18,10 @@ import {
   type Order,
   type OrderStatus,
 } from '../services/orders'
+import {
+  ADMIN_NOTIFICATION_EVENT,
+  type AdminNotification,
+} from '../services/notifications'
 
 const statuses: { value: OrderStatus; label: string }[] = [
   { value: 'Pending', label: 'Chờ xử lý' },
@@ -109,6 +113,21 @@ export default function OrdersPage() {
     setNoteDraft(detail.note ?? '')
   }
 
+  useEffect(() => {
+    const refreshFromNotification = (event: Event) => {
+      const notification = (event as CustomEvent<AdminNotification>).detail
+      if (!notification || (!notification.type.startsWith('Order.') && !notification.type.startsWith('Payment.'))) return
+
+      void Promise.all([loadOrders(page), loadLookups()])
+      if (selectedOrder && notification.entityId === selectedOrder.id) {
+        void refreshSelected(selectedOrder.id)
+      }
+    }
+
+    window.addEventListener(ADMIN_NOTIFICATION_EVENT, refreshFromNotification)
+    return () => window.removeEventListener(ADMIN_NOTIFICATION_EVENT, refreshFromNotification)
+  }, [page, selectedOrder?.id, keyword, tableFilter, statusFilter])
+
   async function openDetail(order: Order) {
     setError(''); setMessage(''); setSaving(true)
     try { await refreshSelected(order.id); setDetailOpen(true) }
@@ -169,6 +188,10 @@ export default function OrdersPage() {
   }
 
   async function setStatus(order: Order, status: OrderStatus) {
+    if (order.isPaid && status === 'Cancelled') {
+      setError('Đơn đã thanh toán nên không thể hủy trực tiếp. Cần xử lý hoàn tiền/đối soát riêng.')
+      return
+    }
     if (!await confirmAction(`Chuyển ${order.orderCode} sang trạng thái ${statuses.find(x => x.value === status)?.label}?`)) return
     setSaving(true); setError(''); setMessage('')
     try {
@@ -182,7 +205,7 @@ export default function OrdersPage() {
   }
 
   async function addItem() {
-    if (!selectedOrder || !newItem.menuItemId || newItem.quantity <= 0) return
+    if (!selectedOrder || selectedOrder.isPaid || !newItem.menuItemId || newItem.quantity <= 0) return
     setSaving(true); setError(''); setMessage('')
     try {
       const result = await addOrderItem(selectedOrder.id, newItem)
@@ -194,7 +217,7 @@ export default function OrdersPage() {
   }
 
   async function changeQuantity(orderItemId: string, quantity: number) {
-    if (!selectedOrder || quantity <= 0) return
+    if (!selectedOrder || selectedOrder.isPaid || quantity <= 0) return
     setSaving(true); setError('')
     try {
       await updateOrderItemQuantity(selectedOrder.id, orderItemId, quantity)
@@ -204,7 +227,7 @@ export default function OrdersPage() {
   }
 
   async function removeItem(orderItemId: string) {
-    if (!selectedOrder || !await confirmAction('Hủy món này khỏi đơn?')) return
+    if (!selectedOrder || selectedOrder.isPaid || !await confirmAction('Hủy món này khỏi đơn?')) return
     setSaving(true); setError('')
     try {
       await cancelOrderItem(selectedOrder.id, orderItemId)
@@ -214,6 +237,10 @@ export default function OrdersPage() {
   }
 
   async function removeOrder(order: Order) {
+    if (order.isPaid) {
+      setError('Đơn đã thanh toán nên không thể xóa/hủy trực tiếp. Cần xử lý hoàn tiền/đối soát riêng.')
+      return
+    }
     if (!await confirmAction(`Xóa đơn ${order.orderCode}?`)) return
     setSaving(true); setError(''); setMessage('')
     try {
@@ -254,8 +281,8 @@ export default function OrdersPage() {
     <div className="order-list">
       {loading ? <div className="empty-order-state">Đang tải đơn hàng...</div> : orders.length === 0 ? <div className="empty-order-state">Không có đơn hàng phù hợp.</div> : orders.map(order => <article className="order-card" key={order.id}>
         <div className="order-card-head"><div><strong>{order.orderCode}</strong><span>{orderContext(order)} • {new Date(order.createdAt).toLocaleString('vi-VN')}</span></div><span className={`order-status ${order.status.toLowerCase()}`}>{statuses.find(x => x.value === order.status)?.label ?? order.status}</span></div>
-        <div className="order-card-body"><p>{order.note || 'Không có ghi chú.'}</p><div><span>{order.items?.filter(x => x.status !== 'Cancelled').length ?? 0} món</span><strong>{money(order.totalAmount)}</strong></div></div>
-        <div className="order-card-actions"><button onClick={() => void openDetail(order)}>Chi tiết</button><select value={order.status} disabled={saving || order.status === 'Completed' || order.status === 'Cancelled'} onChange={event => void setStatus(order, event.target.value as OrderStatus)}>{statuses.map(status => <option key={status.value} value={status.value}>{status.label}</option>)}</select>{order.status !== 'Completed' && <button className="danger" onClick={() => void removeOrder(order)}>Xóa</button>}</div>
+        <div className="order-card-body"><p>{order.note || 'Không có ghi chú.'}</p><div><span>{order.items?.filter(x => x.status !== 'Cancelled').length ?? 0} món{order.isPaid ? ' • Đã thanh toán' : ''}</span><strong>{money(order.totalAmount)}</strong></div></div>
+        <div className="order-card-actions"><button onClick={() => void openDetail(order)}>Chi tiết</button><select value={order.status} disabled={saving || order.status === 'Completed' || order.status === 'Cancelled'} onChange={event => void setStatus(order, event.target.value as OrderStatus)}>{statuses.map(status => <option key={status.value} value={status.value} disabled={order.isPaid && status.value === 'Cancelled'}>{status.label}</option>)}</select>{order.status !== 'Completed' && !order.isPaid && <button className="danger" onClick={() => void removeOrder(order)}>Xóa</button>}</div>
       </article>)}
     </div>
 
@@ -268,10 +295,10 @@ export default function OrdersPage() {
       <div className="order-lines"><div className="line-heading"><strong>Món trong đơn</strong><button type="button" onClick={addCreateLine}>+ Thêm món</button></div>{createForm.items.map((line, index) => <div className="order-line" key={index}><select required value={line.menuItemId} onChange={event => updateCreateLine(index,{menuItemId:event.target.value})}><option value="">Chọn món</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input type="number" min={1} value={line.quantity} onChange={event => updateCreateLine(index,{quantity:Number(event.target.value)})}/><input value={line.note} onChange={event => updateCreateLine(index,{note:event.target.value})} placeholder="Ghi chú món"/><button type="button" className="danger" onClick={() => setCreateForm({...createForm, items:createForm.items.filter((_, i) => i !== index)})}>×</button></div>)}</div>
     </form><div className="modal-actions modal-footer"><button type="button" onClick={() => setCreateOpen(false)}>Hủy</button><button type="submit" form="create-order-form" className="primary-button" disabled={saving}>{saving ? 'Đang tạo...' : 'Tạo đơn'}</button></div></div></div>}
 
-    {detailOpen && selectedOrder && <div className="modal-backdrop" onMouseDown={() => !saving && setDetailOpen(false)}><div className="employee-modal order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="order-detail-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">CHI TIẾT ĐƠN HÀNG</span><h2 id="order-detail-title">{selectedOrder.orderCode}</h2><p>{orderContext(selectedOrder)} • Tổng tiền {money(selectedOrder.totalAmount)}</p></div><button type="button" aria-label="Đóng" onClick={() => setDetailOpen(false)}>×</button></div>
+    {detailOpen && selectedOrder && <div className="modal-backdrop" onMouseDown={() => !saving && setDetailOpen(false)}><div className="employee-modal order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="order-detail-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">CHI TIẾT ĐƠN HÀNG</span><h2 id="order-detail-title">{selectedOrder.orderCode}</h2><p>{orderContext(selectedOrder)} • Tổng tiền {money(selectedOrder.totalAmount)}{selectedOrder.isPaid ? ' • Đã thanh toán' : ''}</p></div><button type="button" aria-label="Đóng" onClick={() => setDetailOpen(false)}>×</button></div>
       <div className="order-detail-content">{error && <div className="modal-alert error" role="alert">{error}</div>}<section className="order-detail-section"><div className="order-detail-section-heading"><div><span>GHI CHÚ</span><h3>Ghi chú đơn hàng</h3></div><small>Lưu thông tin phục vụ hoặc yêu cầu của khách.</small></div><div className="detail-note"><textarea value={noteDraft} onChange={event => setNoteDraft(event.target.value)} placeholder="Nhập ghi chú đơn hàng"/><button type="button" onClick={() => void saveNote()} disabled={saving}>Lưu ghi chú</button></div></section>
-      <section className="order-detail-section"><div className="order-detail-section-heading"><div><span>MÓN TRONG ĐƠN</span><h3>{selectedOrder.items.length} món đã thêm</h3></div><small>Có thể chỉnh số lượng với món chưa phục vụ.</small></div><div className="detail-items">{selectedOrder.items.map(item => <div className={`detail-item ${item.status.toLowerCase()}`} key={item.id}><div><strong>{item.menuItemName}</strong><span>{money(item.unitPrice)} • {item.note || 'Không ghi chú'}</span></div><div className="detail-item-actions"><span className={`order-item-status ${item.status.toLowerCase()}`}>{statuses.find(status => status.value === item.status)?.label ?? item.status}</span><label>Số lượng<input type="number" min={1} defaultValue={item.quantity} disabled={item.status === 'Cancelled' || item.status === 'Served'} onBlur={event => Number(event.target.value) !== item.quantity && void changeQuantity(item.id, Number(event.target.value))}/></label>{item.status !== 'Cancelled' && item.status !== 'Served' && <button type="button" className="danger" onClick={() => void removeItem(item.id)}>Hủy món</button>}</div></div>)}</div></section>
-      <section className="order-detail-section add-item-section"><div className="order-detail-section-heading"><div><span>BỔ SUNG</span><h3>Thêm món vào đơn</h3></div></div><div className="add-order-item"><select aria-label="Chọn món thêm" value={newItem.menuItemId} onChange={event => setNewItem({...newItem,menuItemId:event.target.value})}><option value="">Chọn món thêm</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input aria-label="Số lượng" type="number" min={1} value={newItem.quantity} onChange={event => setNewItem({...newItem,quantity:Number(event.target.value)})}/><input aria-label="Ghi chú món" value={newItem.note} onChange={event => setNewItem({...newItem,note:event.target.value})} placeholder="Ghi chú món"/><button type="button" onClick={() => void addItem()} disabled={saving}>Thêm món</button></div></section></div>
+      <section className="order-detail-section"><div className="order-detail-section-heading"><div><span>MÓN TRONG ĐƠN</span><h3>{selectedOrder.items.length} món đã thêm</h3></div><small>{selectedOrder.isPaid ? 'Đơn đã thanh toán: món và số lượng đã được khóa để bảo toàn hóa đơn.' : 'Có thể chỉnh số lượng với món chưa phục vụ.'}</small></div><div className="detail-items">{selectedOrder.items.map(item => <div className={`detail-item ${item.status.toLowerCase()}`} key={item.id}><div><strong>{item.menuItemName}</strong><span>{money(item.unitPrice)} • {item.note || 'Không ghi chú'}</span></div><div className="detail-item-actions"><span className={`order-item-status ${item.status.toLowerCase()}`}>{statuses.find(status => status.value === item.status)?.label ?? item.status}</span><label>Số lượng<input type="number" min={1} defaultValue={item.quantity} disabled={selectedOrder.isPaid || item.status === 'Cancelled' || item.status === 'Served'} onBlur={event => Number(event.target.value) !== item.quantity && void changeQuantity(item.id, Number(event.target.value))}/></label>{!selectedOrder.isPaid && item.status !== 'Cancelled' && item.status !== 'Served' && <button type="button" className="danger" onClick={() => void removeItem(item.id)}>Hủy món</button>}</div></div>)}</div></section>
+      <section className="order-detail-section add-item-section"><div className="order-detail-section-heading"><div><span>BỔ SUNG</span><h3>Thêm món vào đơn</h3></div></div>{selectedOrder.isPaid ? <div className="modal-alert">Đơn đã thanh toán nên không thể thêm món. Nếu khách muốn gọi thêm, hãy tạo/gọi thêm bằng đơn mới phù hợp.</div> : <div className="add-order-item"><select aria-label="Chọn món thêm" value={newItem.menuItemId} onChange={event => setNewItem({...newItem,menuItemId:event.target.value})}><option value="">Chọn món thêm</option>{menuItems.map(item => <option key={item.id} value={item.id}>{item.name} • {money(item.price)}</option>)}</select><input aria-label="Số lượng" type="number" min={1} value={newItem.quantity} onChange={event => setNewItem({...newItem,quantity:Number(event.target.value)})}/><input aria-label="Ghi chú món" value={newItem.note} onChange={event => setNewItem({...newItem,note:event.target.value})} placeholder="Ghi chú món"/><button type="button" onClick={() => void addItem()} disabled={saving}>Thêm món</button></div>}</section></div>
       <div className="modal-actions modal-footer"><button type="button" onClick={() => setDetailOpen(false)}>Đóng</button></div>
     </div></div>}
   </section>

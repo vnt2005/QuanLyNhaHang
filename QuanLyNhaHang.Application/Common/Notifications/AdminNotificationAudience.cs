@@ -12,4 +12,14 @@ public static class AdminNotificationAudience
             SystemRoles.Cashier,
             SystemRoles.Staff
         });
+
+    public static IReadOnlyCollection<string> OrderRoles { get; } =
+        Array.AsReadOnly(new[]
+        {
+            SystemRoles.Admin,
+            SystemRoles.Manager,
+            SystemRoles.Cashier,
+            SystemRoles.Kitchen,
+            SystemRoles.Staff
+        });
 }

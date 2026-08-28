@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
-using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Commands.Update;
 
@@ -29,19 +28,10 @@ public class UpdatePaymentCommandHandler
         if (payment.Status == "Cancelled")
             throw new InvalidOperationException("Thanh toán đã hủy, không thể cập nhật.");
 
-        var isSettledOnlinePayment = await _context.PaymentAttempts
-            .AsNoTracking()
-            .AnyAsync(
-                attempt =>
-                    attempt.PaymentId == payment.Id &&
-                    attempt.Status == PaymentAttempt.PaidStatus,
-                cancellationToken);
-
-        if (isSettledOnlinePayment)
+        if (payment.Status == "Paid")
         {
             throw new InvalidOperationException(
-                "Thanh toán online đã được ngân hàng/SePay ghi nhận và khóa đối soát. " +
-                "Không thể sửa số tiền, phương thức hoặc các khoản tính tiền của giao dịch này.");
+                "Thanh toán đã được ghi nhận Paid và đã chốt vào hóa đơn/báo cáo. Không thể sửa số tiền, phương thức, VAT, phí hoặc tiền khách trả. Nếu có sai sót, hãy xử lý theo quy trình đối soát/hoàn tiền riêng.");
         }
 
         payment.UpdateInfo(

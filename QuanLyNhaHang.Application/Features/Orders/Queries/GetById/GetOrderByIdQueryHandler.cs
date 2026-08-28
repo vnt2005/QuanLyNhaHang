@@ -36,6 +36,8 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
                 OrderCode = o.OrderCode,
                 Status = o.Status,
                 TotalAmount = o.TotalAmount,
+                IsPaid = _context.Payments.Any(payment =>
+                    payment.OrderId == o.Id && payment.Status == "Paid"),
                 Note = o.Note,
                 IsActive = o.IsActive,
                 CreatedAt = o.CreatedAt,

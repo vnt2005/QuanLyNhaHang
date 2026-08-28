@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7134'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export type LoginRequest = {
   email: string
@@ -131,16 +131,26 @@ async function request<T>(
 ): Promise<ApiEnvelope<T>> {
   const accessToken =
     accessTokenOverride ?? sessionStorage.getItem(ACCESS_TOKEN_KEY)
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(authenticated && accessToken
-        ? { Authorization: `Bearer ${accessToken}` }
-        : {}),
-      ...init?.headers,
-    },
-  })
+
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authenticated && accessToken
+          ? { Authorization: `Bearer ${accessToken}` }
+          : {}),
+        ...init?.headers,
+      },
+    })
+  } catch {
+    throw new AuthApiError(
+      'Không kết nối được API của hệ thống. Vui lòng kiểm tra Docker/API đang chạy.',
+      0,
+    )
+  }
+
   const body = await response.json().catch(() => null)
   if (!response.ok) {
     throw new AuthApiError(getErrorMessage(body, response.status), response.status)

@@ -36,6 +36,17 @@ public class GetRevenueReportSummaryQueryHandler
                 payment.PaidAt < utcRange.EndUtc)
             .ToListAsync(cancellationToken);
 
+        var paymentIds = payments.Select(payment => payment.Id).ToList();
+        var totalInvoices = paymentIds.Count == 0
+            ? 0
+            : await _context.Invoices
+                .AsNoTracking()
+                .CountAsync(
+                    invoice =>
+                        paymentIds.Contains(invoice.PaymentId) &&
+                        invoice.Status != "Cancelled",
+                    cancellationToken);
+
         var orderIds = payments
             .Select(payment => payment.OrderId)
             .Distinct()
@@ -77,14 +88,13 @@ public class GetRevenueReportSummaryQueryHandler
             .OrderByDescending(item => item.TotalAmount)
             .ToList();
 
-        var totalPayments = payments.Count;
         var totalRevenue = payments.Sum(payment => payment.FinalAmount);
 
         return new RevenueReportSummaryDto
         {
             FromDate = fromDate,
             ToDate = toDate,
-            TotalInvoices = totalPayments,
+            TotalInvoices = totalInvoices,
             TotalOrders = orderIds.Count,
             TotalAmount = payments.Sum(payment => payment.TotalAmount),
             TotalDiscountAmount = payments.Sum(payment => payment.DiscountAmount),
@@ -92,9 +102,9 @@ public class GetRevenueReportSummaryQueryHandler
             TotalRevenue = totalRevenue,
             TotalCustomerPaid = payments.Sum(payment => payment.CustomerPaid),
             TotalChangeAmount = payments.Sum(payment => payment.ChangeAmount),
-            AverageRevenuePerInvoice = totalPayments == 0
+            AverageRevenuePerInvoice = totalInvoices == 0
                 ? 0
-                : totalRevenue / totalPayments,
+                : totalRevenue / totalInvoices,
             PaymentMethods = paymentMethods,
             Items = summaryItems
         };

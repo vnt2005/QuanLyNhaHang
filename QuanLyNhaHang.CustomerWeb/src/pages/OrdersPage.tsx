@@ -93,6 +93,14 @@ function orderItemsPreview(order: CustomerOrder) {
   return order.items.length > 1 ? `${firstLabel} · +${order.items.length - 1} món` : firstLabel
 }
 
+function paymentAmountLabel(order: CustomerOrder) {
+  return order.paidAmount != null ? 'Đã thanh toán' : 'Tạm tính món'
+}
+
+function paymentAmount(order: CustomerOrder) {
+  return order.paidAmount ?? order.totalAmount
+}
+
 function readLastQrToken() {
   localStorage.removeItem('customerLastQrToken')
   return sessionStorage.getItem('customerLastQrToken')
@@ -132,7 +140,7 @@ function OrderRow({
 
         <div className="customer-order-card-meta">
           <span><MapPin aria-hidden="true" /><b>Nhận món</b>{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</span>
-          <span><CreditCard aria-hidden="true" /><b>Tổng tiền</b>{money(order.totalAmount)}</span>
+          <span><CreditCard aria-hidden="true" /><b>{paymentAmountLabel(order)}</b>{money(paymentAmount(order))}</span>
         </div>
 
         <span className={`customer-order-status status-${order.status.toLocaleLowerCase()}`}>
@@ -173,8 +181,9 @@ function OrderRow({
               <p>{order.note || 'Không có ghi chú cho đơn hàng này.'}</p>
             </div>
             <div className="customer-order-total">
-              <small>Tổng giá trị món</small>
-              <strong>{money(order.totalAmount)}</strong>
+              <small>{paymentAmountLabel(order)}</small>
+              <strong>{money(paymentAmount(order))}</strong>
+              {order.paidAmount != null && order.paymentMethod ? <span>{order.paymentMethod}</span> : null}
             </div>
           </div>
 

@@ -30,6 +30,7 @@ export type Order = {
   orderCode: string
   status: OrderStatus
   totalAmount: number
+  isPaid: boolean
   note?: string | null
   isActive: boolean
   createdAt: string

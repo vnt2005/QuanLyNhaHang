@@ -28,7 +28,15 @@ ENV ASPNETCORE_HTTP_PORTS=8080 \
 
 EXPOSE 8080
 
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=publish /app/publish .
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=10 \
+    CMD curl --fail --silent --show-error http://127.0.0.1:8080/health/live > /dev/null || exit 1
 
 USER $APP_UID
 

@@ -75,6 +75,37 @@ public class GetCustomerOrderHistoryQueryHandler
         if (orders.Count > 0)
         {
             var orderIds = orders.Select(x => x.Id).ToList();
+
+            var paidPayments = await _context.Payments
+                .AsNoTracking()
+                .Where(payment =>
+                    orderIds.Contains(payment.OrderId) &&
+                    payment.Status == "Paid")
+                .OrderByDescending(payment => payment.PaidAt)
+                .ThenByDescending(payment => payment.CreatedAt)
+                .Select(payment => new
+                {
+                    payment.OrderId,
+                    payment.FinalAmount,
+                    payment.PaymentMethod,
+                    payment.PaidAt
+                })
+                .ToListAsync(cancellationToken);
+
+            var paidByOrder = paidPayments
+                .GroupBy(payment => payment.OrderId)
+                .ToDictionary(group => group.Key, group => group.First());
+
+            foreach (var order in orders)
+            {
+                if (!paidByOrder.TryGetValue(order.Id, out var payment))
+                    continue;
+
+                order.PaidAmount = payment.FinalAmount;
+                order.PaymentMethod = payment.PaymentMethod;
+                order.PaidAt = payment.PaidAt;
+            }
+
             var items = await _context.OrderItems
                 .AsNoTracking()
                 .Where(x => orderIds.Contains(x.OrderId))
@@ -96,7 +127,10 @@ public class GetCustomerOrderHistoryQueryHandler
                 })
                 .ToListAsync(cancellationToken);
 
-            var itemsByOrder = items.GroupBy(x => x.OrderId).ToDictionary(x => x.Key, x => x.Select(row => row.Item).ToList());
+            var itemsByOrder = items
+                .GroupBy(x => x.OrderId)
+                .ToDictionary(x => x.Key, x => x.Select(row => row.Item).ToList());
+
             foreach (var order in orders)
                 order.Items = itemsByOrder.GetValueOrDefault(order.Id) ?? new List<QrOrderItemDto>();
         }

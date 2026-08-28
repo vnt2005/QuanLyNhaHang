@@ -42,6 +42,17 @@ public class AddOrderItemCommandHandler
             throw new Exception("Không thể thêm món vào order đã hủy.");
         }
 
+        var hasPaidPayment = await _context.Payments
+            .AsNoTracking()
+            .AnyAsync(
+                payment => payment.OrderId == order.Id && payment.Status == "Paid",
+                cancellationToken);
+        if (hasPaidPayment)
+        {
+            throw new InvalidOperationException(
+                "Đơn hàng đã thanh toán. Không thể thêm món vì sẽ làm lệch số tiền đã thu, hóa đơn và báo cáo doanh thu.");
+        }
+
         if (request.Quantity is <= 0 or > 99)
         {
             throw new ArgumentException(
@@ -78,17 +89,20 @@ public class AddOrderItemCommandHandler
 
         order.UpdateTotalAmount(newTotal);
 
-        var table = await _context.RestaurantTables
-            .FirstOrDefaultAsync(
-                x => x.Id == order.RestaurantTableId,
-                cancellationToken);
-
-        if (table == null)
+        if (order.RestaurantTableId.HasValue)
         {
-            throw new Exception("Bàn của order không tồn tại.");
-        }
+            var table = await _context.RestaurantTables
+                .FirstOrDefaultAsync(
+                    x => x.Id == order.RestaurantTableId.Value,
+                    cancellationToken);
 
-        table.MarkOccupied();
+            if (table == null)
+            {
+                throw new Exception("Bàn của order không tồn tại.");
+            }
+
+            table.MarkOccupied();
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
