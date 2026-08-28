@@ -73,11 +73,14 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
 
         var todayInvoicesQuery = _context.Invoices
             .AsNoTracking()
-            .Where(x => x.CreatedAt >= todayStartUtc && x.CreatedAt < tomorrowStartUtc);
+            .Where(x =>
+                x.CreatedAt >= todayStartUtc &&
+                x.CreatedAt < tomorrowStartUtc &&
+                x.Status != "Cancelled");
 
         var todayPaymentsQuery = _context.Payments
             .AsNoTracking()
-            .Where(x => x.CreatedAt >= todayStartUtc && x.CreatedAt < tomorrowStartUtc);
+            .Where(x => x.PaidAt >= todayStartUtc && x.PaidAt < tomorrowStartUtc);
 
         var todayReservationsQuery = _context.Reservations
             .AsNoTracking()
@@ -191,10 +194,10 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         var payments = await _context.Payments
             .AsNoTracking()
             .Where(x =>
-                x.CreatedAt >= fromUtc &&
-                x.CreatedAt < toUtcExclusive &&
+                x.PaidAt >= fromUtc &&
+                x.PaidAt < toUtcExclusive &&
                 x.Status == "Paid")
-            .Select(x => new { x.CreatedAt, x.FinalAmount })
+            .Select(x => new { x.PaidAt, x.FinalAmount })
             .ToListAsync(cancellationToken);
 
         var orders = await _context.Orders
@@ -213,7 +216,7 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             .ToListAsync(cancellationToken);
 
         var revenueDictionary = payments
-            .GroupBy(x => RestaurantTime.ToLocal(x.CreatedAt).Date)
+            .GroupBy(x => RestaurantTime.ToLocal(x.PaidAt).Date)
             .ToDictionary(x => x.Key, x => x.Sum(item => item.FinalAmount));
 
         var orderDictionary = orders
@@ -252,18 +255,19 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         int top,
         CancellationToken cancellationToken)
     {
-        var validOrderIdsQuery = _context.Orders
+        var paidOrderIdsQuery = _context.Payments
             .AsNoTracking()
-            .Where(x =>
-                x.CreatedAt >= fromUtc &&
-                x.CreatedAt < toUtcExclusive &&
-                x.Status != "Cancelled")
-            .Select(x => x.Id);
+            .Where(payment =>
+                payment.Status == "Paid" &&
+                payment.PaidAt >= fromUtc &&
+                payment.PaidAt < toUtcExclusive)
+            .Select(payment => payment.OrderId)
+            .Distinct();
 
         return await _context.OrderItems
             .AsNoTracking()
             .Where(x =>
-                validOrderIdsQuery.Contains(x.OrderId) &&
+                paidOrderIdsQuery.Contains(x.OrderId) &&
                 x.Status != "Cancelled")
             .GroupBy(x => new { x.MenuItemId, x.MenuItemName })
             .Select(g => new DashboardTopSellingItemDto
