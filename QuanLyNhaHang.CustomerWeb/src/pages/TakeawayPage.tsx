@@ -80,7 +80,8 @@ export default function TakeawayPage({
   }
 
   function signIn() {
-    localStorage.setItem('customerReturnPath', '/takeaway')
+    localStorage.removeItem('customerReturnPath')
+    sessionStorage.setItem('customerReturnPath', '/takeaway')
     navigate('/login')
   }
 
