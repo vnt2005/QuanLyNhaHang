@@ -1,6 +1,7 @@
-export const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8080'
-).replace(/\/+$/, '')
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+export const API_BASE_URL = configuredApiBaseUrl === undefined
+  ? 'http://localhost:8080'
+  : configuredApiBaseUrl.replace(/\/+$/, '')
 
 const CLIENT_ID_STORAGE_KEY = 'vnt-customer-client-id'
 const IDEMPOTENCY_REUSE_MS = 2_000
@@ -16,10 +17,11 @@ function createRequestId() {
 
 function getClientId() {
   try {
-    const existing = localStorage.getItem(CLIENT_ID_STORAGE_KEY)
+    localStorage.removeItem(CLIENT_ID_STORAGE_KEY)
+    const existing = sessionStorage.getItem(CLIENT_ID_STORAGE_KEY)
     if (existing) return existing
     const created = createRequestId()
-    localStorage.setItem(CLIENT_ID_STORAGE_KEY, created)
+    sessionStorage.setItem(CLIENT_ID_STORAGE_KEY, created)
     return created
   } catch {
     return createRequestId()
