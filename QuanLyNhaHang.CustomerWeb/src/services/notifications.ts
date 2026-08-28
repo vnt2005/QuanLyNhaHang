@@ -96,7 +96,9 @@ export async function markAllCustomerNotificationsRead(accessToken: string) {
 }
 
 function hubUrl(path: string) {
-  const base = new URL(API_BASE_URL)
+  const base = API_BASE_URL
+    ? new URL(API_BASE_URL, window.location.origin)
+    : new URL(window.location.origin)
   base.pathname = path
   return base
 }
