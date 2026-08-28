@@ -83,9 +83,9 @@ services:
     restart: unless-stopped
 
   api-gateway:
-    image: nginx:1.27-alpine
+    image: haproxy:3.0-alpine
     volumes:
-      - ./docker/api-gateway.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/api-gateway.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
       - "8080:80"
     extra_hosts:
@@ -94,11 +94,11 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/gateway-health || exit 1"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "pidof haproxy >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
       retries: 10
-      start_period: 5s
+      start_period: 3s
     restart: unless-stopped
 
   admin-web:
@@ -107,7 +107,6 @@ services:
       context: ./QuanLyNhaHang.Frontend
       dockerfile: Dockerfile
       args:
-        # Browser gọi /api và /hubs cùng origin 4173; Nginx frontend proxy nội bộ.
         VITE_API_BASE_URL: ""
         VITE_CUSTOMER_APP_URL: "http://localhost:4174"
     ports:
@@ -123,7 +122,6 @@ services:
       context: ./QuanLyNhaHang.CustomerWeb
       dockerfile: Dockerfile
       args:
-        # Browser gọi /api và /hubs cùng origin 4174.
         VITE_API_BASE_URL: ""
     ports:
       - "4174:80"
