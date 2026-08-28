@@ -9,10 +9,11 @@ function createRequestId() {
 
 function getClientId() {
   try {
-    const existing = localStorage.getItem(CLIENT_ID_STORAGE_KEY)
+    localStorage.removeItem(CLIENT_ID_STORAGE_KEY)
+    const existing = sessionStorage.getItem(CLIENT_ID_STORAGE_KEY)
     if (existing) return existing
     const created = createRequestId()
-    localStorage.setItem(CLIENT_ID_STORAGE_KEY, created)
+    sessionStorage.setItem(CLIENT_ID_STORAGE_KEY, created)
     return created
   } catch {
     return createRequestId()
