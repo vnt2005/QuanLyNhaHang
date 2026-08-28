@@ -105,16 +105,6 @@ public class ChangeOrderStatusCommandHandler
                 table?.MarkOccupied();
                 foreach (var item in orderItems.Where(x => x.Status == "Ready"))
                     item.MarkServed();
-
-                var alreadyPaid = await HasPaidPaymentAsync(
-                    order.Id,
-                    cancellationToken);
-                if (alreadyPaid)
-                {
-                    order.MarkCompleted();
-                    table?.MarkAvailable();
-                    effectiveStatus = "Completed";
-                }
                 break;
 
             case "Completed":
@@ -136,8 +126,33 @@ public class ChangeOrderStatusCommandHandler
                 throw new ArgumentException("Trạng thái order không hợp lệ.");
         }
 
-        var isPaid = effectiveStatus == "Ready" &&
-                     await HasPaidPaymentAsync(order.Id, cancellationToken);
+        var isPaid = await HasPaidPaymentAsync(order.Id, cancellationToken);
+
+        if (order.OrderType == "Takeaway" &&
+            isPaid &&
+            order.Status is "Ready" or "Served")
+        {
+            var activeItems = orderItems
+                .Where(item => item.Status != "Cancelled")
+                .ToList();
+
+            if (activeItems.Count > 0 &&
+                activeItems.All(item => item.Status is "Ready" or "Served"))
+            {
+                foreach (var item in activeItems.Where(item => item.Status == "Ready"))
+                    item.MarkServed();
+
+                order.MarkCompleted();
+                table?.MarkAvailable();
+                effectiveStatus = "Completed";
+            }
+        }
+        else if (order.Status == "Served" && isPaid)
+        {
+            order.MarkCompleted();
+            table?.MarkAvailable();
+            effectiveStatus = "Completed";
+        }
 
         Notification? customerNotification = null;
         if (order.CustomerUserId.HasValue)
@@ -192,7 +207,7 @@ public class ChangeOrderStatusCommandHandler
                 "warning"),
             "Ready" => (takeaway ? "Đơn mang về đã sẵn sàng" : "Món đã sẵn sàng", takeaway ? $"Đơn {order.OrderCode} đã sẵn sàng để bạn đến nhận." : $"Các món trong đơn {order.OrderCode} đã sẵn sàng phục vụ.", "success"),
             "Served" => (takeaway ? "Đơn mang về đã được giao" : "Đơn đã được phục vụ", takeaway ? $"Đơn {order.OrderCode} đã được giao cho khách." : $"Đơn {order.OrderCode} đã được phục vụ. Chúc bạn ngon miệng!", "success"),
-            "Completed" => ("Đơn đã hoàn tất", takeaway ? $"Đơn mang về {order.OrderCode} đã hoàn tất. Cảm ơn bạn đã đặt món." : $"Đơn {order.OrderCode} đã hoàn tất. Cảm ơn bạn đã dùng bữa tại nhà hàng.", "success"),
+            "Completed" => ("Đơn đã hoàn tất", takeaway ? $"Đơn mang về {order.OrderCode} đã nấu xong và thanh toán thành công. Cảm ơn bạn đã đặt món." : $"Đơn {order.OrderCode} đã hoàn tất. Cảm ơn bạn đã dùng bữa tại nhà hàng.", "success"),
             "Cancelled" => ("Đơn đã bị hủy", $"Đơn {order.OrderCode} đã bị hủy. Vui lòng liên hệ nhà hàng nếu bạn cần hỗ trợ.", "warning"),
             _ => ("Trạng thái đơn đã thay đổi", $"Đơn {order.OrderCode} vừa được cập nhật trạng thái.", "info")
         };
