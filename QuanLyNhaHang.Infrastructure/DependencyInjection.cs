@@ -36,6 +36,9 @@ public static class DependencyInjection
 
         services.AddScoped<IUserPermissionService, UserPermissionService>();
 
+        services.AddScoped<UnpaidTakeawayOrderExpiryProcessor>();
+        services.AddHostedService<UnpaidTakeawayOrderExpiryService>();
+
         services.Configure<SePayOptions>(
             configuration.GetSection(SePayOptions.SectionName));
 
