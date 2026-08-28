@@ -1,7 +1,9 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Notifications;
 using QuanLyNhaHang.Application.Common.Payments;
+using QuanLyNhaHang.Application.Features.Notifications.DTOs;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -11,10 +13,14 @@ public class CreatePaymentCommandHandler
     : IRequestHandler<CreatePaymentCommand, PaymentDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IAdminNotificationPublisher _notificationPublisher;
 
-    public CreatePaymentCommandHandler(IApplicationDbContext context)
+    public CreatePaymentCommandHandler(
+        IApplicationDbContext context,
+        IAdminNotificationPublisher notificationPublisher)
     {
         _context = context;
+        _notificationPublisher = notificationPublisher;
     }
 
     public async Task<PaymentDto> Handle(
@@ -79,10 +85,9 @@ public class CreatePaymentCommandHandler
         order.UpdateTotalAmount(totalAmount);
         order.MarkCompleted();
 
-        RestaurantTable? table = null;
         if (order.RestaurantTableId.HasValue)
         {
-            table = await _context.RestaurantTables.FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId.Value, cancellationToken);
+            var table = await _context.RestaurantTables.FirstOrDefaultAsync(x => x.Id == order.RestaurantTableId.Value, cancellationToken);
             table?.MarkAvailable();
         }
 
@@ -93,7 +98,48 @@ public class CreatePaymentCommandHandler
             request.Note ?? "Phát hành tự động sau thanh toán",
             cancellationToken);
 
+        var notifications = new List<Notification>();
+        if (order.CustomerUserId.HasValue)
+        {
+            notifications.Add(new Notification(
+                order.CustomerUserId.Value,
+                "Payment.Paid",
+                "Thanh toán thành công",
+                $"Đơn {order.OrderCode} đã được ghi nhận thanh toán thành công.",
+                "success",
+                "/orders",
+                order.Id));
+        }
+
+        var adminUserIds = await _context.Users
+            .AsNoTracking()
+            .Where(user =>
+                user.IsActive &&
+                user.IsEmailVerified &&
+                AdminNotificationAudience.OrderAndReservationRoles.Contains(user.Role))
+            .Select(user => user.Id)
+            .ToListAsync(cancellationToken);
+
+        notifications.AddRange(adminUserIds.Select(userId => new Notification(
+            userId,
+            "Payment.Paid",
+            "Đã ghi nhận thanh toán",
+            $"Đơn {order.OrderCode} đã thanh toán {payment.FinalAmount:N0} đ bằng {payment.PaymentMethod}.",
+            "success",
+            "Thanh toán",
+            order.Id)));
+
+        if (notifications.Count > 0)
+            await _context.Notifications.AddRangeAsync(notifications, cancellationToken);
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (notifications.Count > 0)
+        {
+            await _notificationPublisher.PublishAsync(
+                notifications.Select(NotificationDto.FromEntity).ToArray(),
+                cancellationToken);
+        }
 
         return new PaymentDto
         {
