@@ -12,36 +12,7 @@ Copy-Item .env.example .env
 
 Mở `.env` và thay mật khẩu SQL Server, JWT secret cùng thông tin SMTP/SePay cần dùng. File `.env` chứa bí mật và đã được Git bỏ qua; không commit hoặc gửi file này cho người khác.
 
-## Cách nhanh nhất trên Windows: double-click
-
-Repository có sẵn hai file ở thư mục gốc:
-
-- `start-docker.bat`
-- `start-docker.ps1`
-
-Chỉ cần **double-click `start-docker.bat`**. Script sẽ:
-
-1. Kiểm tra Docker Engine.
-2. Nếu Docker Desktop chưa chạy và được cài ở vị trí mặc định, tự mở Docker Desktop rồi chờ engine sẵn sàng.
-3. Chạy `docker compose up -d --build`.
-4. Chờ API, Web App Admin và CustomerWeb phản hồi HTTP.
-5. Tự mở Web App Admin và CustomerWeb bằng trình duyệt mặc định của Windows.
-
-Nếu khởi động thất bại, cửa sổ `.bat` sẽ giữ lại để đọc lỗi thay vì tự đóng ngay.
-
-Có thể chạy PowerShell trực tiếp nếu muốn chọn trình duyệt:
-
-```powershell
-.\start-docker.ps1
-.\start-docker.ps1 -Browser Chrome
-.\start-docker.ps1 -Browser Edge
-```
-
-Mặc định `start-docker.bat` dùng trình duyệt mặc định của Windows, nên nếu Chrome hoặc Edge đang là mặc định thì website sẽ tự mở bằng trình duyệt đó.
-
-## Khởi động toàn bộ hệ thống bằng lệnh Compose
-
-Nếu không muốn dùng script:
+## Khởi động toàn bộ hệ thống
 
 ```powershell
 docker compose up -d --build
@@ -82,7 +53,7 @@ git pull --ff-only origin main
 docker compose up -d --build
 ```
 
-Hoặc sau khi cập nhật code chỉ cần double-click lại `start-docker.bat`; script sẽ build lại image cần thiết rồi mở hai website.
+Docker sẽ build lại các image bị thay đổi rồi chạy phiên bản mới.
 
 ## Đổi cổng local
 
@@ -97,7 +68,7 @@ FRONTEND_ORIGIN=http://localhost:5173
 CUSTOMER_FRONTEND_ORIGIN=http://localhost:5174
 ```
 
-Nếu đổi cổng API hoặc frontend, hãy đổi đồng bộ `BROWSER_API_BASE_URL` và các `*_ORIGIN` để browser và CORS dùng cùng địa chỉ. `start-docker.ps1` tự đọc `API_PORT`, `FRONTEND_PORT` và `CUSTOMER_FRONTEND_PORT` trong `.env` để mở đúng cổng.
+Nếu đổi cổng API hoặc frontend, hãy đổi đồng bộ `BROWSER_API_BASE_URL` và các `*_ORIGIN` để browser và CORS dùng cùng địa chỉ.
 
 ## Dừng hệ thống nhưng giữ dữ liệu
 
