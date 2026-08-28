@@ -31,28 +31,20 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
 
         await EnsureManualPaymentIsSafeAsync(request.OrderId, cancellationToken);
 
-        var orderItems = await _context.OrderItems
-            .Where(x => x.OrderId == request.OrderId && x.Status != "Cancelled")
-            .ToListAsync(cancellationToken);
+        var orderItems = await _context.OrderItems.Where(x => x.OrderId == request.OrderId && x.Status != "Cancelled").ToListAsync(cancellationToken);
         if (orderItems.Count == 0) throw new InvalidOperationException("Đơn hàng chưa có món để thanh toán.");
         if (orderItems.Any(x => x.Status is "Pending" or "Cooking"))
             throw new InvalidOperationException("Đơn hàng còn món chưa hoàn thành, chưa thể thanh toán.");
-
         foreach (var item in orderItems.Where(x => x.Status == "Ready")) item.MarkServed();
 
         var totalAmount = orderItems.Sum(x => x.TotalPrice);
-        var promotionUsage = await _context.PromotionUsages
-            .FirstOrDefaultAsync(x => x.OrderId == request.OrderId && x.Status == "Applied", cancellationToken);
+        var promotionUsage = await _context.PromotionUsages.FirstOrDefaultAsync(x => x.OrderId == request.OrderId && x.Status == "Applied", cancellationToken);
         var discountAmount = promotionUsage?.DiscountAmount ?? request.DiscountAmount;
         var serviceChargeAmount = request.ServiceChargeAmount;
         var vatAmount = request.VatAmount;
-
         if (order.OrderType == "Takeaway")
         {
-            var settings = await _context.RestaurantSettings.AsNoTracking()
-                .Where(x => x.IsActive)
-                .OrderByDescending(x => x.UpdatedAt ?? x.CreatedAt)
-                .FirstOrDefaultAsync(cancellationToken);
+            var settings = await _context.RestaurantSettings.AsNoTracking().Where(x => x.IsActive).OrderByDescending(x => x.UpdatedAt ?? x.CreatedAt).FirstOrDefaultAsync(cancellationToken);
             var afterDiscount = Math.Max(0, totalAmount - discountAmount);
             serviceChargeAmount = 0;
             vatAmount = decimal.Round(afterDiscount * (settings?.DefaultVatPercent ?? 0) / 100m, 0, MidpointRounding.AwayFromZero);
@@ -61,7 +53,6 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
         var payment = new Payment(request.OrderId, totalAmount, discountAmount, vatAmount, request.CustomerPaid, request.PaymentMethod, request.Note, serviceChargeAmount);
         await _context.Payments.AddAsync(payment, cancellationToken);
         promotionUsage?.SetPayment(payment.Id);
-
         order.UpdateTotalAmount(totalAmount);
         order.MarkCompleted();
 
@@ -76,14 +67,10 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
         var notifications = new List<Notification>();
         if (order.CustomerUserId.HasValue)
             notifications.Add(new Notification(order.CustomerUserId.Value, "Payment.Paid", "Thanh toán thành công", $"Đơn {order.OrderCode} đã được ghi nhận thanh toán thành công.", "success", "/orders", order.Id));
-
-        var adminUserIds = await _context.Users.AsNoTracking()
-            .Where(user => user.IsActive && user.IsEmailVerified && AdminNotificationAudience.OrderAndReservationRoles.Contains(user.Role))
-            .Select(user => user.Id)
-            .ToListAsync(cancellationToken);
+        var adminUserIds = await _context.Users.AsNoTracking().Where(user => user.IsActive && user.IsEmailVerified && AdminNotificationAudience.OrderAndReservationRoles.Contains(user.Role)).Select(user => user.Id).ToListAsync(cancellationToken);
         notifications.AddRange(adminUserIds.Select(userId => new Notification(userId, "Payment.Paid", "Đã ghi nhận thanh toán", $"Đơn {order.OrderCode} đã được ghi nhận thanh toán thành công.", "success", "Thanh toán", order.Id)));
-
         if (notifications.Count > 0) await _context.Notifications.AddRangeAsync(notifications, cancellationToken);
+
         await _context.SaveChangesAsync(cancellationToken);
         if (notifications.Count > 0) await _notificationPublisher.PublishAsync(notifications.Select(NotificationDto.FromEntity).ToArray(), cancellationToken);
 
@@ -111,8 +98,7 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
     private async Task EnsureManualPaymentIsSafeAsync(Guid orderId, CancellationToken cancellationToken)
     {
         var attempts = await _context.PaymentAttempts
-            .Where(attempt => attempt.OrderId == orderId &&
-                (attempt.Status == PaymentAttempt.CreatingStatus || attempt.Status == PaymentAttempt.PendingStatus || attempt.Status == PaymentAttempt.PaidStatus || attempt.Status == PaymentAttempt.RequiresReviewStatus))
+            .Where(attempt => attempt.OrderId == orderId && (attempt.Status == PaymentAttempt.CreatingStatus || attempt.Status == PaymentAttempt.PendingStatus || attempt.Status == PaymentAttempt.PaidStatus || attempt.Status == PaymentAttempt.RequiresReviewStatus))
             .OrderByDescending(attempt => attempt.CreatedAt)
             .ToListAsync(cancellationToken);
         var now = DateTime.UtcNow;
