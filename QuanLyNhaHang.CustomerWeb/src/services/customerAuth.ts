@@ -79,7 +79,18 @@ async function rejectEmployeeSession(result: CustomerAuthResult) {
 
 function saveSession(session: CustomerSession) {
   sessionStorage.setItem(ACCESS_TOKEN_KEY, session.token)
-  localStorage.setItem(REFRESH_TOKEN_KEY, session.refreshToken)
+  sessionStorage.setItem(REFRESH_TOKEN_KEY, session.refreshToken)
+  removeLegacyPersistentSession()
+}
+
+function storedRefreshToken() {
+  return sessionStorage.getItem(REFRESH_TOKEN_KEY) ?? ''
+}
+
+function removeLegacyPersistentSession() {
+  // Refresh tokens used to be stored persistently. Remove that old value so
+  // upgrading the website immediately signs out previously remembered users.
+  localStorage.removeItem(REFRESH_TOKEN_KEY)
 }
 
 function toSession(result: CustomerAuthResult) {
@@ -134,22 +145,28 @@ export function getCustomerAccessToken() {
 }
 
 export function hasCustomerSession() {
-  return Boolean(localStorage.getItem(REFRESH_TOKEN_KEY))
+  removeLegacyPersistentSession()
+  return Boolean(storedRefreshToken())
 }
 
 export function clearCustomerSession() {
   sessionStorage.removeItem(ACCESS_TOKEN_KEY)
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY)
+  removeLegacyPersistentSession()
 }
 
 function clearCustomerLogoutState() {
   clearTakeawayCart()
+  sessionStorage.removeItem('customerLastQrToken')
+  sessionStorage.removeItem('customerReturnPath')
+  sessionStorage.removeItem('customerPaymentAttemptAccess')
   localStorage.removeItem('customerLastQrToken')
   localStorage.removeItem('customerReturnPath')
+  localStorage.removeItem('customerPaymentAttemptAccess')
 }
 
 function clearCustomerSessionIfCurrent(refreshToken: string) {
-  if (localStorage.getItem(REFRESH_TOKEN_KEY) !== refreshToken) return
+  if (storedRefreshToken() !== refreshToken) return
   clearCustomerSession()
 }
 
@@ -259,7 +276,8 @@ export async function changeCustomerPassword(input: {
 }
 
 export function restoreCustomerSession() {
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY) ?? ''
+  removeLegacyPersistentSession()
+  const refreshToken = storedRefreshToken()
   if (!refreshToken) {
     return Promise.reject(new Error('Không có phiên khách hàng đã lưu.'))
   }
@@ -272,13 +290,13 @@ export function restoreCustomerSession() {
     .then(unwrap)
     .then(async result => {
       await rejectEmployeeSession(result)
-      if (localStorage.getItem(REFRESH_TOKEN_KEY) !== refreshToken) {
+      if (storedRefreshToken() !== refreshToken) {
         throw new CustomerSessionRefreshSupersededError()
       }
       return toSession(result)
     })
     .catch(error => {
-      if (localStorage.getItem(REFRESH_TOKEN_KEY) !== refreshToken) {
+      if (storedRefreshToken() !== refreshToken) {
         throw error instanceof CustomerSessionRefreshSupersededError
           ? error
           : new CustomerSessionRefreshSupersededError()
@@ -294,7 +312,7 @@ export function restoreCustomerSession() {
 }
 
 export async function logoutCustomer() {
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY) ?? ''
+  const refreshToken = storedRefreshToken()
   clearCustomerSession()
   clearCustomerLogoutState()
   if (!refreshToken) return

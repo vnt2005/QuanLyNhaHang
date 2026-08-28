@@ -122,20 +122,6 @@ public sealed class ApplyCustomerPromotionCommandHandler
         if (paid)
             throw new InvalidOperationException("Đơn hàng đã thanh toán, không thể áp dụng thêm khuyến mãi.");
 
-        var hasActivePaymentAttempt = await _context.PaymentAttempts
-            .AsNoTracking()
-            .AnyAsync(
-                item => item.OrderId == order.Id &&
-                        (item.Status == PaymentAttempt.CreatingStatus ||
-                         item.Status == PaymentAttempt.PendingStatus) &&
-                        item.ExpiresAt > DateTime.UtcNow,
-                cancellationToken);
-        if (hasActivePaymentAttempt)
-        {
-            throw new InvalidOperationException(
-                "Đơn đang có mã QR thanh toán còn hiệu lực. Vui lòng hoàn tất hoặc hủy giao dịch đó trước khi áp mã khuyến mãi.");
-        }
-
         var normalizedCode = request.PromotionCode.Trim().ToUpperInvariant();
         var existingUsage = await _context.PromotionUsages
             .FirstOrDefaultAsync(
@@ -179,6 +165,24 @@ public sealed class ApplyCustomerPromotionCommandHandler
 
         var orderAmount = orderItems.Sum(item => item.TotalPrice);
         var discountAmount = promotion.CalculateDiscountAmount(orderAmount);
+
+        // Khách có thể đã mở màn hình thanh toán trước rồi quay lại áp mã.
+        // Sau khi mã đã được kiểm tra hợp lệ, vô hiệu QR cũ trước khi thay đổi
+        // số tiền của đơn. Nếu QR cũ nhận tiền muộn, webhook hiện có sẽ đưa
+        // giao dịch vào RequiresReview thay vì tự ghi nhận vào đơn.
+        var openPaymentAttempts = await _context.PaymentAttempts
+            .Where(item =>
+                item.OrderId == order.Id &&
+                (item.Status == PaymentAttempt.CreatingStatus ||
+                 item.Status == PaymentAttempt.PendingStatus))
+            .ToListAsync(cancellationToken);
+
+        foreach (var attempt in openPaymentAttempts)
+        {
+            attempt.MarkCancelled(
+                "PromotionAppliedAfterPaymentQrCreated: QR cũ đã bị thay thế vì khách áp mã khuyến mãi trước khi thanh toán.");
+        }
+
         var usage = new PromotionUsage(
             promotion.Id,
             order.Id,
@@ -186,7 +190,9 @@ public sealed class ApplyCustomerPromotionCommandHandler
             promotion.PromotionCode,
             orderAmount,
             discountAmount,
-            "Khách hàng áp dụng trên CustomerWeb");
+            openPaymentAttempts.Count > 0
+                ? "Khách hàng áp dụng trên CustomerWeb; QR thanh toán cũ đã được tự động hủy để tạo lại theo số tiền sau giảm."
+                : "Khách hàng áp dụng trên CustomerWeb");
 
         promotion.IncreaseUsedCount();
         await _context.PromotionUsages.AddAsync(usage, cancellationToken);

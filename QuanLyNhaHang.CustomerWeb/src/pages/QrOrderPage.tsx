@@ -67,10 +67,25 @@ function normalizeCart(value: Cart): Cart {
   return normalized
 }
 
+function readSessionValue(key: string) {
+  localStorage.removeItem(key)
+  return sessionStorage.getItem(key)
+}
+
+function writeSessionValue(key: string, value: string) {
+  localStorage.removeItem(key)
+  sessionStorage.setItem(key, value)
+}
+
+function removeSessionValue(key: string) {
+  localStorage.removeItem(key)
+  sessionStorage.removeItem(key)
+}
+
 function readCart(token: string): Cart {
   try {
     return normalizeCart(
-      JSON.parse(localStorage.getItem(`customerQrCart:${token}`) || '{}') as Cart,
+      JSON.parse(readSessionValue(`customerQrCart:${token}`) || '{}') as Cart,
     )
   } catch {
     return {}
@@ -99,7 +114,7 @@ export default function QrOrderPage({
   const [keyword, setKeyword] = useState('')
   const [orderNote, setOrderNote] = useState('')
   const [currentOrder, setCurrentOrder] = useState<CustomerOrder | null>(null)
-  const [view, setView] = useState<'menu' | 'order'>(() => localStorage.getItem(`customerQrOrder:${token}`) ? 'order' : 'menu')
+  const [view, setView] = useState<'menu' | 'order'>(() => readSessionValue(`customerQrOrder:${token}`) ? 'order' : 'menu')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -114,12 +129,12 @@ export default function QrOrderPage({
       const context = await getQrOrderContext(token)
       setTable(context.table)
       setItems(context.menuItems)
-      localStorage.setItem('customerLastQrToken', token)
-      const orderId = localStorage.getItem(`customerQrOrder:${token}`)
+      writeSessionValue('customerLastQrToken', token)
+      const orderId = readSessionValue(`customerQrOrder:${token}`)
       if (orderId) {
         const order = await getQrOrder(token, orderId).catch(() => null)
         if (order) setCurrentOrder(order)
-        else localStorage.removeItem(`customerQrOrder:${token}`)
+        else removeSessionValue(`customerQrOrder:${token}`)
       }
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không mở được trang gọi món.')
@@ -131,7 +146,7 @@ export default function QrOrderPage({
   useEffect(() => { void load() }, [token])
 
   useEffect(() => {
-    localStorage.setItem(`customerQrCart:${token}`, JSON.stringify(normalizeCart(cart)))
+    writeSessionValue(`customerQrCart:${token}`, JSON.stringify(normalizeCart(cart)))
   }, [cart, token])
 
   useEffect(() => {
@@ -218,8 +233,8 @@ export default function QrOrderPage({
         items: selected.map(entry => ({ menuItemId: entry.item.id, quantity: entry.quantity })),
       })
       setCurrentOrder(response.data)
-      localStorage.setItem(`customerQrOrder:${token}`, response.data.id)
-      localStorage.removeItem(`customerQrCart:${token}`)
+      writeSessionValue(`customerQrOrder:${token}`, response.data.id)
+      removeSessionValue(`customerQrCart:${token}`)
       setCart({})
       setOrderNote('')
       setSuccess(response.message)
@@ -267,7 +282,7 @@ export default function QrOrderPage({
   }
 
   function signIn() {
-    localStorage.setItem('customerReturnPath', window.location.pathname)
+    writeSessionValue('customerReturnPath', window.location.pathname)
     navigate('/login')
   }
 

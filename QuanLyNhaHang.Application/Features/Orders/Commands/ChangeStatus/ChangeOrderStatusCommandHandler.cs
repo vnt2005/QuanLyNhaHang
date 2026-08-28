@@ -63,26 +63,6 @@ public class ChangeOrderStatusCommandHandler
         var status = request.Status.Trim();
         var effectiveStatus = status;
 
-        if (order.OrderType == "Takeaway" &&
-            order.Status == "Pending" &&
-            status == "Cooking")
-        {
-            var paid = await _context.Payments
-                .AsNoTracking()
-                .AnyAsync(
-                    payment =>
-                        payment.OrderId == order.Id &&
-                        payment.Status == "Paid",
-                    cancellationToken);
-
-            if (!paid)
-            {
-                throw new InvalidOperationException(
-                    "Đơn mang về từ CustomerWeb chưa thanh toán. " +
-                    "Không được chuyển sang chế biến trước khi hệ thống ghi nhận Payment Paid.");
-            }
-        }
-
         switch (status)
         {
             case "Pending":
@@ -108,16 +88,27 @@ public class ChangeOrderStatusCommandHandler
 
             case "Served":
                 EnsureOrderCanBeServed(orderItems);
+
+                if (order.OrderType == "Takeaway")
+                {
+                    var takeawayPaid = await HasPaidPaymentAsync(
+                        order.Id,
+                        cancellationToken);
+                    if (!takeawayPaid)
+                    {
+                        throw new InvalidOperationException(
+                            "Đơn mang về chưa thanh toán. Sau khi bếp hoàn thành, khách có 5 phút để thanh toán trước khi nhận món.");
+                    }
+                }
+
                 order.MarkServed();
                 table?.MarkOccupied();
                 foreach (var item in orderItems.Where(x => x.Status == "Ready"))
                     item.MarkServed();
 
-                var alreadyPaid = await _context.Payments
-                    .AsNoTracking()
-                    .AnyAsync(
-                        payment => payment.OrderId == order.Id && payment.Status == "Paid",
-                        cancellationToken);
+                var alreadyPaid = await HasPaidPaymentAsync(
+                    order.Id,
+                    cancellationToken);
                 if (alreadyPaid)
                 {
                     order.MarkCompleted();
@@ -145,10 +136,16 @@ public class ChangeOrderStatusCommandHandler
                 throw new ArgumentException("Trạng thái order không hợp lệ.");
         }
 
+        var isPaid = effectiveStatus == "Ready" &&
+                     await HasPaidPaymentAsync(order.Id, cancellationToken);
+
         Notification? customerNotification = null;
         if (order.CustomerUserId.HasValue)
         {
-            var (title, message, severity) = CustomerStatusNotification(order, effectiveStatus);
+            var (title, message, severity) = CustomerStatusNotification(
+                order,
+                effectiveStatus,
+                isPaid);
             customerNotification = new Notification(
                 order.CustomerUserId.Value,
                 $"Order.{effectiveStatus}",
@@ -172,14 +169,27 @@ public class ChangeOrderStatusCommandHandler
         return true;
     }
 
+    private Task<bool> HasPaidPaymentAsync(
+        Guid orderId,
+        CancellationToken cancellationToken)
+        => _context.Payments
+            .AsNoTracking()
+            .AnyAsync(
+                payment => payment.OrderId == orderId && payment.Status == "Paid",
+                cancellationToken);
+
     private static (string Title, string Message, string Severity)
-        CustomerStatusNotification(Order order, string status)
+        CustomerStatusNotification(Order order, string status, bool isPaid)
     {
         var takeaway = order.OrderType == "Takeaway";
         return status switch
         {
             "Pending" => ("Nhà hàng đã nhận đơn", $"Đơn {order.OrderCode} đã được tiếp nhận và đang chờ bếp xử lý.", "info"),
             "Cooking" => ("Bếp đang chuẩn bị món", $"Các món trong đơn {order.OrderCode} đang được chế biến.", "info"),
+            "Ready" when takeaway && !isPaid => (
+                "Đơn mang về đã sẵn sàng - còn 5 phút thanh toán",
+                $"Đơn {order.OrderCode} đã nấu xong. Vui lòng thanh toán trong 5 phút; quá thời hạn hệ thống sẽ tự động hủy đơn.",
+                "warning"),
             "Ready" => (takeaway ? "Đơn mang về đã sẵn sàng" : "Món đã sẵn sàng", takeaway ? $"Đơn {order.OrderCode} đã sẵn sàng để bạn đến nhận." : $"Các món trong đơn {order.OrderCode} đã sẵn sàng phục vụ.", "success"),
             "Served" => (takeaway ? "Đơn mang về đã được giao" : "Đơn đã được phục vụ", takeaway ? $"Đơn {order.OrderCode} đã được giao cho khách." : $"Đơn {order.OrderCode} đã được phục vụ. Chúc bạn ngon miệng!", "success"),
             "Completed" => ("Đơn đã hoàn tất", takeaway ? $"Đơn mang về {order.OrderCode} đã hoàn tất. Cảm ơn bạn đã đặt món." : $"Đơn {order.OrderCode} đã hoàn tất. Cảm ơn bạn đã dùng bữa tại nhà hàng.", "success"),

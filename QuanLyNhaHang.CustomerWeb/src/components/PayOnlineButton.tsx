@@ -91,8 +91,11 @@ export default function PayOnlineButton({
         throw new Error('SePay chưa trả về đầy đủ thông tin QR thanh toán.')
       }
 
-      if (qrToken) localStorage.setItem(`customerPaymentQrToken:${orderId}`, qrToken)
-      localStorage.setItem('customerPaymentReturnPath', window.location.pathname)
+      const qrTokenKey = `customerPaymentQrToken:${orderId}`
+      localStorage.removeItem(qrTokenKey)
+      localStorage.removeItem('customerPaymentReturnPath')
+      if (qrToken) sessionStorage.setItem(qrTokenKey, qrToken)
+      sessionStorage.setItem('customerPaymentReturnPath', window.location.pathname)
       navigate(
         `/payment-result?orderId=${encodeURIComponent(orderId)}` +
         `&attemptId=${encodeURIComponent(result.attemptId)}`,

@@ -91,7 +91,20 @@ export class AuthApiError extends Error {
   }
 }
 
+const ACCESS_TOKEN_KEY = 'accessToken'
+const REFRESH_TOKEN_KEY = 'refreshToken'
 const refreshRequests = new Map<string, Promise<LoginResult>>()
+
+function removeLegacyPersistentAuth() {
+  // Refresh tokens used to be persistent. Never migrate them into the new
+  // per-tab session because opening a new browser session must start signed out.
+  localStorage.removeItem(REFRESH_TOKEN_KEY)
+}
+
+function storedRefreshToken() {
+  removeLegacyPersistentAuth()
+  return sessionStorage.getItem(REFRESH_TOKEN_KEY) ?? ''
+}
 
 function getErrorMessage(body: unknown, status: number) {
   if (body && typeof body === 'object') {
@@ -117,7 +130,7 @@ async function request<T>(
   accessTokenOverride?: string,
 ): Promise<ApiEnvelope<T>> {
   const accessToken =
-    accessTokenOverride ?? sessionStorage.getItem('accessToken')
+    accessTokenOverride ?? sessionStorage.getItem(ACCESS_TOKEN_KEY)
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
@@ -146,19 +159,21 @@ function authResult(envelope: ApiEnvelope<LoginResult>): LoginResult {
 }
 
 export function storeAuthResult(result: LoginResult) {
-  if (result.token) sessionStorage.setItem('accessToken', result.token)
+  if (result.token) sessionStorage.setItem(ACCESS_TOKEN_KEY, result.token)
   if (result.refreshToken) {
-    localStorage.setItem('refreshToken', result.refreshToken)
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, result.refreshToken)
   }
+  removeLegacyPersistentAuth()
 }
 
 export function clearStoredAuth() {
-  sessionStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY)
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY)
+  removeLegacyPersistentAuth()
 }
 
 export function getStoredRefreshToken() {
-  return localStorage.getItem('refreshToken') ?? ''
+  return storedRefreshToken()
 }
 
 export async function login(payload: LoginRequest): Promise<LoginResult> {

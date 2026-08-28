@@ -18,11 +18,17 @@ function money(value?: number | null) {
   }).format(value)
 }
 
+function readSessionValue(key: string) {
+  localStorage.removeItem(key)
+  return sessionStorage.getItem(key)
+}
+
 export default function PaymentResultPage({ session }: { session: CustomerSession | null }) {
   const params = useMemo(() => new URLSearchParams(window.location.search), [])
   const orderId = params.get('orderId') || ''
   const requestedAttemptId = params.get('attemptId') || ''
-  const qrToken = orderId ? localStorage.getItem(`customerPaymentQrToken:${orderId}`) : null
+  const qrTokenKey = orderId ? `customerPaymentQrToken:${orderId}` : ''
+  const qrToken = qrTokenKey ? readSessionValue(qrTokenKey) : null
   const [status, setStatus] = useState<CustomerPaymentStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
@@ -90,7 +96,8 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
   }
 
   function goBack() {
-    const returnPath = localStorage.getItem('customerPaymentReturnPath')
+    const returnPath = readSessionValue('customerPaymentReturnPath')
+    sessionStorage.removeItem('customerPaymentReturnPath')
     navigate(returnPath || (session ? '/orders' : '/menu'))
   }
 

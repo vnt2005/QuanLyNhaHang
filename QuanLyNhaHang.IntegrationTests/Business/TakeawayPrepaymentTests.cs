@@ -14,7 +14,7 @@ namespace QuanLyNhaHang.IntegrationTests.Business;
 public sealed class TakeawayPrepaymentTests
 {
     [Fact]
-    public async Task TakeawayOrder_CannotStartCookingUntilPaymentIsRecorded()
+    public async Task TakeawayOrder_CanStartCookingBeforePaymentIsRecorded()
     {
         using var factory = new ApiWebApplicationFactory();
         using var client = factory.CreateHttpsClient();
@@ -22,42 +22,12 @@ public sealed class TakeawayPrepaymentTests
 
         var orderId = await SeedPendingTakeawayAsync(factory);
 
-        using var unpaidResponse = await ChangeOrderStatusAsync(
+        using var response = await ChangeOrderStatusAsync(
             client,
             orderId,
             "Cooking");
 
-        Assert.Equal(HttpStatusCode.BadRequest, unpaidResponse.StatusCode);
-        using var unpaidJson = await ReadJsonAsync(unpaidResponse);
-        Assert.Contains(
-            "chưa thanh toán",
-            unpaidJson.RootElement.GetProperty("message").GetString());
-
-        using (var paymentScope = factory.Services.CreateScope())
-        {
-            var context = paymentScope.ServiceProvider
-                .GetRequiredService<ApplicationDbContext>();
-            var order = await context.Orders
-                .SingleAsync(x => x.Id == orderId);
-            var payment = new Payment(
-                order.Id,
-                order.TotalAmount,
-                0m,
-                0m,
-                order.TotalAmount,
-                "BankTransfer",
-                "Giả lập SePay đã ghi nhận");
-
-            context.Payments.Add(payment);
-            await context.SaveChangesAsync();
-        }
-
-        using var paidResponse = await ChangeOrderStatusAsync(
-            client,
-            orderId,
-            "Cooking");
-
-        Assert.Equal(HttpStatusCode.OK, paidResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         using var verificationScope = factory.Services.CreateScope();
         var verificationContext = verificationScope.ServiceProvider
@@ -69,9 +39,13 @@ public sealed class TakeawayPrepaymentTests
             .AsNoTracking()
             .Where(x => x.OrderId == orderId)
             .ToListAsync();
+        var hasPaidPayment = await verificationContext.Payments
+            .AsNoTracking()
+            .AnyAsync(x => x.OrderId == orderId && x.Status == "Paid");
 
         Assert.Equal("Cooking", updatedOrder.Status);
         Assert.All(updatedItems, item => Assert.Equal("Cooking", item.Status));
+        Assert.False(hasPaidPayment);
     }
 
     private static async Task<Guid> SeedPendingTakeawayAsync(
@@ -82,18 +56,18 @@ public sealed class TakeawayPrepaymentTests
         await context.Database.EnsureCreatedAsync();
 
         var category = new MenuCategory(
-            $"Prepay category {Guid.NewGuid():N}",
+            $"Cook-before-pay category {Guid.NewGuid():N}",
             null,
             1);
         var menuItem = new MenuItem(
             category.Id,
-            "Món cần trả trước",
+            "Món nấu trước thanh toán sau",
             null,
             90_000m,
             null);
         var order = Order.CreateTakeaway(
             $"ORD-{Guid.NewGuid():N}",
-            "Khách trả trước",
+            "Khách thanh toán sau",
             "0901000005",
             null,
             null);
@@ -120,7 +94,7 @@ public sealed class TakeawayPrepaymentTests
         ApiWebApplicationFactory factory,
         HttpClient client)
     {
-        var email = $"takeaway-prepay-{Guid.NewGuid():N}@example.com";
+        var email = $"takeaway-pay-later-{Guid.NewGuid():N}@example.com";
         const string password = "Password123!";
 
         await factory.SeedUserAsync(email, password);

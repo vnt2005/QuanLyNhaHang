@@ -3,7 +3,6 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardList,
-  Clock3,
   CreditCard,
   MapPin,
   PackageOpen,
@@ -87,6 +86,18 @@ function matchesSearch(order: CustomerOrder, query: string) {
   return haystack.includes(query.toLocaleLowerCase('vi'))
 }
 
+function orderItemsPreview(order: CustomerOrder) {
+  const first = order.items[0]
+  if (!first) return 'Chưa có món'
+  const firstLabel = `${first.menuItemName} ×${first.quantity}`
+  return order.items.length > 1 ? `${firstLabel} · +${order.items.length - 1} món` : firstLabel
+}
+
+function readLastQrToken() {
+  localStorage.removeItem('customerLastQrToken')
+  return sessionStorage.getItem('customerLastQrToken')
+}
+
 function OrderRow({
   order,
   expanded,
@@ -102,7 +113,7 @@ function OrderRow({
   onToggle: () => void
   onCancel: () => void
 }) {
-  const lastQrToken = localStorage.getItem('customerLastQrToken')
+  const lastQrToken = readLastQrToken()
   const isTakeaway = order.orderType === 'Takeaway'
   const canOrderMore = !isTakeaway && !terminalStatuses.has(order.status) && Boolean(lastQrToken)
   const canCancel = order.status === 'Pending'
@@ -113,15 +124,15 @@ function OrderRow({
         <div className="customer-order-card-title">
           <span className="customer-order-type-icon" aria-hidden="true">{isTakeaway ? <ShoppingBag /> : <UtensilsCrossed />}</span>
           <div>
-            <small>{isTakeaway ? 'Đơn mang về' : 'Dùng tại nhà hàng'}</small>
+            <small>{isTakeaway ? 'Mang về' : 'Tại bàn'} · {dateTime(order.createdAt)}</small>
             <strong>{order.orderCode}</strong>
+            <span className="customer-order-item-preview">{orderItemsPreview(order)}</span>
           </div>
         </div>
 
         <div className="customer-order-card-meta">
-          <span><CalendarDays aria-hidden="true" />{dateTime(order.createdAt)}</span>
-          <span><MapPin aria-hidden="true" />{isTakeaway ? 'Nhận tại nhà hàng' : order.restaurantTableName}</span>
-          <span><CreditCard aria-hidden="true" />{money(order.totalAmount)}</span>
+          <span><MapPin aria-hidden="true" /><b>Nhận món</b>{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</span>
+          <span><CreditCard aria-hidden="true" /><b>Tổng tiền</b>{money(order.totalAmount)}</span>
         </div>
 
         <span className={`customer-order-status status-${order.status.toLocaleLowerCase()}`}>
@@ -132,6 +143,16 @@ function OrderRow({
 
       {expanded ? (
         <div className="customer-order-detail">
+          <div className="customer-order-detail-head">
+            <div>
+              <small>Chi tiết đơn hàng</small>
+              <strong>{order.items.length} món · {money(order.totalAmount)}</strong>
+            </div>
+            <span className={`customer-order-status status-${order.status.toLocaleLowerCase()}`}>
+              {statusLabels[order.status] || order.status}
+            </span>
+          </div>
+
           <div className="customer-order-items-heading">
             <span>Món ăn</span><span>Số lượng</span><span>Đơn giá</span><span>Thành tiền</span>
           </div>
@@ -211,9 +232,7 @@ export default function OrdersPage({
       const result = await getCustomerOrders(targetPage, 8)
       setHistory(result)
       setPage(result.pageNumber)
-      setExpandedId(current => current && result.items.some(item => item.id === current)
-        ? current
-        : result.items[0]?.id || '')
+      setExpandedId(current => current && result.items.some(item => item.id === current) ? current : '')
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không tải được đơn hàng.')
     } finally {
@@ -272,14 +291,16 @@ export default function OrdersPage({
       <section className="orders-premium-content">
         <header className="orders-hero-heading">
           <div>
-            <span className="orders-eyebrow"><Clock3 aria-hidden="true" /> Theo dõi đơn hàng</span>
             <h1>Đơn của tôi</h1>
-            <p>Xem trạng thái phục vụ, kiểm tra chi tiết món, thanh toán hoặc hủy đơn còn đang chờ trong cùng một nơi.</p>
+            <p>Theo dõi đơn đang xử lý và xem lại lịch sử đặt món của bạn.</p>
           </div>
-          <button className="orders-refresh-button" type="button" onClick={() => void loadOrders(page)} disabled={loading}>
-            <RefreshCw className={loading ? 'spin' : ''} aria-hidden="true" />
-            <span>Cập nhật</span>
-          </button>
+          <div className="orders-hero-actions">
+            {history ? <span className="orders-history-count"><ClipboardList aria-hidden="true" /><strong>{history.totalCount}</strong><small>đơn hàng</small></span> : null}
+            <button className="orders-refresh-button" type="button" onClick={() => void loadOrders(page)} disabled={loading}>
+              <RefreshCw className={loading ? 'spin' : ''} aria-hidden="true" />
+              <span>Cập nhật</span>
+            </button>
+          </div>
         </header>
 
         <div className="orders-toolbar">
@@ -302,8 +323,8 @@ export default function OrdersPage({
 
         {history ? (
           <div className="orders-result-summary">
-            <span><ClipboardList aria-hidden="true" /> {history.totalCount} đơn trong lịch sử</span>
-            {(orderSearch.trim() || orderFilter !== 'all') ? <small>Đang hiển thị {visibleOrders.length} kết quả trên trang {history.pageNumber}.</small> : <small>Trang {history.pageNumber} / {Math.max(history.totalPages, 1)}</small>}
+            <span><ClipboardList aria-hidden="true" /> Danh sách đơn hàng</span>
+            {(orderSearch.trim() || orderFilter !== 'all') ? <small>{visibleOrders.length} kết quả trên trang {history.pageNumber}</small> : <small>Trang {history.pageNumber} / {Math.max(history.totalPages, 1)}</small>}
           </div>
         ) : null}
 

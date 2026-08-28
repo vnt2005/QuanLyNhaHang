@@ -30,9 +30,17 @@ function normalizeCart(value: TakeawayCart): TakeawayCart {
   return normalized
 }
 
+function removeLegacyPersistentCart() {
+  // Giỏ mang về trước đây được lưu ở localStorage nên có thể tồn tại sau khi
+  // người dùng đóng tab/trình duyệt rồi mở lại. Giỏ giờ chỉ thuộc phiên tab
+  // hiện tại, giống Customer session, nên xóa dữ liệu cũ ngay khi bản mới chạy.
+  localStorage.removeItem(CART_KEY)
+}
+
 export function readTakeawayCart(): TakeawayCart {
+  removeLegacyPersistentCart()
   try {
-    const value = JSON.parse(localStorage.getItem(CART_KEY) || '{}') as TakeawayCart
+    const value = JSON.parse(sessionStorage.getItem(CART_KEY) || '{}') as TakeawayCart
     return normalizeCart(value)
   } catch {
     return {}
@@ -41,7 +49,8 @@ export function readTakeawayCart(): TakeawayCart {
 
 function save(cart: TakeawayCart) {
   const normalized = normalizeCart(cart)
-  localStorage.setItem(CART_KEY, JSON.stringify(normalized))
+  removeLegacyPersistentCart()
+  sessionStorage.setItem(CART_KEY, JSON.stringify(normalized))
   window.dispatchEvent(new CustomEvent(TAKEAWAY_CART_EVENT))
   return normalized
 }
@@ -91,7 +100,8 @@ export function setTakeawayItemQuantity(menuItemId: string, quantity: number) {
 }
 
 export function clearTakeawayCart() {
-  localStorage.removeItem(CART_KEY)
+  sessionStorage.removeItem(CART_KEY)
+  removeLegacyPersistentCart()
   window.dispatchEvent(new CustomEvent(TAKEAWAY_CART_EVENT))
 }
 

@@ -73,9 +73,10 @@ export function CustomerSessionProvider({
     if (!nextSession) return
 
     setSessionMessage('')
-    const returnPath = localStorage.getItem('customerReturnPath')
+    localStorage.removeItem('customerReturnPath')
+    const returnPath = sessionStorage.getItem('customerReturnPath')
     if (returnPath) {
-      localStorage.removeItem('customerReturnPath')
+      sessionStorage.removeItem('customerReturnPath')
       navigate(returnPath)
     } else if (pathname === '/login') {
       navigate('/orders')
