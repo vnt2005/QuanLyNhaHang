@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Notifications;
 using QuanLyNhaHang.Application.Features.Notifications.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -25,35 +26,33 @@ public class UpdateKitchenOrderItemStatusCommandHandler
         CancellationToken cancellationToken)
     {
         var orderItem = await _context.OrderItems
-            .FirstOrDefaultAsync(x => x.Id == request.OrderItemId, cancellationToken);
-
-        if (orderItem == null)
-            throw new Exception("Không tìm thấy món trong đơn hàng.");
+            .FirstOrDefaultAsync(x => x.Id == request.OrderItemId, cancellationToken)
+            ?? throw new Exception("Không tìm thấy món trong đơn hàng.");
 
         var order = await _context.Orders
-            .FirstOrDefaultAsync(x => x.Id == orderItem.OrderId, cancellationToken);
-
-        if (order == null)
-            throw new Exception("Không tìm thấy đơn hàng của món.");
+            .FirstOrDefaultAsync(x => x.Id == orderItem.OrderId, cancellationToken)
+            ?? throw new Exception("Không tìm thấy đơn hàng của món.");
 
         if (order.Status == "Cancelled")
             throw new InvalidOperationException("Không thể cập nhật bếp cho đơn đã hủy.");
-
         if (order.Status == "Completed")
             throw new InvalidOperationException("Không thể cập nhật bếp cho đơn đã hoàn tất.");
 
         var orderItems = await _context.OrderItems
             .Where(x => x.OrderId == orderItem.OrderId)
             .ToListAsync(cancellationToken);
+        var isPaid = await HasPaidPaymentAsync(order.Id, cancellationToken);
 
-        if (request.Status == "Served" && order.OrderType == "Takeaway")
+        if (request.Status == "Cancelled" && isPaid)
         {
-            var paid = await HasPaidPaymentAsync(order.Id, cancellationToken);
-            if (!paid)
-            {
-                throw new InvalidOperationException(
-                    "Đơn mang về chưa thanh toán. Sau khi bếp hoàn thành, khách có 5 phút để thanh toán trước khi nhận món.");
-            }
+            throw new InvalidOperationException(
+                "Đơn hàng đã thanh toán. Không thể hủy món trong bếp vì sẽ làm lệch số tiền đã thu, hóa đơn và báo cáo doanh thu.");
+        }
+
+        if (request.Status == "Served" && order.OrderType == "Takeaway" && !isPaid)
+        {
+            throw new InvalidOperationException(
+                "Đơn mang về chưa thanh toán. Sau khi bếp hoàn thành, khách có 5 phút để thanh toán trước khi nhận món.");
         }
 
         var previousOrderStatus = order.Status;
@@ -70,8 +69,6 @@ public class UpdateKitchenOrderItemStatusCommandHandler
         }
 
         SynchronizeOrderStatus(order, orderItems);
-
-        var isPaid = await HasPaidPaymentAsync(order.Id, cancellationToken);
         var effectiveStatus = order.Status;
 
         if (order.OrderType == "Takeaway" &&
@@ -93,30 +90,56 @@ public class UpdateKitchenOrderItemStatusCommandHandler
             }
         }
 
-        Notification? customerNotification = null;
+        var notifications = new List<Notification>();
         if (order.CustomerUserId.HasValue && effectiveStatus != previousOrderStatus)
         {
             var (title, message, severity) = CustomerStatusNotification(
                 order,
                 effectiveStatus,
                 isPaid);
-            customerNotification = new Notification(
+            notifications.Add(new Notification(
                 order.CustomerUserId.Value,
                 $"Order.{effectiveStatus}",
                 title,
                 message,
                 severity,
                 "/orders",
-                order.Id);
-            await _context.Notifications.AddAsync(customerNotification, cancellationToken);
+                order.Id));
         }
+
+        if (order.OrderType == "Takeaway" &&
+            effectiveStatus == "Ready" &&
+            !isPaid &&
+            previousOrderStatus != "Ready")
+        {
+            var adminUserIds = await _context.Users
+                .AsNoTracking()
+                .Where(user =>
+                    user.IsActive &&
+                    user.IsEmailVerified &&
+                    AdminNotificationAudience.OrderAndReservationRoles.Contains(user.Role))
+                .Select(user => user.Id)
+                .ToListAsync(cancellationToken);
+
+            notifications.AddRange(adminUserIds.Select(userId => new Notification(
+                userId,
+                "Payment.ReadyForPayment",
+                "Đơn mang về đã nấu xong - chờ thanh toán",
+                $"Đơn {order.OrderCode} đã Ready nhưng chưa thanh toán. Khách còn 5 phút để thanh toán trước khi hệ thống tự hủy.",
+                "warning",
+                "Thanh toán",
+                order.Id)));
+        }
+
+        if (notifications.Count > 0)
+            await _context.Notifications.AddRangeAsync(notifications, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        if (customerNotification is not null)
+        if (notifications.Count > 0)
         {
             await _notificationPublisher.PublishAsync(
-                [NotificationDto.FromEntity(customerNotification)],
+                notifications.Select(NotificationDto.FromEntity).ToArray(),
                 cancellationToken);
         }
 
