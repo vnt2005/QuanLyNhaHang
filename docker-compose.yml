@@ -92,11 +92,15 @@ services:
       api:
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/health/live || exit 1"]
+      # Gateway health must only prove that Nginx itself is alive. The selected
+      # backend can legitimately switch between Visual Studio and Docker during
+      # local development, so backend readiness must not make Compose mark the
+      # gateway unhealthy.
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/gateway-health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 10s
+      start_period: 5s
     restart: unless-stopped
 
   admin-web:
