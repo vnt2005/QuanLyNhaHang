@@ -40,6 +40,16 @@ public class UpdateKitchenOrderItemStatusCommandHandler
             .Where(x => x.OrderId == orderItem.OrderId)
             .ToListAsync(cancellationToken);
 
+        if (request.Status == "Served" && order.OrderType == "Takeaway")
+        {
+            var paid = await HasPaidPaymentAsync(order.Id, cancellationToken);
+            if (!paid)
+            {
+                throw new InvalidOperationException(
+                    "Đơn mang về chưa thanh toán. Sau khi bếp hoàn thành, khách có 5 phút để thanh toán trước khi nhận món.");
+            }
+        }
+
         var previousOrderStatus = order.Status;
         orderItem.UpdateNote(request.Note);
 
@@ -55,10 +65,13 @@ public class UpdateKitchenOrderItemStatusCommandHandler
 
         SynchronizeOrderStatus(order, orderItems);
 
+        var isPaid = order.Status == "Ready" &&
+                     await HasPaidPaymentAsync(order.Id, cancellationToken);
+
         Notification? customerNotification = null;
         if (order.CustomerUserId.HasValue && order.Status != previousOrderStatus)
         {
-            var (title, message, severity) = CustomerStatusNotification(order);
+            var (title, message, severity) = CustomerStatusNotification(order, isPaid);
             customerNotification = new Notification(
                 order.CustomerUserId.Value,
                 $"Order.{order.Status}",
@@ -81,6 +94,15 @@ public class UpdateKitchenOrderItemStatusCommandHandler
 
         return true;
     }
+
+    private Task<bool> HasPaidPaymentAsync(
+        Guid orderId,
+        CancellationToken cancellationToken)
+        => _context.Payments
+            .AsNoTracking()
+            .AnyAsync(
+                payment => payment.OrderId == orderId && payment.Status == "Paid",
+                cancellationToken);
 
     private static void SynchronizeOrderStatus(
         Order order,
@@ -116,12 +138,16 @@ public class UpdateKitchenOrderItemStatusCommandHandler
     }
 
     private static (string Title, string Message, string Severity)
-        CustomerStatusNotification(Order order)
+        CustomerStatusNotification(Order order, bool isPaid)
     {
         var takeaway = order.OrderType == "Takeaway";
         return order.Status switch
         {
             "Cooking" => ("Bếp đang chuẩn bị món", $"Các món trong đơn {order.OrderCode} đang được chế biến.", "info"),
+            "Ready" when takeaway && !isPaid => (
+                "Đơn mang về đã sẵn sàng - còn 5 phút thanh toán",
+                $"Đơn {order.OrderCode} đã nấu xong. Vui lòng thanh toán trong 5 phút; quá thời hạn hệ thống sẽ tự động hủy đơn.",
+                "warning"),
             "Ready" => (takeaway ? "Đơn mang về đã sẵn sàng" : "Món đã sẵn sàng", takeaway ? $"Đơn {order.OrderCode} đã sẵn sàng để bạn đến nhận." : $"Các món trong đơn {order.OrderCode} đã sẵn sàng phục vụ.", "success"),
             "Served" => (takeaway ? "Đơn mang về đã được giao" : "Đơn đã được phục vụ", takeaway ? $"Đơn {order.OrderCode} đã được giao cho khách." : $"Đơn {order.OrderCode} đã được phục vụ. Chúc bạn ngon miệng!", "success"),
             "Cancelled" => ("Đơn đã bị hủy", $"Đơn {order.OrderCode} đã bị hủy. Vui lòng liên hệ nhà hàng nếu bạn cần hỗ trợ.", "warning"),
