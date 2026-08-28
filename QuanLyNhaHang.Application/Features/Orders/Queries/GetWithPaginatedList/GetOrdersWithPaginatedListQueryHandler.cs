@@ -89,6 +89,8 @@ public class GetOrdersWithPaginatedListQueryHandler
                 OrderCode = x.Order.OrderCode,
                 Status = x.Order.Status,
                 TotalAmount = x.Order.TotalAmount,
+                IsPaid = _context.Payments.Any(payment =>
+                    payment.OrderId == x.Order.Id && payment.Status == "Paid"),
                 Note = x.Order.Note,
                 IsActive = x.Order.IsActive,
                 CreatedAt = x.Order.CreatedAt,
