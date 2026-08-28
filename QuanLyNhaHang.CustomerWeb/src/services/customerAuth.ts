@@ -157,8 +157,12 @@ export function clearCustomerSession() {
 
 function clearCustomerLogoutState() {
   clearTakeawayCart()
+  sessionStorage.removeItem('customerLastQrToken')
+  sessionStorage.removeItem('customerReturnPath')
+  sessionStorage.removeItem('customerPaymentAttemptAccess')
   localStorage.removeItem('customerLastQrToken')
   localStorage.removeItem('customerReturnPath')
+  localStorage.removeItem('customerPaymentAttemptAccess')
 }
 
 function clearCustomerSessionIfCurrent(refreshToken: string) {
