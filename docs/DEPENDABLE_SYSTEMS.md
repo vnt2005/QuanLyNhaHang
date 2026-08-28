@@ -1,4 +1,4 @@
-# Chương 10 – Dependable Systems
+﻿# Chương 10 – Dependable Systems
 
 Tài liệu này đối chiếu hệ thống **QuanLyNhaHang** với Chương 10 –
 *Dependable systems* trong *Software Engineering, 10th Edition* của Ian
@@ -20,7 +20,7 @@ Trước nhánh `agent/chapter-10-dependability`, dự án đã có nền tảng
 - Clean Architecture, CQRS và phân tách dependency rõ ràng;
 - JWT, phiên đăng nhập có thể thu hồi, RBAC/permission, CORS và rate limit;
 - Activity Log cho thao tác nghiệp vụ;
-- unit test, integration test, Playwright E2E, Docker smoke test và CI;
+- unit test, integration test, kiểm thử E2E trình duyệt, Docker smoke test và CI;
 - SQL Server dùng volume bền vững;
 - endpoint `/health` kiểm tra tiến trình API.
 
@@ -85,7 +85,7 @@ Các biện pháp hiện có:
 - validation và domain guard trong command handler/entity;
 - transaction của EF Core cho mỗi lần `SaveChanges` và transaction behavior ở
   các luồng được thiết kế;
-- unit test, integration test và Playwright;
+- unit test, integration test và kiểm thử E2E;
 - CI build backend, chạy test, build Docker image và smoke test;
 - Activity Log hỗ trợ truy vết thay đổi quan trọng.
 
@@ -155,7 +155,7 @@ phải SLA thương mại và phải được đánh giá lại trước khi pro
 | DEP-REL-003 | Command nhiều bước không được để lại dữ liệu nửa hoàn thành | Transaction và integration test lỗi giữa chừng |
 | DEP-DATA-001 | Tổng tiền đơn/hóa đơn phải khớp với món, giảm giá và VAT theo quy tắc hệ thống | Unit/integration test |
 | DEP-DATA-002 | Tồn kho không được âm và mọi biến động phải có lịch sử transaction | Domain/database constraint và integration test |
-| DEP-PRO-001 | Mọi thay đổi phải build và qua unit/integration test; thay đổi UI quan trọng phải qua Playwright | GitHub Actions |
+| DEP-PRO-001 | Mọi thay đổi phải build và qua unit/integration test; thay đổi UI quan trọng phải qua kiểm thử E2E | GitHub Actions |
 | DEP-SEC-001 | Tài khoản inactive/chưa verify hoặc session bị thu hồi không được xác thực | Integration test auth/session |
 | DEP-AUD-001 | Command nghiệp vụ quan trọng phải để lại Activity Log không chứa secret | ActivityLog behavior và test |
 
@@ -354,7 +354,7 @@ Dự án không chỉ dựa vào một loại test:
 
 - unit test kiểm tra domain/handler độc lập;
 - integration test kiểm tra API, auth, persistence và workflow;
-- Playwright kiểm tra trình duyệt, JavaScript, request và bố cục thật;
+- Kiểm thử E2E kiểm tra trình duyệt, JavaScript, request và bố cục thật;
 - Docker smoke test kiểm tra image đã publish;
 - code review và kiểm tra thủ công bổ sung góc nhìn khác với test tự động.
 
@@ -396,7 +396,7 @@ Tạo branch
 - migration được kiểm tra khi có thay đổi schema;
 - không có secret hoặc file cấu hình local bị commit;
 - thay đổi nghiệp vụ có test cho happy path và failure path;
-- thay đổi UI quan trọng có Playwright hoặc kiểm tra trình duyệt tương ứng;
+- thay đổi UI quan trọng có kiểm tra E2E hoặc kiểm tra trình duyệt tương ứng;
 - tài liệu vận hành được cập nhật nếu thay đổi health, backup, deploy hoặc
   dependency bên ngoài;
 - không merge khi CI còn đỏ.
@@ -544,3 +544,4 @@ health check, error handling an toàn, backup/restore, test đa dạng, CI, Acti
 Log, invariant nghiệp vụ và runbook. Các cơ chế phức tạp như retry tự động chỉ
 được đưa vào khi đã có idempotency và Outbox để tránh chính cơ chế phục hồi tạo
 ra lỗi lặp nghiệp vụ.
+
