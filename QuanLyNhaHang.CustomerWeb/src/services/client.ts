@@ -9,6 +9,7 @@ const recentIdempotencyKeys = new Map<
   string,
   { key: string; expiresAt: number }
 >()
+const inFlightGetRequests = new Map<string, Promise<unknown>>()
 
 function createRequestId() {
   return globalThis.crypto?.randomUUID?.()
@@ -42,6 +43,27 @@ function getIdempotencyKey(path: string, init?: RequestInit) {
     expiresAt: now + IDEMPOTENCY_REUSE_MS,
   })
   return key
+}
+
+function getRequestDedupeKey(
+  path: string,
+  init?: RequestInit,
+  accessToken?: string | null,
+) {
+  if ((init?.method ?? 'GET').toUpperCase() !== 'GET' || init?.signal) {
+    return null
+  }
+
+  const headers = Array.from(new Headers(init?.headers).entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+
+  return JSON.stringify([
+    path,
+    accessToken ?? '',
+    init?.credentials ?? '',
+    init?.cache ?? '',
+    headers,
+  ])
 }
 
 type ApiProblem = {
@@ -79,7 +101,7 @@ function errorMessage(body: unknown, status: number) {
   return 'Không thể kết nối tới hệ thống nhà hàng.'
 }
 
-export async function apiRequest<T>(
+async function executeRequest<T>(
   path: string,
   init?: RequestInit,
   accessToken?: string | null,
@@ -100,4 +122,27 @@ export async function apiRequest<T>(
     throw new ApiError(errorMessage(body, response.status), response.status)
   }
   return body as T
+}
+
+export async function apiRequest<T>(
+  path: string,
+  init?: RequestInit,
+  accessToken?: string | null,
+) {
+  const dedupeKey = getRequestDedupeKey(path, init, accessToken)
+  if (!dedupeKey) return executeRequest<T>(path, init, accessToken)
+
+  const existing = inFlightGetRequests.get(dedupeKey)
+  if (existing) return existing as Promise<T>
+
+  const request = executeRequest<T>(path, init, accessToken)
+  inFlightGetRequests.set(dedupeKey, request)
+
+  try {
+    return await request
+  } finally {
+    if (inFlightGetRequests.get(dedupeKey) === request) {
+      inFlightGetRequests.delete(dedupeKey)
+    }
+  }
 }
