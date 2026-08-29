@@ -18,6 +18,7 @@ export function useVisiblePolling(
 
     let disposed = false
     let running = false
+    let interval: number | undefined
 
     const run = async () => {
       if (
@@ -36,23 +37,49 @@ export function useVisiblePolling(
       }
     }
 
+    const stopInterval = () => {
+      if (interval === undefined) return
+      window.clearInterval(interval)
+      interval = undefined
+    }
+
+    const startInterval = () => {
+      if (
+        disposed ||
+        interval !== undefined ||
+        document.visibilityState !== 'visible'
+      ) {
+        return
+      }
+
+      interval = window.setInterval(() => void run(), intervalMs)
+    }
+
     const resume = () => {
+      if (document.visibilityState !== 'visible') return
+      startInterval()
+      void run()
+    }
+
+    const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        void run()
+        resume()
+      } else {
+        stopInterval()
       }
     }
 
-    const interval = window.setInterval(() => void run(), intervalMs)
+    startInterval()
     window.addEventListener('focus', resume)
     window.addEventListener('online', resume)
-    document.addEventListener('visibilitychange', resume)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
       disposed = true
-      window.clearInterval(interval)
+      stopInterval()
       window.removeEventListener('focus', resume)
       window.removeEventListener('online', resume)
-      document.removeEventListener('visibilitychange', resume)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [enabled, intervalMs])
 }
