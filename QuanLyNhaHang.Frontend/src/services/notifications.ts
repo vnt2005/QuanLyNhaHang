@@ -32,6 +32,8 @@ type ApiProblem = {
   title?: string
 }
 
+const inFlightGetRequests = new Map<string, Promise<unknown>>()
+
 function objectValue(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object'
     ? value as Record<string, unknown>
@@ -62,8 +64,11 @@ function errorMessage(body: unknown, status: number): string {
   return 'Không thể đồng bộ thông báo. Vui lòng thử lại.'
 }
 
-async function request(path: string, init?: RequestInit): Promise<unknown> {
-  const token = sessionStorage.getItem('accessToken')
+async function executeRequest(
+  path: string,
+  init: RequestInit | undefined,
+  token: string | null,
+): Promise<unknown> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
@@ -74,6 +79,30 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
   const body = await response.json().catch(() => null)
   if (!response.ok) throw new Error(errorMessage(body, response.status))
   return body
+}
+
+async function request(path: string, init?: RequestInit): Promise<unknown> {
+  const token = sessionStorage.getItem('accessToken')
+  const method = (init?.method ?? 'GET').toUpperCase()
+
+  if (method !== 'GET' || init?.signal) {
+    return executeRequest(path, init, token)
+  }
+
+  const dedupeKey = `${token ?? ''}\n${path}`
+  const existing = inFlightGetRequests.get(dedupeKey)
+  if (existing) return existing
+
+  const current = executeRequest(path, init, token)
+  inFlightGetRequests.set(dedupeKey, current)
+
+  try {
+    return await current
+  } finally {
+    if (inFlightGetRequests.get(dedupeKey) === current) {
+      inFlightGetRequests.delete(dedupeKey)
+    }
+  }
 }
 
 export function normalizeNotification(
