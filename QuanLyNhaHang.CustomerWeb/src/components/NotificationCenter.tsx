@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import type { CustomerSession } from '../services/customerAuth'
 import { ApiError } from '../services/client'
 import {
@@ -142,6 +143,15 @@ export default function NotificationCenter({
     }
   }, [emitOrderChanged])
 
+  const reconcile = useCallback(async () => {
+    try {
+      const feed = await requestWithRefresh(getCustomerNotificationFeed)
+      applyFeed(feed)
+    } catch {
+      // Keep the current feed and retry on the next visible resume/tick.
+    }
+  }, [applyFeed, requestWithRefresh])
+
   useEffect(() => {
     let active = true
     setLoading(true)
@@ -228,35 +238,7 @@ export default function NotificationCenter({
     session.userId,
   ])
 
-  useEffect(() => {
-    let active = true
-
-    const reconcile = async () => {
-      try {
-        const feed = await requestWithRefresh(getCustomerNotificationFeed)
-        if (active) applyFeed(feed)
-      } catch {
-        // Keep the current feed and retry on the next resume/tick.
-      }
-    }
-
-    const reconcileWhenVisible = () => {
-      if (document.visibilityState === 'visible') void reconcile()
-    }
-
-    const interval = window.setInterval(() => void reconcile(), 30_000)
-    window.addEventListener('focus', reconcileWhenVisible)
-    window.addEventListener('online', reconcileWhenVisible)
-    document.addEventListener('visibilitychange', reconcileWhenVisible)
-
-    return () => {
-      active = false
-      window.clearInterval(interval)
-      window.removeEventListener('focus', reconcileWhenVisible)
-      window.removeEventListener('online', reconcileWhenVisible)
-      document.removeEventListener('visibilitychange', reconcileWhenVisible)
-    }
-  }, [applyFeed, requestWithRefresh])
+  useVisiblePolling(reconcile, 30_000)
 
   useEffect(() => {
     if (!open) return
