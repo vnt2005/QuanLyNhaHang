@@ -32,6 +32,8 @@ export type KitchenOrder = {
 
 type ApiMessage = { success?: boolean; message?: string }
 
+const inFlightGetRequests = new Map<string, Promise<unknown>>()
+
 function getErrorMessage(body: unknown): string {
   if (!body || typeof body !== 'object') return 'Yêu cầu không thành công.'
   const value = body as { message?: string; title?: string; errors?: Record<string, string[]> }
@@ -43,8 +45,11 @@ function getErrorMessage(body: unknown): string {
   return value.title ?? 'Yêu cầu không thành công.'
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = sessionStorage.getItem('accessToken')
+async function executeRequest<T>(
+  path: string,
+  init: RequestInit | undefined,
+  token: string | null,
+): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
@@ -57,6 +62,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const body = await response.json().catch(() => null)
   if (!response.ok) throw new Error(getErrorMessage(body))
   return body as T
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = sessionStorage.getItem('accessToken')
+  const method = (init?.method ?? 'GET').toUpperCase()
+
+  if (method !== 'GET' || init?.signal) {
+    return executeRequest<T>(path, init, token)
+  }
+
+  const dedupeKey = `${token ?? ''}\n${path}`
+  const existing = inFlightGetRequests.get(dedupeKey)
+  if (existing) return existing as Promise<T>
+
+  const current = executeRequest<T>(path, init, token)
+  inFlightGetRequests.set(dedupeKey, current)
+
+  try {
+    return await current
+  } finally {
+    if (inFlightGetRequests.get(dedupeKey) === current) {
+      inFlightGetRequests.delete(dedupeKey)
+    }
+  }
 }
 
 export function getKitchenOrders() {

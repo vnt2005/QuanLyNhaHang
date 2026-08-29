@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import {
   ADMIN_NOTIFICATION_EVENT,
   getNotificationFeed,
@@ -94,6 +95,18 @@ export default function NotificationCenter({
     setItems(feed.items)
     setUnreadCount(feed.unreadCount)
   }, [])
+
+  const reconcile = useCallback(async () => {
+    try {
+      const feed = await getNotificationFeed({
+        limit: MAX_VISIBLE_NOTIFICATIONS,
+        unreadOnly: unreadOnlyRef.current,
+      })
+      applyFeed(feed)
+    } catch {
+      // SignalR keeps delivering when available; retry on the next visible tick.
+    }
+  }, [applyFeed])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -217,38 +230,7 @@ export default function NotificationCenter({
     }
   }, [applyFeed])
 
-  useEffect(() => {
-    let disposed = false
-
-    const reconcile = async () => {
-      try {
-        const feed = await getNotificationFeed({
-          limit: MAX_VISIBLE_NOTIFICATIONS,
-          unreadOnly: unreadOnlyRef.current,
-        })
-        if (!disposed) applyFeed(feed)
-      } catch {
-        // SignalR keeps delivering when available; retry on the next resume/tick.
-      }
-    }
-
-    const reconcileWhenVisible = () => {
-      if (document.visibilityState === 'visible') void reconcile()
-    }
-
-    const interval = window.setInterval(() => void reconcile(), 30_000)
-    window.addEventListener('focus', reconcileWhenVisible)
-    window.addEventListener('online', reconcileWhenVisible)
-    document.addEventListener('visibilitychange', reconcileWhenVisible)
-
-    return () => {
-      disposed = true
-      window.clearInterval(interval)
-      window.removeEventListener('focus', reconcileWhenVisible)
-      window.removeEventListener('online', reconcileWhenVisible)
-      document.removeEventListener('visibilitychange', reconcileWhenVisible)
-    }
-  }, [applyFeed])
+  useVisiblePolling(reconcile, 30_000)
 
   useEffect(() => {
     if (!open) return

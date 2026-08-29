@@ -179,8 +179,8 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
                 >
                   <div className="menu-card-media">
                     {item.imageUrl
-                      ? <img src={item.imageUrl} alt={item.name} />
-                      : <img className={`fallback-crop crop-${index % 3 + 1}`} src={heroImage} alt={item.name} />}
+                      ? <img src={item.imageUrl} alt={item.name} loading="lazy" decoding="async" />
+                      : <img className={`fallback-crop crop-${index % 3 + 1}`} src={heroImage} alt={item.name} loading="lazy" decoding="async" />}
                     <span className={item.isAvailable ? 'menu-card-availability available' : 'menu-card-availability unavailable'}>{item.isAvailable ? 'Còn món' : 'Tạm hết'}</span>
                   </div>
                   <div className="menu-card-body">

@@ -39,6 +39,8 @@ function DishCard({ item, index, currencyCode }: { item: PublicMenuItem; index: 
           src={item.imageUrl || heroImage}
           className={`fallback-crop crop-${index + 1}`}
           alt={item.name}
+          loading="lazy"
+          decoding="async"
         />
       </div>
       <div>
@@ -110,7 +112,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
     <main className="home-page">
       <section className="home-hero home-premium-hero">
         <div className="home-premium-media" aria-hidden="true">
-          <img src={reservationImage} alt="" />
+          <img src={reservationImage} alt="" fetchPriority="high" decoding="async" />
         </div>
         <div className="home-premium-shell">
           <div className="home-hero-copy home-premium-copy">

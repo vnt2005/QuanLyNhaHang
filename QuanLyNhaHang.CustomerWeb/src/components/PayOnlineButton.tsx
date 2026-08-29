@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock3, QrCode } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import {
   createCustomerPaymentQr,
   getCustomerPaymentStatus,
@@ -29,48 +30,62 @@ export default function PayOnlineButton({
   const [error, setError] = useState('')
   const payingRef = useRef(false)
 
+  async function refreshStatus(showChecking = false) {
+    if (showChecking) setChecking(true)
+
+    try {
+      const status = await getCustomerPaymentStatus(orderId, qrToken, accessToken)
+      setPaid(status.paid)
+      setCanPay(status.canPay)
+      setOrderStatus(status.orderStatus)
+      setUnavailableReason(status.paymentUnavailableReason || '')
+      setError('')
+    } catch (exception) {
+      setCanPay(false)
+      setUnavailableReason('')
+      setError(exception instanceof Error
+        ? exception.message
+        : 'Không kiểm tra được trạng thái thanh toán.')
+    } finally {
+      if (showChecking) setChecking(false)
+    }
+  }
+
   useEffect(() => {
     let active = true
-    let initialCheck = true
-    let timer: number | undefined
 
-    async function refreshStatus() {
-      if (initialCheck) setChecking(true)
-
-      try {
-        const status = await getCustomerPaymentStatus(orderId, qrToken, accessToken)
+    setChecking(true)
+    void getCustomerPaymentStatus(orderId, qrToken, accessToken)
+      .then(status => {
         if (!active) return
-
         setPaid(status.paid)
         setCanPay(status.canPay)
         setOrderStatus(status.orderStatus)
         setUnavailableReason(status.paymentUnavailableReason || '')
         setError('')
-
-        if (status.paid || terminalOrderStatuses.has(status.orderStatus)) {
-          if (timer !== undefined) window.clearInterval(timer)
-        }
-      } catch (exception) {
+      })
+      .catch(exception => {
         if (!active) return
         setCanPay(false)
         setUnavailableReason('')
         setError(exception instanceof Error
           ? exception.message
           : 'Không kiểm tra được trạng thái thanh toán.')
-      } finally {
-        if (active && initialCheck) setChecking(false)
-        initialCheck = false
-      }
-    }
-
-    void refreshStatus()
-    timer = window.setInterval(() => void refreshStatus(), 10_000)
+      })
+      .finally(() => {
+        if (active) setChecking(false)
+      })
 
     return () => {
       active = false
-      if (timer !== undefined) window.clearInterval(timer)
     }
   }, [accessToken, orderId, qrToken])
+
+  useVisiblePolling(
+    () => refreshStatus(false),
+    10_000,
+    !paid && !terminalOrderStatuses.has(orderStatus),
+  )
 
   async function pay() {
     if (payingRef.current || checking || loading || paid || !canPay) return

@@ -11,6 +11,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import type { CustomerSession } from '../services/customerAuth'
 import { cancelCustomerOrder, claimCustomerOrder, type CustomerOrder } from '../services/customerOrders'
 import { CUSTOMER_ORDER_CHANGED_EVENT } from '../services/notifications'
@@ -154,11 +155,11 @@ export default function QrOrderPage({
     void claimCustomerOrder(token, currentOrder.id).catch(() => undefined)
   }, [currentOrder?.id, session?.userId, token])
 
-  useEffect(() => {
-    if (!currentOrder || terminalStatuses.has(currentOrder.status)) return
-    const timer = window.setInterval(() => void refreshOrder(), 10_000)
-    return () => window.clearInterval(timer)
-  }, [currentOrder?.id, currentOrder?.status, token])
+  useVisiblePolling(
+    () => refreshOrder(),
+    10_000,
+    Boolean(currentOrder && !terminalStatuses.has(currentOrder.status)),
+  )
 
   useEffect(() => {
     if (!currentOrder) return
@@ -166,6 +167,7 @@ export default function QrOrderPage({
     const refreshFromNotification = (event: Event) => {
       const detail = (event as CustomEvent<{ orderId?: string }>).detail
       if (detail?.orderId !== currentOrder.id) return
+      if (document.visibilityState !== 'visible') return
 
       void getQrOrder(token, currentOrder.id)
         .then(setCurrentOrder)

@@ -1,4 +1,5 @@
 import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
+import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import { confirmAction } from '../components/ConfirmDialog'
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -88,9 +89,9 @@ export default function KitchenPage() {
 
   useEffect(() => {
     void loadData()
-    const timer = window.setInterval(() => void loadData(true), 15000)
-    return () => window.clearInterval(timer)
   }, [])
+
+  useVisiblePolling(() => loadData(true), 15_000)
 
   useEffect(() => {
     const refreshKitchen = (event: Event) => {
@@ -98,6 +99,7 @@ export default function KitchenPage() {
       if (!notification ||
           (!notification.type.startsWith('Order.') &&
            !notification.type.startsWith('Payment.'))) return
+      if (document.visibilityState !== 'visible') return
       void loadData(true)
     }
 
