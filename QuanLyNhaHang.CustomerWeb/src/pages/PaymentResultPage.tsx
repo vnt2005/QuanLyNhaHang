@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle2, Clock3, RefreshCw, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import type { CustomerSession } from '../services/customerAuth'
 import {
   cancelCustomerPaymentAttempt,
@@ -69,15 +70,11 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
   const pending = !paid && !requiresReview && !cancelled && !expired && !failed
   const channelUnavailable = pending && status?.paymentChannelReady === false
 
-  useEffect(() => {
-    if (!orderId || !pending || !status) return
-
-    const timer = window.setInterval(() => {
-      void loadStatus(false)
-    }, 3000)
-
-    return () => window.clearInterval(timer)
-  }, [orderId, pending, status?.attemptId, session?.token])
+  useVisiblePolling(
+    () => loadStatus(false),
+    3000,
+    Boolean(orderId && pending && status),
+  )
 
   async function cancelPayment() {
     const attemptId = status?.attemptId || requestedAttemptId
