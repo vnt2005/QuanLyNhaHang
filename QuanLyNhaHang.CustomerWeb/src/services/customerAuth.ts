@@ -52,6 +52,13 @@ export type RegisterCustomerInput = {
 
 let refreshRequest: Promise<CustomerSession> | null = null
 
+class CustomerSessionValidationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'CustomerSessionValidationError'
+  }
+}
+
 export class CustomerSessionRefreshSupersededError extends Error {
   constructor() {
     super('Phiên làm mới đã được thay thế bởi lần đăng nhập mới.')
@@ -74,7 +81,7 @@ async function rejectEmployeeSession(result: CustomerAuthResult) {
       body: JSON.stringify({ refreshToken: result.refreshToken }),
     }).catch(() => undefined)
   }
-  throw new Error('Website này chỉ dành cho tài khoản khách hàng.')
+  throw new CustomerSessionValidationError('Website này chỉ dành cho tài khoản khách hàng.')
 }
 
 function saveSession(session: CustomerSession) {
@@ -102,7 +109,7 @@ function toSession(result: CustomerAuthResult) {
     || !result.token
     || !result.refreshToken
   ) {
-    throw new Error('Máy chủ không trả về phiên khách hàng hợp lệ.')
+    throw new CustomerSessionValidationError('Máy chủ không trả về phiên khách hàng hợp lệ.')
   }
 
   const session: CustomerSession = {
@@ -168,6 +175,11 @@ function clearCustomerLogoutState() {
 function clearCustomerSessionIfCurrent(refreshToken: string) {
   if (storedRefreshToken() !== refreshToken) return
   clearCustomerSession()
+}
+
+function shouldClearSessionAfterRefreshError(error: unknown) {
+  if (error instanceof CustomerSessionValidationError) return true
+  return error instanceof ApiError && [400, 401, 403].includes(error.status)
 }
 
 export async function loginCustomer(email: string, password: string) {
@@ -301,7 +313,9 @@ export function restoreCustomerSession() {
           ? error
           : new CustomerSessionRefreshSupersededError()
       }
-      clearCustomerSessionIfCurrent(refreshToken)
+      if (shouldClearSessionAfterRefreshError(error)) {
+        clearCustomerSessionIfCurrent(refreshToken)
+      }
       throw error
     })
     .finally(() => {
