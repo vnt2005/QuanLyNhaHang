@@ -1,4 +1,5 @@
 import { AlertTriangle, LoaderCircle, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function StatusPanel({
   kind,
@@ -12,17 +13,15 @@ export default function StatusPanel({
   onRetry?: () => void
 }) {
   return (
-    <section className={`status-panel ${kind}`} role={kind === 'error' ? 'alert' : 'status'}>
-      {kind === 'loading' ? <LoaderCircle className="spin" /> : <AlertTriangle />}
+    <section className="sera-empty" role={kind === 'error' ? 'alert' : 'status'}>
       <div>
+        {kind === 'loading'
+          ? <LoaderCircle className="mx-auto animate-spin" />
+          : <AlertTriangle className={kind === 'error' ? 'mx-auto text-destructive' : 'mx-auto'} />}
         <h2>{title}</h2>
         <p>{message}</p>
+        {onRetry ? <Button variant="outline" type="button" onClick={onRetry}><RefreshCw /> Thử lại</Button> : null}
       </div>
-      {onRetry ? (
-        <button type="button" onClick={onRetry}>
-          <RefreshCw /> Thử lại
-        </button>
-      ) : null}
     </section>
   )
 }
