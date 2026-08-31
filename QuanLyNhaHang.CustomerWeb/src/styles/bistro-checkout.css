@@ -1,0 +1,96 @@
+.bistro-checkout-page { width: min(1220px, calc(100% - 40px)); margin: 0 auto; padding: 58px 0 92px; }
+.bistro-checkout-heading { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 36px; align-items: end; margin-bottom: 28px; }
+.bistro-checkout-heading > div:first-child > span { display: block; margin: 14px 0 8px; color: var(--primary); font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+.bistro-checkout-heading h1 { margin: 0; font-family: 'Playfair Display Variable', serif; font-size: clamp(48px, 5vw, 72px); line-height: .95; letter-spacing: -.04em; }
+.bistro-checkout-steps { display: flex; align-items: center; gap: 10px; }
+.bistro-checkout-steps > div { min-width: 104px; padding: 12px; display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 16px; color: var(--muted-foreground); background: var(--card); }
+.bistro-checkout-steps b { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--muted); font-size: 11px; }
+.bistro-checkout-steps span { font-size: 10px; font-weight: 700; line-height: 1.3; }
+.bistro-checkout-steps .done, .bistro-checkout-steps .active { color: var(--foreground); border-color: color-mix(in oklch, var(--primary), transparent 45%); }
+.bistro-checkout-steps .done b, .bistro-checkout-steps .active b { background: var(--primary); color: var(--primary-foreground); }
+.bistro-checkout-login { width: 100%; margin-bottom: 26px; padding: 16px 18px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--card); text-align: left; }
+.bistro-checkout-login > svg { width: 19px; height: 19px; color: var(--primary); }
+.bistro-checkout-login strong, .bistro-checkout-login small { display: block; }
+.bistro-checkout-login strong { font-size: 13px; }
+.bistro-checkout-login small { margin-top: 2px; color: var(--muted-foreground); font-size: 11px; }
+.bistro-checkout-login > span:last-child { color: var(--primary); font-size: 11px; font-weight: 700; }
+.bistro-checkout-empty { min-height: 420px; display: grid; place-items: center; align-content: center; gap: 10px; border: 1px dashed var(--border); border-radius: 28px; text-align: center; }
+.bistro-checkout-empty > svg { width: 38px; height: 38px; color: var(--muted-foreground); }
+.bistro-checkout-empty h2 { margin: 8px 0 0; font-family: 'Playfair Display Variable', serif; font-size: 38px; }
+.bistro-checkout-empty p { margin: 0 0 10px; color: var(--muted-foreground); }
+.bistro-checkout-shell { display: grid; gap: 22px; }
+.bistro-checkout-cart { padding: 20px; border: 1px solid var(--border); border-radius: 28px; background: color-mix(in oklch, var(--card), transparent 15%); }
+.cart-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.cart-toolbar > div { display: flex; align-items: center; gap: 11px; }
+.cart-toolbar svg { width: 19px; height: 19px; color: var(--primary); }
+.cart-toolbar small, .cart-toolbar strong { display: block; }
+.cart-toolbar small { color: var(--muted-foreground); font-size: 10px; }
+.cart-toolbar strong { margin-top: 2px; font-family: 'Playfair Display Variable', serif; font-size: 24px; }
+.cart-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.takeaway-dish-card { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 20px; background: var(--background); }
+.takeaway-dish-card > img { width: 100%; height: 170px; object-fit: cover; }
+.takeaway-dish-card > div:nth-child(2) { padding: 15px 16px 10px; }
+.takeaway-dish-card small { color: var(--primary); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.takeaway-dish-card h2 { margin: 5px 0 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Playfair Display Variable', serif; font-size: 24px; }
+.takeaway-dish-card > div:nth-child(2) > strong { color: var(--muted-foreground); font-size: 11px; font-weight: 600; }
+.takeaway-card-bottom { padding: 10px 14px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.takeaway-qty-control { display: flex; align-items: center; gap: 8px; }
+.takeaway-qty-control > span { min-width: 18px; text-align: center; font-weight: 700; }
+.takeaway-card-bottom > strong { font-size: 13px; }
+.bistro-checkout-details { display: grid; grid-template-columns: .8fr 1.2fr; gap: 18px; }
+.checkout-detail-card { padding: 24px; border: 1px solid var(--border); border-radius: 24px; background: var(--background); }
+.checkout-detail-card > span { color: var(--primary); font-size: 10px; font-weight: 700; letter-spacing: .13em; }
+.checkout-detail-card h2 { margin: 7px 0 20px; font-family: 'Playfair Display Variable', serif; font-size: 30px; }
+.checkout-detail-card label { display: grid; gap: 7px; margin-top: 16px; font-size: 12px; font-weight: 700; }
+.pickup-place { padding: 15px; display: flex; gap: 10px; align-items: flex-start; border-radius: 16px; background: var(--muted); }
+.pickup-place > svg { width: 18px; height: 18px; color: var(--primary); flex: 0 0 auto; }
+.pickup-place strong, .pickup-place small { display: block; }
+.pickup-place strong { font-size: 13px; }
+.pickup-place small { margin-top: 3px; color: var(--muted-foreground); font-size: 11px; }
+.detail-hint { display: block; margin-top: 8px; color: var(--muted-foreground); font-size: 10px; line-height: 1.5; }
+.checkout-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.checkout-field-grid label { margin-top: 0; }
+.bistro-checkout-summary { position: sticky; bottom: 16px; z-index: 20; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid color-mix(in oklch, var(--primary), transparent 68%); border-radius: 22px; background: color-mix(in oklch, var(--background), transparent 4%); box-shadow: 0 18px 48px rgba(59, 28, 17, .13); backdrop-filter: blur(14px); }
+.bistro-checkout-summary > div { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
+.bistro-checkout-summary span { display: grid; gap: 3px; }
+.bistro-checkout-summary small { color: var(--muted-foreground); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.bistro-checkout-summary strong { font-size: 14px; }
+.bistro-checkout-result { width: min(860px, calc(100% - 40px)); margin: 0 auto; padding: 70px 0 96px; }
+.bistro-checkout-result > section { padding: 44px; border: 1px solid var(--border); border-radius: 30px; background: var(--card); text-align: center; }
+.result-symbol { width: 64px; height: 64px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: var(--primary-foreground); }
+.result-symbol.cancelled { background: color-mix(in oklch, var(--destructive), transparent 86%); color: var(--destructive); }
+.result-symbol svg { width: 28px; height: 28px; }
+.bistro-checkout-result > section > span { color: var(--primary); font-size: 10px; font-weight: 700; letter-spacing: .13em; }
+.bistro-checkout-result h1 { margin: 8px 0 10px; font-family: 'Playfair Display Variable', serif; font-size: clamp(42px, 5vw, 62px); line-height: 1; }
+.bistro-checkout-result > section > p { max-width: 650px; margin: 0 auto; color: var(--muted-foreground); line-height: 1.75; }
+.result-payment-panel { margin: 28px 0 0; display: grid; gap: 14px; text-align: left; }
+.result-pickup-fact { padding: 14px 16px; display: flex; gap: 10px; align-items: center; border-radius: 16px; background: var(--background); }
+.result-pickup-fact svg { width: 18px; height: 18px; color: var(--primary); }
+.result-pickup-fact small, .result-pickup-fact strong { display: block; }
+.result-pickup-fact small { color: var(--muted-foreground); font-size: 10px; }
+.result-pickup-fact strong { margin-top: 2px; font-size: 13px; }
+.result-actions { margin-top: 28px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+@media (max-width: 900px) {
+  .bistro-checkout-heading { grid-template-columns: 1fr; align-items: start; }
+  .bistro-checkout-steps { overflow-x: auto; padding-bottom: 4px; }
+  .cart-card-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .bistro-checkout-details { grid-template-columns: 1fr; }
+  .bistro-checkout-summary { align-items: stretch; flex-direction: column; }
+  .bistro-checkout-summary > [data-slot='button'] { width: 100%; }
+}
+
+@media (max-width: 620px) {
+  .bistro-checkout-page, .bistro-checkout-result { width: min(100% - 24px, 1220px); padding: 44px 0 68px; }
+  .bistro-checkout-heading h1 { font-size: clamp(44px, 15vw, 60px); }
+  .bistro-checkout-login { grid-template-columns: auto 1fr; }
+  .bistro-checkout-login > span:last-child { display: none; }
+  .cart-card-grid { grid-template-columns: 1fr; }
+  .takeaway-dish-card { display: grid; grid-template-columns: 110px minmax(0,1fr); }
+  .takeaway-dish-card > img { width: 110px; height: 100%; min-height: 150px; grid-row: 1 / 3; }
+  .takeaway-card-bottom { align-items: flex-end; }
+  .checkout-field-grid { grid-template-columns: 1fr; }
+  .bistro-checkout-summary > div { grid-template-columns: 1fr 1fr; }
+  .bistro-checkout-summary > div span:first-child { grid-column: 1 / -1; }
+  .bistro-checkout-result > section { padding: 30px 20px; }
+}
