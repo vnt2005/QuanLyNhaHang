@@ -1,4 +1,6 @@
 .customer-online-payment-action {
+  width: 100%;
+  min-width: 0;
   display: grid;
   gap: 0.45rem;
   justify-items: stretch;
@@ -28,6 +30,65 @@
 
 .payment-inline-error {
   color: #b42318;
+}
+
+.takeaway-success .customer-online-payment-action {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 16px;
+  text-align: left;
+}
+
+.takeaway-success .customer-promotion-box {
+  min-width: 0;
+  margin: 0;
+}
+
+.takeaway-success .customer-online-payment-action > button {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  height: 56px;
+  min-height: 56px;
+  flex-shrink: 0;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.takeaway-success .payment-inline-note,
+.takeaway-success .payment-inline-error {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
+  display: block;
+  padding: 12px 14px;
+  overflow-wrap: anywhere;
+  border: 1px solid #efd3a5;
+  border-radius: 12px;
+  background: #fff7e8;
+  color: #76530c;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.takeaway-success .payment-inline-error {
+  border-color: #edc0bb;
+  background: #fff4f2;
+  color: #b42318;
+}
+
+@media (max-width: 768px) {
+  .takeaway-success .customer-online-payment-action {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .takeaway-success .customer-online-payment-action > button {
+    grid-column: 1;
+    grid-row: auto;
+  }
 }
 
 .payment-result-page {
