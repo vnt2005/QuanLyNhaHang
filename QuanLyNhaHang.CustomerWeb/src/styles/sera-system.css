@@ -15,7 +15,6 @@ html { scroll-behavior: smooth; }
 body { background: var(--sera-paper); color: var(--sera-ink); }
 ::selection { background: #e7d8ce; color: var(--sera-ink); }
 .customer-site { min-height: 100vh; background: var(--sera-paper); }
-.page-section { width: min(var(--sera-max), calc(100% - 2 * var(--sera-gutter))); margin: 0 auto; padding: 72px 0 96px; }
 
 /* Shared Sera primitives */
 .sera-kicker { margin: 0; color: var(--sera-accent); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
@@ -23,7 +22,7 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-title { margin: 0; font-family: 'Playfair Display Variable', Georgia, serif; font-size: clamp(36px, 4.5vw, 70px); font-weight: 500; line-height: .98; letter-spacing: -.04em; }
 .sera-copy { color: var(--sera-muted); font-size: 15px; line-height: 1.8; }
 .sera-rule { border-top: 1px solid var(--sera-line); }
-.sera-link { display: inline-flex; align-items: center; gap: 8px; border-bottom: 1px solid currentColor; color: var(--sera-ink); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.sera-link { display: inline-flex; align-items: center; gap: 8px; border: 0; border-bottom: 1px solid currentColor; padding: 0; background: transparent; color: var(--sera-ink); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
 .sera-link:hover { color: var(--sera-accent); }
 .sera-empty { display: grid; min-height: 300px; place-items: center; padding: 64px 24px; border-top: 1px solid var(--sera-line); border-bottom: 1px solid var(--sera-line); text-align: center; }
 .sera-empty svg { width: 30px; height: 30px; color: var(--sera-accent); }
@@ -35,7 +34,7 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 [data-slot="button"]:not(:disabled) { cursor: pointer; }
 [data-slot="input"], [data-slot="textarea"] { border-radius: 0 !important; border-width: 0 0 1px !important; background: transparent !important; box-shadow: none !important; }
 [data-slot="input"]:focus-visible, [data-slot="textarea"]:focus-visible { border-color: var(--sera-ink) !important; box-shadow: none !important; }
-[data-slot="alert"] { border-radius: 0 !important; box-shadow: none !important; }
+[data-slot="alert"], [data-slot="alert-dialog-content"] { border-radius: 0 !important; box-shadow: none !important; }
 [data-slot="badge"] { border-radius: 0 !important; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 
 /* Global shell */
@@ -175,18 +174,6 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 28px; }
 .sera-field-grid .wide { grid-column: 1 / -1; }
 .sera-choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
-
-/* Make legacy auth/payment/notification logic components visually compatible while they are retained as logic-bearing components. */
-.auth-panel, .auth-portal, .payment-box, .promotion-code-box, .notification-panel, .notification-dropdown { border-radius: 0 !important; box-shadow: none !important; }
-.notification-dropdown, .notification-panel { border-color: var(--sera-line) !important; background: var(--sera-paper) !important; }
-
-/* Existing transactional pages get a safe Sera reset until their markup is replaced in this PR. */
-.bistro-checkout-page, .bistro-checkout-result, .bistro-reservation-page, .bistro-orders-page, .payment-result-page, .qr-page { width: min(var(--sera-max), calc(100% - 2 * var(--sera-gutter))); margin: 0 auto; padding: 64px 0 104px; background: transparent !important; }
-.bistro-checkout-page *, .bistro-checkout-result *, .bistro-reservation-page *, .bistro-orders-page *, .payment-result-page *, .qr-page * { box-shadow: none !important; }
-.bistro-checkout-page article, .bistro-checkout-page section, .bistro-reservation-page section, .bistro-orders-page article, .payment-result-page section, .qr-page section { border-radius: 0 !important; }
-.bistro-checkout-heading, .bistro-orders-heading { padding-bottom: 34px; border-bottom: 1px solid var(--sera-line); }
-.bistro-checkout-heading h1, .bistro-orders-heading h1 { font-family: 'Playfair Display Variable', Georgia, serif; font-size: clamp(48px, 6vw, 86px); font-weight: 500; line-height: .95; letter-spacing: -.05em; }
-.bistro-order-card, .checkout-detail-card, .bistro-checkout-cart, .bistro-checkout-details, .bistro-checkout-summary { border-color: var(--sera-line) !important; background: transparent !important; }
 
 @media (max-width: 1050px) {
   .sera-header-inner { grid-template-columns: 1fr auto; }
