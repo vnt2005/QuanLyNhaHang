@@ -1,3 +1,4 @@
+import { clearCustomerQrAccess } from '../utils/customerQrAccess'
 import { clearTakeawayCart } from '../utils/takeawayCart'
 import { ApiError, apiRequest } from './client'
 
@@ -164,10 +165,9 @@ export function clearCustomerSession() {
 
 function clearCustomerLogoutState() {
   clearTakeawayCart()
-  sessionStorage.removeItem('customerLastQrToken')
+  clearCustomerQrAccess()
   sessionStorage.removeItem('customerReturnPath')
   sessionStorage.removeItem('customerPaymentAttemptAccess')
-  localStorage.removeItem('customerLastQrToken')
   localStorage.removeItem('customerReturnPath')
   localStorage.removeItem('customerPaymentAttemptAccess')
 }
