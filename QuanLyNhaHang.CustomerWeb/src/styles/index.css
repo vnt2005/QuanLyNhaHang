@@ -4,7 +4,6 @@
 @import "@fontsource-variable/noto-sans";
 @import "@fontsource-variable/playfair-display";
 @import "./sera-system.css";
-@import "./components/customer-confirm-dialog.css";
 
 @custom-variant dark (&:is(.dark *));
 
