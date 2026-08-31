@@ -1,5 +1,6 @@
-import { Clock3, Menu, Phone, ShoppingBag, UserRound, UtensilsCrossed, X } from 'lucide-react'
+import { Menu, ShoppingBag, UserRound, UtensilsCrossed, X } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
+import { Button } from '@/components/ui/button'
 import type { CustomerSession } from '../services/customerAuth'
 import type { PublicRestaurant } from '../services/customerSite'
 import { navigate } from '../utils/navigation'
@@ -29,15 +30,6 @@ export default function SiteHeader({
   const [cartCount, setCartCount] = useState(() => takeawayCartCount())
   const accountPath = session ? '/account' : '/login'
   const accountLabel = session ? [session.ho, session.ten].filter(Boolean).join(' ') : 'Đăng nhập'
-  const isPremium = pathname === '/'
-    || pathname === '/menu'
-    || pathname.startsWith('/menu/')
-    || pathname === '/takeaway'
-    || pathname === '/reservation'
-    || pathname === '/orders'
-    || pathname === '/account'
-    || pathname === '/login'
-    || pathname === '/payment-result'
 
   useEffect(() => {
     const updateCart = () => setCartCount(takeawayCartCount())
@@ -61,58 +53,55 @@ export default function SiteHeader({
   }
 
   return (
-    <header className={isPremium ? 'site-header home-site-header' : 'site-header'}>
-      {isPremium ? (
-        <div className="home-utility-bar">
-          <div>
-            <span><Phone aria-hidden="true" />{restaurant?.phoneNumber ? `Hotline: ${restaurant.phoneNumber}` : 'Hotline đang cập nhật'}</span>
-            <span><Clock3 aria-hidden="true" />{restaurant ? `Mở cửa: ${restaurant.openingTime} – ${restaurant.closingTime}` : 'Giờ mở cửa đang cập nhật'}</span>
-            <a href="/reservation" onClick={event => follow(event, '/reservation')}>Đặt bàn trực tuyến</a>
-          </div>
-        </div>
-      ) : null}
+    <header className="sticky top-0 z-50 border-b border-border bg-background/96 backdrop-blur supports-[backdrop-filter]:bg-background/88">
+      <div className="mx-auto grid h-[88px] w-[min(1440px,calc(100vw-48px))] grid-cols-[1fr_auto] items-center gap-6 sm:w-[min(1440px,calc(100vw-80px))] xl:grid-cols-[minmax(240px,1fr)_auto_minmax(240px,1fr)]">
+        <a className="flex w-fit items-center gap-3 text-foreground no-underline" href="/" onClick={event => follow(event, '/')}>
+          <span className="grid size-10 place-items-center border border-border bg-foreground text-background">
+            {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" className="size-full object-contain p-1" /> : <UtensilsCrossed aria-hidden="true" className="size-4" />}
+          </span>
+          <span className="grid leading-none">
+            <strong className="font-heading text-xl font-medium tracking-tight">{restaurant?.restaurantName || 'Nhà Hàng'}</strong>
+            <small className="mt-1 text-[10px] font-semibold tracking-[0.24em] text-muted-foreground uppercase">Ẩm thực Việt</small>
+          </span>
+        </a>
 
-      <div className="site-header-inner">
-        {isPremium ? (
-          <a className="brand home-brand" href="/" onClick={event => follow(event, '/')}>
-            <span className="home-brand-mark">
-              {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" /> : <UtensilsCrossed aria-hidden="true" />}
-            </span>
-            <span className="home-brand-copy">
-              <strong>{restaurant?.restaurantName || 'Nhà Hàng'}</strong>
-              <small>Ẩm thực Việt</small>
-            </span>
-          </a>
-        ) : (
-          <a className="brand" href="/" onClick={event => follow(event, '/')}>
-            {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" /> : null}
-            <span>{restaurant?.restaurantName || 'Nhà Hàng'}</span>
-          </a>
-        )}
-
-        <nav className={open ? 'site-nav open' : 'site-nav'} aria-label="Điều hướng chính">
+        <nav className={`${open ? 'flex' : 'hidden'} absolute inset-x-0 top-[88px] flex-col border-b border-border bg-background px-6 py-5 shadow-sm xl:static xl:flex xl:flex-row xl:items-center xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none`} aria-label="Điều hướng chính">
           {links.map(link => {
             const active = link.path === '/' ? pathname === '/' : pathname.startsWith(link.path)
-            return <a href={link.path} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} key={link.path} onClick={event => follow(event, link.path)}>{link.label}</a>
+            return (
+              <a
+                href={link.path}
+                className={`border-b px-1 py-3 text-xs font-semibold tracking-[0.16em] uppercase no-underline transition-colors xl:mx-4 xl:border-b-2 xl:py-2 ${active ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                aria-current={active ? 'page' : undefined}
+                key={link.path}
+                onClick={event => follow(event, link.path)}
+              >
+                {link.label}
+              </a>
+            )
           })}
         </nav>
 
-        <div className="site-header-actions">
-          <a className="takeaway-cart-link" href="/takeaway" aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`} onClick={event => follow(event, '/takeaway')}>
-            <ShoppingBag aria-hidden="true" />
-            {isPremium ? <b className="takeaway-cart-label">Giỏ mang về</b> : null}
-            {cartCount ? <span className="takeaway-cart-count">{cartCount > 99 ? '99+' : cartCount}</span> : null}
-          </a>
-          {session
-            ? <NotificationCenter
-                session={session}
-                onSessionRefresh={onSessionRefresh}
-              />
-            : null}
-          <a className="account-link" href={accountPath} onClick={event => follow(event, accountPath)}><UserRound aria-hidden="true" /><span>{accountLabel}</span></a>
+        <div className="hidden items-center justify-end gap-2 xl:flex">
+          <Button asChild variant="ghost" size="sm">
+            <a href="/takeaway" onClick={event => follow(event, '/takeaway')} aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`}>
+              <ShoppingBag data-icon="inline-start" />
+              Giỏ
+              {cartCount ? <span className="ml-1 inline-flex min-w-5 justify-center border border-border px-1 text-[10px]">{cartCount > 99 ? '99+' : cartCount}</span> : null}
+            </a>
+          </Button>
+          {session ? <NotificationCenter session={session} onSessionRefresh={onSessionRefresh} /> : null}
+          <Button asChild variant="outline" size="sm">
+            <a href={accountPath} onClick={event => follow(event, accountPath)}>
+              <UserRound data-icon="inline-start" />
+              <span className="max-w-28 truncate">{accountLabel}</span>
+            </a>
+          </Button>
         </div>
 
-        <button className="mobile-menu-button" type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? 'Đóng menu' : 'Mở menu'}>{open ? <X /> : <Menu />}</button>
+        <Button className="justify-self-end xl:hidden" variant="ghost" size="icon" type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? 'Đóng menu' : 'Mở menu'}>
+          {open ? <X /> : <Menu />}
+        </Button>
       </div>
     </header>
   )
