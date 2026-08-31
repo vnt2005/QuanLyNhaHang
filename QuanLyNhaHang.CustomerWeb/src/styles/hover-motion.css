@@ -1,0 +1,138 @@
+/* Strong desktop/hybrid-device hover feedback.
+   `any-hover` keeps mouse hover working on Windows devices whose primary pointer is touch/coarse. */
+@media (any-hover: hover) {
+  .customer-site .motion-interactive {
+    transition:
+      color 180ms ease,
+      background-color 220ms ease,
+      border-color 220ms ease,
+      box-shadow 260ms var(--sera-motion-ease),
+      filter 180ms ease,
+      transform 260ms var(--sera-motion-ease) !important;
+  }
+
+  /* Generic clickable surfaces: make hover unmistakable. */
+  .customer-site button.motion-interactive:not(:disabled):hover,
+  .customer-site a.motion-interactive:hover,
+  .customer-site [role="button"].motion-interactive:hover,
+  .customer-site [data-slot="tabs-trigger"].motion-interactive:hover,
+  .customer-site [data-slot="select-trigger"].motion-interactive:hover,
+  .customer-site [data-slot="dropdown-menu-trigger"].motion-interactive:hover,
+  .customer-site [data-slot="popover-trigger"].motion-interactive:hover {
+    filter: brightness(.985) saturate(1.06);
+    transform: translate3d(0, -4px, 0) scale(1.018) !important;
+    box-shadow: 0 14px 30px rgba(36, 31, 27, .14) !important;
+  }
+
+  /* Navigation should feel alive without drawing a card shadow around each label. */
+  .customer-site .sera-nav a.motion-interactive:hover {
+    color: var(--sera-accent-dark);
+    letter-spacing: .105em;
+    transform: translate3d(0, -3px, 0) scale(1.035) !important;
+    box-shadow: none !important;
+  }
+
+  .customer-site .sera-brand.motion-interactive:hover {
+    transform: translate3d(0, -3px, 0) scale(1.018) !important;
+    box-shadow: none !important;
+  }
+
+  /* Icon feedback is deliberately visible on mouse hover. */
+  .customer-site button.motion-interactive svg,
+  .customer-site a.motion-interactive svg,
+  .customer-site [role="button"].motion-interactive svg {
+    transition:
+      color 180ms ease,
+      transform 280ms var(--sera-motion-ease);
+  }
+
+  .customer-site button.motion-interactive:not(:disabled):hover svg,
+  .customer-site a.motion-interactive:hover svg,
+  .customer-site [role="button"].motion-interactive:hover svg {
+    color: var(--sera-accent-dark);
+    transform: translate3d(0, -1px, 0) scale(1.14);
+  }
+
+  .customer-site .sera-link.motion-interactive:hover svg {
+    transform: translate3d(7px, 0, 0) scale(1.08);
+  }
+
+  /* Food/menu/order cards get a stronger lift, tint and image zoom. */
+  .customer-site .sera-dish-row.motion-interactive:hover,
+  .customer-site .sera-menu-item.motion-interactive:hover,
+  .customer-site .sera-page article.motion-interactive:hover {
+    position: relative;
+    z-index: 2;
+    border-color: color-mix(in srgb, var(--sera-accent) 45%, var(--sera-line)) !important;
+    background: color-mix(in srgb, var(--sera-wash) 82%, white) !important;
+    transform: translate3d(8px, -5px, 0) scale(1.012) !important;
+    box-shadow: 0 18px 38px rgba(36, 31, 27, .13) !important;
+  }
+
+  .customer-site .sera-dish-row.motion-interactive:hover img,
+  .customer-site .sera-menu-item.motion-interactive:hover img,
+  .customer-site .sera-page article.motion-interactive:hover img {
+    filter: saturate(1.08) contrast(1.025);
+    transform: scale(1.085) !important;
+  }
+
+  .customer-site .sera-dish-row.motion-interactive:hover h3,
+  .customer-site .sera-menu-item.motion-interactive:hover h2,
+  .customer-site .sera-page article.motion-interactive:hover h3 {
+    color: var(--sera-accent-dark);
+    transform: translateX(8px) !important;
+  }
+
+  /* Panels and status blocks should visibly respond even when they are not buttons. */
+  .customer-site .sera-panel,
+  .customer-site [data-slot="alert"] {
+    transition:
+      border-color 220ms ease,
+      background-color 220ms ease,
+      box-shadow 280ms var(--sera-motion-ease),
+      transform 280ms var(--sera-motion-ease);
+  }
+
+  .customer-site .sera-panel:hover,
+  .customer-site [data-slot="alert"]:hover {
+    border-color: color-mix(in srgb, var(--sera-accent) 48%, var(--sera-line)) !important;
+    background: color-mix(in srgb, var(--sera-wash) 58%, var(--sera-paper)) !important;
+    transform: translate3d(0, -5px, 0);
+    box-shadow: 0 16px 34px rgba(36, 31, 27, .11);
+  }
+
+  /* Inputs now react on hover before focus, then become stronger on focus. */
+  .customer-site input.motion-interactive:hover,
+  .customer-site textarea.motion-interactive:hover,
+  .customer-site select.motion-interactive:hover,
+  .customer-site [data-slot="select-trigger"].motion-interactive:hover {
+    border-color: color-mix(in srgb, var(--sera-accent) 72%, var(--sera-line)) !important;
+    background: color-mix(in srgb, var(--sera-wash) 52%, transparent) !important;
+    box-shadow: 0 4px 0 -2px color-mix(in srgb, var(--sera-accent) 55%, transparent) !important;
+    transform: translate3d(0, -2px, 0) !important;
+  }
+
+  .customer-site input.motion-interactive:focus-visible,
+  .customer-site textarea.motion-interactive:focus-visible,
+  .customer-site select.motion-interactive:focus-visible,
+  .customer-site [data-slot="select-trigger"].motion-interactive:focus-visible {
+    background: color-mix(in srgb, var(--sera-wash) 42%, transparent) !important;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--sera-accent) 14%, transparent) !important;
+  }
+
+  /* Footer links slide enough to be noticeable. */
+  .customer-site .sera-footer-links a.motion-interactive:hover,
+  .customer-site .sera-footer-contact a.motion-interactive:hover {
+    color: var(--sera-accent-dark);
+    transform: translate3d(7px, 0, 0) scale(1.025) !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-site .motion-interactive:hover,
+  .customer-site .sera-panel:hover,
+  .customer-site [data-slot="alert"]:hover {
+    transform: none !important;
+  }
+}
