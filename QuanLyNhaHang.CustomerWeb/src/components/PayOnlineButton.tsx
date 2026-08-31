@@ -1,5 +1,7 @@
 import { CheckCircle2, Clock3, QrCode } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import {
   createCustomerPaymentQr,
@@ -14,7 +16,7 @@ export default function PayOnlineButton({
   orderId,
   qrToken,
   accessToken,
-  className = 'primary-button',
+  className,
 }: {
   orderId: string
   qrToken?: string | null
@@ -32,7 +34,6 @@ export default function PayOnlineButton({
 
   async function refreshStatus(showChecking = false) {
     if (showChecking) setChecking(true)
-
     try {
       const status = await getCustomerPaymentStatus(orderId, qrToken, accessToken)
       setPaid(status.paid)
@@ -43,9 +44,7 @@ export default function PayOnlineButton({
     } catch (exception) {
       setCanPay(false)
       setUnavailableReason('')
-      setError(exception instanceof Error
-        ? exception.message
-        : 'Không kiểm tra được trạng thái thanh toán.')
+      setError(exception instanceof Error ? exception.message : 'Không kiểm tra được trạng thái thanh toán.')
     } finally {
       if (showChecking) setChecking(false)
     }
@@ -53,7 +52,6 @@ export default function PayOnlineButton({
 
   useEffect(() => {
     let active = true
-
     setChecking(true)
     void getCustomerPaymentStatus(orderId, qrToken, accessToken)
       .then(status => {
@@ -68,31 +66,19 @@ export default function PayOnlineButton({
         if (!active) return
         setCanPay(false)
         setUnavailableReason('')
-        setError(exception instanceof Error
-          ? exception.message
-          : 'Không kiểm tra được trạng thái thanh toán.')
+        setError(exception instanceof Error ? exception.message : 'Không kiểm tra được trạng thái thanh toán.')
       })
-      .finally(() => {
-        if (active) setChecking(false)
-      })
-
-    return () => {
-      active = false
-    }
+      .finally(() => { if (active) setChecking(false) })
+    return () => { active = false }
   }, [accessToken, orderId, qrToken])
 
-  useVisiblePolling(
-    () => refreshStatus(false),
-    10_000,
-    !paid && !terminalOrderStatuses.has(orderStatus),
-  )
+  useVisiblePolling(() => refreshStatus(false), 10_000, !paid && !terminalOrderStatuses.has(orderStatus))
 
   async function pay() {
     if (payingRef.current || checking || loading || paid || !canPay) return
     payingRef.current = true
     setLoading(true)
     setError('')
-
     try {
       const result = await createCustomerPaymentQr(orderId, qrToken, accessToken)
       if (result.alreadyPaid) {
@@ -101,20 +87,13 @@ export default function PayOnlineButton({
         navigate(`/payment-result?orderId=${encodeURIComponent(orderId)}`)
         return
       }
-
-      if (!result.attemptId || !result.qrCode || !result.transferContent) {
-        throw new Error('SePay chưa trả về đầy đủ thông tin QR thanh toán.')
-      }
-
+      if (!result.attemptId || !result.qrCode || !result.transferContent) throw new Error('SePay chưa trả về đầy đủ thông tin QR thanh toán.')
       const qrTokenKey = `customerPaymentQrToken:${orderId}`
       localStorage.removeItem(qrTokenKey)
       localStorage.removeItem('customerPaymentReturnPath')
       if (qrToken) sessionStorage.setItem(qrTokenKey, qrToken)
       sessionStorage.setItem('customerPaymentReturnPath', window.location.pathname)
-      navigate(
-        `/payment-result?orderId=${encodeURIComponent(orderId)}` +
-        `&attemptId=${encodeURIComponent(result.attemptId)}`,
-      )
+      navigate(`/payment-result?orderId=${encodeURIComponent(orderId)}&attemptId=${encodeURIComponent(result.attemptId)}`)
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : 'Không tạo được mã QR thanh toán.')
     } finally {
@@ -132,31 +111,14 @@ export default function PayOnlineButton({
         : 'Chưa thể thanh toán'
 
   return (
-    <div className="customer-online-payment-action">
-      {!paid && !terminalOrderStatuses.has(orderStatus)
-        ? <PromotionCodeBox orderId={orderId} qrToken={qrToken} accessToken={accessToken} />
-        : null}
-      <button
-        className={className}
-        type="button"
-        disabled={checking || loading || paid || !canPay}
-        onClick={() => void pay()}
-      >
-        {paid ? <CheckCircle2 /> : canPay ? <QrCode /> : <Clock3 />}
-        {paid
-          ? 'Đã thanh toán'
-          : checking
-            ? 'Đang kiểm tra…'
-            : loading
-              ? 'Đang tạo mã QR…'
-              : canPay
-                ? 'Thanh toán online'
-                : blockedLabel}
-      </button>
-      {!paid && !checking && !canPay && unavailableReason
-        ? <small className="payment-inline-note">{unavailableReason}</small>
-        : null}
-      {error ? <small className="payment-inline-error" role="alert">{error}</small> : null}
+    <div className="grid w-full gap-4">
+      {!paid && !terminalOrderStatuses.has(orderStatus) ? <PromotionCodeBox orderId={orderId} qrToken={qrToken} accessToken={accessToken} /> : null}
+      <Button className={className} type="button" disabled={checking || loading || paid || !canPay} onClick={() => void pay()}>
+        {paid ? <CheckCircle2 data-icon="inline-start" /> : canPay ? <QrCode data-icon="inline-start" /> : <Clock3 data-icon="inline-start" />}
+        {paid ? 'Đã thanh toán' : checking ? 'Đang kiểm tra…' : loading ? 'Đang tạo mã QR…' : canPay ? 'Thanh toán online' : blockedLabel}
+      </Button>
+      {!paid && !checking && !canPay && unavailableReason ? <Alert><AlertTitle>Thanh toán chưa sẵn sàng</AlertTitle><AlertDescription>{unavailableReason}</AlertDescription></Alert> : null}
+      {error ? <Alert variant="destructive"><AlertTitle>Không thể tạo thanh toán</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
     </div>
   )
 }
