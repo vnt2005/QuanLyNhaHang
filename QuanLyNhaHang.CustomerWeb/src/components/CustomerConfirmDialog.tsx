@@ -1,5 +1,16 @@
-import { AlertTriangle, X } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 type CustomerConfirmOptions = {
   title?: string
@@ -17,10 +28,7 @@ let requestId = 0
 let requestHandler: ((request: ConfirmRequest) => void) | null = null
 const waitingRequests: ConfirmRequest[] = []
 
-export function confirmCustomerAction(
-  message: string,
-  options: CustomerConfirmOptions = {},
-) {
+export function confirmCustomerAction(message: string, options: CustomerConfirmOptions = {}) {
   return new Promise<boolean>(resolve => {
     const request: ConfirmRequest = {
       id: ++requestId,
@@ -30,7 +38,6 @@ export function confirmCustomerAction(
       cancelLabel: options.cancelLabel ?? 'Giữ đơn',
       resolve,
     }
-
     if (requestHandler) requestHandler(request)
     else waitingRequests.push(request)
   })
@@ -38,7 +45,7 @@ export function confirmCustomerAction(
 
 export function CustomerConfirmDialogHost() {
   const [request, setRequest] = useState<ConfirmRequest | null>(null)
-  const cancelButtonRef = useRef<HTMLButtonElement>(null)
+  const completingRef = useRef(false)
 
   useEffect(() => {
     requestHandler = nextRequest => {
@@ -60,72 +67,34 @@ export function CustomerConfirmDialogHost() {
     }
   }, [])
 
-  useEffect(() => {
-    if (!request) return
-
-    cancelButtonRef.current?.focus()
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') finish(false)
-    }
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [request])
-
   function finish(accepted: boolean) {
     if (!request) return
+    completingRef.current = true
     request.resolve(accepted)
     setRequest(waitingRequests.shift() ?? null)
+    queueMicrotask(() => { completingRef.current = false })
   }
 
-  if (!request) return null
-
   return (
-    <div className="customer-confirm-backdrop" onMouseDown={() => finish(false)}>
-      <section
-        className="customer-confirm-dialog"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby={`customer-confirm-title-${request.id}`}
-        aria-describedby={`customer-confirm-message-${request.id}`}
-        onMouseDown={event => event.stopPropagation()}
-      >
-        <button
-          type="button"
-          className="customer-confirm-close"
-          aria-label="Đóng hộp xác nhận"
-          onClick={() => finish(false)}
-        >
-          <X aria-hidden="true" />
-        </button>
-
-        <div className="customer-confirm-icon" aria-hidden="true">
-          <AlertTriangle />
-        </div>
-
-        <div className="customer-confirm-copy">
-          <span>XÁC NHẬN THAO TÁC</span>
-          <h2 id={`customer-confirm-title-${request.id}`}>{request.title}</h2>
-          <p id={`customer-confirm-message-${request.id}`}>{request.message}</p>
-        </div>
-
-        <div className="customer-confirm-actions">
-          <button
-            ref={cancelButtonRef}
-            type="button"
-            className="customer-confirm-keep"
-            onClick={() => finish(false)}
-          >
-            {request.cancelLabel}
-          </button>
-          <button
-            type="button"
-            className="customer-confirm-danger"
-            onClick={() => finish(true)}
-          >
-            {request.confirmLabel}
-          </button>
-        </div>
-      </section>
-    </div>
+    <AlertDialog
+      open={Boolean(request)}
+      onOpenChange={open => {
+        if (!open && request && !completingRef.current) finish(false)
+      }}
+    >
+      {request ? (
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia><AlertTriangle /></AlertDialogMedia>
+            <AlertDialogTitle>{request.title}</AlertDialogTitle>
+            <AlertDialogDescription>{request.message}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => finish(false)}>{request.cancelLabel}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => finish(true)}>{request.confirmLabel}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      ) : null}
+    </AlertDialog>
   )
 }
