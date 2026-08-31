@@ -1,8 +1,12 @@
 import { useEffect } from 'react'
 
 const revealSelector = [
+  '.sera-home-hero-copy > *',
+  '.sera-home-visual',
+  '.sera-home-facts > *',
   '.sera-home-featured > .sera-section-head',
   '.sera-dish-row',
+  '.sera-home-reservation > *',
   '.sera-menu-head > *',
   '.sera-filter-group',
   '.sera-menu-results-head',
@@ -13,7 +17,12 @@ const revealSelector = [
   '.sera-page > form',
   '.sera-page > .grid',
   '.sera-page .sera-panel',
+  '.sera-page article',
+  '.sera-page [data-slot="alert"]',
+  '.sera-page [data-slot="tabs-list"]',
+  '.sera-page [data-slot="tabs-content"]',
   '.sera-empty > *',
+  '.sera-footer-cta > *',
   '.sera-footer-main > *',
   '.sera-footer-bottom > *',
 ].join(',')
@@ -70,14 +79,24 @@ export default function MotionEffects() {
     }
 
     const header = site.querySelector<HTMLElement>('.sera-header')
-    const syncHeader = () => header?.classList.toggle('is-scrolled', window.scrollY > 12)
+    let headerFrame = 0
+    const syncHeader = () => {
+      headerFrame = 0
+      header?.classList.toggle('is-scrolled', window.scrollY > 12)
+    }
+    const queueHeaderSync = () => {
+      if (headerFrame) return
+      headerFrame = window.requestAnimationFrame(syncHeader)
+    }
+
     syncHeader()
-    window.addEventListener('scroll', syncHeader, { passive: true })
+    window.addEventListener('scroll', queueHeaderSync, { passive: true })
 
     return () => {
       revealObserver?.disconnect()
       mutationObserver?.disconnect()
-      window.removeEventListener('scroll', syncHeader)
+      if (headerFrame) window.cancelAnimationFrame(headerFrame)
+      window.removeEventListener('scroll', queueHeaderSync)
     }
   }, [])
 
