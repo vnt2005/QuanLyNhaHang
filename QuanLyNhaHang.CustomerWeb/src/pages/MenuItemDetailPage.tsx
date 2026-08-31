@@ -1,5 +1,7 @@
-import { CalendarDays, ChevronLeft, Minus, Plus, QrCode, ShoppingBag } from 'lucide-react'
+import { ArrowRight, CalendarDays, ChevronLeft, Minus, Plus, QrCode, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { CustomerSiteBootstrap } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import { navigate } from '../utils/navigation'
@@ -29,9 +31,13 @@ export default function MenuItemDetailPage({
 
   if (!item) {
     return (
-      <main className="menu-item-detail-page page-section">
-        <button className="text-link back-link" type="button" onClick={() => navigate('/menu')}><ChevronLeft /> Quay lại thực đơn</button>
-        <div className="menu-detail-missing"><h1>Không tìm thấy món ăn</h1><p>Món này có thể đã ngừng phục vụ hoặc đường dẫn không còn hợp lệ.</p><button className="primary-button" type="button" onClick={() => navigate('/menu')}>Xem thực đơn</button></div>
+      <main className="mx-auto w-[min(1100px,calc(100vw-48px))] py-20 sm:w-[min(1100px,calc(100vw-80px))]">
+        <Button variant="link" className="px-0" type="button" onClick={() => navigate('/menu')}><ChevronLeft data-icon="inline-start" /> Quay lại thực đơn</Button>
+        <div className="mt-10 border border-border px-8 py-20 text-center">
+          <h1 className="font-heading text-5xl tracking-[-0.04em]">Không tìm thấy món ăn</h1>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted-foreground">Món này có thể đã ngừng phục vụ hoặc đường dẫn không còn hợp lệ.</p>
+          <Button className="mt-8" type="button" onClick={() => navigate('/menu')}>Xem thực đơn</Button>
+        </div>
       </main>
     )
   }
@@ -44,35 +50,63 @@ export default function MenuItemDetailPage({
   }
 
   return (
-    <main className="menu-item-detail-page page-section">
-      <button className="text-link back-link" type="button" onClick={() => navigate('/menu')}><ChevronLeft /> Quay lại thực đơn</button>
+    <main className="bg-background text-foreground">
+      <div className="mx-auto w-[min(1440px,calc(100vw-48px))] py-10 sm:w-[min(1440px,calc(100vw-80px))] md:py-16">
+        <Button variant="link" className="mb-8 px-0" type="button" onClick={() => navigate('/menu')}><ChevronLeft data-icon="inline-start" /> Quay lại thực đơn</Button>
 
-      <section className="menu-detail-card">
-        <div className="menu-detail-media"><img src={item.imageUrl || heroImage} alt={item.name} /></div>
-        <div className="menu-detail-content">
-          <span className="menu-detail-category">{item.menuCategoryName}</span>
-          <h1>{item.name}</h1>
-          <p className="menu-detail-description">{item.description || 'Món ăn được chế biến tươi mới trong ngày.'}</p>
+        <section className="grid overflow-hidden border border-border lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="min-h-[52vh] bg-muted lg:min-h-[720px]">
+            <img src={item.imageUrl || heroImage} alt={item.name} className="size-full object-cover" />
+          </div>
 
-          <div className="menu-detail-meta"><strong>{currency(item.price, data.restaurant?.currency || 'VND')}</strong><span className={item.isAvailable ? 'available' : 'unavailable'}>{item.isAvailable ? 'Còn món' : 'Hết món'}</span></div>
-
-          {item.isAvailable ? (
-            <div className="menu-detail-takeaway">
-              <div><strong>Đặt món mang về</strong><p>Mỗi món tối đa {MAX_TAKEAWAY_ITEM_QUANTITY} phần trong một đơn.</p></div>
-              <div className="menu-detail-order-row">
-                <div className="menu-detail-quantity"><button type="button" aria-label="Giảm số lượng" disabled={quantity <= 1} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus /></button><span>{quantity}</span><button type="button" aria-label="Tăng số lượng" disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY} onClick={() => setQuantity(value => Math.min(MAX_TAKEAWAY_ITEM_QUANTITY, value + 1))}><Plus /></button></div>
-                <button className="secondary-button" type="button" onClick={() => addToTakeaway(false)}><ShoppingBag /> Thêm vào giỏ</button>
-                <button className="primary-button" type="button" onClick={() => addToTakeaway(true)}>Đặt mang về ngay</button>
+          <div className="flex flex-col p-7 sm:p-10 lg:p-14">
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">{item.menuCategoryName}</span>
+                <Badge variant={item.isAvailable ? 'secondary' : 'destructive'}>{item.isAvailable ? 'Còn món' : 'Tạm hết'}</Badge>
               </div>
-              {message ? <p className="menu-detail-added" role="status"><span>{message}</span> <button type="button" className="text-link" onClick={() => navigate('/takeaway')}>Xem giỏ</button></p> : null}
+              <h1 className="mt-6 font-heading text-[clamp(3.5rem,5.5vw,6.5rem)] leading-[0.88] tracking-[-0.055em]">{item.name}</h1>
+              <p className="mt-7 max-w-xl text-sm leading-7 text-muted-foreground md:text-base">{item.description || 'Món ăn được chế biến tươi mới trong ngày.'}</p>
+              <strong className="mt-8 block text-sm font-semibold tracking-[0.14em] uppercase">{currency(item.price, data.restaurant?.currency || 'VND')}</strong>
             </div>
-          ) : null}
 
-          <div className="menu-detail-qr-note"><QrCode aria-hidden="true" /><div><strong>Ăn tại quán?</strong><p>Quét mã QR đặt trên bàn để gọi món đúng bàn. Đơn mang về không cần QR.</p></div></div>
+            {item.isAvailable ? (
+              <div className="mt-10 border-y border-border py-8">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h2 className="font-heading text-3xl">Mang về</h2>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">Mỗi món tối đa {MAX_TAKEAWAY_ITEM_QUANTITY} phần trong một đơn.</p>
+                  </div>
+                  <div className="flex items-center border border-border">
+                    <button className="grid size-10 place-items-center disabled:opacity-35" type="button" aria-label="Giảm số lượng" disabled={quantity <= 1} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus className="size-3.5" /></button>
+                    <span className="grid min-w-12 place-items-center border-x border-border text-sm font-semibold">{quantity}</span>
+                    <button className="grid size-10 place-items-center disabled:opacity-35" type="button" aria-label="Tăng số lượng" disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY} onClick={() => setQuantity(value => Math.min(MAX_TAKEAWAY_ITEM_QUANTITY, value + 1))}><Plus className="size-3.5" /></button>
+                  </div>
+                </div>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button variant="outline" type="button" onClick={() => addToTakeaway(false)}><ShoppingBag data-icon="inline-start" /> Thêm vào giỏ</Button>
+                  <Button type="button" onClick={() => addToTakeaway(true)}>Đặt mang về ngay <ArrowRight data-icon="inline-end" /></Button>
+                </div>
+                {message ? <div className="mt-5 border-l-2 border-foreground pl-4 text-xs leading-5 text-muted-foreground" role="status">{message} <button type="button" className="ml-2 font-semibold text-foreground underline underline-offset-4" onClick={() => navigate('/takeaway')}>Xem giỏ</button></div> : null}
+              </div>
+            ) : null}
 
-          <div className="menu-detail-actions"><button className="secondary-button" type="button" onClick={() => navigate('/menu')}>Xem món khác</button><button className="secondary-button" type="button" onClick={() => navigate('/reservation')}>Đặt bàn <CalendarDays /></button></div>
-        </div>
-      </section>
+            <div className="mt-auto pt-9">
+              <div className="flex gap-4 border-b border-border pb-7">
+                <QrCode className="mt-1 size-5 shrink-0" aria-hidden="true" />
+                <div>
+                  <strong className="text-xs tracking-[0.14em] uppercase">Ăn tại quán?</strong>
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground">Quét mã QR đặt trên bàn để gọi món đúng bàn. Đơn mang về không cần QR.</p>
+                </div>
+              </div>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Button variant="outline" type="button" onClick={() => navigate('/menu')}>Xem món khác</Button>
+                <Button variant="ghost" type="button" onClick={() => navigate('/reservation')}>Đặt bàn <CalendarDays data-icon="inline-end" /></Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
   )
 }
