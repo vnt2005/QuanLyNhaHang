@@ -28,7 +28,6 @@ export default function SiteHeader({
 }) {
   const [open, setOpen] = useState(false)
   const [cartCount, setCartCount] = useState(() => takeawayCartCount())
-  const [scrolled, setScrolled] = useState(false)
   const accountPath = session ? '/account' : '/login'
   const accountLabel = session ? [session.ho, session.ten].filter(Boolean).join(' ') : 'Đăng nhập'
 
@@ -42,48 +41,37 @@ export default function SiteHeader({
     }
   }, [])
 
-  useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 12)
-    window.addEventListener('scroll', update, { passive: true })
-    update()
-    return () => window.removeEventListener('scroll', update)
-  }, [])
-
-  function go(path: string) {
-    setOpen(false)
-    navigate(path)
-  }
+  useEffect(() => setOpen(false), [pathname])
 
   function follow(event: MouseEvent<HTMLAnchorElement>, path: string) {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
-    go(path)
+    setOpen(false)
+    navigate(path)
   }
 
   return (
-    <header className="bistro-template-header-wrap">
-      <div className={`bistro-template-header ${scrolled ? 'is-scrolled' : ''}`}>
-        <a className="bistro-template-brand" href="/" onClick={event => follow(event, '/')}>
-          <span className="bistro-template-brand-mark">
-            {restaurant?.logoUrl
-              ? <img src={restaurant.logoUrl} alt="" />
-              : <UtensilsCrossed aria-hidden="true" />}
+    <header className="sera-header">
+      <div className="sera-header-inner">
+        <a className="sera-brand" href="/" onClick={event => follow(event, '/')}>
+          <span className="sera-brand-mark">
+            {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" /> : <UtensilsCrossed aria-hidden="true" />}
           </span>
-          <span>
+          <span className="sera-brand-copy">
             <strong>{restaurant?.restaurantName || 'Nhà Hàng'}</strong>
-            <small>Vietnamese Bistro</small>
+            <small>Vietnamese dining</small>
           </span>
         </a>
 
-        <nav className={`bistro-template-nav ${open ? 'open' : ''}`} aria-label="Điều hướng chính">
+        <nav className={`sera-nav ${open ? 'open' : ''}`} aria-label="Điều hướng chính">
           {links.map(link => {
             const active = link.path === '/' ? pathname === '/' : pathname.startsWith(link.path)
             return (
               <a
                 href={link.path}
+                key={link.path}
                 className={active ? 'active' : ''}
                 aria-current={active ? 'page' : undefined}
-                key={link.path}
                 onClick={event => follow(event, link.path)}
               >
                 {link.label}
@@ -92,21 +80,21 @@ export default function SiteHeader({
           })}
         </nav>
 
-        <div className="bistro-template-actions">
-          <Button asChild variant="ghost" size="icon" className="relative">
+        <div className="sera-header-actions">
+          <Button asChild variant="ghost" size="icon" className="sera-cart-button">
             <a href="/takeaway" onClick={event => follow(event, '/takeaway')} aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`}>
               <ShoppingBag />
-              {cartCount ? <span className="bistro-cart-badge">{cartCount > 99 ? '99+' : cartCount}</span> : null}
+              {cartCount ? <span className="sera-cart-count">{cartCount > 99 ? '99+' : cartCount}</span> : null}
             </a>
           </Button>
           {session ? <NotificationCenter session={session} onSessionRefresh={onSessionRefresh} /> : null}
-          <Button asChild size="sm" className="bistro-account-button">
+          <Button asChild size="sm" variant="outline">
             <a href={accountPath} onClick={event => follow(event, accountPath)}>
               <UserRound />
-              <span>{accountLabel}</span>
+              <span className="sera-account-text">{accountLabel}</span>
             </a>
           </Button>
-          <Button className="bistro-template-menu-toggle" variant="outline" size="icon" type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? 'Đóng menu' : 'Mở menu'}>
+          <Button className="sera-menu-toggle" variant="ghost" size="icon" type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? 'Đóng menu' : 'Mở menu'}>
             {open ? <X /> : <Menu />}
           </Button>
         </div>
