@@ -26,16 +26,16 @@ const revealSelector = [
 
 const interactiveSelector = [
   'a[href]',
-  'button:not(:disabled)',
+  'button',
   '[role="button"]',
   '[data-slot="button"]',
   '[data-slot="tabs-trigger"]',
   '[data-slot="select-trigger"]',
   '[data-slot="dropdown-menu-trigger"]',
   '[data-slot="popover-trigger"]',
-  'input:not(:disabled)',
-  'textarea:not(:disabled)',
-  'select:not(:disabled)',
+  'input',
+  'textarea',
+  'select',
   '.sera-filter-button',
   '.sera-dish-row',
   '.sera-menu-item',
@@ -50,6 +50,10 @@ function motionOrder(element: HTMLElement) {
 function closestInteractive(target: EventTarget | null) {
   if (!(target instanceof Element)) return null
   return target.closest<HTMLElement>(interactiveSelector)
+}
+
+function isDisabledInteractive(element: HTMLElement) {
+  return element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true'
 }
 
 export default function MotionEffects() {
@@ -159,7 +163,7 @@ export default function MotionEffects() {
     }
     const handlePointerDown = (event: PointerEvent) => {
       const element = closestInteractive(event.target)
-      if (!element || !site.contains(element)) return
+      if (!element || !site.contains(element) || isDisabledInteractive(element)) return
       if (releaseTimer) window.clearTimeout(releaseTimer)
       clearPressed()
       pressedElement = element
@@ -167,7 +171,7 @@ export default function MotionEffects() {
     }
     const handleClick = (event: MouseEvent) => {
       const element = closestInteractive(event.target)
-      if (!element || !site.contains(element) || reduceMotion) return
+      if (!element || !site.contains(element) || isDisabledInteractive(element) || reduceMotion) return
       element.classList.remove('motion-activated')
       void element.offsetWidth
       element.classList.add('motion-activated')
