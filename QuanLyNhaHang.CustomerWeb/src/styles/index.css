@@ -2,7 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/noto-sans";
-@import "@fontsource-variable/playfair-display";
 @import "./sera-system.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -31,7 +30,7 @@
 
 @theme inline {
   --font-sans: 'Noto Sans Variable', system-ui, sans-serif;
-  --font-heading: 'Playfair Display Variable', Georgia, serif;
+  --font-heading: 'Noto Sans Variable', system-ui, sans-serif;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -63,4 +62,9 @@
   button, input, textarea, select { font: inherit; }
   img { display: block; max-width: 100%; }
   a { color: inherit; text-decoration: none; }
+}
+
+.customer-site,
+.customer-site * {
+  font-family: 'Noto Sans Variable', system-ui, sans-serif !important;
 }
