@@ -180,7 +180,7 @@ export default function TakeawayPage({
             </>
           ) : null}
           {error ? <div className="form-notice error" role="alert">{error}</div> : null}
-          <div>
+          <div className="takeaway-success-actions">
             {!cancelled && session ? (
               <button className="customer-order-cancel-button" type="button" disabled={cancelling} onClick={() => void cancelPendingResult()}>
                 <XCircle aria-hidden="true" /> {cancelling ? 'Đang hủy…' : 'Hủy đơn'}
