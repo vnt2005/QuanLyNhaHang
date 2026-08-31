@@ -17,8 +17,8 @@ function currency(value: number, code = 'VND') {
 
 export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
   const restaurant = data.restaurant
-  const featured = useMemo(() => data.menuItems.filter(item => item.isAvailable).slice(0, 5), [data.menuItems])
-  const popular = useMemo(() => data.menuItems.filter(item => item.isAvailable).slice(0, 6), [data.menuItems])
+  const availableItems = useMemo(() => data.menuItems.filter(item => item.isAvailable), [data.menuItems])
+  const featured = useMemo(() => availableItems.slice(0, 5), [availableItems])
   const [activeIndex, setActiveIndex] = useState(0)
   const active = featured[activeIndex] ?? featured[0]
 
@@ -61,14 +61,14 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-section-head">
           <div>
             <p className="sera-kicker">Thực đơn đang phục vụ</p>
-            <h2 style={homeFontStyle}>Những món đáng bắt đầu hôm nay.</h2>
+            <h2 style={homeFontStyle}>Tất cả món đang mở bán.</h2>
           </div>
-          <button className="sera-link" type="button" onClick={() => navigate('/menu')}>Xem toàn bộ <ArrowRight size={14} /></button>
+          <button className="sera-link" type="button" onClick={() => navigate('/menu')}>Xem thực đơn <ArrowRight size={14} /></button>
         </div>
 
-        {popular.length ? (
+        {availableItems.length ? (
           <div className="sera-dish-list">
-            {popular.map(item => (
+            {availableItems.map(item => (
               <button
                 key={item.id}
                 type="button"
