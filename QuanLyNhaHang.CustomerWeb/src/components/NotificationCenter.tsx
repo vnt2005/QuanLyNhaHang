@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { Button } from '@/components/ui/button'
 import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import type { CustomerSession } from '../services/customerAuth'
 import { ApiError } from '../services/client'
@@ -17,30 +18,20 @@ import {
   type CustomerNotification,
 } from '../services/notifications'
 import { navigate } from '../utils/navigation'
-import '../styles/components/notification-center.css'
 
 const REALTIME_REFRESH_COOLDOWN_MS = 60_000
+const MAX_VISIBLE_NOTIFICATIONS = 20
 
 type RealtimeState = 'connected' | 'reconnecting' | 'offline'
-
-const MAX_VISIBLE_NOTIFICATIONS = 20
 
 function relativeTime(value: string) {
   const timestamp = new Date(value).getTime()
   if (!Number.isFinite(timestamp)) return ''
 
-  const elapsedSeconds = Math.max(
-    0,
-    Math.floor((Date.now() - timestamp) / 1000),
-  )
-
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000))
   if (elapsedSeconds < 60) return 'Vừa xong'
-  if (elapsedSeconds < 3600) {
-    return `${Math.floor(elapsedSeconds / 60)} phút trước`
-  }
-  if (elapsedSeconds < 86_400) {
-    return `${Math.floor(elapsedSeconds / 3600)} giờ trước`
-  }
+  if (elapsedSeconds < 3600) return `${Math.floor(elapsedSeconds / 60)} phút trước`
+  if (elapsedSeconds < 86_400) return `${Math.floor(elapsedSeconds / 3600)} giờ trước`
 
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
@@ -60,6 +51,12 @@ function statusLabel(type: string) {
   return 'Cập nhật'
 }
 
+function severityClass(severity: string) {
+  if (severity === 'error' || severity === 'danger') return 'bg-destructive'
+  if (severity === 'warning') return 'bg-accent'
+  return 'bg-foreground'
+}
+
 export default function NotificationCenter({
   session,
   onSessionRefresh,
@@ -73,8 +70,7 @@ export default function NotificationCenter({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [markingAll, setMarkingAll] = useState(false)
-  const [realtimeState, setRealtimeState] =
-    useState<RealtimeState>('offline')
+  const [realtimeState, setRealtimeState] = useState<RealtimeState>('offline')
   const [toast, setToast] = useState<CustomerNotification | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const knownIdsRef = useRef(new Set<string>())
@@ -85,26 +81,18 @@ export default function NotificationCenter({
   const refreshSession = useCallback(() => {
     if (!refreshRequestRef.current) {
       const request = onSessionRefresh().finally(() => {
-        if (refreshRequestRef.current === request) {
-          refreshRequestRef.current = null
-        }
+        if (refreshRequestRef.current === request) refreshRequestRef.current = null
       })
       refreshRequestRef.current = request
     }
-
     return refreshRequestRef.current
   }, [onSessionRefresh])
 
-  const requestWithRefresh = useCallback(async <T,>(
-    request: (accessToken: string) => Promise<T>,
-  ) => {
+  const requestWithRefresh = useCallback(async <T,>(request: (accessToken: string) => Promise<T>) => {
     try {
       return await request(session.token)
     } catch (exception) {
-      if (!(exception instanceof ApiError) || exception.status !== 401) {
-        throw exception
-      }
-
+      if (!(exception instanceof ApiError) || exception.status !== 401) throw exception
       const refreshedSession = await refreshSession()
       if (!refreshedSession) throw exception
       return request(refreshedSession.token)
@@ -116,17 +104,11 @@ export default function NotificationCenter({
     if (!notification.type.startsWith('Order.') && !notification.type.startsWith('Payment.')) return
 
     window.dispatchEvent(new CustomEvent(CUSTOMER_ORDER_CHANGED_EVENT, {
-      detail: {
-        orderId: notification.entityId,
-        type: notification.type,
-      },
+      detail: { orderId: notification.entityId, type: notification.type },
     }))
   }, [])
 
-  const applyFeed = useCallback((feed: {
-    items: CustomerNotification[]
-    unreadCount: number
-  }) => {
+  const applyFeed = useCallback((feed: { items: CustomerNotification[]; unreadCount: number }) => {
     const previousIds = knownIdsRef.current
     const newUnreadNotifications = feedInitializedRef.current
       ? feed.items.filter(item => !item.isRead && !previousIds.has(item.id))
@@ -158,22 +140,14 @@ export default function NotificationCenter({
     setError('')
 
     void requestWithRefresh(getCustomerNotificationFeed)
-      .then(feed => {
-        if (active) applyFeed(feed)
-      })
+      .then(feed => { if (active) applyFeed(feed) })
       .catch(exception => {
         if (!active) return
-        setError(exception instanceof Error
-          ? exception.message
-          : 'Không thể tải thông báo.')
+        setError(exception instanceof Error ? exception.message : 'Không thể tải thông báo.')
       })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
+      .finally(() => { if (active) setLoading(false) })
 
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [applyFeed, requestWithRefresh])
 
   useEffect(() => {
@@ -184,14 +158,9 @@ export default function NotificationCenter({
       session.token,
       notification => {
         if (!active || notification.userId !== session.userId) return
-
         const isNew = !knownIdsRef.current.has(notification.id)
         knownIdsRef.current.add(notification.id)
-
-        setItems(current => [
-          notification,
-          ...current.filter(item => item.id !== notification.id),
-        ].slice(0, MAX_VISIBLE_NOTIFICATIONS))
+        setItems(current => [notification, ...current.filter(item => item.id !== notification.id)].slice(0, MAX_VISIBLE_NOTIFICATIONS))
 
         if (isNew && !notification.isRead) {
           setUnreadCount(current => current + 1)
@@ -203,20 +172,13 @@ export default function NotificationCenter({
         if (!active) return
         if (state === 'connected') {
           realtimeRefreshAtRef.current = 0
-          void requestWithRefresh(getCustomerNotificationFeed)
-            .then(applyFeed)
-            .catch(() => {
-              // The next realtime event or reconciliation tick retries.
-            })
+          void requestWithRefresh(getCustomerNotificationFeed).then(applyFeed).catch(() => undefined)
         }
         setRealtimeState(state)
       },
       async () => {
         const now = Date.now()
-        if (now - realtimeRefreshAtRef.current < REALTIME_REFRESH_COOLDOWN_MS) {
-          return null
-        }
-
+        if (now - realtimeRefreshAtRef.current < REALTIME_REFRESH_COOLDOWN_MS) return null
         realtimeRefreshAtRef.current = now
         return (await refreshSession())?.token ?? null
       },
@@ -229,30 +191,20 @@ export default function NotificationCenter({
       active = false
       disconnect?.()
     }
-  }, [
-    applyFeed,
-    emitOrderChanged,
-    refreshSession,
-    requestWithRefresh,
-    session.token,
-    session.userId,
-  ])
+  }, [applyFeed, emitOrderChanged, refreshSession, requestWithRefresh, session.token, session.userId])
 
   useVisiblePolling(reconcile, 30_000)
 
   useEffect(() => {
     if (!open) return
-
     const closeOnOutsideClick = (event: PointerEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false)
     }
-
     document.addEventListener('pointerdown', closeOnOutsideClick)
     document.addEventListener('keydown', closeOnEscape)
-
     return () => {
       document.removeEventListener('pointerdown', closeOnOutsideClick)
       document.removeEventListener('keydown', closeOnEscape)
@@ -265,27 +217,14 @@ export default function NotificationCenter({
     return () => window.clearTimeout(timer)
   }, [toast])
 
-  const openNotification = useCallback(async (
-    notification: CustomerNotification,
-  ) => {
+  const openNotification = useCallback(async (notification: CustomerNotification) => {
     if (!notification.isRead) {
       try {
-        const updated = await requestWithRefresh(
-          accessToken => markCustomerNotificationRead(
-            notification.id,
-            accessToken,
-          ),
-        )
-        setItems(current => current.map(item =>
-          item.id === notification.id
-            ? (updated ?? { ...item, isRead: true })
-            : item,
-        ))
+        const updated = await requestWithRefresh(accessToken => markCustomerNotificationRead(notification.id, accessToken))
+        setItems(current => current.map(item => item.id === notification.id ? (updated ?? { ...item, isRead: true }) : item))
         setUnreadCount(current => Math.max(0, current - 1))
       } catch (exception) {
-        setError(exception instanceof Error
-          ? exception.message
-          : 'Không thể đánh dấu thông báo đã đọc.')
+        setError(exception instanceof Error ? exception.message : 'Không thể đánh dấu thông báo đã đọc.')
       }
     }
 
@@ -296,7 +235,6 @@ export default function NotificationCenter({
 
   async function markAllRead() {
     if (!unreadCount || markingAll) return
-
     setMarkingAll(true)
     setError('')
     try {
@@ -304,9 +242,7 @@ export default function NotificationCenter({
       setUnreadCount(0)
       setItems(current => current.map(item => ({ ...item, isRead: true })))
     } catch (exception) {
-      setError(exception instanceof Error
-        ? exception.message
-        : 'Không thể đánh dấu tất cả đã đọc.')
+      setError(exception instanceof Error ? exception.message : 'Không thể đánh dấu tất cả đã đọc.')
     } finally {
       setMarkingAll(false)
     }
@@ -315,124 +251,73 @@ export default function NotificationCenter({
   const badge = unreadCount > 99 ? '99+' : String(unreadCount)
 
   return (
-    <div className="customer-notification-center" ref={rootRef}>
-      <button
-        className={`customer-notification-trigger${open ? ' active' : ''}`}
+    <div className="relative" ref={rootRef}>
+      <Button
+        variant="ghost"
+        size="icon"
         type="button"
-        aria-label={unreadCount
-          ? `Thông báo, ${unreadCount} chưa đọc`
-          : 'Thông báo'}
+        className="relative"
+        aria-label={unreadCount ? `Thông báo, ${unreadCount} chưa đọc` : 'Thông báo'}
         aria-expanded={open}
         aria-controls="customer-notification-panel"
         onClick={() => setOpen(current => !current)}
       >
-        <Bell aria-hidden="true" />
-        {unreadCount > 0
-          ? <span className="customer-notification-badge">{badge}</span>
-          : null}
-      </button>
+        <Bell />
+        {unreadCount > 0 ? <span className="absolute -right-1 -top-1 grid min-w-4.5 h-4.5 place-items-center bg-accent px-1 text-[9px] font-bold text-accent-foreground">{badge}</span> : null}
+      </Button>
 
       {open ? (
         <section
-          className="customer-notification-panel"
+          className="absolute right-0 top-[calc(100%+14px)] z-50 w-[min(420px,calc(100vw-24px))] border border-border bg-background shadow-[0_18px_60px_rgba(36,31,27,.14)]"
           id="customer-notification-panel"
           aria-label="Thông báo của bạn"
         >
-          <header className="customer-notification-header">
-            <div>
-              <h2>Thông báo</h2>
-              <p>{unreadCount
-                ? `${unreadCount} thông báo chưa đọc`
-                : 'Bạn đã xem tất cả thông báo'}</p>
-            </div>
-            <button
-              type="button"
-              className="customer-notification-read-all"
-              onClick={() => void markAllRead()}
-              disabled={!unreadCount || markingAll}
-            >
-              <CheckCheck aria-hidden="true" />
-              <span>{markingAll ? 'Đang xử lý…' : 'Đọc tất cả'}</span>
-            </button>
+          <header className="flex items-start justify-between gap-4 border-b border-border p-5">
+            <div><p className="sera-kicker">Cập nhật</p><h2 className="mt-1 font-heading text-3xl font-medium">Thông báo</h2><p className="mt-1 text-xs text-muted-foreground">{unreadCount ? `${unreadCount} thông báo chưa đọc` : 'Bạn đã xem tất cả thông báo'}</p></div>
+            <Button variant="ghost" size="sm" type="button" onClick={() => void markAllRead()} disabled={!unreadCount || markingAll}><CheckCheck />{markingAll ? 'Đang xử lý…' : 'Đọc tất cả'}</Button>
           </header>
 
-          {error ? (
-            <div className="customer-notification-error" role="alert">
-              {error}
-            </div>
-          ) : null}
+          {error ? <div className="border-b border-destructive/30 bg-destructive/5 px-5 py-3 text-xs text-destructive" role="alert">{error}</div> : null}
 
-          <div className="customer-notification-list">
+          <div className="max-h-[min(520px,65vh)] overflow-y-auto">
             {loading ? (
-              <div className="customer-notification-empty" role="status">
-                Đang tải thông báo…
-              </div>
+              <div className="p-8 text-center text-sm text-muted-foreground" role="status">Đang tải thông báo…</div>
             ) : items.length ? (
               items.map(notification => (
                 <button
                   type="button"
-                  className={`customer-notification-item${
-                    notification.isRead ? '' : ' unread'
-                  }`}
+                  className={`grid w-full grid-cols-[8px_1fr_auto] gap-3 border-b border-border px-5 py-4 text-left transition-colors hover:bg-muted/60 ${notification.isRead ? 'bg-background' : 'bg-muted/35'}`}
                   key={notification.id}
                   onClick={() => void openNotification(notification)}
                 >
-                  <span className={`customer-notification-dot ${notification.severity}`} />
-                  <span className="customer-notification-copy">
-                    <span className="customer-notification-meta">
-                      <strong>{statusLabel(notification.type)}</strong>
-                      <time>{relativeTime(notification.createdAt)}</time>
-                    </span>
-                    <b>{notification.title}</b>
-                    <span>{notification.message}</span>
+                  <span className={`mt-1.5 size-2 ${severityClass(notification.severity)}`} />
+                  <span>
+                    <span className="flex flex-wrap items-center justify-between gap-2"><strong className="text-[10px] uppercase tracking-[.1em] text-muted-foreground">{statusLabel(notification.type)}</strong><time className="text-[10px] text-muted-foreground">{relativeTime(notification.createdAt)}</time></span>
+                    <b className="mt-1 block font-heading text-lg font-medium">{notification.title}</b>
+                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">{notification.message}</span>
                   </span>
-                  {!notification.isRead
-                    ? <i aria-label="Chưa đọc" />
-                    : null}
+                  {!notification.isRead ? <i className="mt-1 size-1.5 bg-accent" aria-label="Chưa đọc" /> : null}
                 </button>
               ))
             ) : (
-              <div className="customer-notification-empty">
-                <Bell aria-hidden="true" />
-                <strong>Chưa có thông báo nào</strong>
-                <span>Cập nhật về đơn hàng của bạn sẽ xuất hiện tại đây.</span>
-              </div>
+              <div className="p-10 text-center"><Bell className="mx-auto size-5 text-muted-foreground" /><strong className="mt-4 block font-heading text-2xl font-medium">Chưa có thông báo nào</strong><span className="mt-2 block text-xs leading-5 text-muted-foreground">Cập nhật về đơn hàng của bạn sẽ xuất hiện tại đây.</span></div>
             )}
           </div>
 
-          <footer className={`customer-notification-realtime ${realtimeState}`}>
-            <i />
-            {realtimeState === 'connected'
-              ? 'Đang nhận cập nhật theo thời gian thực'
-              : realtimeState === 'reconnecting'
-                ? 'Đang kết nối lại…'
-                : 'Realtime tạm gián đoạn'}
+          <footer className="flex items-center gap-2 border-t border-border px-5 py-3 text-[10px] font-bold uppercase tracking-[.08em] text-muted-foreground">
+            <i className={`size-2 ${realtimeState === 'connected' ? 'bg-emerald-600' : realtimeState === 'reconnecting' ? 'bg-accent' : 'bg-muted-foreground'}`} />
+            {realtimeState === 'connected' ? 'Đang nhận cập nhật theo thời gian thực' : realtimeState === 'reconnecting' ? 'Đang kết nối lại…' : 'Realtime tạm gián đoạn'}
           </footer>
         </section>
       ) : null}
 
       {toast ? (
-        <aside className="customer-notification-toast" role="status">
-          <button
-            type="button"
-            className="customer-notification-toast-main"
-            onClick={() => void openNotification(toast)}
-          >
-            <Bell aria-hidden="true" />
-            <span>
-              <small>THÔNG BÁO MỚI</small>
-              <strong>{toast.title}</strong>
-              <span>{toast.message}</span>
-            </span>
+        <aside className="fixed bottom-5 right-5 z-[90] grid w-[min(400px,calc(100vw-32px))] grid-cols-[1fr_auto] border border-border bg-background shadow-[0_18px_60px_rgba(36,31,27,.18)]" role="status">
+          <button type="button" className="flex gap-3 p-4 text-left" onClick={() => void openNotification(toast)}>
+            <Bell className="mt-0.5 size-4 shrink-0 text-accent" />
+            <span><small className="sera-kicker">Thông báo mới</small><strong className="mt-1 block font-heading text-xl font-medium">{toast.title}</strong><span className="mt-1 block text-xs leading-5 text-muted-foreground">{toast.message}</span></span>
           </button>
-          <button
-            type="button"
-            className="customer-notification-toast-close"
-            aria-label="Đóng thông báo"
-            onClick={() => setToast(null)}
-          >
-            <X aria-hidden="true" />
-          </button>
+          <button type="button" className="grid w-11 place-items-center border-l border-border text-muted-foreground hover:text-foreground" aria-label="Đóng thông báo" onClick={() => setToast(null)}><X className="size-4" /></button>
         </aside>
       ) : null}
     </div>
