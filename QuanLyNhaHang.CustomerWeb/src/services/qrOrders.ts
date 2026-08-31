@@ -1,8 +1,5 @@
 import { apiRequest } from './client'
-import {
-  getCustomerAccessToken,
-  restoreCustomerSession,
-} from './customerAuth'
+import { authenticatedCustomerRequest } from './customerRequest'
 import type { CustomerOrder, OrderItem } from './customerOrders'
 
 export type QrOrderTable = {
@@ -65,11 +62,9 @@ export async function createQrOrder(
     )
   }
 
-  let accessToken = getCustomerAccessToken()
-  if (!accessToken) accessToken = (await restoreCustomerSession()).token
-  return apiRequest<{
+  return authenticatedCustomerRequest<{
     success: boolean
     message: string
     data: CustomerOrder & { items: OrderItem[] }
-  }>('/api/customer/orders', init, accessToken)
+  }>('/api/customer/orders', init)
 }
