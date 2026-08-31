@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   CustomerSessionProvider,
   useCustomerSession,
@@ -38,7 +39,11 @@ function getMenuItemId(pathname: string) {
 }
 
 function PageLoading() {
-  return <main className="page-section"><StatusPanel kind="loading" title="Đang mở trang…" message="Nội dung đang được chuẩn bị cho bạn." /></main>
+  return (
+    <main className="sera-page">
+      <StatusPanel kind="loading" title="Đang mở trang…" message="Nội dung đang được chuẩn bị cho bạn." />
+    </main>
+  )
 }
 
 function CustomerApplication({ pathname }: { pathname: string }) {
@@ -92,21 +97,18 @@ function CustomerApplication({ pathname }: { pathname: string }) {
 
   const qrToken = getQrToken(pathname)
   const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/reservation' || Boolean(menuItemId)
-  const premiumCustomerChrome = pathname === '/'
-    || pathname === '/menu'
-    || Boolean(menuItemId)
-    || pathname === '/takeaway'
-    || pathname === '/reservation'
-    || pathname === '/orders'
-    || pathname === '/account'
-    || pathname === '/login'
-    || pathname === '/payment-result'
 
   function content() {
     if (pathname === '/payment-result') return <PaymentResultPage session={session} />
     if (qrToken) return <QrOrderPage token={qrToken} session={session} />
     if (loadingData && isPublicDataRoute) return <PageLoading />
-    if (dataError && isPublicDataRoute) return <main className="page-section"><StatusPanel kind="error" title="Chưa kết nối được với nhà hàng" message={dataError} onRetry={() => void loadData()} /></main>
+    if (dataError && isPublicDataRoute) {
+      return (
+        <main className="sera-page">
+          <StatusPanel kind="error" title="Chưa kết nối được với nhà hàng" message={dataError} onRetry={() => void loadData()} />
+        </main>
+      )
+    }
     if (pathname === '/') return <HomePage data={data} />
     if (pathname === '/menu') return <MenuPage data={data} />
     if (menuItemId) return <MenuItemDetailPage data={data} itemId={menuItemId} />
@@ -114,7 +116,18 @@ function CustomerApplication({ pathname }: { pathname: string }) {
     if (pathname === '/reservation') return <ReservationPage data={data} session={session} />
     if (pathname === '/orders') return <OrdersPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
     if (pathname === '/account' || pathname === '/login') return <AccountPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
-    return <main className="not-found page-section"><h1>Không tìm thấy trang</h1><p>Đường dẫn này không tồn tại hoặc đã được thay đổi.</p><button className="primary-button" type="button" onClick={() => navigate('/')}>Về trang chủ</button></main>
+
+    return (
+      <main className="sera-page">
+        <section className="sera-empty">
+          <div>
+            <h1 className="font-heading text-5xl font-medium">Không tìm thấy trang.</h1>
+            <p>Đường dẫn này không tồn tại hoặc đã được thay đổi.</p>
+            <Button type="button" onClick={() => navigate('/')}>Về trang chủ</Button>
+          </div>
+        </section>
+      </main>
+    )
   }
 
   return (
@@ -126,7 +139,7 @@ function CustomerApplication({ pathname }: { pathname: string }) {
         onSessionRefresh={refreshCustomerSession}
       />
       <Suspense fallback={<PageLoading />}>{content()}</Suspense>
-      <SiteFooter restaurant={data.restaurant} home={premiumCustomerChrome} />
+      <SiteFooter restaurant={data.restaurant} />
     </div>
   )
 }
