@@ -16,6 +16,7 @@
 @import './bistro-template.css';
 @import './bistro-footer.css';
 @import './bistro-menu-v2.css';
+@import './bistro-checkout.css';
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
