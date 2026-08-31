@@ -1,4 +1,4 @@
-import { apiRequest } from './client'
+import { optionalCustomerRequest } from './customerRequest'
 
 export type CustomerPromotion = {
   promotionId: string
@@ -33,7 +33,7 @@ export function getAppliedCustomerPromotion(
   const params = new URLSearchParams()
   if (qrToken) params.set('qrToken', qrToken)
   const query = params.size ? `?${params}` : ''
-  return apiRequest<AppliedPromotionResponse>(
+  return optionalCustomerRequest<AppliedPromotionResponse>(
     `/api/customer-promotions/orders/${encodeURIComponent(orderId)}/applied${query}`,
     undefined,
     accessToken,
@@ -46,7 +46,7 @@ export function applyCustomerPromotion(
   qrToken?: string | null,
   accessToken?: string | null,
 ) {
-  return apiRequest<ApplyPromotionResponse>(
+  return optionalCustomerRequest<ApplyPromotionResponse>(
     `/api/customer-promotions/orders/${encodeURIComponent(orderId)}/apply`,
     {
       method: 'POST',
