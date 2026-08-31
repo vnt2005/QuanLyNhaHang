@@ -58,8 +58,6 @@ export default function MotionEffects() {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (!site) return
 
-    const boundElements = new Set<HTMLElement>()
-    const interactiveElements = new Set<HTMLElement>()
     let scrollDirection: 'up' | 'down' = 'down'
     let lastScrollY = window.scrollY
     let revealObserver: IntersectionObserver | null = null
@@ -92,7 +90,6 @@ export default function MotionEffects() {
       candidates.forEach(element => {
         if (element.dataset.motionBound === 'true') return
         element.dataset.motionBound = 'true'
-        boundElements.add(element)
         element.style.setProperty('--motion-order', String(motionOrder(element)))
         if (!revealObserver) return
         element.classList.add('motion-reveal', 'motion-from-below')
@@ -109,7 +106,6 @@ export default function MotionEffects() {
         if (element.dataset.motionInteractive === 'true') return
         element.dataset.motionInteractive = 'true'
         element.classList.add('motion-interactive')
-        interactiveElements.add(element)
       })
     }
 
@@ -151,6 +147,7 @@ export default function MotionEffects() {
 
     let pressedElement: HTMLElement | null = null
     let releaseTimer = 0
+    const activationTimers = new Set<number>()
     const clearPressed = () => {
       if (!pressedElement) return
       pressedElement.classList.remove('motion-pressed')
@@ -174,7 +171,11 @@ export default function MotionEffects() {
       element.classList.remove('motion-activated')
       void element.offsetWidth
       element.classList.add('motion-activated')
-      window.setTimeout(() => element.classList.remove('motion-activated'), 360)
+      const timer = window.setTimeout(() => {
+        activationTimers.delete(timer)
+        element.classList.remove('motion-activated')
+      }, 360)
+      activationTimers.add(timer)
     }
 
     syncViewportMotion()
@@ -191,6 +192,7 @@ export default function MotionEffects() {
       mutationObserver.disconnect()
       if (viewportFrame) window.cancelAnimationFrame(viewportFrame)
       if (releaseTimer) window.clearTimeout(releaseTimer)
+      activationTimers.forEach(timer => window.clearTimeout(timer))
       window.removeEventListener('scroll', queueViewportSync)
       window.removeEventListener('resize', queueViewportSync)
       site.removeEventListener('pointerdown', handlePointerDown)
@@ -202,12 +204,12 @@ export default function MotionEffects() {
       site.classList.remove('is-scrolling-down', 'is-scrolling-up')
       site.style.removeProperty('--sera-scroll-progress')
 
-      boundElements.forEach(element => {
+      site.querySelectorAll<HTMLElement>('[data-motion-bound="true"]').forEach(element => {
         element.classList.remove('motion-reveal', 'motion-visible', 'motion-from-above', 'motion-from-below')
         delete element.dataset.motionBound
         element.style.removeProperty('--motion-order')
       })
-      interactiveElements.forEach(element => {
+      site.querySelectorAll<HTMLElement>('[data-motion-interactive="true"]').forEach(element => {
         element.classList.remove('motion-interactive', 'motion-pressed', 'motion-activated')
         delete element.dataset.motionInteractive
       })
