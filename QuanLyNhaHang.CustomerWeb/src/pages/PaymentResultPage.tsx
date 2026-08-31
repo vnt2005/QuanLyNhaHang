@@ -8,7 +8,6 @@ import {
   type CustomerPaymentStatus,
 } from '../services/customerPayments'
 import { navigate } from '../utils/navigation'
-import '../styles/payment.css'
 
 function money(value?: number | null) {
   if (value == null) return ''
