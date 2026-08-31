@@ -1,5 +1,5 @@
 import { CheckCircle2, LoaderCircle, Tag } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,6 +31,16 @@ export default function PromotionCodeBox({
   const [checking, setChecking] = useState(true)
   const [applying, setApplying] = useState(false)
   const [error, setError] = useState('')
+  const identity = `${orderId}\n${qrToken ?? ''}`
+  const identityRef = useRef(identity)
+
+  useEffect(() => {
+    identityRef.current = identity
+    setCode('')
+    setApplied(null)
+    setApplying(false)
+    setError('')
+  }, [identity])
 
   useEffect(() => {
     let active = true
@@ -41,7 +51,7 @@ export default function PromotionCodeBox({
       .then(response => {
         if (!active) return
         setApplied(response.data)
-        if (response.data) setCode(response.data.promotionCode)
+        setCode(response.data?.promotionCode ?? '')
       })
       .catch(exception => {
         if (!active) return
@@ -57,16 +67,19 @@ export default function PromotionCodeBox({
   async function apply() {
     const normalized = code.trim().toUpperCase()
     if (!normalized || applying || applied) return
+    const requestIdentity = identityRef.current
     setApplying(true)
     setError('')
     try {
       const response = await applyCustomerPromotion(orderId, normalized, qrToken, accessToken)
+      if (identityRef.current !== requestIdentity) return
       setApplied(response.data)
       setCode(response.data.promotionCode)
     } catch (exception) {
+      if (identityRef.current !== requestIdentity) return
       setError(exception instanceof Error ? exception.message : 'Không áp dụng được mã khuyến mãi.')
     } finally {
-      setApplying(false)
+      if (identityRef.current === requestIdentity) setApplying(false)
     }
   }
 
