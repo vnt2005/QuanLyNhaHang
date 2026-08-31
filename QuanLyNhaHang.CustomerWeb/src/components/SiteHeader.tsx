@@ -84,7 +84,7 @@ export default function SiteHeader({
           <Button asChild variant="ghost" size="icon" className="sera-cart-button">
             <a href="/takeaway" onClick={event => follow(event, '/takeaway')} aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`}>
               <ShoppingBag />
-              {cartCount ? <span className="sera-cart-count">{cartCount > 99 ? '99+' : cartCount}</span> : null}
+              {cartCount ? <span className="sera-cart-count" key={cartCount}>{cartCount > 99 ? '99+' : cartCount}</span> : null}
             </a>
           </Button>
           {session ? <NotificationCenter session={session} onSessionRefresh={onSessionRefresh} /> : null}

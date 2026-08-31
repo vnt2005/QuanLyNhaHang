@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/noto-sans";
 @import "./sera-system.css";
+@import "./motion.css";
+@import "./hover-motion.css";
 
 @custom-variant dark (&:is(.dark *));
 

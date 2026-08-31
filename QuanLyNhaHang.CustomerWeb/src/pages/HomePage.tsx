@@ -49,8 +49,8 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         </div>
 
         <div className="sera-home-visual">
-          <img src={active?.imageUrl || heroImage} alt={active?.name || 'Món ăn nổi bật'} />
-          <div className="sera-home-visual-caption">
+          <img className="sera-home-visual-image" key={active?.id || 'fallback'} src={active?.imageUrl || heroImage} alt={active?.name || 'Món ăn nổi bật'} />
+          <div className="sera-home-visual-caption" key={`caption-${active?.id || 'fallback'}`}>
             <span><small>{active?.menuCategoryName || 'Món hôm nay'}</small><strong style={homeFontStyle}>{active?.name || 'Thực đơn đang phục vụ'}</strong></span>
             <b>{active ? currency(active.price, restaurant?.currency) : ''}</b>
           </div>

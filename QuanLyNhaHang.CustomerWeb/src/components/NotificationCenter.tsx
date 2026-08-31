@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import type { CustomerSession } from '../services/customerAuth'
@@ -311,14 +312,15 @@ export default function NotificationCenter({
         </section>
       ) : null}
 
-      {toast ? (
-        <aside className="fixed bottom-5 right-5 z-[90] grid w-[min(400px,calc(100vw-32px))] grid-cols-[1fr_auto] border border-border bg-background shadow-[0_18px_60px_rgba(36,31,27,.18)]" role="status">
+      {toast && typeof document !== 'undefined' ? createPortal(
+        <aside className="fixed right-5 top-24 z-[100] grid w-[min(400px,calc(100vw-32px))] grid-cols-[1fr_auto] border border-border bg-background shadow-[0_18px_60px_rgba(36,31,27,.18)] max-sm:right-4 max-sm:top-20" role="status">
           <button type="button" className="flex gap-3 p-4 text-left" onClick={() => void openNotification(toast)}>
             <Bell className="mt-0.5 size-4 shrink-0 text-accent" />
             <span><small className="sera-kicker">Thông báo mới</small><strong className="mt-1 block font-heading text-xl font-medium">{toast.title}</strong><span className="mt-1 block text-xs leading-5 text-muted-foreground">{toast.message}</span></span>
           </button>
           <button type="button" className="grid w-11 place-items-center border-l border-border text-muted-foreground hover:text-foreground" aria-label="Đóng thông báo" onClick={() => setToast(null)}><X className="size-4" /></button>
-        </aside>
+        </aside>,
+        document.body,
       ) : null}
     </div>
   )

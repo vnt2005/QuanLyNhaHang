@@ -1,0 +1,420 @@
+:root {
+  --sera-motion-fast: 180ms;
+  --sera-motion-base: 420ms;
+  --sera-motion-slow: 620ms;
+  --sera-motion-ease: cubic-bezier(.22, 1, .36, 1);
+  --sera-motion-soft: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Page and repeatable directional scroll reveals */
+.sera-route-frame {
+  animation: sera-route-enter var(--sera-motion-base) var(--sera-motion-ease) both;
+}
+
+.motion-reveal {
+  opacity: .06;
+  transform: translate3d(0, 38px, 0) scale(.985);
+  transition:
+    opacity 520ms var(--sera-motion-ease),
+    transform var(--sera-motion-slow) var(--sera-motion-ease);
+  transition-delay: calc(var(--motion-order, 0) * 35ms);
+  will-change: opacity, transform;
+}
+
+.motion-reveal.motion-from-above {
+  transform: translate3d(0, -34px, 0) scale(.985);
+}
+
+.motion-reveal.motion-from-below {
+  transform: translate3d(0, 38px, 0) scale(.985);
+}
+
+.motion-reveal.motion-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  will-change: auto;
+}
+
+/* Header and navigation feedback */
+.sera-header {
+  transition:
+    background-color var(--sera-motion-base) var(--sera-motion-soft),
+    border-color var(--sera-motion-base) var(--sera-motion-soft),
+    box-shadow var(--sera-motion-base) var(--sera-motion-soft);
+}
+
+.sera-header::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--sera-accent);
+  content: '';
+  pointer-events: none;
+  transform: scaleX(var(--sera-scroll-progress, 0));
+  transform-origin: left center;
+  transition: opacity var(--sera-motion-fast) ease;
+  opacity: .82;
+}
+
+.sera-header.is-scrolled {
+  border-bottom-color: color-mix(in srgb, var(--sera-line) 92%, transparent);
+  background: color-mix(in srgb, var(--sera-paper) 98%, transparent);
+  box-shadow: 0 12px 32px rgba(36, 31, 27, .07);
+}
+
+.customer-site.is-scrolling-up .sera-header.is-scrolled {
+  box-shadow: 0 16px 38px rgba(36, 31, 27, .10);
+}
+
+.sera-nav a::after {
+  transition: transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-nav a:hover::after,
+.sera-nav a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.sera-brand-mark,
+.sera-brand-copy strong {
+  transition:
+    color var(--sera-motion-fast) ease,
+    border-color var(--sera-motion-fast) ease,
+    transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-brand:hover .sera-brand-mark {
+  border-color: var(--sera-accent);
+  transform: rotate(-3deg) scale(1.04);
+}
+
+.sera-brand:hover .sera-brand-copy strong {
+  color: var(--sera-accent-dark);
+}
+
+/* Universal tactile feedback for CustomerWeb interactive surfaces. */
+.motion-interactive {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button.motion-interactive,
+a.motion-interactive,
+[role="button"].motion-interactive,
+[data-slot="tabs-trigger"].motion-interactive,
+[data-slot="select-trigger"].motion-interactive,
+[data-slot="dropdown-menu-trigger"].motion-interactive,
+[data-slot="popover-trigger"].motion-interactive,
+.sera-dish-row.motion-interactive,
+.sera-menu-item.motion-interactive {
+  transform-origin: center;
+  transition:
+    color var(--sera-motion-fast) ease,
+    background-color var(--sera-motion-fast) ease,
+    border-color var(--sera-motion-fast) ease,
+    box-shadow var(--sera-motion-fast) ease,
+    filter var(--sera-motion-fast) ease,
+    transform var(--sera-motion-fast) var(--sera-motion-ease);
+}
+
+.motion-interactive.motion-pressed:not(input):not(textarea):not(select) {
+  filter: brightness(.97) saturate(.94);
+  transform: translateY(1px) scale(.96) !important;
+  transition-duration: 90ms !important;
+}
+
+input.motion-interactive.motion-pressed,
+textarea.motion-interactive.motion-pressed,
+select.motion-interactive.motion-pressed,
+[data-slot="select-trigger"].motion-interactive.motion-pressed {
+  border-color: var(--sera-accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sera-accent) 16%, transparent) !important;
+}
+
+.motion-interactive.motion-activated:not(input):not(textarea):not(select) {
+  animation: sera-interaction-pulse 360ms var(--sera-motion-ease);
+}
+
+a.motion-interactive:focus-visible,
+button.motion-interactive:focus-visible,
+[role="button"].motion-interactive:focus-visible,
+[data-slot="tabs-trigger"].motion-interactive:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--sera-accent) 72%, white);
+  outline-offset: 3px;
+}
+
+/* Controls keep their geometry while gaining tactile feedback. */
+[data-slot="button"] {
+  transition:
+    color var(--sera-motion-fast) ease,
+    background-color var(--sera-motion-fast) ease,
+    border-color var(--sera-motion-fast) ease,
+    transform var(--sera-motion-fast) var(--sera-motion-ease),
+    box-shadow var(--sera-motion-fast) ease;
+}
+
+[data-slot="button"]:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(36, 31, 27, .10) !important;
+}
+
+[data-slot="button"]:not(:disabled):active {
+  transform: translateY(0) scale(.97);
+  box-shadow: none !important;
+  transition-duration: 90ms;
+}
+
+.sera-link {
+  transition: color var(--sera-motion-fast) ease, border-color var(--sera-motion-fast) ease;
+}
+
+.sera-link svg {
+  transition: transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-link:hover svg,
+.sera-link:focus-visible svg {
+  transform: translateX(4px);
+}
+
+.sera-cart-count {
+  transform-origin: center;
+  animation: sera-cart-pop 460ms var(--sera-motion-ease) both;
+}
+
+.sera-search svg {
+  transition: color var(--sera-motion-fast) ease, transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-search:focus-within svg {
+  color: var(--sera-accent);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.sera-field,
+[data-slot="input"],
+[data-slot="textarea"],
+[data-slot="select-trigger"] {
+  transition:
+    color var(--sera-motion-fast) ease,
+    border-color var(--sera-motion-fast) ease,
+    background-color var(--sera-motion-fast) ease,
+    box-shadow var(--sera-motion-fast) ease;
+}
+
+.sera-field:focus-within {
+  color: var(--sera-accent-dark);
+}
+
+[data-slot="input"]:focus-visible,
+[data-slot="textarea"]:focus-visible,
+[data-slot="select-trigger"]:focus-visible {
+  border-color: var(--sera-accent) !important;
+  box-shadow: 0 3px 0 -1px color-mix(in srgb, var(--sera-accent) 58%, transparent) !important;
+}
+
+/* Food imagery and list interactions */
+.sera-home-visual-image {
+  animation: sera-hero-swap 760ms var(--sera-motion-ease) both;
+}
+
+.sera-home-visual-caption {
+  animation: sera-caption-enter 560ms 90ms var(--sera-motion-ease) both;
+}
+
+.sera-dish-row,
+.sera-menu-item,
+.sera-filter-button,
+.sera-panel,
+.sera-page article,
+[data-slot="alert"] {
+  transition:
+    color var(--sera-motion-fast) ease,
+    background-color var(--sera-motion-base) var(--sera-motion-soft),
+    border-color var(--sera-motion-fast) ease,
+    box-shadow var(--sera-motion-base) var(--sera-motion-soft);
+}
+
+.sera-dish-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 128px;
+}
+
+.sera-menu-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 184px;
+}
+
+.sera-dish-row-media img,
+.sera-menu-item-media img,
+.sera-detail-media img,
+.sera-home-reservation-media img,
+.sera-page article img {
+  transition: transform 720ms var(--sera-motion-ease), filter var(--sera-motion-base) ease;
+}
+
+.sera-dish-row h3,
+.sera-menu-item-copy h2,
+.sera-page article h3 {
+  transition: color var(--sera-motion-fast) ease, transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-footer-links a,
+.sera-footer-contact a {
+  transition: color var(--sera-motion-fast) ease, transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sera-dish-row:hover,
+  .sera-menu-item:hover,
+  .sera-page article:hover {
+    background: color-mix(in srgb, var(--sera-wash) 68%, transparent);
+  }
+
+  .sera-panel:hover,
+  [data-slot="alert"]:hover {
+    border-color: color-mix(in srgb, var(--sera-accent) 32%, var(--sera-line));
+  }
+
+  .sera-dish-row:hover img,
+  .sera-menu-item:hover img,
+  .sera-detail-media:hover img,
+  .sera-home-reservation-media:hover img,
+  .sera-page article:hover img {
+    transform: scale(1.055);
+  }
+
+  .sera-dish-row:hover h3,
+  .sera-menu-item:hover h2,
+  .sera-page article:hover h3 {
+    color: var(--sera-accent-dark);
+    transform: translateX(5px);
+  }
+
+  .sera-filter-button:hover {
+    color: var(--sera-ink);
+    background: color-mix(in srgb, var(--sera-wash) 62%, transparent);
+  }
+
+  .sera-footer-links a:hover,
+  .sera-footer-contact a:hover {
+    color: var(--sera-accent-dark);
+    transform: translateX(3px);
+  }
+
+  button.motion-interactive:not(:disabled):hover,
+  a.motion-interactive:hover,
+  [role="button"].motion-interactive:hover {
+    filter: brightness(.97);
+  }
+}
+
+/* Existing Radix surfaces receive a consistent soft entrance. */
+[data-slot="dialog-overlay"][data-state="open"],
+[data-slot="alert-dialog-overlay"][data-state="open"],
+[data-slot="sheet-overlay"][data-state="open"] {
+  animation-duration: 260ms;
+  animation-timing-function: var(--sera-motion-soft);
+}
+
+[data-slot="dialog-content"][data-state="open"],
+[data-slot="alert-dialog-content"][data-state="open"],
+[data-slot="popover-content"][data-state="open"],
+[data-slot="dropdown-menu-content"][data-state="open"],
+[data-slot="sheet-content"][data-state="open"] {
+  animation-duration: var(--sera-motion-base);
+  animation-timing-function: var(--sera-motion-ease);
+}
+
+@media (max-width: 1050px) {
+  .sera-nav.open a {
+    animation: sera-mobile-nav-enter var(--sera-motion-base) var(--sera-motion-ease) both;
+    animation-delay: calc(var(--nav-order, 0) * 45ms);
+  }
+
+  .sera-nav.open a:nth-child(2) { --nav-order: 1; }
+  .sera-nav.open a:nth-child(3) { --nav-order: 2; }
+  .sera-nav.open a:nth-child(4) { --nav-order: 3; }
+  .sera-nav.open a:nth-child(5) { --nav-order: 4; }
+}
+
+@keyframes sera-route-enter {
+  from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.99); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes sera-hero-swap {
+  from { opacity: .25; transform: scale(1.055); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes sera-caption-enter {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes sera-cart-pop {
+  0% { opacity: 0; transform: scale(.5) rotate(-8deg); }
+  55% { opacity: 1; transform: scale(1.2) rotate(3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes sera-interaction-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(155, 75, 47, .24); }
+  55% { box-shadow: 0 0 0 7px rgba(155, 75, 47, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(155, 75, 47, 0); }
+}
+
+@keyframes sera-mobile-nav-enter {
+  from { opacity: 0; transform: translate3d(-16px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sera-route-frame,
+  .sera-home-visual-image,
+  .sera-home-visual-caption,
+  .sera-cart-count,
+  .sera-nav.open a,
+  .motion-interactive.motion-activated {
+    animation: none !important;
+  }
+
+  .sera-header::after {
+    display: none;
+  }
+
+  .motion-reveal,
+  .motion-reveal.motion-from-above,
+  .motion-reveal.motion-from-below,
+  .motion-reveal.motion-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .motion-interactive.motion-pressed,
+  .sera-brand:hover .sera-brand-mark,
+  [data-slot="button"]:not(:disabled):hover,
+  [data-slot="button"]:not(:disabled):active,
+  .sera-link:hover svg,
+  .sera-link:focus-visible svg,
+  .sera-dish-row:hover img,
+  .sera-menu-item:hover img,
+  .sera-detail-media:hover img,
+  .sera-home-reservation-media:hover img,
+  .sera-page article:hover img,
+  .sera-dish-row:hover h3,
+  .sera-menu-item:hover h2,
+  .sera-page article:hover h3,
+  .sera-footer-links a:hover,
+  .sera-footer-contact a:hover {
+    transform: none !important;
+  }
+
+  .sera-search:focus-within svg {
+    transform: translateY(-50%) !important;
+  }
+}
