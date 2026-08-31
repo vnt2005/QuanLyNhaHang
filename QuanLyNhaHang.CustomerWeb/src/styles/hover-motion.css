@@ -132,7 +132,16 @@
 @media (prefers-reduced-motion: reduce) {
   .customer-site .motion-interactive:hover,
   .customer-site .sera-panel:hover,
-  .customer-site [data-slot="alert"]:hover {
+  .customer-site [data-slot="alert"]:hover,
+  .customer-site button.motion-interactive:hover svg,
+  .customer-site a.motion-interactive:hover svg,
+  .customer-site [role="button"].motion-interactive:hover svg,
+  .customer-site .sera-dish-row.motion-interactive:hover img,
+  .customer-site .sera-menu-item.motion-interactive:hover img,
+  .customer-site .sera-page article.motion-interactive:hover img,
+  .customer-site .sera-dish-row.motion-interactive:hover h3,
+  .customer-site .sera-menu-item.motion-interactive:hover h2,
+  .customer-site .sera-page article.motion-interactive:hover h3 {
     transform: none !important;
   }
 }
