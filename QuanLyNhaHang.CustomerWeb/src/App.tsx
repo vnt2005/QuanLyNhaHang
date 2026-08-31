@@ -47,7 +47,7 @@ function PageLoading() {
   )
 }
 
-function CustomerApplication({ pathname }: { pathname: string }) {
+function CustomerApplication({ pathname, routeKey }: { pathname: string; routeKey: string }) {
   const {
     handleSessionChanged,
     refreshCustomerSession,
@@ -140,7 +140,7 @@ function CustomerApplication({ pathname }: { pathname: string }) {
         onSessionRefresh={refreshCustomerSession}
       />
       <MotionEffects />
-      <div className="sera-route-frame" key={pathname}>
+      <div className="sera-route-frame" key={routeKey}>
         <Suspense fallback={<PageLoading />}>{content()}</Suspense>
       </div>
       <SiteFooter restaurant={data.restaurant} />
@@ -149,11 +149,11 @@ function CustomerApplication({ pathname }: { pathname: string }) {
 }
 
 export default function App() {
-  const pathname = useCustomerPath()
+  const { pathname, routeKey } = useCustomerPath()
 
   return (
     <CustomerSessionProvider pathname={pathname}>
-      <CustomerApplication pathname={pathname} />
+      <CustomerApplication pathname={pathname} routeKey={routeKey} />
       <CustomerConfirmDialogHost />
     </CustomerSessionProvider>
   )
