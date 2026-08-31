@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronLeft, ChevronRight, Search, SlidersHorizontal, Utensils } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,11 +12,7 @@ type AvailabilityFilter = 'all' | 'available' | 'unavailable'
 type SortOption = 'default' | 'name' | 'price-asc' | 'price-desc'
 
 function currency(value: number, code: string) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: code || 'VND',
-    maximumFractionDigits: 0,
-  }).format(value)
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: code || 'VND', maximumFractionDigits: 0 }).format(value)
 }
 
 export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
@@ -39,7 +35,9 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
     const filtered = data.menuItems.filter(item => {
       const matchesCategory = categoryId === 'all' || item.menuCategoryId === categoryId
       const matchesAvailability = availability === 'all' || (availability === 'available' ? item.isAvailable : !item.isAvailable)
-      const matchesKeyword = !deferredKeyword || item.name.toLocaleLowerCase('vi').includes(deferredKeyword) || item.description?.toLocaleLowerCase('vi').includes(deferredKeyword)
+      const matchesKeyword = !deferredKeyword
+        || item.name.toLocaleLowerCase('vi').includes(deferredKeyword)
+        || item.description?.toLocaleLowerCase('vi').includes(deferredKeyword)
       return matchesCategory && matchesAvailability && matchesKeyword
     })
     if (sort === 'name') return [...filtered].sort((left, right) => left.name.localeCompare(right.name, 'vi'))
@@ -56,45 +54,46 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
   function changeAvailability(value: AvailabilityFilter) { setAvailability(value); setPage(1) }
 
   return (
-    <main className="bistro-menu-v2">
-      <section className="bistro-menu-v2-intro">
-        <span className="bistro-v2-eyebrow"><Utensils /> Thực đơn hôm nay</span>
+    <main className="sera-menu">
+      <header className="sera-menu-head">
         <div>
-          <h1>Chọn món theo cách bạn muốn.</h1>
-          <p>Tìm nhanh, lọc theo danh mục và xem món theo dạng danh sách để dễ so sánh giá, mô tả và tình trạng phục vụ.</p>
+          <p className="sera-kicker">Thực đơn</p>
+          <h1 className="sera-display">Chọn món theo khẩu vị của bạn.</h1>
+          <p className="sera-copy">Tìm theo tên, lọc theo danh mục và tình trạng phục vụ. Mỗi món mở ra trang riêng để bạn xem kỹ rồi thêm vào giỏ mang về.</p>
         </div>
-        <Button onClick={() => navigate('/takeaway')}>Mở giỏ mang về <ArrowRight /></Button>
-      </section>
+        <div className="sera-menu-tools">
+          <label className="sera-search">
+            <Search aria-hidden="true" />
+            <Input value={keyword} onChange={event => { setKeyword(event.target.value); setPage(1) }} placeholder="Tìm tên món..." autoComplete="off" />
+          </label>
+          <Button variant="outline" onClick={() => navigate('/takeaway')}>Mở giỏ mang về <ArrowRight /></Button>
+        </div>
+      </header>
 
-      <section className="bistro-menu-v2-layout">
-        <aside className="bistro-menu-v2-sidebar">
-          <div className="bistro-menu-v2-search">
-            <Search />
-            <Input value={keyword} onChange={event => { setKeyword(event.target.value); setPage(1) }} placeholder="Tìm tên món..." />
-          </div>
-
-          <div className="bistro-menu-v2-filter-group">
+      <section className="sera-menu-layout">
+        <aside className="sera-filter" aria-label="Bộ lọc thực đơn">
+          <div className="sera-filter-group">
             <span>Danh mục</span>
-            <button className={categoryId === 'all' ? 'active' : ''} type="button" onClick={() => changeCategory('all')}><b>Tất cả món</b><small>{data.menuItems.length}</small></button>
+            <button className={`sera-filter-button ${categoryId === 'all' ? 'active' : ''}`} type="button" onClick={() => changeCategory('all')}><b>Tất cả món</b><small>{data.menuItems.length}</small></button>
             {categories.map(category => (
-              <button key={category.id} className={categoryId === category.id ? 'active' : ''} type="button" onClick={() => changeCategory(category.id)}>
+              <button key={category.id} className={`sera-filter-button ${categoryId === category.id ? 'active' : ''}`} type="button" onClick={() => changeCategory(category.id)}>
                 <b>{category.name}</b><small>{categoryCounts.get(category.id) || 0}</small>
               </button>
             ))}
           </div>
 
-          <div className="bistro-menu-v2-filter-group">
-            <span><SlidersHorizontal /> Tình trạng</span>
+          <div className="sera-filter-group">
+            <span>Tình trạng</span>
             {([
               ['all', 'Tất cả'],
               ['available', 'Còn món'],
               ['unavailable', 'Tạm hết'],
             ] as const).map(([value, label]) => (
-              <button key={value} className={availability === value ? 'active' : ''} type="button" onClick={() => changeAvailability(value)}><b>{label}</b></button>
+              <button key={value} className={`sera-filter-button ${availability === value ? 'active' : ''}`} type="button" onClick={() => changeAvailability(value)}><b>{label}</b></button>
             ))}
           </div>
 
-          <label className="bistro-menu-v2-sort">
+          <label className="sera-sort">
             <span>Sắp xếp</span>
             <select value={sort} onChange={event => { setSort(event.target.value as SortOption); setPage(1) }}>
               <option value="default">Mặc định</option>
@@ -105,34 +104,37 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
           </label>
         </aside>
 
-        <div className="bistro-menu-v2-results">
-          <div className="bistro-menu-v2-results-head">
-            <div><strong>{items.length}</strong><span>món phù hợp</span></div>
-            <Button variant="ghost" onClick={() => navigate('/reservation')}>Đặt bàn trước</Button>
+        <div>
+          <div className="sera-menu-results-head">
+            <span><strong>{items.length}</strong> món phù hợp</span>
+            <button className="sera-link" type="button" onClick={() => navigate('/reservation')}>Đặt bàn trước</button>
           </div>
 
           {visibleItems.length ? (
-            <div className="bistro-menu-v2-list">
-              {visibleItems.map((item, index) => (
-                <article key={item.id} className="bistro-menu-v2-item">
-                  <button className="bistro-menu-v2-item-media" type="button" onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}>
-                    <img src={item.imageUrl || heroImage} className={!item.imageUrl ? `fallback-crop crop-${index % 3 + 1}` : ''} alt={item.name} />
+            <div className="sera-menu-list">
+              {visibleItems.map(item => (
+                <article className="sera-menu-item" key={item.id}>
+                  <button className="sera-menu-item-media" type="button" onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)} aria-label={`Xem ${item.name}`}>
+                    <img src={item.imageUrl || heroImage} alt={item.name} />
                   </button>
-                  <div className="bistro-menu-v2-item-copy">
-                    <div className="bistro-menu-v2-item-meta"><span>{item.menuCategoryName}</span><small className={item.isAvailable ? 'available' : 'unavailable'}>{item.isAvailable ? 'Còn món' : 'Tạm hết'}</small></div>
+                  <div className="sera-menu-item-copy">
+                    <small>{item.menuCategoryName} · {item.isAvailable ? 'Còn món' : 'Tạm hết'}</small>
                     <h2>{item.name}</h2>
                     <p>{item.description || 'Món ăn được chế biến tươi mới trong ngày.'}</p>
-                    <div><strong>{currency(item.price, data.restaurant?.currency || 'VND')}</strong><Button size="sm" variant="outline" onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}>Xem món <ArrowRight /></Button></div>
+                  </div>
+                  <div className="sera-menu-item-side">
+                    <strong>{currency(item.price, data.restaurant?.currency || 'VND')}</strong>
+                    <Button size="sm" variant="outline" onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}>Xem món <ArrowRight /></Button>
                   </div>
                 </article>
               ))}
             </div>
           ) : (
-            <div className="bistro-menu-v2-empty"><Utensils /><h2>Không có món phù hợp</h2><p>Đổi từ khóa hoặc bộ lọc để xem lại thực đơn.</p></div>
+            <div className="sera-empty"><div><h2>Không có món phù hợp.</h2><p>Đổi từ khóa hoặc bộ lọc để xem lại thực đơn.</p><Button variant="outline" onClick={() => { setKeyword(''); setCategoryId('all'); setAvailability('all'); setSort('default'); setPage(1) }}>Xóa bộ lọc</Button></div></div>
           )}
 
           {pageCount > 1 ? (
-            <nav className="bistro-menu-v2-pagination" aria-label="Phân trang thực đơn">
+            <nav className="sera-menu-pagination" aria-label="Phân trang thực đơn">
               <Button variant="outline" size="icon" disabled={currentPage === 1} onClick={() => setPage(value => Math.max(1, value - 1))}><ChevronLeft /></Button>
               <span>Trang <strong>{currentPage}</strong> / {pageCount}</span>
               <Button variant="outline" size="icon" disabled={currentPage === pageCount} onClick={() => setPage(value => Math.min(pageCount, value + 1))}><ChevronRight /></Button>
