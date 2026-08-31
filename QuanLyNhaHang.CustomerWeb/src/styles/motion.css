@@ -115,6 +115,17 @@
   transform: translateY(-50%) scale(1.08);
 }
 
+.sera-field,
+[data-slot="input"],
+[data-slot="textarea"],
+[data-slot="select-trigger"] {
+  transition:
+    color var(--sera-motion-fast) ease,
+    border-color var(--sera-motion-fast) ease,
+    background-color var(--sera-motion-fast) ease,
+    box-shadow var(--sera-motion-fast) ease;
+}
+
 .sera-field:focus-within {
   color: var(--sera-accent-dark);
 }
@@ -130,11 +141,15 @@
 
 .sera-dish-row,
 .sera-menu-item,
-.sera-filter-button {
+.sera-filter-button,
+.sera-panel,
+.sera-page article,
+[data-slot="alert"] {
   transition:
     color var(--sera-motion-fast) ease,
     background-color var(--sera-motion-base) var(--sera-motion-soft),
-    border-color var(--sera-motion-fast) ease;
+    border-color var(--sera-motion-fast) ease,
+    box-shadow var(--sera-motion-base) var(--sera-motion-soft);
 }
 
 .sera-dish-row {
@@ -149,29 +164,46 @@
 
 .sera-dish-row-media img,
 .sera-menu-item-media img,
-.sera-detail-media img {
+.sera-detail-media img,
+.sera-home-reservation-media img,
+.sera-page article img {
   transition: transform 720ms var(--sera-motion-ease), filter var(--sera-motion-base) ease;
 }
 
 .sera-dish-row h3,
-.sera-menu-item-copy h2 {
+.sera-menu-item-copy h2,
+.sera-page article h3 {
+  transition: color var(--sera-motion-fast) ease, transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-footer-links a,
+.sera-footer-contact a {
   transition: color var(--sera-motion-fast) ease, transform var(--sera-motion-base) var(--sera-motion-ease);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .sera-dish-row:hover,
-  .sera-menu-item:hover {
+  .sera-menu-item:hover,
+  .sera-page article:hover {
     background: color-mix(in srgb, var(--sera-wash) 68%, transparent);
+  }
+
+  .sera-panel:hover,
+  [data-slot="alert"]:hover {
+    border-color: color-mix(in srgb, var(--sera-accent) 32%, var(--sera-line));
   }
 
   .sera-dish-row:hover img,
   .sera-menu-item:hover img,
-  .sera-detail-media:hover img {
+  .sera-detail-media:hover img,
+  .sera-home-reservation-media:hover img,
+  .sera-page article:hover img {
     transform: scale(1.045);
   }
 
   .sera-dish-row:hover h3,
-  .sera-menu-item:hover h2 {
+  .sera-menu-item:hover h2,
+  .sera-page article:hover h3 {
     color: var(--sera-accent-dark);
     transform: translateX(4px);
   }
@@ -179,6 +211,12 @@
   .sera-filter-button:hover {
     color: var(--sera-ink);
     background: color-mix(in srgb, var(--sera-wash) 62%, transparent);
+  }
+
+  .sera-footer-links a:hover,
+  .sera-footer-contact a:hover {
+    color: var(--sera-accent-dark);
+    transform: translateX(3px);
   }
 }
 
@@ -261,8 +299,13 @@
   .sera-dish-row:hover img,
   .sera-menu-item:hover img,
   .sera-detail-media:hover img,
+  .sera-home-reservation-media:hover img,
+  .sera-page article:hover img,
   .sera-dish-row:hover h3,
-  .sera-menu-item:hover h2 {
+  .sera-menu-item:hover h2,
+  .sera-page article:hover h3,
+  .sera-footer-links a:hover,
+  .sera-footer-contact a:hover {
     transform: none !important;
   }
 
