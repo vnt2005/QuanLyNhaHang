@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { CustomerSiteBootstrap } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
-import reservationImage from '../assets/reservation-dining-room.webp'
 import { navigate } from '../utils/navigation'
 
 const homeFontStyle = { fontFamily: "'Noto Sans Variable', system-ui, sans-serif" }
@@ -69,7 +68,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
 
         {popular.length ? (
           <div className="sera-dish-list">
-            {popular.map((item, index) => (
+            {popular.map(item => (
               <button
                 key={item.id}
                 type="button"
@@ -87,19 +86,6 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         ) : (
           <div className="sera-empty"><div><h2 style={homeFontStyle}>Thực đơn đang được cập nhật.</h2><p>Nhà hàng chưa có món đang mở bán để hiển thị.</p></div></div>
         )}
-      </section>
-
-      <section className="sera-home-reservation">
-        <div className="sera-home-reservation-media"><img src={reservationImage} alt="Không gian nhà hàng" /></div>
-        <div className="sera-home-reservation-copy">
-          <p className="sera-kicker">Đặt chỗ trước</p>
-          <h2 style={homeFontStyle}>Chọn thời gian và chiếc bàn phù hợp cho nhóm của bạn.</h2>
-          <p>Website chỉ hiển thị những bàn đang đủ điều kiện đặt. Gửi yêu cầu trước và nhà hàng sẽ xác nhận lại cho bạn.</p>
-          <div className="sera-home-actions">
-            <Button size="lg" variant="secondary" onClick={() => navigate('/reservation')}>Đặt bàn <ArrowRight /></Button>
-            <Button size="lg" variant="outline" className="border-white/60 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate('/takeaway')}>Tôi muốn mang về</Button>
-          </div>
-        </div>
       </section>
     </main>
   )
