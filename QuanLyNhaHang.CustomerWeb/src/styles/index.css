@@ -14,3 +14,10 @@
 @import './components/customer-confirm-dialog.css';
 @import './order-layout-fixes.css';
 @import './home-layout-refresh.css';
+
+/* global.css defines featured dishes as two-column cards; the refreshed home desktop uses image-first vertical cards. */
+@media (min-width: 861px) {
+  .home-page .home-featured-section .featured-dish {
+    grid-template-columns: 1fr;
+  }
+}
