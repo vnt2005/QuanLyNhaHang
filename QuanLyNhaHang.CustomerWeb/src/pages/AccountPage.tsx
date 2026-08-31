@@ -13,30 +13,52 @@ export default function AccountPage({ session, initialMessage, onSessionChanged 
   const [tab, setTab] = useState<AccountTab>('profile')
   const [error, setError] = useState('')
   const [passwordMessage, setPasswordMessage] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   if (!session) return <AuthPortal initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
 
   const displayName = [session.ho, session.ten].filter(Boolean).join(' ')
 
-  async function logout() { await logoutCustomer().catch(() => undefined); onSessionChanged(null); navigate('/') }
+  async function logout() {
+    if (loggingOut) return
+    setLoggingOut(true)
+    try {
+      await logoutCustomer().catch(() => undefined)
+      onSessionChanged(null)
+      navigate('/')
+    } finally {
+      setLoggingOut(false)
+    }
+  }
 
   async function submitPassword(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setPasswordMessage(''); setError('')
+    event.preventDefault()
+    if (changingPassword) return
+    setPasswordMessage('')
+    setError('')
     const data = new FormData(event.currentTarget)
     const nextPassword = String(data.get('newPassword') ?? '')
     const confirmPassword = String(data.get('confirmPassword') ?? '')
     if (nextPassword !== confirmPassword) return setError('Mật khẩu xác nhận chưa khớp.')
+
+    setChangingPassword(true)
     try {
       const result = await changeCustomerPassword({ currentPassword: String(data.get('currentPassword') ?? ''), newPassword: nextPassword, confirmNewPassword: confirmPassword })
-      setPasswordMessage(`${result} Vui lòng đăng nhập lại.`); onSessionChanged(null)
-    } catch (exception) { setError(exception instanceof Error ? exception.message : 'Không đổi được mật khẩu.') }
+      setPasswordMessage(`${result} Vui lòng đăng nhập lại.`)
+      onSessionChanged(null)
+    } catch (exception) {
+      setError(exception instanceof Error ? exception.message : 'Không đổi được mật khẩu.')
+    } finally {
+      setChangingPassword(false)
+    }
   }
 
   return (
     <main className="sera-page">
       <header className="sera-page-head">
         <div><p className="sera-kicker">Tài khoản khách hàng</p><h1 className="sera-display mt-3">{displayName}</h1><p>{session.email} · {session.phoneNumber || 'Chưa có số điện thoại'}</p></div>
-        <div className="flex flex-wrap justify-end gap-2"><Button variant="outline" onClick={() => navigate('/orders')}><ClipboardList /> Đơn của tôi</Button><Button variant="ghost" onClick={() => void logout()}><LogOut /> Đăng xuất</Button></div>
+        <div className="flex flex-wrap justify-end gap-2"><Button variant="outline" onClick={() => navigate('/orders')}><ClipboardList /> Đơn của tôi</Button><Button variant="ghost" disabled={loggingOut} onClick={() => void logout()}><LogOut /> {loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</Button></div>
       </header>
 
       <div className="mt-8 grid gap-12 lg:grid-cols-[240px_1fr]">
@@ -67,10 +89,10 @@ export default function AccountPage({ session, initialMessage, onSessionChanged 
               {error ? <Alert variant="destructive" className="mb-5"><AlertTitle>Không thể đổi mật khẩu</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
               {passwordMessage ? <Alert className="mb-5"><AlertTitle>Đã cập nhật</AlertTitle><AlertDescription>{passwordMessage}</AlertDescription></Alert> : null}
               <form className="grid gap-6" onSubmit={submitPassword}>
-                <label className="sera-field">Mật khẩu hiện tại<Input name="currentPassword" type="password" required autoComplete="current-password" /></label>
-                <label className="sera-field">Mật khẩu mới<Input name="newPassword" type="password" required minLength={8} autoComplete="new-password" /></label>
-                <label className="sera-field">Xác nhận mật khẩu mới<Input name="confirmPassword" type="password" required minLength={8} autoComplete="new-password" /></label>
-                <Button className="w-fit" type="submit">Đổi mật khẩu</Button>
+                <label className="sera-field">Mật khẩu hiện tại<Input name="currentPassword" type="password" required autoComplete="current-password" disabled={changingPassword} /></label>
+                <label className="sera-field">Mật khẩu mới<Input name="newPassword" type="password" required minLength={8} autoComplete="new-password" disabled={changingPassword} /></label>
+                <label className="sera-field">Xác nhận mật khẩu mới<Input name="confirmPassword" type="password" required minLength={8} autoComplete="new-password" disabled={changingPassword} /></label>
+                <Button className="w-fit" type="submit" disabled={changingPassword}>{changingPassword ? 'Đang đổi mật khẩu…' : 'Đổi mật khẩu'}</Button>
               </form>
             </div>
           </section>
