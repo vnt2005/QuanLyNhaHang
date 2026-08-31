@@ -1,3 +1,4 @@
+import { rememberCustomerQrAccess } from '../utils/customerQrAccess'
 import { apiRequest } from './client'
 import { authenticatedCustomerRequest } from './customerRequest'
 import type { CustomerOrder, OrderItem } from './customerOrders'
@@ -27,6 +28,7 @@ export async function getQrOrderContext(token: string) {
     apiRequest<QrOrderTable>(`/api/qr-order/${encoded}`),
     apiRequest<QrMenuItem[]>(`/api/qr-order/${encoded}/menu-items`),
   ])
+  rememberCustomerQrAccess(table.restaurantTableId, token)
   return { table, menuItems: Array.isArray(menuItems) ? menuItems : [] }
 }
 
