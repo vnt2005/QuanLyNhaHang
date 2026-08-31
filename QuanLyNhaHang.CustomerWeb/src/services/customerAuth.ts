@@ -266,7 +266,7 @@ export async function resetCustomerPassword(
       code: code.trim(),
       newPassword,
     }),
-  })
+  )
   return envelope.message ?? 'Đặt lại mật khẩu thành công.'
 }
 
@@ -275,13 +275,22 @@ export async function changeCustomerPassword(input: {
   newPassword: string
   confirmNewPassword: string
 }) {
-  const token = getCustomerAccessToken()
-  if (!token) throw new ApiError('Phiên đăng nhập đã hết hạn.', 401)
-  const envelope = await apiRequest<ApiEnvelope<never>>(
-    '/api/auth/change-password',
-    { method: 'POST', body: JSON.stringify(input) },
-    token,
-  )
+  const request: RequestInit = {
+    method: 'POST',
+    body: JSON.stringify(input),
+  }
+  let token = getCustomerAccessToken()
+  if (!token) token = (await restoreCustomerSession()).token
+
+  let envelope: ApiEnvelope<never>
+  try {
+    envelope = await apiRequest<ApiEnvelope<never>>('/api/auth/change-password', request, token)
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status !== 401) throw error
+    const restored = await restoreCustomerSession()
+    envelope = await apiRequest<ApiEnvelope<never>>('/api/auth/change-password', request, restored.token)
+  }
+
   clearCustomerSession()
   clearCustomerLogoutState()
   return envelope.message ?? 'Đổi mật khẩu thành công.'
