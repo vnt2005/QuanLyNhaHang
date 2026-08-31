@@ -249,72 +249,122 @@ export default function QrOrderPage({ token, session }: { token: string; session
   }
 
   if (loading) {
-    return <main className="mx-auto grid min-h-[55vh] w-[min(1000px,calc(100vw-48px))] place-items-center py-20"><div className="text-center"><RefreshCw className="mx-auto size-6 animate-spin text-muted-foreground" /><h1 className="mt-5 font-heading text-4xl">Đang mở thực đơn của bàn…</h1><p className="mt-3 text-sm text-muted-foreground">Hệ thống đang kiểm tra mã QR và tải các món đang phục vụ.</p></div></main>
+    return <main className="sera-page"><section className="sera-empty"><div><RefreshCw className="mx-auto animate-spin" /><h2>Đang mở thực đơn của bàn…</h2><p>Hệ thống đang kiểm tra mã QR và tải các món đang phục vụ.</p></div></section></main>
   }
 
   if (!table || error && !items.length) {
-    return <main className="mx-auto grid min-h-[55vh] w-[min(1000px,calc(100vw-48px))] place-items-center py-20"><div className="max-w-xl border border-border p-8 text-center"><XCircle className="mx-auto size-7 text-destructive" /><h1 className="mt-5 font-heading text-4xl">Không thể mở trang gọi món</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">{error || 'Mã QR không hợp lệ hoặc đã ngừng hoạt động.'}</p><Button className="mt-6" variant="outline" type="button" onClick={() => void load()}>Thử lại</Button></div></main>
+    return <main className="sera-page"><section className="sera-empty"><div><XCircle className="mx-auto text-destructive" /><h2>Không thể mở trang gọi món</h2><p>{error || 'Mã QR không hợp lệ hoặc đã ngừng hoạt động.'}</p><Button variant="outline" type="button" onClick={() => void load()}>Thử lại</Button></div></section></main>
   }
 
   const statusOrder = ['Pending', 'Confirmed', 'Preparing', 'Cooking', 'Ready', 'Served', 'Completed']
   const activeIndex = currentOrder ? statusOrder.indexOf(currentOrder.status) : -1
+  const timelineSteps = [
+    { status: 'Pending', threshold: 0 },
+    { status: 'Preparing', threshold: 2 },
+    { status: 'Ready', threshold: 4 },
+    { status: 'Served', threshold: 5 },
+  ]
 
   return (
-    <main className="bg-background text-foreground">
-      <section className="mx-auto w-[min(1440px,calc(100vw-48px))] py-12 sm:w-[min(1440px,calc(100vw-80px))] md:py-16">
-        <Button variant="link" className="mb-6 px-0" type="button" onClick={() => navigate('/menu')}><ChevronLeft data-icon="inline-start" /> Xem thực đơn chung</Button>
+    <main className="sera-page">
+      <Button variant="ghost" className="mb-6 px-0" type="button" onClick={() => navigate('/menu')}><ChevronLeft /> Xem thực đơn chung</Button>
 
-        <header className="grid gap-7 border-b border-border pb-8 md:grid-cols-[1fr_auto] md:items-end">
-          <div><p className="text-[10px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">Gọi món bằng QR</p><h1 className="mt-3 font-heading text-[clamp(3.8rem,6vw,7rem)] leading-[0.88] tracking-[-0.055em]">Bàn {table.restaurantTableName}.</h1><p className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground">Chọn món, kiểm tra giỏ và gửi trực tiếp xuống bếp.</p></div>
-          <div className="flex gap-2"><Button type="button" variant={view === 'menu' ? 'default' : 'outline'} onClick={() => setView('menu')}><Utensils data-icon="inline-start" /> Chọn món</Button><Button type="button" variant={view === 'order' ? 'default' : 'outline'} onClick={() => setView('order')}><ShoppingBag data-icon="inline-start" /> Đơn hiện tại</Button></div>
-        </header>
+      <header className="sera-page-head">
+        <div>
+          <p className="sera-kicker">Gọi món bằng QR</p>
+          <h1 className="sera-display mt-3">Bàn {table.restaurantTableName}.</h1>
+          <p>Chọn món, kiểm tra số lượng và gửi trực tiếp xuống bếp. Mỗi món tối đa {MAX_ITEM_QUANTITY} phần trong một lượt gọi.</p>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button type="button" variant={view === 'menu' ? 'default' : 'outline'} onClick={() => setView('menu')}><Utensils /> Chọn món</Button>
+          <Button type="button" variant={view === 'order' ? 'default' : 'outline'} onClick={() => setView('order')}><ShoppingBag /> Đơn hiện tại</Button>
+        </div>
+      </header>
 
-        {error ? <Alert variant="destructive" className="mt-7"><AlertTitle>Không thể hoàn tất thao tác</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
-        {success ? <Alert className="mt-7"><CheckCircle2 /><AlertTitle>Đã cập nhật</AlertTitle><AlertDescription>{success}</AlertDescription></Alert> : null}
+      {error ? <Alert variant="destructive" className="mt-6"><AlertTitle>Không thể hoàn tất thao tác</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
+      {success ? <Alert className="mt-6"><CheckCircle2 /><AlertTitle>Đã cập nhật</AlertTitle><AlertDescription>{success}</AlertDescription></Alert> : null}
 
-        {view === 'menu' ? (
-          <div className="mt-9 grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
-            <section>
-              <div className="grid gap-5 border-b border-border pb-6">
-                <label className="relative block max-w-xl border-b border-foreground"><Search className="absolute left-0 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="h-11 border-0 bg-transparent pl-7 shadow-none focus-visible:ring-0" value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm món trong thực đơn" /></label>
-                <div className="flex gap-7 overflow-x-auto">{categories.map(value => <button type="button" key={value} className={`shrink-0 border-b-2 pb-3 text-[10px] font-semibold tracking-[0.14em] uppercase ${category === value ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground'}`} onClick={() => setCategory(value)}>{value}</button>)}</div>
+      {view === 'menu' ? (
+        <div className="mt-10 grid gap-12 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <section>
+            <div className="grid gap-5 border-b border-border pb-5">
+              <label className="sera-search max-w-xl"><Search /><Input value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm món trong thực đơn" /></label>
+              <div className="flex gap-7 overflow-x-auto">
+                {categories.map(value => <button type="button" key={value} className={`shrink-0 border-b pb-3 text-[10px] font-bold uppercase tracking-[.12em] ${category === value ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground'}`} onClick={() => setCategory(value)}>{value}</button>)}
               </div>
+            </div>
 
-              <div className="mt-7 grid gap-5 md:grid-cols-2">
-                {filteredItems.map((item, index) => {
+            {filteredItems.length ? (
+              <div className="border-b border-border">
+                {filteredItems.map(item => {
                   const quantity = cart[item.id] || 0
-                  return <article className="grid grid-cols-[120px_1fr] border border-border sm:grid-cols-[150px_1fr]" key={item.id}><img src={item.imageUrl || heroImage} className={`${!item.imageUrl ? `fallback-crop crop-${index % 3 + 1}` : ''} size-full min-h-40 object-cover`} alt={item.name} /><div className="flex min-w-0 flex-col p-4"><small className="text-[9px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">{item.menuCategoryName}</small><h2 className="mt-2 font-heading text-2xl font-medium leading-none">{item.name}</h2><p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{item.description || 'Món ăn được chuẩn bị tươi mới trong ngày.'}</p><footer className="mt-auto flex items-end justify-between gap-3 pt-4"><strong className="text-sm">{formatMoney(item.price)}</strong><div className="flex items-center border border-border">{quantity ? <button className="grid size-8 place-items-center" type="button" aria-label={`Bớt ${item.name}`} onClick={() => change(item.id, -1)}><Minus className="size-3" /></button> : null}{quantity ? <span className="grid min-w-8 place-items-center border-x border-border text-xs">{quantity}</span> : null}<button className="grid size-8 place-items-center disabled:opacity-35" type="button" aria-label={`Thêm ${item.name}`} disabled={quantity >= MAX_ITEM_QUANTITY || totalQuantity >= MAX_ORDER_QUANTITY} onClick={() => change(item.id, 1)}><Plus className="size-3" /></button></div></footer></div></article>
+                  return (
+                    <article className="grid min-h-36 grid-cols-[112px_minmax(0,1fr)_auto] items-center gap-5 border-t border-border py-5 max-sm:grid-cols-[84px_minmax(0,1fr)]" key={item.id}>
+                      <img src={item.imageUrl || heroImage} className="size-28 object-cover max-sm:size-[84px]" alt={item.name} />
+                      <div>
+                        <small className="sera-kicker">{item.menuCategoryName}</small>
+                        <h2 className="mt-1 font-heading text-3xl font-medium leading-none max-sm:text-2xl">{item.name}</h2>
+                        <p className="mt-2 max-w-xl text-xs leading-5 text-muted-foreground max-sm:hidden">{item.description || 'Món ăn được chuẩn bị tươi mới trong ngày.'}</p>
+                        <strong className="mt-3 block text-sm">{formatMoney(item.price)}</strong>
+                      </div>
+                      <div className="sera-qty max-sm:col-start-2">
+                        {quantity ? <Button variant="outline" size="icon" type="button" aria-label={`Bớt ${item.name}`} onClick={() => change(item.id, -1)}><Minus /></Button> : null}
+                        {quantity ? <strong>{quantity}</strong> : null}
+                        <Button variant="outline" size="icon" type="button" aria-label={`Thêm ${item.name}`} disabled={quantity >= MAX_ITEM_QUANTITY || totalQuantity >= MAX_ORDER_QUANTITY} onClick={() => change(item.id, 1)}><Plus /></Button>
+                      </div>
+                    </article>
+                  )
                 })}
               </div>
-            </section>
-
-            <aside className="h-fit border border-border xl:sticky xl:top-28">
-              <div className="flex gap-3 border-b border-border p-5"><ShoppingBag className="mt-1 size-4" /><div><h2 className="font-heading text-2xl">Giỏ gọi món</h2><p className="mt-1 text-xs text-muted-foreground">{totalQuantity ? `${totalQuantity}/${MAX_ORDER_QUANTITY} phần · tối đa ${MAX_ITEM_QUANTITY}/món` : 'Chưa chọn món'}</p></div></div>
-              <div className="p-5">
-                {!session ? <button className="mb-5 flex w-full gap-3 border border-border border-l-2 border-l-foreground p-4 text-left" type="button" onClick={signIn}><UserRound className="mt-0.5 size-4" /><span><strong className="block text-[10px] tracking-[0.12em] uppercase">Đăng nhập để lưu lịch sử</strong><small className="mt-1 block text-xs leading-5 text-muted-foreground">Khách chưa đăng nhập vẫn có thể gọi món.</small></span></button> : <p className="mb-5 flex gap-2 text-xs text-muted-foreground"><CheckCircle2 className="size-4" /> Đơn sẽ được lưu vào tài khoản {session.ten}.</p>}
-                {selected.length ? <div className="divide-y divide-border border-y border-border">{selected.map(entry => <div className="flex justify-between gap-4 py-3 text-xs" key={entry.item.id}><span><strong className="block font-medium">{entry.item.name}</strong><small className="mt-1 block text-muted-foreground">{entry.quantity} × {formatMoney(entry.item.price)}</small></span><strong>{formatMoney(entry.item.price * entry.quantity)}</strong></div>)}</div> : <div className="grid min-h-28 place-items-center border border-dashed border-border text-center"><p className="text-xs text-muted-foreground">Thêm món từ thực đơn để bắt đầu.</p></div>}
-                <label className="mt-5 grid gap-2 text-[10px] font-semibold tracking-[0.14em] uppercase">Ghi chú chung<Textarea value={orderNote} onChange={event => setOrderNote(event.target.value)} maxLength={300} placeholder="Ví dụ: lên món cùng lúc…" className="min-h-20 normal-case tracking-normal" /></label>
-                <div className="mt-5 flex items-end justify-between border-t border-border pt-5"><span className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">Tạm tính</span><strong className="text-xl">{formatMoney(totalAmount)}</strong></div>
-                <Button className="mt-5 w-full" type="button" disabled={!selected.length || submitting} onClick={() => void submitOrder()}>{submitting ? 'Đang gửi xuống bếp…' : 'Xác nhận gọi món'}</Button>
-              </div>
-            </aside>
-          </div>
-        ) : currentOrder ? (
-          <section className="mt-9 border border-border">
-            <header className="grid gap-5 border-b border-border p-6 md:grid-cols-[1fr_auto_auto] md:items-center"><div><small className="text-[9px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">Mã đơn</small><h2 className="mt-2 font-heading text-3xl font-medium">{currentOrder.orderCode}</h2></div><Badge variant={currentOrder.status === 'Cancelled' ? 'destructive' : 'secondary'}>{statusLabels[currentOrder.status] || currentOrder.status}</Badge><Button variant="outline" type="button" disabled={refreshing} onClick={() => void refreshOrder()}><RefreshCw className={refreshing ? 'animate-spin' : ''} data-icon="inline-start" /> Cập nhật</Button></header>
-
-            <div className="grid gap-0 border-b border-border sm:grid-cols-4">{['Pending', 'Preparing', 'Ready', 'Served'].map((step, index) => { const threshold = [0, 2, 4, 5][index]; const done = activeIndex >= threshold; return <div className={`border-b p-5 sm:border-b-0 sm:border-r sm:last:border-r-0 ${done ? 'bg-muted/45' : ''}`} key={step}><span className={`grid size-7 place-items-center border text-[10px] ${done ? 'border-foreground bg-foreground text-background' : 'border-border text-muted-foreground'}`}>{done ? '✓' : index + 1}</span><strong className="mt-3 block text-[10px] tracking-[0.12em] uppercase">{statusLabels[step]}</strong></div> })}</div>
-
-            <div className="p-6">
-              <div className="divide-y divide-border border-y border-border">{currentOrder.items.map(item => <div className="grid gap-2 py-4 text-sm sm:grid-cols-[1fr_auto_auto] sm:items-center sm:gap-8" key={item.id}><span><strong className="font-medium">{item.menuItemName}</strong><small className="mt-1 block text-xs text-muted-foreground">{item.note || statusLabels[item.status] || item.status}</small></span><span>x{item.quantity}</span><strong>{formatMoney(item.totalPrice)}</strong></div>)}</div>
-              <div className="mt-5 flex items-end justify-between"><span className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">Tạm tính món</span><strong className="text-2xl">{formatMoney(currentOrder.totalAmount)}</strong></div>
-              <div className="mt-6 flex flex-wrap gap-3 border-t border-border pt-5">{!terminalStatuses.has(currentOrder.status) ? <PayOnlineButton orderId={currentOrder.id} qrToken={token} accessToken={session?.token} /> : null}{session && currentOrder.status === 'Pending' ? <Button variant="destructive" type="button" disabled={cancelling} onClick={() => void cancelCurrentOrder()}><XCircle data-icon="inline-start" /> {cancelling ? 'Đang hủy…' : 'Hủy đơn'}</Button> : null}{!terminalStatuses.has(currentOrder.status) ? <Button variant="outline" type="button" onClick={() => setView('menu')}>Gọi thêm món</Button> : null}</div>
-            </div>
+            ) : <section className="sera-empty"><div><Search /><h2>Không có món phù hợp.</h2><p>Đổi từ khóa hoặc danh mục để xem lại thực đơn của bàn.</p></div></section>}
           </section>
-        ) : (
-          <div className="mt-9 grid min-h-72 place-items-center border border-dashed border-border text-center"><div><ShoppingBag className="mx-auto mb-4 size-6 text-muted-foreground" /><h2 className="font-heading text-3xl">Chưa có đơn tại bàn này</h2><p className="mt-3 text-sm text-muted-foreground">Chọn món từ thực đơn và gửi xuống bếp khi bạn sẵn sàng.</p><Button className="mt-6" type="button" onClick={() => setView('menu')}>Bắt đầu chọn món</Button></div></div>
-        )}
-      </section>
+
+          <aside className="h-fit xl:sticky xl:top-28">
+            <div className="border-y border-border py-6">
+              <div className="flex items-start gap-3"><ShoppingBag className="mt-1 size-5 text-accent" /><div><p className="sera-kicker">Giỏ gọi món</p><h2 className="mt-1 font-heading text-3xl">{totalQuantity ? `${totalQuantity} phần` : 'Chưa chọn món'}</h2></div></div>
+
+              {!session ? <button className="mt-5 flex w-full gap-3 border-y border-border py-4 text-left" type="button" onClick={signIn}><UserRound className="mt-0.5 size-4 text-accent" /><span><strong className="block text-xs">Đăng nhập để lưu lịch sử</strong><small className="mt-1 block text-xs leading-5 text-muted-foreground">Khách chưa đăng nhập vẫn có thể gọi món.</small></span></button> : <p className="mt-5 flex gap-2 text-xs text-muted-foreground"><CheckCircle2 className="size-4 text-accent" /> Đơn sẽ được lưu vào tài khoản {session.ten}.</p>}
+
+              {selected.length ? <div className="mt-5 border-t border-border">{selected.map(entry => <div className="flex justify-between gap-4 border-b border-border py-3 text-xs" key={entry.item.id}><span><strong className="block">{entry.item.name}</strong><small className="mt-1 block text-muted-foreground">{entry.quantity} × {formatMoney(entry.item.price)}</small></span><strong>{formatMoney(entry.item.price * entry.quantity)}</strong></div>)}</div> : <p className="mt-5 border-y border-border py-6 text-center text-xs text-muted-foreground">Thêm món từ thực đơn để bắt đầu.</p>}
+
+              <label className="sera-field mt-5">Ghi chú chung<Textarea value={orderNote} onChange={event => setOrderNote(event.target.value)} maxLength={300} placeholder="Ví dụ: lên món cùng lúc…" /></label>
+              <div className="mt-5 flex items-end justify-between border-t border-border pt-5"><span className="text-xs font-bold uppercase tracking-[.1em] text-muted-foreground">Tạm tính</span><strong className="text-xl">{formatMoney(totalAmount)}</strong></div>
+              <Button className="mt-5 w-full" size="lg" type="button" disabled={!selected.length || submitting} onClick={() => void submitOrder()}>{submitting ? 'Đang gửi xuống bếp…' : 'Xác nhận gọi món'}</Button>
+            </div>
+          </aside>
+        </div>
+      ) : currentOrder ? (
+        <section className="mt-10">
+          <header className="grid gap-5 border-y border-border py-6 md:grid-cols-[1fr_auto_auto] md:items-center">
+            <div><p className="sera-kicker">Mã đơn</p><h2 className="mt-1 font-heading text-4xl font-medium">{currentOrder.orderCode}</h2></div>
+            <Badge variant={currentOrder.status === 'Cancelled' ? 'destructive' : 'secondary'}>{statusLabels[currentOrder.status] || currentOrder.status}</Badge>
+            <Button variant="outline" type="button" disabled={refreshing} onClick={() => void refreshOrder()}><RefreshCw className={refreshing ? 'animate-spin' : ''} /> Cập nhật</Button>
+          </header>
+
+          <div className="mt-8 grid gap-12 lg:grid-cols-[260px_1fr]">
+            <ol className="border-t border-border">
+              {timelineSteps.map((step, index) => {
+                const done = activeIndex >= step.threshold
+                return <li className="relative border-b border-border py-5 pl-10" key={step.status}><span className={`absolute left-0 top-5 grid size-6 place-items-center border text-[10px] ${done ? 'border-foreground bg-foreground text-background' : 'border-border text-muted-foreground'}`}>{done ? '✓' : index + 1}</span><small className="sera-kicker">Bước {index + 1}</small><strong className="mt-1 block text-sm">{statusLabels[step.status]}</strong></li>
+              })}
+            </ol>
+
+            <div>
+              <div className="border-t border-border">
+                {currentOrder.items.map(item => <div className="grid gap-2 border-b border-border py-4 text-sm sm:grid-cols-[1fr_auto_auto] sm:items-center sm:gap-8" key={item.id}><span><strong>{item.menuItemName}</strong><small className="mt-1 block text-xs text-muted-foreground">{item.note || statusLabels[item.status] || item.status}</small></span><span>x{item.quantity}</span><strong>{formatMoney(item.totalPrice)}</strong></div>)}
+              </div>
+              <div className="mt-5 flex items-end justify-between"><span className="text-xs font-bold uppercase tracking-[.1em] text-muted-foreground">Tạm tính món</span><strong className="text-2xl">{formatMoney(currentOrder.totalAmount)}</strong></div>
+              <div className="mt-6 flex flex-wrap gap-3 border-t border-border pt-5">
+                {!terminalStatuses.has(currentOrder.status) ? <PayOnlineButton orderId={currentOrder.id} qrToken={token} accessToken={session?.token} /> : null}
+                {session && currentOrder.status === 'Pending' ? <Button variant="destructive" type="button" disabled={cancelling} onClick={() => void cancelCurrentOrder()}><XCircle /> {cancelling ? 'Đang hủy…' : 'Hủy đơn'}</Button> : null}
+                {!terminalStatuses.has(currentOrder.status) ? <Button variant="outline" type="button" onClick={() => setView('menu')}>Gọi thêm món</Button> : null}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="sera-empty mt-10"><div><ShoppingBag /><h2>Chưa có đơn tại bàn này.</h2><p>Chọn món từ thực đơn và gửi xuống bếp khi bạn sẵn sàng.</p><Button type="button" onClick={() => setView('menu')}>Bắt đầu chọn món</Button></div></section>
+      )}
     </main>
   )
 }
