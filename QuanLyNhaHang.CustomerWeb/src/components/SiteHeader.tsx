@@ -28,6 +28,7 @@ export default function SiteHeader({
 }) {
   const [open, setOpen] = useState(false)
   const [cartCount, setCartCount] = useState(() => takeawayCartCount())
+  const [scrolled, setScrolled] = useState(false)
   const accountPath = session ? '/account' : '/login'
   const accountLabel = session ? [session.ho, session.ten].filter(Boolean).join(' ') : 'Đăng nhập'
 
@@ -39,6 +40,13 @@ export default function SiteHeader({
       window.removeEventListener(TAKEAWAY_CART_EVENT, updateCart)
       window.removeEventListener('storage', updateCart)
     }
+  }, [])
+
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 12)
+    window.addEventListener('scroll', update, { passive: true })
+    update()
+    return () => window.removeEventListener('scroll', update)
   }, [])
 
   function go(path: string) {
@@ -53,25 +61,27 @@ export default function SiteHeader({
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/96 backdrop-blur supports-[backdrop-filter]:bg-background/88">
-      <div className="mx-auto grid h-[88px] w-[min(1440px,calc(100vw-48px))] grid-cols-[1fr_auto] items-center gap-6 sm:w-[min(1440px,calc(100vw-80px))] xl:grid-cols-[minmax(240px,1fr)_auto_minmax(240px,1fr)]">
-        <a className="flex w-fit items-center gap-3 text-foreground no-underline" href="/" onClick={event => follow(event, '/')}>
-          <span className="grid size-10 place-items-center border border-border bg-foreground text-background">
-            {restaurant?.logoUrl ? <img src={restaurant.logoUrl} alt="" className="size-full object-contain p-1" /> : <UtensilsCrossed aria-hidden="true" className="size-4" />}
+    <header className="bistro-template-header-wrap">
+      <div className={`bistro-template-header ${scrolled ? 'is-scrolled' : ''}`}>
+        <a className="bistro-template-brand" href="/" onClick={event => follow(event, '/')}>
+          <span className="bistro-template-brand-mark">
+            {restaurant?.logoUrl
+              ? <img src={restaurant.logoUrl} alt="" />
+              : <UtensilsCrossed aria-hidden="true" />}
           </span>
-          <span className="grid leading-none">
-            <strong className="font-heading text-xl font-medium tracking-tight">{restaurant?.restaurantName || 'Nhà Hàng'}</strong>
-            <small className="mt-1 text-[10px] font-semibold tracking-[0.24em] text-muted-foreground uppercase">Ẩm thực Việt</small>
+          <span>
+            <strong>{restaurant?.restaurantName || 'Nhà Hàng'}</strong>
+            <small>Vietnamese Bistro</small>
           </span>
         </a>
 
-        <nav className={`${open ? 'flex' : 'hidden'} absolute inset-x-0 top-[88px] flex-col border-b border-border bg-background px-6 py-5 shadow-sm xl:static xl:flex xl:flex-row xl:items-center xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none`} aria-label="Điều hướng chính">
+        <nav className={`bistro-template-nav ${open ? 'open' : ''}`} aria-label="Điều hướng chính">
           {links.map(link => {
             const active = link.path === '/' ? pathname === '/' : pathname.startsWith(link.path)
             return (
               <a
                 href={link.path}
-                className={`border-b px-1 py-3 text-xs font-semibold tracking-[0.16em] uppercase no-underline transition-colors xl:mx-4 xl:border-b-2 xl:py-2 ${active ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                className={active ? 'active' : ''}
                 aria-current={active ? 'page' : undefined}
                 key={link.path}
                 onClick={event => follow(event, link.path)}
@@ -82,26 +92,24 @@ export default function SiteHeader({
           })}
         </nav>
 
-        <div className="hidden items-center justify-end gap-2 xl:flex">
-          <Button asChild variant="ghost" size="sm">
+        <div className="bistro-template-actions">
+          <Button asChild variant="ghost" size="icon" className="relative">
             <a href="/takeaway" onClick={event => follow(event, '/takeaway')} aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`}>
-              <ShoppingBag data-icon="inline-start" />
-              Giỏ
-              {cartCount ? <span className="ml-1 inline-flex min-w-5 justify-center border border-border px-1 text-[10px]">{cartCount > 99 ? '99+' : cartCount}</span> : null}
+              <ShoppingBag />
+              {cartCount ? <span className="bistro-cart-badge">{cartCount > 99 ? '99+' : cartCount}</span> : null}
             </a>
           </Button>
           {session ? <NotificationCenter session={session} onSessionRefresh={onSessionRefresh} /> : null}
-          <Button asChild variant="outline" size="sm">
+          <Button asChild size="sm" className="bistro-account-button">
             <a href={accountPath} onClick={event => follow(event, accountPath)}>
-              <UserRound data-icon="inline-start" />
-              <span className="max-w-28 truncate">{accountLabel}</span>
+              <UserRound />
+              <span>{accountLabel}</span>
             </a>
           </Button>
+          <Button className="bistro-template-menu-toggle" variant="outline" size="icon" type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? 'Đóng menu' : 'Mở menu'}>
+            {open ? <X /> : <Menu />}
+          </Button>
         </div>
-
-        <Button className="justify-self-end xl:hidden" variant="ghost" size="icon" type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? 'Đóng menu' : 'Mở menu'}>
-          {open ? <X /> : <Menu />}
-        </Button>
       </div>
     </header>
   )
