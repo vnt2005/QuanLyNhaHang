@@ -11,12 +11,15 @@ function normalizePath(path: string) {
 
 export function navigate(path: string) {
   const destination = normalizePath(path)
-  const target = new URL(destination, window.location.origin)
+  let target: URL
 
-  if (target.origin !== window.location.origin) {
-    window.location.assign(target.href)
+  try {
+    target = new URL(destination, window.location.origin)
+  } catch {
     return
   }
+
+  if (target.origin !== window.location.origin) return
 
   const currentRoute = `${window.location.pathname}${window.location.search}${window.location.hash}`
   const nextRoute = `${target.pathname}${target.search}${target.hash}`
