@@ -22,9 +22,6 @@ const revealSelector = [
   '.sera-page [data-slot="tabs-list"]',
   '.sera-page [data-slot="tabs-content"]',
   '.sera-empty > *',
-  '.sera-footer-cta > *',
-  '.sera-footer-main > *',
-  '.sera-footer-bottom > *',
 ].join(',')
 
 function motionOrder(element: HTMLElement) {
@@ -39,6 +36,7 @@ export default function MotionEffects() {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (!site) return
 
+    const boundElements = new Set<HTMLElement>()
     let revealObserver: IntersectionObserver | null = null
     if (!reduceMotion && 'IntersectionObserver' in window) {
       revealObserver = new IntersectionObserver(entries => {
@@ -58,6 +56,7 @@ export default function MotionEffects() {
       candidates.forEach(element => {
         if (element.dataset.motionBound === 'true') return
         element.dataset.motionBound = 'true'
+        boundElements.add(element)
         element.style.setProperty('--motion-order', String(motionOrder(element)))
         if (!revealObserver) return
         element.classList.add('motion-reveal')
@@ -97,6 +96,11 @@ export default function MotionEffects() {
       mutationObserver?.disconnect()
       if (headerFrame) window.cancelAnimationFrame(headerFrame)
       window.removeEventListener('scroll', queueHeaderSync)
+      boundElements.forEach(element => {
+        element.classList.remove('motion-reveal', 'motion-visible')
+        delete element.dataset.motionBound
+        element.style.removeProperty('--motion-order')
+      })
     }
   }, [])
 
