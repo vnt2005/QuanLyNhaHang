@@ -266,7 +266,8 @@ export async function resetCustomerPassword(
       code: code.trim(),
       newPassword,
     }),
-  )
+  }
+)
   return envelope.message ?? 'Đặt lại mật khẩu thành công.'
 }
 
