@@ -1,14 +1,5 @@
-import {
-  ArrowRight,
-  CalendarDays,
-  Clock3,
-  Headphones,
-  MapPin,
-  Phone,
-  ShoppingBag,
-  UtensilsCrossed,
-} from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ArrowRight, CalendarDays, Clock3, MapPin } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import type { CustomerSiteBootstrap, PublicMenuItem } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import reservationImage from '../assets/reservation-dining-room.webp'
@@ -22,205 +13,127 @@ function currency(value: number, code = 'VND') {
   }).format(value)
 }
 
-function tomorrow() {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function DishCard({ item, index, currencyCode }: { item: PublicMenuItem; index: number; currencyCode: string }) {
+function FeaturedDish({ item, index, currencyCode }: { item: PublicMenuItem; index: number; currencyCode: string }) {
   return (
-    <article className="featured-dish">
-      <div className="featured-dish-media">
+    <button
+      type="button"
+      className="group grid min-w-0 cursor-pointer grid-rows-[minmax(240px,34vw)_auto] border-0 bg-transparent p-0 text-left md:grid-rows-[360px_auto]"
+      onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
+      aria-label={`Xem chi tiết ${item.name}`}
+    >
+      <span className="relative block overflow-hidden bg-muted">
         <img
           src={item.imageUrl || heroImage}
-          className={`fallback-crop crop-${index + 1}`}
+          className={`fallback-crop crop-${index + 1} size-full object-cover transition-transform duration-500 group-hover:scale-[1.025]`}
           alt={item.name}
           loading="lazy"
           decoding="async"
         />
-      </div>
-      <div>
-        <h3>{item.name}</h3>
-        <p>{item.description || `Món ${item.menuCategoryName.toLocaleLowerCase('vi')} được chuẩn bị trong ngày.`}</p>
-        <strong>{currency(item.price, currencyCode)}</strong>
-      </div>
-    </article>
+        <span className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/35 to-transparent" aria-hidden="true" />
+      </span>
+      <span className="grid gap-3 border-x border-b border-border px-5 py-5 md:px-6 md:py-6">
+        <span className="flex items-start justify-between gap-4">
+          <span className="font-heading text-2xl leading-none text-foreground md:text-3xl">{item.name}</span>
+          <strong className="shrink-0 text-xs font-semibold tracking-widest text-foreground uppercase">
+            {currency(item.price, currencyCode)}
+          </strong>
+        </span>
+        <span className="line-clamp-2 max-w-[52ch] text-sm leading-6 text-muted-foreground">
+          {item.description || `Món ${item.menuCategoryName.toLocaleLowerCase('vi')} được chuẩn bị trong ngày.`}
+        </span>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase">
+          Xem món <ArrowRight data-icon="inline-end" />
+        </span>
+      </span>
+    </button>
   )
 }
 
 export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
   const restaurant = data.restaurant
-  const featured = data.menuItems.slice(0, 3)
+  const featured = data.menuItems.filter(item => item.isAvailable).slice(0, 3)
   const welcome = restaurant?.welcomeMessage
-    || 'Món ngon được chuẩn bị mỗi ngày từ những nguyên liệu tươi và câu chuyện thân quen.'
-
-  const [bookingDate, setBookingDate] = useState(tomorrow)
-  const [bookingTime, setBookingTime] = useState('19:00')
-  const [guestCount, setGuestCount] = useState(4)
-  const [areaName, setAreaName] = useState('')
-
-  const availableAreas = useMemo(() => {
-    const names = data.reservationTables
-      .filter(table => table.capacity >= guestCount)
-      .map(table => table.areaName)
-      .filter(Boolean)
-    return Array.from(new Set(names)).sort((left, right) => left.localeCompare(right, 'vi'))
-  }, [data.reservationTables, guestCount])
-
-  useEffect(() => {
-    if (areaName && !availableAreas.includes(areaName)) setAreaName('')
-  }, [areaName, availableAreas])
-
-  function continueReservation() {
-    const query = new URLSearchParams({
-      date: bookingDate,
-      time: bookingTime,
-      guests: String(guestCount),
-    })
-    if (areaName) query.set('area', areaName)
-    navigate(`/reservation?${query.toString()}`)
-  }
-
-  const serviceHighlights = [
-    {
-      icon: <UtensilsCrossed aria-hidden="true" />,
-      title: 'Món Việt mỗi ngày',
-      text: 'Khám phá thực đơn đang phục vụ và chọn món theo sở thích.',
-    },
-    {
-      icon: <CalendarDays aria-hidden="true" />,
-      title: 'Đặt bàn chủ động',
-      text: 'Chọn ngày, giờ và số khách trước khi đến nhà hàng.',
-    },
-    {
-      icon: <ShoppingBag aria-hidden="true" />,
-      title: 'Mang về tiện lợi',
-      text: 'Đặt món mang về và theo dõi đơn ngay trên website.',
-    },
-    {
-      icon: <Headphones aria-hidden="true" />,
-      title: 'Hỗ trợ trực tiếp',
-      text: restaurant?.phoneNumber ? `Liên hệ ${restaurant.phoneNumber} khi bạn cần hỗ trợ.` : 'Thông tin liên hệ đang được nhà hàng cập nhật.',
-    },
-  ]
+    || 'Món Việt được chuẩn bị mỗi ngày từ nguyên liệu tươi, kỹ thuật chỉn chu và những hương vị quen thuộc.'
 
   return (
-    <main className="home-page">
-      <section className="home-hero home-premium-hero">
-        <div className="home-premium-media" aria-hidden="true">
-          <img src={reservationImage} alt="" fetchPriority="high" decoding="async" />
-        </div>
-        <div className="home-premium-shell">
-          <div className="home-hero-copy home-premium-copy">
-            <span className="home-hero-kicker"><UtensilsCrossed aria-hidden="true" /> Hương vị Việt, phục vụ theo cách của bạn</span>
-            <h1>Trọn vị Việt<br /><span>trong từng khoảnh khắc</span></h1>
-            <p>{welcome}</p>
-            <div className="hero-actions">
-              <button className="primary-button" type="button" onClick={() => navigate('/menu')}>Xem thực đơn <ArrowRight /></button>
-              <button className="secondary-button" type="button" onClick={() => navigate('/reservation')}>Đặt bàn <CalendarDays /></button>
+    <main className="bg-background text-foreground">
+      <section className="grid min-h-[calc(100vh-88px)] border-b border-border lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,1.08fr)]">
+        <div className="flex items-center px-6 py-16 sm:px-10 lg:px-[max(56px,calc((100vw-min(1440px,100vw-96px))/2))] lg:py-24">
+          <div className="max-w-3xl">
+            <p className="mb-8 text-xs font-semibold tracking-[0.28em] text-muted-foreground uppercase">
+              Ẩm thực Việt · Nha Trang
+            </p>
+            <h1 className="font-heading text-[clamp(4rem,8.2vw,9rem)] leading-[0.82] tracking-[-0.055em] text-foreground">
+              Trọn vị Việt,
+              <span className="mt-3 block italic text-muted-foreground">theo cách riêng.</span>
+            </h1>
+            <p className="mt-10 max-w-xl text-base leading-8 text-muted-foreground md:text-lg">{welcome}</p>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Button size="lg" type="button" onClick={() => navigate('/menu')}>
+                Xem thực đơn <ArrowRight data-icon="inline-end" />
+              </Button>
+              <Button size="lg" variant="outline" type="button" onClick={() => navigate('/reservation')}>
+                Đặt bàn <CalendarDays data-icon="inline-end" />
+              </Button>
             </div>
-            <div className="home-hero-meta">
-              <span><Clock3 aria-hidden="true" />{restaurant ? `${restaurant.openingTime} – ${restaurant.closingTime}` : 'Giờ mở cửa đang cập nhật'}</span>
-              <span><MapPin aria-hidden="true" />{restaurant?.address || 'Địa chỉ đang cập nhật'}</span>
+            <div className="mt-12 flex flex-wrap gap-x-8 gap-y-3 border-t border-border pt-6 text-xs tracking-wide text-muted-foreground">
+              <span className="inline-flex items-center gap-2">
+                <Clock3 aria-hidden="true" className="size-4" />
+                {restaurant ? `${restaurant.openingTime} – ${restaurant.closingTime}` : 'Giờ mở cửa đang cập nhật'}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <MapPin aria-hidden="true" className="size-4" />
+                {restaurant?.address || 'Địa chỉ đang cập nhật'}
+              </span>
             </div>
           </div>
+        </div>
 
-          <aside className="home-quick-booking" aria-labelledby="home-quick-booking-title">
-            <header>
-              <span><CalendarDays aria-hidden="true" /></span>
-              <div>
-                <h2 id="home-quick-booking-title">Đặt bàn nhanh</h2>
-                <p>Chọn thông tin chính, hoàn tất chi tiết ở bước tiếp theo.</p>
-              </div>
-            </header>
-
-            <div className="home-booking-row">
-              <label>Chọn ngày
-                <input type="date" min={tomorrow()} value={bookingDate} onChange={event => setBookingDate(event.target.value)} />
-              </label>
-              <label>Khung giờ
-                <select value={bookingTime} onChange={event => setBookingTime(event.target.value)}>
-                  <option value="11:30">11:30</option>
-                  <option value="12:30">12:30</option>
-                  <option value="18:00">18:00</option>
-                  <option value="19:00">19:00</option>
-                  <option value="20:00">20:00</option>
-                </select>
-              </label>
-            </div>
-
-            <fieldset className="home-guest-picker">
-              <legend>Số lượng khách</legend>
-              <div>
-                {[2, 4, 6, 8].map(value => (
-                  <button
-                    className={guestCount === value ? 'active' : ''}
-                    type="button"
-                    key={value}
-                    onClick={() => setGuestCount(value)}
-                  >
-                    {value} khách
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <label className="home-area-field">Khu vực mong muốn
-              <select value={areaName} onChange={event => setAreaName(event.target.value)}>
-                <option value="">Nhà hàng tự sắp xếp</option>
-                {availableAreas.map(area => <option value={area} key={area}>{area}</option>)}
-              </select>
-            </label>
-
-            <button className="primary-button full home-booking-submit" type="button" onClick={continueReservation}>
-              Tiếp tục đặt bàn <ArrowRight aria-hidden="true" />
-            </button>
-          </aside>
+        <div className="relative min-h-[52vh] overflow-hidden border-t border-border bg-muted lg:min-h-0 lg:border-t-0 lg:border-l">
+          <img src={reservationImage} alt="Không gian nhà hàng" className="absolute inset-0 size-full object-cover" fetchPriority="high" decoding="async" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/5" aria-hidden="true" />
+          <div className="absolute right-6 bottom-6 left-6 flex items-end justify-between gap-4 text-white sm:right-10 sm:bottom-10 sm:left-10">
+            <p className="max-w-sm text-xs leading-5 tracking-[0.16em] uppercase">Một bữa ăn được chuẩn bị vừa đủ để hương vị là điều được nhớ đến.</p>
+            <span className="font-heading text-5xl italic">VNT</span>
+          </div>
         </div>
       </section>
 
-      <section className="page-section featured-section home-featured-section">
-        <div className="section-heading horizontal">
-          <div><h2>Món được yêu thích</h2><p>Một vài gợi ý từ thực đơn đang phục vụ hôm nay.</p></div>
-          <button className="text-link" type="button" onClick={() => navigate('/menu')}>Xem toàn bộ thực đơn <ArrowRight /></button>
-        </div>
+      <section className="mx-auto w-[min(1440px,calc(100vw-48px))] py-20 sm:w-[min(1440px,calc(100vw-80px))] md:py-28">
+        <header className="mb-12 grid gap-6 border-b border-border pb-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p className="mb-3 text-xs font-semibold tracking-[0.25em] text-muted-foreground uppercase">Chọn từ bếp hôm nay</p>
+            <h2 className="font-heading text-5xl leading-none tracking-[-0.035em] md:text-7xl">Món được yêu thích</h2>
+          </div>
+          <Button variant="link" className="justify-start px-0 md:justify-end" type="button" onClick={() => navigate('/menu')}>
+            Toàn bộ thực đơn <ArrowRight data-icon="inline-end" />
+          </Button>
+        </header>
+
         {featured.length ? (
-          <div className="featured-rail">
-            {featured.map((item, index) => <DishCard key={item.id} item={item} index={index} currencyCode={restaurant?.currency || 'VND'} />)}
+          <div className="grid gap-6 lg:grid-cols-3">
+            {featured.map((item, index) => (
+              <FeaturedDish key={item.id} item={item} index={index} currencyCode={restaurant?.currency || 'VND'} />
+            ))}
           </div>
         ) : (
-          <p className="quiet-empty">Thực đơn đang được nhà hàng cập nhật.</p>
+          <div className="border border-dashed border-border px-6 py-16 text-center text-sm text-muted-foreground">
+            Thực đơn đang được nhà hàng cập nhật.
+          </div>
         )}
       </section>
 
-      <section className="home-service-strip" aria-label="Dịch vụ nổi bật">
-        {serviceHighlights.map(item => (
-          <article key={item.title}>
-            <span>{item.icon}</span>
-            <div><h2>{item.title}</h2><p>{item.text}</p></div>
-          </article>
-        ))}
-      </section>
-
-      <section className="visit-band home-visit-band">
-        <div className="visit-invitation home-visit-invitation">
-          <div className="home-visit-icon" aria-hidden="true"><CalendarDays /></div>
+      <section className="border-y border-border bg-muted/35">
+        <div className="mx-auto grid w-[min(1440px,calc(100vw-48px))] gap-10 py-16 sm:w-[min(1440px,calc(100vw-80px))] md:grid-cols-[1.1fr_0.9fr] md:items-end md:py-20">
           <div>
-            <h2>Sẵn sàng đón bạn</h2>
-            <p>Đặt bàn trước để nhà hàng chủ động chuẩn bị không gian phù hợp cho bạn và người thân.</p>
-            <button className="primary-button" type="button" onClick={() => navigate('/reservation')}>Đặt bàn ngay <ArrowRight /></button>
+            <p className="mb-4 text-xs font-semibold tracking-[0.25em] text-muted-foreground uppercase">Dành thời gian cho một bữa ăn tử tế</p>
+            <h2 className="max-w-4xl font-heading text-4xl leading-[1.05] tracking-[-0.03em] sm:text-5xl md:text-6xl">
+              Đặt bàn trước hoặc chọn món mang về — phần còn lại để nhà hàng chuẩn bị.
+            </h2>
           </div>
-        </div>
-        <div className="restaurant-facts home-restaurant-facts">
-          <h2>Thông tin nhà hàng</h2>
-          <div className="facts-grid">
-            <p><MapPin /><span><small>Địa chỉ</small><strong>{restaurant?.address || 'Đang cập nhật'}</strong></span></p>
-            <p><Clock3 /><span><small>Giờ mở cửa</small><strong>{restaurant ? `${restaurant.openingTime} – ${restaurant.closingTime}` : 'Đang cập nhật'}</strong></span></p>
-            <p><Phone /><span><small>Điện thoại</small><strong>{restaurant?.phoneNumber || 'Đang cập nhật'}</strong></span></p>
+          <div className="flex flex-wrap gap-3 md:justify-end">
+            <Button size="lg" type="button" onClick={() => navigate('/reservation')}>Đặt bàn</Button>
+            <Button size="lg" variant="outline" type="button" onClick={() => navigate('/takeaway')}>Đặt món mang về</Button>
           </div>
         </div>
       </section>
