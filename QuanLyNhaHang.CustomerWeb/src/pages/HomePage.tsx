@@ -8,7 +8,6 @@ import {
   ShoppingBag,
   UtensilsCrossed,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
 import type { CustomerSiteBootstrap, PublicMenuItem } from '../services/customerSite'
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import reservationImage from '../assets/reservation-dining-room.webp'
@@ -20,15 +19,6 @@ function currency(value: number, code = 'VND') {
     currency: code || 'VND',
     maximumFractionDigits: 0,
   }).format(value)
-}
-
-function tomorrow() {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
 }
 
 function DishCard({ item, index, currencyCode }: { item: PublicMenuItem; index: number; currencyCode: string }) {
@@ -57,33 +47,6 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
   const featured = data.menuItems.slice(0, 3)
   const welcome = restaurant?.welcomeMessage
     || 'Món ngon được chuẩn bị mỗi ngày từ những nguyên liệu tươi và câu chuyện thân quen.'
-
-  const [bookingDate, setBookingDate] = useState(tomorrow)
-  const [bookingTime, setBookingTime] = useState('19:00')
-  const [guestCount, setGuestCount] = useState(4)
-  const [areaName, setAreaName] = useState('')
-
-  const availableAreas = useMemo(() => {
-    const names = data.reservationTables
-      .filter(table => table.capacity >= guestCount)
-      .map(table => table.areaName)
-      .filter(Boolean)
-    return Array.from(new Set(names)).sort((left, right) => left.localeCompare(right, 'vi'))
-  }, [data.reservationTables, guestCount])
-
-  useEffect(() => {
-    if (areaName && !availableAreas.includes(areaName)) setAreaName('')
-  }, [areaName, availableAreas])
-
-  function continueReservation() {
-    const query = new URLSearchParams({
-      date: bookingDate,
-      time: bookingTime,
-      guests: String(guestCount),
-    })
-    if (areaName) query.set('area', areaName)
-    navigate(`/reservation?${query.toString()}`)
-  }
 
   const serviceHighlights = [
     {
@@ -128,58 +91,6 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
               <span><MapPin aria-hidden="true" />{restaurant?.address || 'Địa chỉ đang cập nhật'}</span>
             </div>
           </div>
-
-          <aside className="home-quick-booking" aria-labelledby="home-quick-booking-title">
-            <header>
-              <span><CalendarDays aria-hidden="true" /></span>
-              <div>
-                <h2 id="home-quick-booking-title">Đặt bàn nhanh</h2>
-                <p>Chọn thông tin chính, hoàn tất chi tiết ở bước tiếp theo.</p>
-              </div>
-            </header>
-
-            <div className="home-booking-row">
-              <label>Chọn ngày
-                <input type="date" min={tomorrow()} value={bookingDate} onChange={event => setBookingDate(event.target.value)} />
-              </label>
-              <label>Khung giờ
-                <select value={bookingTime} onChange={event => setBookingTime(event.target.value)}>
-                  <option value="11:30">11:30</option>
-                  <option value="12:30">12:30</option>
-                  <option value="18:00">18:00</option>
-                  <option value="19:00">19:00</option>
-                  <option value="20:00">20:00</option>
-                </select>
-              </label>
-            </div>
-
-            <fieldset className="home-guest-picker">
-              <legend>Số lượng khách</legend>
-              <div>
-                {[2, 4, 6, 8].map(value => (
-                  <button
-                    className={guestCount === value ? 'active' : ''}
-                    type="button"
-                    key={value}
-                    onClick={() => setGuestCount(value)}
-                  >
-                    {value} khách
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <label className="home-area-field">Khu vực mong muốn
-              <select value={areaName} onChange={event => setAreaName(event.target.value)}>
-                <option value="">Nhà hàng tự sắp xếp</option>
-                {availableAreas.map(area => <option value={area} key={area}>{area}</option>)}
-              </select>
-            </label>
-
-            <button className="primary-button full home-booking-submit" type="button" onClick={continueReservation}>
-              Tiếp tục đặt bàn <ArrowRight aria-hidden="true" />
-            </button>
-          </aside>
         </div>
       </section>
 
