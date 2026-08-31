@@ -1,0 +1,359 @@
+/* Shared components that still own their interaction logic but now follow the Sera visual language. */
+
+.status-panel {
+  min-height: 360px;
+  border: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: var(--background) !important;
+  box-shadow: none !important;
+}
+
+.status-panel h2 {
+  font-family: 'Playfair Display Variable', Georgia, serif !important;
+  font-size: 30px !important;
+  font-weight: 500 !important;
+  letter-spacing: -.03em;
+}
+
+.status-panel p {
+  color: var(--muted-foreground) !important;
+}
+
+.customer-notification-center {
+  position: relative;
+}
+
+.customer-notification-trigger {
+  position: relative;
+  display: grid !important;
+  width: 36px !important;
+  height: 36px !important;
+  place-items: center;
+  border: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+}
+
+.customer-notification-trigger:hover,
+.customer-notification-trigger.active {
+  border-color: var(--foreground) !important;
+  background: var(--muted) !important;
+}
+
+.customer-notification-trigger > svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.customer-notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  min-width: 18px !important;
+  height: 18px !important;
+  display: grid !important;
+  place-items: center;
+  padding: 0 4px !important;
+  border: 1px solid var(--background) !important;
+  border-radius: 0 !important;
+  background: var(--foreground) !important;
+  color: var(--background) !important;
+  font-size: 8px !important;
+  font-weight: 700;
+}
+
+.customer-notification-panel {
+  position: absolute !important;
+  top: calc(100% + 12px) !important;
+  right: 0 !important;
+  z-index: 80 !important;
+  width: min(420px, calc(100vw - 32px)) !important;
+  overflow: hidden;
+  border: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+  box-shadow: 0 20px 50px rgb(0 0 0 / .12) !important;
+}
+
+.customer-notification-header {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: transparent !important;
+}
+
+.customer-notification-header h2 {
+  margin: 0 !important;
+  font-family: 'Playfair Display Variable', Georgia, serif !important;
+  font-size: 28px !important;
+  font-weight: 500 !important;
+  letter-spacing: -.03em;
+}
+
+.customer-notification-header p {
+  margin: 5px 0 0 !important;
+  color: var(--muted-foreground) !important;
+  font-size: 11px !important;
+}
+
+.customer-notification-read-all {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--foreground) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 4px 0 !important;
+  color: var(--foreground) !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.customer-notification-read-all svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.customer-notification-error {
+  margin: 14px 20px 0 !important;
+  padding: 10px 12px !important;
+  border: 1px solid color-mix(in srgb, var(--destructive) 35%, transparent) !important;
+  border-left: 2px solid var(--destructive) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--destructive) !important;
+  font-size: 11px !important;
+}
+
+.customer-notification-list {
+  max-height: min(500px, 64vh) !important;
+  overflow-y: auto;
+}
+
+.customer-notification-item {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 8px 1fr auto !important;
+  gap: 12px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 16px 20px !important;
+  text-align: left !important;
+}
+
+.customer-notification-item:hover,
+.customer-notification-item.unread {
+  background: color-mix(in srgb, var(--muted) 55%, transparent) !important;
+}
+
+.customer-notification-dot {
+  width: 6px !important;
+  height: 6px !important;
+  margin-top: 5px !important;
+  border-radius: 0 !important;
+  background: var(--muted-foreground) !important;
+}
+
+.customer-notification-dot.success { background: #55755d !important; }
+.customer-notification-dot.warning { background: #9a6f3d !important; }
+.customer-notification-dot.error { background: var(--destructive) !important; }
+
+.customer-notification-copy {
+  min-width: 0;
+}
+
+.customer-notification-meta {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.customer-notification-meta strong {
+  color: var(--muted-foreground) !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.customer-notification-meta time {
+  color: var(--muted-foreground) !important;
+  font-size: 9px !important;
+}
+
+.customer-notification-copy > b {
+  display: block !important;
+  margin-top: 5px !important;
+  color: var(--foreground) !important;
+  font-family: 'Playfair Display Variable', Georgia, serif !important;
+  font-size: 17px !important;
+  font-weight: 500 !important;
+}
+
+.customer-notification-copy > span:last-child {
+  display: -webkit-box !important;
+  margin-top: 4px !important;
+  overflow: hidden !important;
+  color: var(--muted-foreground) !important;
+  font-size: 11px !important;
+  line-height: 1.55 !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.customer-notification-item > i {
+  width: 5px !important;
+  height: 5px !important;
+  align-self: center;
+  border-radius: 0 !important;
+  background: var(--foreground) !important;
+}
+
+.customer-notification-empty {
+  min-height: 150px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 7px !important;
+  padding: 28px !important;
+  text-align: center;
+  color: var(--muted-foreground) !important;
+  font-size: 11px !important;
+}
+
+.customer-notification-empty svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.customer-notification-empty strong {
+  color: var(--foreground) !important;
+  font-family: 'Playfair Display Variable', Georgia, serif !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+}
+
+.customer-notification-realtime {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 11px 20px !important;
+  border-top: 1px solid var(--border) !important;
+  background: transparent !important;
+  color: var(--muted-foreground) !important;
+  font-size: 9px !important;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.customer-notification-realtime i {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: var(--muted-foreground) !important;
+}
+
+.customer-notification-realtime.connected i { background: #55755d !important; }
+.customer-notification-realtime.reconnecting i { background: #9a6f3d !important; }
+
+.customer-notification-toast {
+  position: fixed !important;
+  right: 24px !important;
+  bottom: 24px !important;
+  z-index: 100 !important;
+  width: min(390px, calc(100vw - 32px)) !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  overflow: hidden;
+  border: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: var(--foreground) !important;
+  color: var(--background) !important;
+  box-shadow: 0 20px 50px rgb(0 0 0 / .18) !important;
+}
+
+.customer-notification-toast-main {
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  gap: 12px !important;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 16px !important;
+  color: inherit !important;
+  text-align: left !important;
+}
+
+.customer-notification-toast-main > svg {
+  width: 16px !important;
+  height: 16px !important;
+  margin-top: 2px !important;
+}
+
+.customer-notification-toast-main small {
+  display: block !important;
+  color: color-mix(in srgb, var(--background) 55%, transparent) !important;
+  font-size: 8px !important;
+  letter-spacing: .16em;
+}
+
+.customer-notification-toast-main strong {
+  display: block !important;
+  margin-top: 4px !important;
+  font-family: 'Playfair Display Variable', Georgia, serif !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+}
+
+.customer-notification-toast-main span span {
+  display: block !important;
+  margin-top: 4px !important;
+  color: color-mix(in srgb, var(--background) 72%, transparent) !important;
+  font-size: 10px !important;
+  line-height: 1.5 !important;
+}
+
+.customer-notification-toast-close {
+  width: 42px !important;
+  border: 0 !important;
+  border-left: 1px solid color-mix(in srgb, var(--background) 16%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+}
+
+.customer-notification-toast-close:hover {
+  background: color-mix(in srgb, var(--background) 8%, transparent) !important;
+}
+
+.customer-notification-toast-close svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+@media (max-width: 640px) {
+  .customer-notification-panel {
+    position: fixed !important;
+    top: 88px !important;
+    right: 16px !important;
+    left: 16px !important;
+    width: auto !important;
+  }
+
+  .customer-notification-toast {
+    right: 16px !important;
+    bottom: 16px !important;
+    left: 16px !important;
+    width: auto !important;
+  }
+}
