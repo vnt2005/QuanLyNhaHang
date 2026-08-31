@@ -6,6 +6,8 @@ import heroImage from '../assets/hero-vietnamese-table.webp'
 import reservationImage from '../assets/reservation-dining-room.webp'
 import { navigate } from '../utils/navigation'
 
+const homeFontStyle = { fontFamily: "'Noto Sans Variable', system-ui, sans-serif" }
+
 function currency(value: number, code = 'VND') {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -31,11 +33,11 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
     || 'Món Việt được chuẩn bị mỗi ngày bằng nguyên liệu tươi, hương vị quen thuộc và cách phục vụ gọn gàng, hiện đại.'
 
   return (
-    <main className="sera-home">
+    <main className="sera-home" style={homeFontStyle}>
       <section className="sera-home-hero">
         <div className="sera-home-hero-copy">
           <p className="sera-kicker">Ẩm thực Việt tại Nha Trang</p>
-          <h1 className="sera-display">Món Việt quen thuộc, được phục vụ theo cách nhẹ nhàng hơn.</h1>
+          <h1 className="sera-display" style={homeFontStyle}>Món Việt quen thuộc, được phục vụ theo cách nhẹ nhàng hơn.</h1>
           <p className="sera-copy">{welcome}</p>
           <div className="sera-home-actions">
             <Button size="lg" onClick={() => navigate('/menu')}>Xem thực đơn <ArrowRight /></Button>
@@ -50,7 +52,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-home-visual">
           <img src={active?.imageUrl || heroImage} alt={active?.name || 'Món ăn nổi bật'} />
           <div className="sera-home-visual-caption">
-            <span><small>{active?.menuCategoryName || 'Món hôm nay'}</small><strong>{active?.name || 'Thực đơn đang phục vụ'}</strong></span>
+            <span><small>{active?.menuCategoryName || 'Món hôm nay'}</small><strong style={homeFontStyle}>{active?.name || 'Thực đơn đang phục vụ'}</strong></span>
             <b>{active ? currency(active.price, restaurant?.currency) : ''}</b>
           </div>
         </div>
@@ -60,7 +62,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-section-head">
           <div>
             <p className="sera-kicker">Thực đơn đang phục vụ</p>
-            <h2>Những món đáng bắt đầu hôm nay.</h2>
+            <h2 style={homeFontStyle}>Những món đáng bắt đầu hôm nay.</h2>
           </div>
           <button className="sera-link" type="button" onClick={() => navigate('/menu')}>Xem toàn bộ <ArrowRight size={14} /></button>
         </div>
@@ -73,17 +75,17 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                 type="button"
                 className="sera-dish-row"
                 onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
-                style={{ width: '100%', borderLeft: 0, borderRight: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer' }}
+                style={{ width: '100%', borderLeft: 0, borderRight: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer', ...homeFontStyle }}
               >
                 <span className="sera-dish-row-media"><img src={item.imageUrl || heroImage} alt="" /></span>
-                <span><h3>{item.name}</h3><p>{item.description || 'Món ăn được chuẩn bị tươi mới trong ngày.'}</p></span>
+                <span><h3 style={homeFontStyle}>{item.name}</h3><p>{item.description || 'Món ăn được chuẩn bị tươi mới trong ngày.'}</p></span>
                 <span className="sera-dish-row-meta">{item.menuCategoryName}</span>
                 <span className="sera-dish-row-price">{currency(item.price, restaurant?.currency)}</span>
               </button>
             ))}
           </div>
         ) : (
-          <div className="sera-empty"><div><h2>Thực đơn đang được cập nhật.</h2><p>Nhà hàng chưa có món đang mở bán để hiển thị.</p></div></div>
+          <div className="sera-empty"><div><h2 style={homeFontStyle}>Thực đơn đang được cập nhật.</h2><p>Nhà hàng chưa có món đang mở bán để hiển thị.</p></div></div>
         )}
       </section>
 
@@ -91,11 +93,11 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-home-reservation-media"><img src={reservationImage} alt="Không gian nhà hàng" /></div>
         <div className="sera-home-reservation-copy">
           <p className="sera-kicker">Đặt chỗ trước</p>
-          <h2>Chọn thời gian và chiếc bàn phù hợp cho nhóm của bạn.</h2>
+          <h2 style={homeFontStyle}>Chọn thời gian và chiếc bàn phù hợp cho nhóm của bạn.</h2>
           <p>Website chỉ hiển thị những bàn đang đủ điều kiện đặt. Gửi yêu cầu trước và nhà hàng sẽ xác nhận lại cho bạn.</p>
           <div className="sera-home-actions">
             <Button size="lg" variant="secondary" onClick={() => navigate('/reservation')}>Đặt bàn <ArrowRight /></Button>
-            <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white hover:text-black" onClick={() => navigate('/takeaway')}>Tôi muốn mang về</Button>
+            <Button size="lg" variant="outline" className="border-white/60 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate('/takeaway')}>Tôi muốn mang về</Button>
           </div>
         </div>
       </section>
