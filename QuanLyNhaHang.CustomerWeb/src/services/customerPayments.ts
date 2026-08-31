@@ -1,4 +1,4 @@
-import { apiRequest } from './client'
+import { optionalCustomerRequest } from './customerRequest'
 
 export type CustomerPaymentInstruction = {
   success: boolean
@@ -56,7 +56,7 @@ export function createCustomerPaymentQr(
   qrToken?: string | null,
   accessToken?: string | null,
 ) {
-  return apiRequest<CustomerPaymentInstruction>(
+  return optionalCustomerRequest<CustomerPaymentInstruction>(
     `/api/customer-payments/orders/${encodeURIComponent(orderId)}/sepay-qr`,
     {
       method: 'POST',
@@ -72,7 +72,7 @@ export function cancelCustomerPaymentAttempt(
   qrToken?: string | null,
   accessToken?: string | null,
 ) {
-  return apiRequest<{ success: boolean; attemptStatus?: string; requiresReview?: boolean }>(
+  return optionalCustomerRequest<{ success: boolean; attemptStatus?: string; requiresReview?: boolean }>(
     `/api/customer-payments/orders/${encodeURIComponent(orderId)}/attempts/${encodeURIComponent(attemptId)}/cancel`,
     {
       method: 'POST',
@@ -92,7 +92,7 @@ export function getCustomerPaymentStatus(
   if (qrToken) params.set('qrToken', qrToken)
   if (attemptId) params.set('attemptId', attemptId)
   const query = params.size > 0 ? `?${params}` : ''
-  return apiRequest<CustomerPaymentStatus>(
+  return optionalCustomerRequest<CustomerPaymentStatus>(
     `/api/customer-payments/orders/${encodeURIComponent(orderId)}/status${query}`,
     undefined,
     accessToken,

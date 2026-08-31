@@ -1,3 +1,4 @@
+import { clearCustomerQrAccess } from '../utils/customerQrAccess'
 import { clearTakeawayCart } from '../utils/takeawayCart'
 import { ApiError, apiRequest } from './client'
 
@@ -52,6 +53,13 @@ export type RegisterCustomerInput = {
 
 let refreshRequest: Promise<CustomerSession> | null = null
 
+class CustomerSessionValidationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'CustomerSessionValidationError'
+  }
+}
+
 export class CustomerSessionRefreshSupersededError extends Error {
   constructor() {
     super('Phiên làm mới đã được thay thế bởi lần đăng nhập mới.')
@@ -74,7 +82,7 @@ async function rejectEmployeeSession(result: CustomerAuthResult) {
       body: JSON.stringify({ refreshToken: result.refreshToken }),
     }).catch(() => undefined)
   }
-  throw new Error('Website này chỉ dành cho tài khoản khách hàng.')
+  throw new CustomerSessionValidationError('Website này chỉ dành cho tài khoản khách hàng.')
 }
 
 function saveSession(session: CustomerSession) {
@@ -102,7 +110,7 @@ function toSession(result: CustomerAuthResult) {
     || !result.token
     || !result.refreshToken
   ) {
-    throw new Error('Máy chủ không trả về phiên khách hàng hợp lệ.')
+    throw new CustomerSessionValidationError('Máy chủ không trả về phiên khách hàng hợp lệ.')
   }
 
   const session: CustomerSession = {
@@ -157,10 +165,9 @@ export function clearCustomerSession() {
 
 function clearCustomerLogoutState() {
   clearTakeawayCart()
-  sessionStorage.removeItem('customerLastQrToken')
+  clearCustomerQrAccess()
   sessionStorage.removeItem('customerReturnPath')
   sessionStorage.removeItem('customerPaymentAttemptAccess')
-  localStorage.removeItem('customerLastQrToken')
   localStorage.removeItem('customerReturnPath')
   localStorage.removeItem('customerPaymentAttemptAccess')
 }
@@ -168,6 +175,11 @@ function clearCustomerLogoutState() {
 function clearCustomerSessionIfCurrent(refreshToken: string) {
   if (storedRefreshToken() !== refreshToken) return
   clearCustomerSession()
+}
+
+function shouldClearSessionAfterRefreshError(error: unknown) {
+  if (error instanceof CustomerSessionValidationError) return true
+  return error instanceof ApiError && [400, 401, 403].includes(error.status)
 }
 
 export async function loginCustomer(email: string, password: string) {
@@ -254,7 +266,7 @@ export async function resetCustomerPassword(
       code: code.trim(),
       newPassword,
     }),
-  })
+  )
   return envelope.message ?? 'Đặt lại mật khẩu thành công.'
 }
 
@@ -263,13 +275,22 @@ export async function changeCustomerPassword(input: {
   newPassword: string
   confirmNewPassword: string
 }) {
-  const token = getCustomerAccessToken()
-  if (!token) throw new ApiError('Phiên đăng nhập đã hết hạn.', 401)
-  const envelope = await apiRequest<ApiEnvelope<never>>(
-    '/api/auth/change-password',
-    { method: 'POST', body: JSON.stringify(input) },
-    token,
-  )
+  const request: RequestInit = {
+    method: 'POST',
+    body: JSON.stringify(input),
+  }
+  let token = getCustomerAccessToken()
+  if (!token) token = (await restoreCustomerSession()).token
+
+  let envelope: ApiEnvelope<never>
+  try {
+    envelope = await apiRequest<ApiEnvelope<never>>('/api/auth/change-password', request, token)
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status !== 401) throw error
+    const restored = await restoreCustomerSession()
+    envelope = await apiRequest<ApiEnvelope<never>>('/api/auth/change-password', request, restored.token)
+  }
+
   clearCustomerSession()
   clearCustomerLogoutState()
   return envelope.message ?? 'Đổi mật khẩu thành công.'
@@ -301,7 +322,9 @@ export function restoreCustomerSession() {
           ? error
           : new CustomerSessionRefreshSupersededError()
       }
-      clearCustomerSessionIfCurrent(refreshToken)
+      if (shouldClearSessionAfterRefreshError(error)) {
+        clearCustomerSessionIfCurrent(refreshToken)
+      }
       throw error
     })
     .finally(() => {

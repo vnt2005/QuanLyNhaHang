@@ -29,11 +29,23 @@ function getClientId() {
   }
 }
 
-function getIdempotencyKey(path: string, init?: RequestInit) {
+function pruneExpiredIdempotencyKeys(now: number) {
+  recentIdempotencyKeys.forEach((entry, fingerprint) => {
+    if (entry.expiresAt <= now) recentIdempotencyKeys.delete(fingerprint)
+  })
+}
+
+function getIdempotencyKey(
+  path: string,
+  init?: RequestInit,
+  accessToken?: string | null,
+) {
   if ((init?.method ?? 'GET').toUpperCase() !== 'POST') return null
 
-  const fingerprint = `${path}\n${String(init?.body ?? '')}`
   const now = Date.now()
+  pruneExpiredIdempotencyKeys(now)
+
+  const fingerprint = `${accessToken ?? ''}\n${path}\n${String(init?.body ?? '')}`
   const existing = recentIdempotencyKeys.get(fingerprint)
   if (existing && existing.expiresAt > now) return existing.key
 
@@ -106,7 +118,7 @@ async function executeRequest<T>(
   init?: RequestInit,
   accessToken?: string | null,
 ) {
-  const idempotencyKey = getIdempotencyKey(path, init)
+  const idempotencyKey = getIdempotencyKey(path, init, accessToken)
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {

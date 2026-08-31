@@ -1,4 +1,5 @@
 import { apiRequest } from './client'
+import { optionalCustomerRequest } from './customerRequest'
 
 export type PublicRestaurant = {
   restaurantName: string
@@ -97,7 +98,7 @@ export async function createCustomerReservation(
   input: CustomerReservationInput,
   accessToken?: string | null,
 ) {
-  return apiRequest<{
+  return optionalCustomerRequest<{
     success: boolean
     message: string
     data: CustomerReservationResult
@@ -111,7 +112,7 @@ export function createTakeawayOrder(
   input: TakeawayOrderInput,
   accessToken?: string | null,
 ) {
-  return apiRequest<{
+  return optionalCustomerRequest<{
     success: boolean
     message: string
     data: TakeawayOrderResult

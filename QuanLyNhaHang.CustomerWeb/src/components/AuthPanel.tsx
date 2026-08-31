@@ -9,7 +9,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,6 +46,11 @@ export default function AuthPanel({
   const [message, setMessage] = useState(initialMessage)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (!initialMessage) return
+    setMessage(initialMessage)
+  }, [initialMessage])
 
   function move(next: Mode, nextMessage = '') {
     setMode(next)

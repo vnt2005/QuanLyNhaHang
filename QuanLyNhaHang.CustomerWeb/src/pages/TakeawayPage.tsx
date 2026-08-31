@@ -1,5 +1,5 @@
 import { CheckCircle2, Clock3, MapPin, Minus, PackageOpen, Plus, ShoppingBag, UserRound, XCircle } from 'lucide-react'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +34,13 @@ export default function TakeawayPage({ data, session }: { data: CustomerSiteBoot
   const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<TakeawayOrderResult | null>(null)
+
+  useEffect(() => {
+    if (!session) return
+    const sessionName = [session.ho, session.ten].filter(Boolean).join(' ')
+    setCustomerName(current => current || sessionName)
+    setPhoneNumber(current => current || session.phoneNumber || '')
+  }, [session?.ho, session?.phoneNumber, session?.ten, session?.userId])
 
   const lines = useMemo(() => data.menuItems.map(item => ({ item, quantity: cart[item.id] || 0 })).filter(line => line.quantity > 0), [cart, data.menuItems])
   const totalQuantity = lines.reduce((sum, line) => sum + line.quantity, 0)

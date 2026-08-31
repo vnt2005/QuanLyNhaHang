@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle2, Clock3, RefreshCw, XCircle } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -36,9 +36,12 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
+  const statusRequestRef = useRef(0)
 
   async function loadStatus(showLoading = true) {
+    const requestId = ++statusRequestRef.current
     if (!orderId) {
+      setStatus(null)
       setError('Thiếu mã đơn hàng để kiểm tra thanh toán.')
       setLoading(false)
       return
@@ -47,29 +50,36 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
     if (showLoading) setLoading(true)
     setError('')
     try {
-      setStatus(await getCustomerPaymentStatus(orderId, qrToken, session?.token, requestedAttemptId))
+      const nextStatus = await getCustomerPaymentStatus(orderId, qrToken, session?.token, requestedAttemptId)
+      if (statusRequestRef.current !== requestId) return
+      setStatus(nextStatus)
     } catch (exception) {
+      if (statusRequestRef.current !== requestId) return
       setError(exception instanceof Error ? exception.message : 'Không kiểm tra được trạng thái thanh toán.')
     } finally {
-      if (showLoading) setLoading(false)
+      if (showLoading && statusRequestRef.current === requestId) setLoading(false)
     }
   }
 
-  useEffect(() => { void loadStatus() }, [orderId, requestedAttemptId, session?.token])
+  useEffect(() => {
+    void loadStatus()
+    return () => { statusRequestRef.current += 1 }
+  }, [orderId, requestedAttemptId, session?.token])
 
   const paid = status?.paid === true
   const requiresReview = status?.requiresReview === true
   const cancelled = status?.attemptStatus === 'Cancelled'
   const expired = status?.attemptStatus === 'Expired'
   const failed = status?.attemptStatus === 'Failed'
-  const pending = !paid && !requiresReview && !cancelled && !expired && !failed
+  const pending = Boolean(orderId && status) && !paid && !requiresReview && !cancelled && !expired && !failed
   const channelUnavailable = pending && status?.paymentChannelReady === false
 
-  useVisiblePolling(() => loadStatus(false), 3000, Boolean(orderId && pending && status))
+  useVisiblePolling(() => loadStatus(false), 3000, Boolean(orderId && pending && status && !cancelling))
 
   async function cancelPayment() {
     const attemptId = status?.attemptId || requestedAttemptId
     if (!orderId || !attemptId || cancelling || paid) return
+    statusRequestRef.current += 1
     setCancelling(true)
     setError('')
     try {
@@ -88,27 +98,41 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
     navigate(returnPath || (session ? '/orders' : '/menu'))
   }
 
-  const heading = paid
-    ? 'Thanh toán thành công'
-    : requiresReview
-      ? 'Giao dịch đang được kiểm tra'
-      : expired
-        ? 'Mã thanh toán đã hết hạn'
-        : cancelled
-          ? 'Bạn đã hủy thanh toán'
-          : failed
-            ? 'Không thể tiếp tục phiên thanh toán'
-            : channelUnavailable
-              ? 'Kênh thanh toán đang tạm ngừng'
-              : 'Quét QR để thanh toán'
+  const heading = !orderId
+    ? 'Thiếu thông tin thanh toán'
+    : loading && !status
+      ? 'Đang kiểm tra thanh toán'
+      : paid
+        ? 'Thanh toán thành công'
+        : requiresReview
+          ? 'Giao dịch đang được kiểm tra'
+          : expired
+            ? 'Mã thanh toán đã hết hạn'
+            : cancelled
+              ? 'Bạn đã hủy thanh toán'
+              : failed
+                ? 'Không thể tiếp tục phiên thanh toán'
+                : channelUnavailable
+                  ? 'Kênh thanh toán đang tạm ngừng'
+                  : 'Quét QR để thanh toán'
 
   const icon = paid
     ? <CheckCircle2 className="size-6" />
-    : requiresReview || channelUnavailable
+    : requiresReview || channelUnavailable || !orderId
       ? <AlertTriangle className="size-6" />
       : cancelled || expired || failed
         ? <XCircle className="size-6" />
         : <Clock3 className="size-6" />
+
+  const badgeLabel = !orderId
+    ? 'Thiếu dữ liệu'
+    : paid
+      ? 'Đã thanh toán'
+      : pending
+        ? 'Đang chờ'
+        : requiresReview
+          ? 'Đối soát'
+          : status?.attemptStatus || (loading ? 'Đang kiểm tra' : 'Chưa sẵn sàng')
 
   return (
     <main className="sera-page">
@@ -116,11 +140,11 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
         <div>
           <p className="sera-kicker">Thanh toán qua SePay</p>
           <h1 className="sera-title mt-3">{heading}</h1>
-          {status ? <p>Đơn <strong className="text-foreground">{status.orderCode}</strong>{paid && status.amount != null ? <> đã thanh toán <strong className="text-foreground">{money(status.amount)}</strong>.</> : '.'}</p> : <p>Hệ thống đang kiểm tra phiên thanh toán của đơn hàng.</p>}
+          {status ? <p>Đơn <strong className="text-foreground">{status.orderCode}</strong>{paid && status.amount != null ? <> đã thanh toán <strong className="text-foreground">{money(status.amount)}</strong>.</> : '.'}</p> : <p>{orderId ? 'Hệ thống đang kiểm tra phiên thanh toán của đơn hàng.' : 'Đường dẫn hiện tại không có mã đơn hàng hợp lệ.'}</p>}
         </div>
         <div className="flex items-center justify-end gap-4">
           <span className="grid size-12 place-items-center border border-border text-accent">{icon}</span>
-          <Badge variant={paid ? 'default' : cancelled || expired || failed ? 'destructive' : 'secondary'}>{paid ? 'Đã thanh toán' : pending ? 'Đang chờ' : requiresReview ? 'Đối soát' : status?.attemptStatus || 'Đang xử lý'}</Badge>
+          <Badge variant={paid ? 'default' : cancelled || expired || failed || !orderId ? 'destructive' : 'secondary'}>{badgeLabel}</Badge>
         </div>
       </header>
 
@@ -137,10 +161,10 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
               <p className="sera-kicker">Thông tin chuyển khoản</p>
               <dl className="mt-4 border-t border-border">
                 {[
-                  ['Ngân hàng', status.bankCode || 'HDBank'],
+                  ['Ngân hàng', status.bankCode || '—'],
                   ['Chủ tài khoản', status.accountHolder || '—'],
                   ['Số tài khoản', status.accountNumber || '—'],
-                  ['Số tiền', money(status.expectedAmount ?? status.amount)],
+                  ['Số tiền', money(status.expectedAmount ?? status.amount) || '—'],
                   ['Nội dung', status.transferContent || '—'],
                 ].map(([label, value]) => <div className="grid gap-2 border-b border-border py-4 sm:grid-cols-[150px_1fr]" key={label}><dt className="text-[10px] font-bold uppercase tracking-[.12em] text-muted-foreground">{label}</dt><dd className="m-0 break-words text-sm font-semibold">{value}</dd></div>)}
               </dl>
@@ -162,7 +186,7 @@ export default function PaymentResultPage({ session }: { session: CustomerSessio
         {status?.paymentCode ? <p className="mt-5 text-xs text-muted-foreground">Mã thanh toán hệ thống: <strong className="text-foreground">{status.paymentCode}</strong></p> : null}
 
         <div className="mt-8 flex flex-wrap gap-3 border-t border-border pt-6">
-          {pending ? <Button variant="outline" type="button" disabled={loading} onClick={() => void loadStatus()}><RefreshCw className={loading ? 'animate-spin' : ''} /> Kiểm tra ngay</Button> : null}
+          {pending ? <Button variant="outline" type="button" disabled={loading || cancelling} onClick={() => void loadStatus()}><RefreshCw className={loading ? 'animate-spin' : ''} /> Kiểm tra ngay</Button> : null}
           {pending && (status?.attemptId || requestedAttemptId) ? <Button variant="destructive" type="button" disabled={cancelling} onClick={() => void cancelPayment()}>{cancelling ? 'Đang hủy…' : 'Hủy phiên thanh toán'}</Button> : null}
           <Button type="button" onClick={goBack}>{paid ? 'Quay lại đơn hàng' : 'Quay lại'}</Button>
         </div>

@@ -31,31 +31,50 @@ export default function PayOnlineButton({
   const [unavailableReason, setUnavailableReason] = useState('')
   const [error, setError] = useState('')
   const payingRef = useRef(false)
+  const statusRequestRef = useRef(0)
+  const identity = `${orderId}\n${qrToken ?? ''}`
+  const identityRef = useRef(identity)
+
+  useEffect(() => {
+    identityRef.current = identity
+    statusRequestRef.current += 1
+    payingRef.current = false
+    setChecking(true)
+    setLoading(false)
+    setPaid(false)
+    setCanPay(false)
+    setOrderStatus('')
+    setUnavailableReason('')
+    setError('')
+  }, [identity])
 
   async function refreshStatus(showChecking = false) {
+    const requestId = ++statusRequestRef.current
     if (showChecking) setChecking(true)
     try {
       const status = await getCustomerPaymentStatus(orderId, qrToken, accessToken)
+      if (statusRequestRef.current !== requestId) return
       setPaid(status.paid)
       setCanPay(status.canPay)
       setOrderStatus(status.orderStatus)
       setUnavailableReason(status.paymentUnavailableReason || '')
       setError('')
     } catch (exception) {
+      if (statusRequestRef.current !== requestId) return
       setCanPay(false)
       setUnavailableReason('')
       setError(exception instanceof Error ? exception.message : 'Không kiểm tra được trạng thái thanh toán.')
     } finally {
-      if (showChecking) setChecking(false)
+      if (showChecking && statusRequestRef.current === requestId) setChecking(false)
     }
   }
 
   useEffect(() => {
-    let active = true
+    const requestId = ++statusRequestRef.current
     setChecking(true)
     void getCustomerPaymentStatus(orderId, qrToken, accessToken)
       .then(status => {
-        if (!active) return
+        if (statusRequestRef.current !== requestId) return
         setPaid(status.paid)
         setCanPay(status.canPay)
         setOrderStatus(status.orderStatus)
@@ -63,24 +82,40 @@ export default function PayOnlineButton({
         setError('')
       })
       .catch(exception => {
-        if (!active) return
+        if (statusRequestRef.current !== requestId) return
         setCanPay(false)
         setUnavailableReason('')
         setError(exception instanceof Error ? exception.message : 'Không kiểm tra được trạng thái thanh toán.')
       })
-      .finally(() => { if (active) setChecking(false) })
-    return () => { active = false }
+      .finally(() => {
+        if (statusRequestRef.current === requestId) setChecking(false)
+      })
+
+    return () => {
+      if (statusRequestRef.current === requestId) statusRequestRef.current += 1
+    }
   }, [accessToken, orderId, qrToken])
 
   useVisiblePolling(() => refreshStatus(false), 10_000, !paid && !terminalOrderStatuses.has(orderStatus))
 
   async function pay() {
     if (payingRef.current || checking || loading || paid || !canPay) return
+    const paymentIdentity = identityRef.current
     payingRef.current = true
+    statusRequestRef.current += 1
     setLoading(true)
     setError('')
     try {
       const result = await createCustomerPaymentQr(orderId, qrToken, accessToken)
+      if (identityRef.current !== paymentIdentity) return
+
+      const qrTokenKey = `customerPaymentQrToken:${orderId}`
+      localStorage.removeItem(qrTokenKey)
+      localStorage.removeItem('customerPaymentReturnPath')
+      sessionStorage.removeItem(qrTokenKey)
+      if (qrToken) sessionStorage.setItem(qrTokenKey, qrToken)
+      sessionStorage.setItem('customerPaymentReturnPath', `${window.location.pathname}${window.location.search}`)
+
       if (result.alreadyPaid) {
         setPaid(true)
         setCanPay(false)
@@ -88,17 +123,15 @@ export default function PayOnlineButton({
         return
       }
       if (!result.attemptId || !result.qrCode || !result.transferContent) throw new Error('SePay chưa trả về đầy đủ thông tin QR thanh toán.')
-      const qrTokenKey = `customerPaymentQrToken:${orderId}`
-      localStorage.removeItem(qrTokenKey)
-      localStorage.removeItem('customerPaymentReturnPath')
-      if (qrToken) sessionStorage.setItem(qrTokenKey, qrToken)
-      sessionStorage.setItem('customerPaymentReturnPath', window.location.pathname)
       navigate(`/payment-result?orderId=${encodeURIComponent(orderId)}&attemptId=${encodeURIComponent(result.attemptId)}`)
     } catch (exception) {
+      if (identityRef.current !== paymentIdentity) return
       setError(exception instanceof Error ? exception.message : 'Không tạo được mã QR thanh toán.')
     } finally {
-      payingRef.current = false
-      setLoading(false)
+      if (identityRef.current === paymentIdentity) {
+        payingRef.current = false
+        setLoading(false)
+      }
     }
   }
 

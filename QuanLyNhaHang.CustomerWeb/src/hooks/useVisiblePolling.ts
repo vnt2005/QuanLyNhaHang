@@ -32,6 +32,9 @@ export function useVisiblePolling(
       running = true
       try {
         await callbackRef.current()
+      } catch {
+        // Polling callbacks own their UI error state. Swallow here so an
+        // interval/focus-triggered rejection never becomes unhandled.
       } finally {
         running = false
       }

@@ -26,16 +26,16 @@ const revealSelector = [
 
 const interactiveSelector = [
   'a[href]',
-  'button:not(:disabled)',
+  'button',
   '[role="button"]',
   '[data-slot="button"]',
   '[data-slot="tabs-trigger"]',
   '[data-slot="select-trigger"]',
   '[data-slot="dropdown-menu-trigger"]',
   '[data-slot="popover-trigger"]',
-  'input:not(:disabled)',
-  'textarea:not(:disabled)',
-  'select:not(:disabled)',
+  'input',
+  'textarea',
+  'select',
   '.sera-filter-button',
   '.sera-dish-row',
   '.sera-menu-item',
@@ -52,14 +52,16 @@ function closestInteractive(target: EventTarget | null) {
   return target.closest<HTMLElement>(interactiveSelector)
 }
 
+function isDisabledInteractive(element: HTMLElement) {
+  return element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true'
+}
+
 export default function MotionEffects() {
   useEffect(() => {
     const site = document.querySelector<HTMLElement>('.customer-site')
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (!site) return
 
-    const boundElements = new Set<HTMLElement>()
-    const interactiveElements = new Set<HTMLElement>()
     let scrollDirection: 'up' | 'down' = 'down'
     let lastScrollY = window.scrollY
     let revealObserver: IntersectionObserver | null = null
@@ -92,7 +94,6 @@ export default function MotionEffects() {
       candidates.forEach(element => {
         if (element.dataset.motionBound === 'true') return
         element.dataset.motionBound = 'true'
-        boundElements.add(element)
         element.style.setProperty('--motion-order', String(motionOrder(element)))
         if (!revealObserver) return
         element.classList.add('motion-reveal', 'motion-from-below')
@@ -109,7 +110,6 @@ export default function MotionEffects() {
         if (element.dataset.motionInteractive === 'true') return
         element.dataset.motionInteractive = 'true'
         element.classList.add('motion-interactive')
-        interactiveElements.add(element)
       })
     }
 
@@ -151,6 +151,7 @@ export default function MotionEffects() {
 
     let pressedElement: HTMLElement | null = null
     let releaseTimer = 0
+    const activationTimers = new Set<number>()
     const clearPressed = () => {
       if (!pressedElement) return
       pressedElement.classList.remove('motion-pressed')
@@ -162,7 +163,7 @@ export default function MotionEffects() {
     }
     const handlePointerDown = (event: PointerEvent) => {
       const element = closestInteractive(event.target)
-      if (!element || !site.contains(element)) return
+      if (!element || !site.contains(element) || isDisabledInteractive(element)) return
       if (releaseTimer) window.clearTimeout(releaseTimer)
       clearPressed()
       pressedElement = element
@@ -170,11 +171,15 @@ export default function MotionEffects() {
     }
     const handleClick = (event: MouseEvent) => {
       const element = closestInteractive(event.target)
-      if (!element || !site.contains(element) || reduceMotion) return
+      if (!element || !site.contains(element) || isDisabledInteractive(element) || reduceMotion) return
       element.classList.remove('motion-activated')
       void element.offsetWidth
       element.classList.add('motion-activated')
-      window.setTimeout(() => element.classList.remove('motion-activated'), 360)
+      const timer = window.setTimeout(() => {
+        activationTimers.delete(timer)
+        element.classList.remove('motion-activated')
+      }, 360)
+      activationTimers.add(timer)
     }
 
     syncViewportMotion()
@@ -191,6 +196,7 @@ export default function MotionEffects() {
       mutationObserver.disconnect()
       if (viewportFrame) window.cancelAnimationFrame(viewportFrame)
       if (releaseTimer) window.clearTimeout(releaseTimer)
+      activationTimers.forEach(timer => window.clearTimeout(timer))
       window.removeEventListener('scroll', queueViewportSync)
       window.removeEventListener('resize', queueViewportSync)
       site.removeEventListener('pointerdown', handlePointerDown)
@@ -202,12 +208,12 @@ export default function MotionEffects() {
       site.classList.remove('is-scrolling-down', 'is-scrolling-up')
       site.style.removeProperty('--sera-scroll-progress')
 
-      boundElements.forEach(element => {
+      site.querySelectorAll<HTMLElement>('[data-motion-bound="true"]').forEach(element => {
         element.classList.remove('motion-reveal', 'motion-visible', 'motion-from-above', 'motion-from-below')
         delete element.dataset.motionBound
         element.style.removeProperty('--motion-order')
       })
-      interactiveElements.forEach(element => {
+      site.querySelectorAll<HTMLElement>('[data-motion-interactive="true"]').forEach(element => {
         element.classList.remove('motion-interactive', 'motion-pressed', 'motion-activated')
         delete element.dataset.motionInteractive
       })

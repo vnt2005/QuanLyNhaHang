@@ -11,10 +11,22 @@ function normalizePath(path: string) {
 
 export function navigate(path: string) {
   const destination = normalizePath(path)
-  if (window.location.pathname === destination) return
-  window.history.pushState({}, '', destination)
+  let target: URL
+
+  try {
+    target = new URL(destination, window.location.origin)
+  } catch {
+    return
+  }
+
+  if (target.origin !== window.location.origin) return
+
+  const currentRoute = `${window.location.pathname}${window.location.search}${window.location.hash}`
+  const nextRoute = `${target.pathname}${target.search}${target.hash}`
+  if (currentRoute === nextRoute) return
+
+  window.history.pushState({}, '', nextRoute)
   window.dispatchEvent(new PopStateEvent('popstate'))
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 export function getQrToken(pathname: string) {

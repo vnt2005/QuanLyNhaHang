@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp, ClipboardList, CreditCard, MapPin, PackageOpen, RefreshCw, Search, ShoppingBag, UtensilsCrossed, XCircle } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import AuthPortal from '../components/AuthPortal'
 import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
+import { getCustomerQrTokenForTable } from '../utils/customerQrAccess'
 
 type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled'
 
@@ -28,12 +29,11 @@ function matchesSearch(order: CustomerOrder, query: string) { if (!query) return
 function orderItemsPreview(order: CustomerOrder) { const first = order.items[0]; if (!first) return 'Chưa có món'; const firstLabel = `${first.menuItemName} ×${first.quantity}`; return order.items.length > 1 ? `${firstLabel} · +${order.items.length - 1} món` : firstLabel }
 function paymentAmountLabel(order: CustomerOrder) { return order.paidAmount != null ? 'Đã thanh toán' : 'Tạm tính món' }
 function paymentAmount(order: CustomerOrder) { return order.paidAmount ?? order.totalAmount }
-function readLastQrToken() { localStorage.removeItem('customerLastQrToken'); return sessionStorage.getItem('customerLastQrToken') }
 
 function OrderRow({ order, expanded, accessToken, cancelling, onToggle, onCancel }: { order: CustomerOrder; expanded: boolean; accessToken: string; cancelling: boolean; onToggle: () => void; onCancel: () => void }) {
-  const lastQrToken = readLastQrToken()
+  const tableQrToken = getCustomerQrTokenForTable(order.restaurantTableId)
   const isTakeaway = order.orderType === 'Takeaway'
-  const canOrderMore = !isTakeaway && !terminalStatuses.has(order.status) && Boolean(lastQrToken)
+  const canOrderMore = !isTakeaway && !terminalStatuses.has(order.status) && Boolean(tableQrToken)
   const canCancel = order.status === 'Pending'
 
   return (
@@ -57,7 +57,7 @@ function OrderRow({ order, expanded, accessToken, cancelling, onToggle, onCancel
           <aside className="border-l border-border pl-6 max-lg:border-l-0 max-lg:border-t max-lg:pl-0 max-lg:pt-5">
             <div className="flex items-start gap-3"><CreditCard className="size-5 text-accent" /><div><small className="block text-muted-foreground">{paymentAmountLabel(order)}</small><strong className="text-xl">{money(paymentAmount(order))}</strong>{order.paidAmount != null && order.paymentMethod ? <span className="mt-1 block text-xs text-muted-foreground">{order.paymentMethod}</span> : null}</div></div>
             <div className="mt-4 flex items-start gap-3"><MapPin className="size-5 text-accent" /><div><small className="block text-muted-foreground">Nhận món</small><strong className="text-sm">{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</strong></div></div>
-            {!terminalStatuses.has(order.status) || canOrderMore ? <div className="mt-6 grid gap-2">{!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} /> : null}{canCancel ? <Button variant="destructive" disabled={cancelling} onClick={event => { event.stopPropagation(); onCancel() }}><XCircle />{cancelling ? 'Đang hủy…' : 'Hủy đơn'}</Button> : null}{canOrderMore ? <Button variant="outline" onClick={() => navigate(`/qr-order/${encodeURIComponent(lastQrToken!)}`)}>Gọi thêm món</Button> : null}</div> : null}
+            {!terminalStatuses.has(order.status) || canOrderMore ? <div className="mt-6 grid gap-2">{!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} /> : null}{canCancel ? <Button variant="destructive" disabled={cancelling} onClick={event => { event.stopPropagation(); onCancel() }}><XCircle />{cancelling ? 'Đang hủy…' : 'Hủy đơn'}</Button> : null}{canOrderMore && tableQrToken ? <Button variant="outline" onClick={() => navigate(`/qr-order/${encodeURIComponent(tableQrToken)}`)}>Gọi thêm món</Button> : null}</div> : null}
             {canCancel ? <p className="mt-3 text-xs leading-5 text-muted-foreground">Bạn chỉ có thể tự hủy khi đơn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán cần đối soát.</p> : null}
           </aside>
         </div>
@@ -76,17 +76,39 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
   const [cancellingId, setCancellingId] = useState('')
   const [orderSearch, setOrderSearch] = useState('')
   const [orderFilter, setOrderFilter] = useState<OrderFilter>('all')
+  const loadRequestRef = useRef(0)
 
   const loadOrders = useCallback(async (targetPage: number) => {
     if (!session) return
-    setLoading(true); setError('')
-    try { const result = await getCustomerOrders(targetPage, 8); setHistory(result); setPage(result.pageNumber); setExpandedId(current => current && result.items.some(item => item.id === current) ? current : '') }
-    catch (exception) { setError(exception instanceof Error ? exception.message : 'Không tải được đơn hàng.') }
-    finally { setLoading(false) }
+    const requestId = ++loadRequestRef.current
+    setLoading(true)
+    setError('')
+    try {
+      const result = await getCustomerOrders(targetPage, 8)
+      if (loadRequestRef.current !== requestId) return
+      setHistory(result)
+      setPage(result.pageNumber)
+      setExpandedId(current => current && result.items.some(item => item.id === current) ? current : '')
+    } catch (exception) {
+      if (loadRequestRef.current !== requestId) return
+      setError(exception instanceof Error ? exception.message : 'Không tải được đơn hàng.')
+    } finally {
+      if (loadRequestRef.current === requestId) setLoading(false)
+    }
   }, [session?.userId])
 
-  useEffect(() => { if (session) void loadOrders(1) }, [session?.userId, loadOrders])
-  useEffect(() => { if (!session) return; const refreshFromNotification = () => { void loadOrders(page) }; window.addEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification); return () => window.removeEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification) }, [loadOrders, page, session?.userId])
+  useEffect(() => {
+    if (session) void loadOrders(1)
+    else loadRequestRef.current += 1
+    return () => { loadRequestRef.current += 1 }
+  }, [session?.userId, loadOrders])
+
+  useEffect(() => {
+    if (!session) return
+    const refreshFromNotification = () => { void loadOrders(page) }
+    window.addEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
+    return () => window.removeEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
+  }, [loadOrders, page, session?.userId])
 
   const visibleOrders = useMemo(() => { const query = orderSearch.trim(); return history?.items.filter(order => matchesFilter(order, orderFilter) && matchesSearch(order, query)) ?? [] }, [history?.items, orderFilter, orderSearch])
 
