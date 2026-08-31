@@ -1,5 +1,4 @@
 import {
-  CalendarDays,
   ChevronDown,
   ChevronRight,
   ClipboardList,
@@ -13,6 +12,10 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import type { CustomerSession } from '../services/customerAuth'
 import {
   cancelCustomerOrder,
@@ -50,18 +53,11 @@ const orderFilters: Array<{ value: OrderFilter; label: string }> = [
 ]
 
 function money(value: number) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    maximumFractionDigits: 0,
-  }).format(value)
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value)
 }
 
 function dateTime(value: string) {
-  return new Intl.DateTimeFormat('vi-VN', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value))
+  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
 }
 
 function matchesFilter(order: CustomerOrder, filter: OrderFilter) {
@@ -73,13 +69,7 @@ function matchesFilter(order: CustomerOrder, filter: OrderFilter) {
 
 function matchesSearch(order: CustomerOrder, query: string) {
   if (!query) return true
-  const haystack = [
-    order.orderCode,
-    order.restaurantTableName,
-    order.customerName,
-    order.customerPhoneNumber,
-    ...order.items.map(item => item.menuItemName),
-  ]
+  const haystack = [order.orderCode, order.restaurantTableName, order.customerName, order.customerPhoneNumber, ...order.items.map(item => item.menuItemName)]
     .filter(Boolean)
     .join(' ')
     .toLocaleLowerCase('vi')
@@ -127,87 +117,43 @@ function OrderRow({
   const canCancel = order.status === 'Pending'
 
   return (
-    <article className={expanded ? 'customer-order-card expanded' : 'customer-order-card'}>
-      <button className="customer-order-card-summary" type="button" onClick={onToggle} aria-expanded={expanded}>
-        <div className="customer-order-card-title">
-          <span className="customer-order-type-icon" aria-hidden="true">{isTakeaway ? <ShoppingBag /> : <UtensilsCrossed />}</span>
-          <div>
-            <small>{isTakeaway ? 'Mang về' : 'Tại bàn'} · {dateTime(order.createdAt)}</small>
-            <strong>{order.orderCode}</strong>
-            <span className="customer-order-item-preview">{orderItemsPreview(order)}</span>
+    <article className="border border-border bg-background">
+      <button className="grid w-full gap-5 p-5 text-left md:grid-cols-[1.3fr_.9fr_auto_auto] md:items-center md:p-6" type="button" onClick={onToggle} aria-expanded={expanded}>
+        <div className="flex min-w-0 gap-4">
+          <span className="grid size-11 shrink-0 place-items-center border border-border">{isTakeaway ? <ShoppingBag className="size-4" /> : <UtensilsCrossed className="size-4" />}</span>
+          <div className="min-w-0">
+            <small className="block text-[9px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">{isTakeaway ? 'Mang về' : 'Tại bàn'} · {dateTime(order.createdAt)}</small>
+            <strong className="mt-1 block truncate font-heading text-2xl font-medium">{order.orderCode}</strong>
+            <span className="mt-1 block truncate text-xs text-muted-foreground">{orderItemsPreview(order)}</span>
           </div>
         </div>
-
-        <div className="customer-order-card-meta">
-          <span><MapPin aria-hidden="true" /><b>Nhận món</b>{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</span>
-          <span><CreditCard aria-hidden="true" /><b>{paymentAmountLabel(order)}</b>{money(paymentAmount(order))}</span>
+        <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 md:grid-cols-1">
+          <span className="flex items-center gap-2"><MapPin className="size-3.5" />{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</span>
+          <span className="flex items-center gap-2"><CreditCard className="size-3.5" />{money(paymentAmount(order))}</span>
         </div>
-
-        <span className={`customer-order-status status-${order.status.toLocaleLowerCase()}`}>
-          {statusLabels[order.status] || order.status}
-        </span>
-        <span className="customer-order-expand" aria-hidden="true">{expanded ? <ChevronDown /> : <ChevronRight />}</span>
+        <Badge variant={order.status === 'Cancelled' ? 'destructive' : 'secondary'}>{statusLabels[order.status] || order.status}</Badge>
+        <span className="justify-self-end text-muted-foreground" aria-hidden="true">{expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}</span>
       </button>
 
       {expanded ? (
-        <div className="customer-order-detail">
-          <div className="customer-order-detail-head">
-            <div>
-              <small>Chi tiết đơn hàng</small>
-              <strong>{order.items.length} món · {money(order.totalAmount)}</strong>
-            </div>
-            <span className={`customer-order-status status-${order.status.toLocaleLowerCase()}`}>
-              {statusLabels[order.status] || order.status}
-            </span>
+        <div className="border-t border-border px-5 py-6 md:px-6">
+          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
+            <div><small className="text-[9px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">Chi tiết đơn hàng</small><strong className="mt-2 block font-heading text-2xl font-medium">{order.items.length} món · {money(order.totalAmount)}</strong></div>
+            <Badge variant={order.status === 'Cancelled' ? 'destructive' : 'outline'}>{statusLabels[order.status] || order.status}</Badge>
           </div>
 
-          <div className="customer-order-items-heading">
-            <span>Món ăn</span><span>Số lượng</span><span>Đơn giá</span><span>Thành tiền</span>
-          </div>
-          <div className="customer-order-items">
-            {order.items.map(item => (
-              <div className="customer-order-item-line" key={item.id}>
-                <strong>{item.menuItemName}<small>{item.note || ''}</small></strong>
-                <span>x{item.quantity}</span>
-                <span>{money(item.unitPrice)}</span>
-                <span>{money(item.totalPrice)}</span>
-              </div>
-            ))}
+          <div className="mt-3 hidden grid-cols-[1.4fr_.45fr_.65fr_.65fr] gap-4 border-b border-border py-3 text-[9px] font-semibold tracking-[0.14em] text-muted-foreground uppercase sm:grid"><span>Món ăn</span><span>Số lượng</span><span>Đơn giá</span><span className="text-right">Thành tiền</span></div>
+          <div className="divide-y divide-border">
+            {order.items.map(item => <div className="grid gap-2 py-4 text-sm sm:grid-cols-[1.4fr_.45fr_.65fr_.65fr] sm:gap-4" key={item.id}><strong className="font-medium">{item.menuItemName}{item.note ? <small className="mt-1 block text-xs font-normal text-muted-foreground">{item.note}</small> : null}</strong><span>x{item.quantity}</span><span>{money(item.unitPrice)}</span><span className="font-semibold sm:text-right">{money(item.totalPrice)}</span></div>)}
           </div>
 
-          <div className="customer-order-detail-footer">
-            <div className="customer-order-note">
-              <small>Ghi chú</small>
-              <p>{order.note || 'Không có ghi chú cho đơn hàng này.'}</p>
-            </div>
-            <div className="customer-order-total">
-              <small>{paymentAmountLabel(order)}</small>
-              <strong>{money(paymentAmount(order))}</strong>
-              {order.paidAmount != null && order.paymentMethod ? <span>{order.paymentMethod}</span> : null}
-            </div>
+          <div className="mt-5 grid gap-6 border-t border-border pt-5 sm:grid-cols-[1fr_auto]">
+            <div><small className="text-[9px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">Ghi chú</small><p className="mt-2 max-w-xl text-xs leading-5 text-muted-foreground">{order.note || 'Không có ghi chú cho đơn hàng này.'}</p></div>
+            <div className="sm:text-right"><small className="text-[9px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">{paymentAmountLabel(order)}</small><strong className="mt-2 block text-xl">{money(paymentAmount(order))}</strong>{order.paidAmount != null && order.paymentMethod ? <span className="mt-1 block text-xs text-muted-foreground">{order.paymentMethod}</span> : null}</div>
           </div>
 
-          {!terminalStatuses.has(order.status) || canOrderMore ? (
-            <div className="customer-order-actions">
-              {!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} className="primary-button compact" /> : null}
-              {canCancel ? (
-                <button
-                  className="customer-order-cancel-button compact"
-                  type="button"
-                  disabled={cancelling}
-                  onClick={onCancel}
-                >
-                  <XCircle aria-hidden="true" />
-                  {cancelling ? 'Đang hủy…' : 'Hủy đơn'}
-                </button>
-              ) : null}
-              {canOrderMore ? <button className="secondary-button compact" type="button" onClick={() => navigate(`/qr-order/${encodeURIComponent(lastQrToken!)}`)}>Gọi thêm món</button> : null}
-            </div>
-          ) : null}
-
-          {canCancel ? (
-            <p className="customer-order-cancel-hint">Bạn chỉ có thể tự hủy khi đơn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán cần đối soát.</p>
-          ) : null}
+          {!terminalStatuses.has(order.status) || canOrderMore ? <div className="mt-6 flex flex-wrap gap-3 border-t border-border pt-5">{!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} /> : null}{canCancel ? <Button variant="destructive" type="button" disabled={cancelling} onClick={onCancel}><XCircle data-icon="inline-start" />{cancelling ? 'Đang hủy…' : 'Hủy đơn'}</Button> : null}{canOrderMore ? <Button variant="outline" type="button" onClick={() => navigate(`/qr-order/${encodeURIComponent(lastQrToken!)}`)}>Gọi thêm món</Button> : null}</div> : null}
+          {canCancel ? <p className="mt-4 text-[11px] leading-5 text-muted-foreground">Bạn chỉ có thể tự hủy khi đơn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán cần đối soát.</p> : null}
         </div>
       ) : null}
     </article>
@@ -249,17 +195,10 @@ export default function OrdersPage({
     }
   }, [session?.userId])
 
-  useEffect(() => {
-    if (session) void loadOrders(1)
-  }, [session?.userId, loadOrders])
-
+  useEffect(() => { if (session) void loadOrders(1) }, [session?.userId, loadOrders])
   useEffect(() => {
     if (!session) return
-
-    const refreshFromNotification = () => {
-      void loadOrders(page)
-    }
-
+    const refreshFromNotification = () => { void loadOrders(page) }
     window.addEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
     return () => window.removeEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
   }, [loadOrders, page, session?.userId])
@@ -271,12 +210,8 @@ export default function OrdersPage({
 
   async function cancelOrder(order: CustomerOrder) {
     if (cancellingId || order.status !== 'Pending') return
-
-    const confirmed = await confirmCustomerAction(
-      `Đơn ${order.orderCode} sẽ được hủy nếu vẫn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán. Bạn có muốn tiếp tục?`,
-    )
+    const confirmed = await confirmCustomerAction(`Đơn ${order.orderCode} sẽ được hủy nếu vẫn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán. Bạn có muốn tiếp tục?`)
     if (!confirmed) return
-
     setCancellingId(order.id)
     setError('')
     setMessage('')
@@ -291,78 +226,27 @@ export default function OrdersPage({
     }
   }
 
-  if (!session) {
-    return <AuthPortal initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
-  }
+  if (!session) return <AuthPortal initialMessage={initialMessage} onAuthenticated={onSessionChanged} />
 
   return (
-    <main className="orders-premium-page page-section">
-      <section className="orders-premium-content">
-        <header className="orders-hero-heading">
-          <div>
-            <h1>Đơn của tôi</h1>
-            <p>Theo dõi đơn đang xử lý và xem lại lịch sử đặt món của bạn.</p>
-          </div>
-          <div className="orders-hero-actions">
-            {history ? <span className="orders-history-count"><ClipboardList aria-hidden="true" /><strong>{history.totalCount}</strong><small>đơn hàng</small></span> : null}
-            <button className="orders-refresh-button" type="button" onClick={() => void loadOrders(page)} disabled={loading}>
-              <RefreshCw className={loading ? 'spin' : ''} aria-hidden="true" />
-              <span>Cập nhật</span>
-            </button>
-          </div>
+    <main className="bg-background text-foreground">
+      <section className="mx-auto w-[min(1320px,calc(100vw-48px))] py-14 sm:w-[min(1320px,calc(100vw-80px))] md:py-20">
+        <header className="grid gap-7 border-b border-border pb-9 md:grid-cols-[1fr_auto] md:items-end">
+          <div><p className="text-[10px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">Lịch sử khách hàng</p><h1 className="mt-3 font-heading text-[clamp(4rem,6vw,7rem)] leading-[0.88] tracking-[-0.055em]">Đơn của tôi.</h1><p className="mt-5 text-sm leading-7 text-muted-foreground">Theo dõi đơn đang xử lý và xem lại lịch sử đặt món của bạn.</p></div>
+          <div className="flex items-center gap-3">{history ? <span className="text-xs text-muted-foreground"><strong className="text-xl text-foreground">{history.totalCount}</strong> đơn hàng</span> : null}<Button variant="outline" type="button" onClick={() => void loadOrders(page)} disabled={loading}><RefreshCw className={loading ? 'animate-spin' : ''} data-icon="inline-start" />Cập nhật</Button></div>
         </header>
 
-        <div className="orders-toolbar">
-          <label className="orders-search">
-            <Search aria-hidden="true" />
-            <span className="sr-only">Tìm đơn hàng</span>
-            <input
-              value={orderSearch}
-              onChange={event => setOrderSearch(event.target.value)}
-              placeholder="Tìm mã đơn, bàn hoặc món ăn…"
-              autoComplete="off"
-            />
-          </label>
-          <div className="orders-filter-tabs" role="group" aria-label="Lọc trạng thái đơn hàng">
-            {orderFilters.map(filter => (
-              <button type="button" className={orderFilter === filter.value ? 'active' : ''} aria-pressed={orderFilter === filter.value} onClick={() => setOrderFilter(filter.value)} key={filter.value}>{filter.label}</button>
-            ))}
-          </div>
+        <div className="mt-8 grid gap-5 border-b border-border pb-7 lg:grid-cols-[1fr_auto] lg:items-center">
+          <label className="relative block max-w-xl border-b border-foreground"><Search className="absolute left-0 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={orderSearch} onChange={event => setOrderSearch(event.target.value)} placeholder="Tìm mã đơn, bàn hoặc món ăn…" autoComplete="off" className="h-11 border-0 bg-transparent pl-7 shadow-none focus-visible:ring-0" /></label>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc trạng thái đơn hàng">{orderFilters.map(filter => <Button key={filter.value} type="button" size="xs" variant={orderFilter === filter.value ? 'default' : 'outline'} onClick={() => setOrderFilter(filter.value)}>{filter.label}</Button>)}</div>
         </div>
 
-        {history ? (
-          <div className="orders-result-summary">
-            <span><ClipboardList aria-hidden="true" /> Danh sách đơn hàng</span>
-            {(orderSearch.trim() || orderFilter !== 'all') ? <small>{visibleOrders.length} kết quả trên trang {history.pageNumber}</small> : <small>Trang {history.pageNumber} / {Math.max(history.totalPages, 1)}</small>}
-          </div>
-        ) : null}
+        {history ? <div className="mt-6 flex items-center justify-between gap-4 text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase"><span className="inline-flex items-center gap-2"><ClipboardList className="size-3.5" /> Danh sách đơn hàng</span><span>{orderSearch.trim() || orderFilter !== 'all' ? `${visibleOrders.length} kết quả` : `Trang ${history.pageNumber} / ${Math.max(history.totalPages, 1)}`}</span></div> : null}
+        {message ? <Alert className="mt-6"><AlertTitle>Đã cập nhật</AlertTitle><AlertDescription>{message}</AlertDescription></Alert> : null}
+        {error ? <Alert variant="destructive" className="mt-6"><AlertTitle>Không tải được đơn hàng</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
+        {loading && !history ? <div className="mt-10 flex items-center gap-3 border border-border p-6 text-sm text-muted-foreground"><RefreshCw className="size-4 animate-spin" /> Đang tải đơn hàng…</div> : null}
 
-        {message ? <div className="form-notice success" role="status">{message}</div> : null}
-        {error ? <div className="form-notice error" role="alert">{error}</div> : null}
-        {loading && !history ? <div className="orders-loading"><RefreshCw className="spin" /> Đang tải đơn hàng…</div> : null}
-
-        {history?.items.length ? (
-          visibleOrders.length ? (
-            <div className="customer-orders-list">
-              {visibleOrders.map(order => (
-                <OrderRow
-                  key={order.id}
-                  order={order}
-                  accessToken={session.token}
-                  expanded={expandedId === order.id}
-                  cancelling={cancellingId === order.id}
-                  onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)}
-                  onCancel={() => void cancelOrder(order)}
-                />
-              ))}
-              {history.totalPages > 1 ? <div className="pagination orders-pagination"><button type="button" disabled={!history.hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trang trước</button><span>Trang {history.pageNumber}/{history.totalPages}</span><button type="button" disabled={!history.hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Trang sau</button></div> : null}
-            </div>
-          ) : (
-            <div className="orders-filter-empty"><Search /><h2>Chưa tìm thấy đơn phù hợp</h2><p>Thử đổi từ khóa hoặc chọn trạng thái khác trong các đơn đang hiển thị.</p><button type="button" onClick={() => { setOrderSearch(''); setOrderFilter('all') }}>Xóa bộ lọc</button></div>
-          )
-        ) : history && !loading ? (
-          <div className="account-empty"><PackageOpen /><h2>Chưa có đơn hàng nào</h2><p>Khi gọi món bằng QR trong lúc đăng nhập, đơn sẽ xuất hiện tại đây.</p><button className="secondary-button" type="button" onClick={() => navigate('/menu')}>Xem thực đơn</button></div>
-        ) : null}
+        {history?.items.length ? visibleOrders.length ? <div className="mt-7 grid gap-4">{visibleOrders.map(order => <OrderRow key={order.id} order={order} accessToken={session.token} expanded={expandedId === order.id} cancelling={cancellingId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} onCancel={() => void cancelOrder(order)} />)}{history.totalPages > 1 ? <div className="mt-5 flex items-center justify-center gap-4 border-t border-border pt-7"><Button variant="outline" type="button" disabled={!history.hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trang trước</Button><span className="text-xs text-muted-foreground">Trang {history.pageNumber}/{history.totalPages}</span><Button variant="outline" type="button" disabled={!history.hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Trang sau</Button></div> : null}</div> : <div className="mt-10 grid min-h-72 place-items-center border border-dashed border-border text-center"><div><Search className="mx-auto mb-4 size-6 text-muted-foreground" /><h2 className="font-heading text-3xl">Chưa tìm thấy đơn phù hợp</h2><p className="mt-3 text-sm text-muted-foreground">Thử đổi từ khóa hoặc trạng thái.</p><Button className="mt-6" variant="outline" type="button" onClick={() => { setOrderSearch(''); setOrderFilter('all') }}>Xóa bộ lọc</Button></div></div> : history && !loading ? <div className="mt-10 grid min-h-72 place-items-center border border-dashed border-border text-center"><div><PackageOpen className="mx-auto mb-4 size-6 text-muted-foreground" /><h2 className="font-heading text-3xl">Chưa có đơn hàng nào</h2><p className="mt-3 text-sm text-muted-foreground">Khi gọi món hoặc đặt mang về, đơn sẽ xuất hiện tại đây.</p><Button className="mt-6" variant="outline" type="button" onClick={() => navigate('/menu')}>Xem thực đơn</Button></div></div> : null}
       </section>
     </main>
   )
