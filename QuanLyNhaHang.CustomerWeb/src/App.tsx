@@ -10,6 +10,7 @@ import {
   type CustomerSiteBootstrap,
 } from './services/customerSite'
 import { CustomerConfirmDialogHost } from './components/CustomerConfirmDialog'
+import MotionEffects from './components/MotionEffects'
 import SiteFooter from './components/SiteFooter'
 import SiteHeader from './components/SiteHeader'
 import StatusPanel from './components/StatusPanel'
@@ -138,7 +139,10 @@ function CustomerApplication({ pathname }: { pathname: string }) {
         pathname={pathname}
         onSessionRefresh={refreshCustomerSession}
       />
-      <Suspense fallback={<PageLoading />}>{content()}</Suspense>
+      <MotionEffects />
+      <div className="sera-route-frame" key={pathname}>
+        <Suspense fallback={<PageLoading />}>{content()}</Suspense>
+      </div>
       <SiteFooter restaurant={data.restaurant} />
     </div>
   )

@@ -1,0 +1,272 @@
+:root {
+  --sera-motion-fast: 180ms;
+  --sera-motion-base: 420ms;
+  --sera-motion-slow: 680ms;
+  --sera-motion-ease: cubic-bezier(.22, 1, .36, 1);
+  --sera-motion-soft: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Page and scroll reveals */
+.sera-route-frame {
+  animation: sera-route-enter var(--sera-motion-base) var(--sera-motion-ease) both;
+}
+
+.motion-reveal {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity var(--sera-motion-slow) var(--sera-motion-ease),
+    transform var(--sera-motion-slow) var(--sera-motion-ease);
+  transition-delay: calc(var(--motion-order, 0) * 55ms);
+  will-change: opacity, transform;
+}
+
+.motion-reveal.motion-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+
+/* Header and navigation feedback */
+.sera-header {
+  transition:
+    background-color var(--sera-motion-base) var(--sera-motion-soft),
+    border-color var(--sera-motion-base) var(--sera-motion-soft),
+    box-shadow var(--sera-motion-base) var(--sera-motion-soft);
+}
+
+.sera-header.is-scrolled {
+  border-bottom-color: color-mix(in srgb, var(--sera-line) 92%, transparent);
+  background: color-mix(in srgb, var(--sera-paper) 98%, transparent);
+  box-shadow: 0 12px 32px rgba(36, 31, 27, .07);
+}
+
+.sera-nav a::after {
+  transition: transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-nav a:hover::after,
+.sera-nav a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.sera-brand-mark,
+.sera-brand-copy strong {
+  transition:
+    color var(--sera-motion-fast) ease,
+    border-color var(--sera-motion-fast) ease,
+    transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-brand:hover .sera-brand-mark {
+  border-color: var(--sera-accent);
+  transform: rotate(-3deg) scale(1.04);
+}
+
+.sera-brand:hover .sera-brand-copy strong {
+  color: var(--sera-accent-dark);
+}
+
+/* Controls keep their geometry while gaining tactile feedback. */
+[data-slot="button"] {
+  transition:
+    color var(--sera-motion-fast) ease,
+    background-color var(--sera-motion-fast) ease,
+    border-color var(--sera-motion-fast) ease,
+    transform var(--sera-motion-fast) var(--sera-motion-ease),
+    box-shadow var(--sera-motion-fast) ease;
+}
+
+[data-slot="button"]:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(36, 31, 27, .10) !important;
+}
+
+[data-slot="button"]:not(:disabled):active {
+  transform: translateY(0) scale(.97);
+  box-shadow: none !important;
+  transition-duration: 90ms;
+}
+
+.sera-link {
+  transition: color var(--sera-motion-fast) ease, border-color var(--sera-motion-fast) ease;
+}
+
+.sera-link svg {
+  transition: transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-link:hover svg,
+.sera-link:focus-visible svg {
+  transform: translateX(4px);
+}
+
+.sera-cart-count {
+  transform-origin: center;
+  animation: sera-cart-pop 460ms var(--sera-motion-ease) both;
+}
+
+.sera-search svg {
+  transition: color var(--sera-motion-fast) ease, transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+.sera-search:focus-within svg {
+  color: var(--sera-accent);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.sera-field:focus-within {
+  color: var(--sera-accent-dark);
+}
+
+/* Food imagery and list interactions */
+.sera-home-visual-image {
+  animation: sera-hero-swap 760ms var(--sera-motion-ease) both;
+}
+
+.sera-home-visual-caption {
+  animation: sera-caption-enter 560ms 90ms var(--sera-motion-ease) both;
+}
+
+.sera-dish-row,
+.sera-menu-item,
+.sera-filter-button {
+  transition:
+    color var(--sera-motion-fast) ease,
+    background-color var(--sera-motion-base) var(--sera-motion-soft),
+    border-color var(--sera-motion-fast) ease;
+}
+
+.sera-dish-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 128px;
+}
+
+.sera-menu-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 184px;
+}
+
+.sera-dish-row-media img,
+.sera-menu-item-media img,
+.sera-detail-media img {
+  transition: transform 720ms var(--sera-motion-ease), filter var(--sera-motion-base) ease;
+}
+
+.sera-dish-row h3,
+.sera-menu-item-copy h2 {
+  transition: color var(--sera-motion-fast) ease, transform var(--sera-motion-base) var(--sera-motion-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sera-dish-row:hover,
+  .sera-menu-item:hover {
+    background: color-mix(in srgb, var(--sera-wash) 68%, transparent);
+  }
+
+  .sera-dish-row:hover img,
+  .sera-menu-item:hover img,
+  .sera-detail-media:hover img {
+    transform: scale(1.045);
+  }
+
+  .sera-dish-row:hover h3,
+  .sera-menu-item:hover h2 {
+    color: var(--sera-accent-dark);
+    transform: translateX(4px);
+  }
+
+  .sera-filter-button:hover {
+    color: var(--sera-ink);
+    background: color-mix(in srgb, var(--sera-wash) 62%, transparent);
+  }
+}
+
+/* Existing Radix surfaces receive a consistent soft entrance. */
+[data-slot="dialog-overlay"][data-state="open"],
+[data-slot="alert-dialog-overlay"][data-state="open"],
+[data-slot="sheet-overlay"][data-state="open"] {
+  animation-duration: 260ms;
+  animation-timing-function: var(--sera-motion-soft);
+}
+
+[data-slot="dialog-content"][data-state="open"],
+[data-slot="alert-dialog-content"][data-state="open"],
+[data-slot="popover-content"][data-state="open"],
+[data-slot="dropdown-menu-content"][data-state="open"],
+[data-slot="sheet-content"][data-state="open"] {
+  animation-duration: var(--sera-motion-base);
+  animation-timing-function: var(--sera-motion-ease);
+}
+
+@media (max-width: 1050px) {
+  .sera-nav.open a {
+    animation: sera-mobile-nav-enter var(--sera-motion-base) var(--sera-motion-ease) both;
+    animation-delay: calc(var(--nav-order, 0) * 45ms);
+  }
+
+  .sera-nav.open a:nth-child(2) { --nav-order: 1; }
+  .sera-nav.open a:nth-child(3) { --nav-order: 2; }
+  .sera-nav.open a:nth-child(4) { --nav-order: 3; }
+  .sera-nav.open a:nth-child(5) { --nav-order: 4; }
+}
+
+@keyframes sera-route-enter {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes sera-hero-swap {
+  from { opacity: .35; transform: scale(1.035); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes sera-caption-enter {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes sera-cart-pop {
+  0% { opacity: 0; transform: scale(.55); }
+  55% { opacity: 1; transform: scale(1.16); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes sera-mobile-nav-enter {
+  from { opacity: 0; transform: translate3d(-12px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sera-route-frame,
+  .sera-home-visual-image,
+  .sera-home-visual-caption,
+  .sera-cart-count,
+  .sera-nav.open a {
+    animation: none !important;
+  }
+
+  .motion-reveal,
+  .motion-reveal.motion-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .sera-brand:hover .sera-brand-mark,
+  [data-slot="button"]:not(:disabled):hover,
+  [data-slot="button"]:not(:disabled):active,
+  .sera-link:hover svg,
+  .sera-link:focus-visible svg,
+  .sera-dish-row:hover img,
+  .sera-menu-item:hover img,
+  .sera-detail-media:hover img,
+  .sera-dish-row:hover h3,
+  .sera-menu-item:hover h2 {
+    transform: none !important;
+  }
+
+  .sera-search:focus-within svg {
+    transform: translateY(-50%) !important;
+  }
+}
