@@ -308,7 +308,7 @@
 .takeaway-success > svg { width: 58px; height: 58px; margin-bottom: 18px; color: var(--success); }
 .takeaway-success h1 { margin-bottom: 12px; font-size: 40px; }
 .takeaway-success p { max-width: 560px; color: var(--muted); line-height: 1.65; }
-.takeaway-success > div { display: flex; gap: 12px; margin-top: 16px; }
+.takeaway-success-actions { display: flex; gap: 12px; margin-top: 16px; }
 
 .menu-detail-takeaway { margin-top: 24px; padding: 18px; border: 1px solid #efd8c1; border-radius: 12px; background: #fff9f2; }
 .menu-detail-takeaway > div:first-child > strong { display: block; margin-bottom: 4px; font-size: 17px; }
@@ -358,5 +358,5 @@
   .takeaway-submit { width: calc(100% - 34px); margin-inline: 17px; }
   .takeaway-payment-note { margin-inline: 17px; }
   .takeaway-success { min-height: 420px; padding: 32px 22px; }
-  .takeaway-success > div { width: 100%; flex-direction: column; }
+  .takeaway-success-actions { width: 100%; flex-direction: column; }
 }
