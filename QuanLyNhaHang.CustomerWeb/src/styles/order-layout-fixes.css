@@ -1,0 +1,258 @@
+/* Visual refinements for the customer order detail and takeaway success actions.
+   Loaded after the page styles so these rules stay narrowly scoped and do not
+   change order/payment business logic. */
+
+/* Keep the expanded order useful instead of stretching payment controls across
+   the whole card. On wide screens the order lines stay on the left and payment
+   / promotion actions live in a compact side panel. */
+@media (min-width: 1121px) {
+  .orders-premium-page .customer-order-detail:has(> .customer-order-actions) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 390px);
+    align-items: stretch;
+    background: #fff;
+  }
+
+  .orders-premium-page .customer-order-detail:has(> .customer-order-actions) > .customer-order-detail-head {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding: 16px 22px;
+    border-bottom: 1px solid #eee4d8;
+    background: linear-gradient(180deg, #fff 0%, #fffdf9 100%);
+  }
+
+  .orders-premium-page .customer-order-detail:has(> .customer-order-actions) > .customer-order-items-heading {
+    grid-column: 1;
+    grid-row: 2;
+    padding-inline: 22px;
+  }
+
+  .orders-premium-page .customer-order-detail:has(> .customer-order-actions) > .customer-order-items {
+    grid-column: 1;
+    grid-row: 3;
+    padding-inline: 22px;
+    background: #fff;
+  }
+
+  .orders-premium-page .customer-order-detail:has(> .customer-order-actions) > .customer-order-detail-footer {
+    grid-column: 1;
+    grid-row: 4;
+    min-height: 92px;
+    padding: 18px 22px;
+    border-top: 1px solid #eee4d8;
+    background: #fffdfa;
+  }
+
+  .orders-premium-page .customer-order-detail:has(> .customer-order-actions) > .customer-order-actions {
+    grid-column: 2;
+    grid-row: 2 / span 3;
+    align-self: stretch;
+    align-content: start;
+    padding: 20px;
+    border-left: 1px solid #eadbc9;
+    background: linear-gradient(180deg, #fffaf3 0%, #fffdf9 100%);
+  }
+
+  .orders-premium-page .customer-order-detail:has(> .customer-order-actions) > .customer-order-cancel-hint {
+    grid-column: 2;
+    grid-row: 5;
+    margin: 0;
+    padding: 0 20px 18px;
+    border-left: 1px solid #eadbc9;
+    background: #fffdf9;
+  }
+}
+
+/* Payment block inside an expanded order. */
+.orders-premium-page .customer-order-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 10px;
+}
+
+.orders-premium-page .customer-order-actions .customer-online-payment-action {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.orders-premium-page .customer-order-actions .customer-promotion-box {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border-color: #ead8c3;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(91, 58, 28, .045);
+}
+
+.orders-premium-page .customer-order-actions .customer-promotion-heading {
+  gap: 8px;
+}
+
+.orders-premium-page .customer-order-actions .customer-promotion-heading strong {
+  color: #3a2c21;
+  font-size: 15px;
+}
+
+.orders-premium-page .customer-order-actions .customer-promotion-heading small {
+  color: #847363;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.orders-premium-page .customer-order-actions .customer-promotion-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.orders-premium-page .customer-order-actions .customer-promotion-form input {
+  min-height: 42px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.orders-premium-page .customer-order-actions .customer-promotion-form button {
+  min-height: 42px;
+  padding-inline: 13px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.orders-premium-page .customer-order-actions .customer-online-payment-action > button {
+  width: 100%;
+  min-height: 46px;
+  height: auto;
+  border-radius: 11px;
+  padding: 10px 14px;
+  line-height: 1.35;
+}
+
+.orders-premium-page .customer-order-actions .payment-inline-note,
+.orders-premium-page .customer-order-actions .payment-inline-error {
+  width: 100%;
+  max-width: none;
+  display: block;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #ecd7b9;
+  border-radius: 10px;
+  background: #fff8ec;
+  color: #795f3c;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.orders-premium-page .customer-order-actions .payment-inline-error {
+  border-color: #e8c1ba;
+  background: #fff5f3;
+  color: #a83f33;
+}
+
+.orders-premium-page .customer-order-actions > .customer-order-cancel-button,
+.orders-premium-page .customer-order-actions > .secondary-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  height: 42px;
+  align-self: stretch;
+  margin: 0;
+  border-radius: 10px;
+}
+
+.orders-premium-page .customer-order-cancel-hint {
+  line-height: 1.5;
+}
+
+/* At medium widths keep the page single-column but preserve a clear payment
+   section instead of letting controls float around the card. */
+@media (max-width: 1120px) {
+  .orders-premium-page .customer-order-actions {
+    padding: 16px 18px 18px;
+    border-top: 1px solid #eee4d8;
+    background: #fffaf4;
+  }
+
+  .orders-premium-page .customer-order-actions .customer-online-payment-action {
+    width: min(100%, 720px);
+    justify-self: end;
+  }
+
+  .orders-premium-page .customer-order-actions > .customer-order-cancel-button,
+  .orders-premium-page .customer-order-actions > .secondary-button {
+    width: min(100%, 260px);
+    justify-self: end;
+  }
+}
+
+@media (max-width: 680px) {
+  .orders-premium-page .customer-order-actions {
+    padding-inline: 16px;
+  }
+
+  .orders-premium-page .customer-order-actions .customer-online-payment-action,
+  .orders-premium-page .customer-order-actions > .customer-order-cancel-button,
+  .orders-premium-page .customer-order-actions > .secondary-button {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .orders-premium-page .customer-order-actions .customer-promotion-form {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-premium-page .customer-order-actions .customer-promotion-form button {
+    width: 100%;
+  }
+}
+
+/* Takeaway success action row: the global cancel-button style is intentionally
+   compact for order cards, but here it must align visually with the navigation
+   buttons instead of looking like a detached tiny control. */
+.takeaway-success .takeaway-success-actions {
+  width: min(100%, 620px);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.takeaway-success .takeaway-success-actions > .secondary-button,
+.takeaway-success .takeaway-success-actions > .customer-order-cancel-button {
+  min-height: 48px;
+  height: 48px;
+  align-self: stretch;
+  margin: 0;
+  border-radius: 12px;
+}
+
+.takeaway-success .takeaway-success-actions > .secondary-button {
+  min-width: 170px;
+  flex: 1 1 0;
+  padding-inline: 18px;
+}
+
+.takeaway-success .takeaway-success-actions > .customer-order-cancel-button {
+  min-width: 132px;
+  flex: 0 0 auto;
+  padding-inline: 16px;
+}
+
+@media (max-width: 620px) {
+  .takeaway-success .takeaway-success-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .takeaway-success .takeaway-success-actions > .secondary-button,
+  .takeaway-success .takeaway-success-actions > .customer-order-cancel-button {
+    width: 100%;
+    min-width: 0;
+  }
+}
