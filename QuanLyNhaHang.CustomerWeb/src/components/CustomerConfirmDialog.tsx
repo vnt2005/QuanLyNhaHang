@@ -45,6 +45,7 @@ export function confirmCustomerAction(message: string, options: CustomerConfirmO
 
 export function CustomerConfirmDialogHost() {
   const [request, setRequest] = useState<ConfirmRequest | null>(null)
+  const activeRequestRef = useRef<ConfirmRequest | null>(null)
   const completingRef = useRef(false)
 
   useEffect(() => {
@@ -54,15 +55,22 @@ export function CustomerConfirmDialogHost() {
           waitingRequests.push(nextRequest)
           return current
         }
+        activeRequestRef.current = nextRequest
         return nextRequest
       })
     }
 
     const queuedRequest = waitingRequests.shift()
-    if (queuedRequest) setRequest(queuedRequest)
+    if (queuedRequest) {
+      activeRequestRef.current = queuedRequest
+      setRequest(queuedRequest)
+    }
 
     return () => {
       requestHandler = null
+      const activeRequest = activeRequestRef.current
+      activeRequestRef.current = null
+      activeRequest?.resolve(false)
       waitingRequests.splice(0).forEach(item => item.resolve(false))
     }
   }, [])
@@ -71,7 +79,9 @@ export function CustomerConfirmDialogHost() {
     if (!request) return
     completingRef.current = true
     request.resolve(accepted)
-    setRequest(waitingRequests.shift() ?? null)
+    const nextRequest = waitingRequests.shift() ?? null
+    activeRequestRef.current = nextRequest
+    setRequest(nextRequest)
     queueMicrotask(() => { completingRef.current = false })
   }
 
