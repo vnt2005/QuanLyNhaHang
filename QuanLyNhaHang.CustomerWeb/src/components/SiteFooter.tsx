@@ -1,6 +1,5 @@
 import { Clock3, Mail, MapPin, Phone, UtensilsCrossed } from 'lucide-react'
 import type { MouseEvent } from 'react'
-import { Button } from '@/components/ui/button'
 import type { PublicRestaurant } from '../services/customerSite'
 import { navigate } from '../utils/navigation'
 
@@ -15,17 +14,6 @@ export default function SiteFooter({ restaurant }: { restaurant: PublicRestauran
 
   return (
     <footer className="sera-footer">
-      <section className="sera-footer-cta">
-        <div>
-          <p className="sera-kicker">Một bữa ăn đang chờ bạn</p>
-          <h2>Chọn món trước, đặt bàn trước, đến nơi chỉ việc thưởng thức.</h2>
-        </div>
-        <div className="sera-footer-cta-actions">
-          <Button size="lg" onClick={() => navigate('/reservation')}>Đặt bàn</Button>
-          <Button size="lg" variant="outline" onClick={() => navigate('/menu')}>Xem thực đơn</Button>
-        </div>
-      </section>
-
       <section className="sera-footer-main">
         <div>
           <a className="sera-brand" href="/" onClick={event => follow(event, '/')}>
