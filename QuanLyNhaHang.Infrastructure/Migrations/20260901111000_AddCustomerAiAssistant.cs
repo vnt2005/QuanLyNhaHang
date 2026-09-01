@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using QuanLyNhaHang.Infrastructure.Persistence;
 
@@ -41,7 +41,7 @@ public partial class AddCustomerAiAssistant : Migration
             IF COL_LENGTH(N'dbo.RestaurantSettings', N'AiAssistantSystemPrompt') IS NULL
             BEGIN
                 ALTER TABLE dbo.RestaurantSettings
-                    ADD AiAssistantSystemPrompt nvarchar(8000) NULL;
+                    ADD AiAssistantSystemPrompt nvarchar(max) NULL;
             END;
 
             IF COL_LENGTH(N'dbo.RestaurantSettings', N'AiAssistantKnowledgeBase') IS NULL

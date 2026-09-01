@@ -75,7 +75,8 @@ public class RestaurantSettingConfiguration : IEntityTypeConfiguration<Restauran
             .HasMaxLength(1000);
 
         builder.Property(x => x.AiAssistantSystemPrompt)
-            .HasMaxLength(8000);
+            .HasMaxLength(8000)
+            .HasColumnType("nvarchar(max)");
 
         builder.Property(x => x.AiAssistantKnowledgeBase)
             .HasColumnType("nvarchar(max)");

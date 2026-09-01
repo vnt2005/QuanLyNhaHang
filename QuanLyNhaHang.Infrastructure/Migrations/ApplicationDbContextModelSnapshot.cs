@@ -1430,7 +1430,7 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
 
                     b.Property<string>("AiAssistantSystemPrompt")
                         .HasMaxLength(8000)
-                        .HasColumnType("nvarchar(8000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AiAssistantWelcomeMessage")
                         .HasMaxLength(1000)
