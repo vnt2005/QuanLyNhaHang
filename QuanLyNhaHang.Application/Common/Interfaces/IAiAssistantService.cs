@@ -16,6 +16,11 @@ public interface IAiAssistantService
 
     Task<AiAssistantChatResponseDto> ChatAsync(
         AiAssistantChatRequestDto request,
-        string safetyIdentifier,
+        AiAssistantCallerContext callerContext,
+        CancellationToken cancellationToken = default);
+
+    Task<AiAssistantChatResponseDto> AdminChatAsync(
+        AiAssistantChatRequestDto request,
+        Guid adminUserId,
         CancellationToken cancellationToken = default);
 }
