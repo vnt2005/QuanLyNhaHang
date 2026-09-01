@@ -46,10 +46,11 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
         var menuItemId = await SeedMenuItemAsync(factory);
         using var client = factory.CreateHttpsClient();
 
-        var request = new
+        var firstRequest = new
         {
             customerName = "Khách đặt lặp",
             phoneNumber = "0901000002",
+            note = "Đơn thứ nhất",
             items = new[]
             {
                 new { menuItemId, quantity = 1 }
@@ -58,12 +59,25 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
 
         using var firstResponse = await client.PostAsJsonAsync(
             "/api/customer-site/takeaway-orders",
-            request);
+            firstRequest);
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+
+        // Dùng payload khác để đây thực sự là một yêu cầu tạo đơn mới,
+        // không phải retry giống hệt được idempotency middleware replay.
+        var secondRequest = new
+        {
+            customerName = "Khách đặt lặp",
+            phoneNumber = "0901000002",
+            note = "Đơn thứ hai",
+            items = new[]
+            {
+                new { menuItemId, quantity = 1 }
+            }
+        };
 
         using var secondResponse = await client.PostAsJsonAsync(
             "/api/customer-site/takeaway-orders",
-            request);
+            secondRequest);
 
         Assert.Equal(HttpStatusCode.BadRequest, secondResponse.StatusCode);
         using var json = await ReadJsonAsync(secondResponse);
