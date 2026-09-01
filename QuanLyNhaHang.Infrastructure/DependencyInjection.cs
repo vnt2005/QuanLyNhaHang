@@ -47,18 +47,18 @@ public static class DependencyInjection
         services.AddSingleton<IPaymentWebhookAdapter, SePayWebhookParser>();
         services.AddSingleton<IPaymentChannelReadiness, SePayWebhookReadiness>();
 
-        services.Configure<OpenAiOptions>(options =>
+        services.Configure<GeminiOptions>(options =>
         {
-            options.ApiKey = configuration[$"{OpenAiOptions.SectionName}:ApiKey"]
-                ?? configuration["OPENAI_API_KEY"]
+            options.ApiKey = configuration[$"{GeminiOptions.SectionName}:ApiKey"]
+                ?? configuration["GEMINI_API_KEY"]
                 ?? string.Empty;
-            options.BaseUrl = configuration[$"{OpenAiOptions.SectionName}:BaseUrl"]
-                ?? "https://api.openai.com/v1";
-            options.DefaultModel = configuration[$"{OpenAiOptions.SectionName}:DefaultModel"]
-                ?? "gpt-5.6-luna";
+            options.BaseUrl = configuration[$"{GeminiOptions.SectionName}:BaseUrl"]
+                ?? "https://generativelanguage.googleapis.com/v1beta";
+            options.DefaultModel = configuration[$"{GeminiOptions.SectionName}:DefaultModel"]
+                ?? "gemini-3.7-flash";
         });
 
-        services.AddHttpClient<IAiAssistantService, OpenAiAssistantService>(client =>
+        services.AddHttpClient<IAiAssistantService, GeminiAiAssistantService>(client =>
         {
             client.Timeout = TimeSpan.FromSeconds(45);
         });
