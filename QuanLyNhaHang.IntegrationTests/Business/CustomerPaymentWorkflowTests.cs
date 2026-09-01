@@ -119,7 +119,7 @@ public sealed class CustomerPaymentWorkflowTests
     }
 
     [Fact]
-    public async Task PendingOrder_CannotCreateQr_AndLegacyAttemptIsInvalidated()
+    public async Task PendingTakeaway_CanCreateQr_AndReusesExistingAttempt()
     {
         using var factory = CreateSePayFactory();
         using var client = CreateHttpsClient(factory);
@@ -132,17 +132,14 @@ public sealed class CustomerPaymentWorkflowTests
             $"/api/customer-payments/orders/{scenario.OrderId}/sepay-qr",
             new { qrToken = (string?)null });
 
-        Assert.Equal(HttpStatusCode.Conflict, createResponse.StatusCode);
-        using (var json = JsonDocument.Parse(
-                   await createResponse.Content.ReadAsStringAsync()))
-        {
-            Assert.Equal(
-                "Pending",
-                json.RootElement.GetProperty("orderStatus").GetString());
-            Assert.Contains(
-                "chờ nhà hàng xác nhận",
-                json.RootElement.GetProperty("message").GetString());
-        }
+        Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
+        var instruction = await createResponse.Content
+            .ReadFromJsonAsync<PaymentInstructionResponse>();
+        Assert.NotNull(instruction);
+        Assert.False(instruction!.AlreadyPaid);
+        Assert.True(instruction.Reused);
+        Assert.Equal(scenario.AttemptId, instruction.AttemptId);
+        Assert.Equal(scenario.PaymentCode, instruction.TransferContent);
 
         using var statusResponse = await client.GetAsync(
             $"/api/customer-payments/orders/{scenario.OrderId}/status");
@@ -151,10 +148,8 @@ public sealed class CustomerPaymentWorkflowTests
             .ReadFromJsonAsync<PaymentStatusResponse>();
         Assert.NotNull(status);
         Assert.Equal("Pending", status!.OrderStatus);
-        Assert.False(status.CanPay);
-        Assert.Contains(
-            "chờ nhà hàng xác nhận",
-            status.PaymentUnavailableReason);
+        Assert.True(status.CanPay);
+        Assert.Equal(PaymentAttempt.PendingStatus, status.AttemptStatus);
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -165,11 +160,11 @@ public sealed class CustomerPaymentWorkflowTests
         var attempt = await context.PaymentAttempts
             .AsNoTracking()
             .SingleAsync(item => item.Id == scenario.AttemptId);
-        Assert.Equal(PaymentAttempt.CancelledStatus, attempt.Status);
+        Assert.Equal(PaymentAttempt.PendingStatus, attempt.Status);
     }
 
     [Fact]
-    public async Task SePayWebhook_WhileOrderPending_IsHeldForReview()
+    public async Task SePayWebhook_WhileTakeawayPending_RecordsEarlyPayment()
     {
         using var factory = CreateSePayFactory();
         using var client = CreateHttpsClient(factory);
@@ -191,13 +186,18 @@ public sealed class CustomerPaymentWorkflowTests
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        Assert.False(await context.Payments.AnyAsync(
-            payment => payment.OrderId == scenario.OrderId));
+        var payment = await context.Payments
+            .AsNoTracking()
+            .SingleAsync(item => item.OrderId == scenario.OrderId);
         var attempt = await context.PaymentAttempts
             .AsNoTracking()
             .SingleAsync(item => item.Id == scenario.AttemptId);
-        Assert.Equal(PaymentAttempt.RequiresReviewStatus, attempt.Status);
-        Assert.Equal("PaidBeforeOrderConfirmation", attempt.ReviewReason);
+
+        Assert.Equal("Paid", payment.Status);
+        Assert.Equal("BankTransfer", payment.PaymentMethod);
+        Assert.Equal(PaymentAttempt.PaidStatus, attempt.Status);
+        Assert.Equal(payment.Id, attempt.PaymentId);
+        Assert.Null(attempt.ReviewReason);
     }
 
     [Fact]

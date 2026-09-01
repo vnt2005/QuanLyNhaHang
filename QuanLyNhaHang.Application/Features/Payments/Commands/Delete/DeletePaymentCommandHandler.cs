@@ -30,10 +30,29 @@ public class DeletePaymentCommandHandler
         if (payment.Status == "Cancelled")
             return true;
 
-        if (payment.Status == "Paid")
+        var isSettledOnlinePayment = payment.Status == "Paid" &&
+            await _context.PaymentAttempts
+                .AsNoTracking()
+                .AnyAsync(
+                    attempt => attempt.PaymentId == payment.Id &&
+                               attempt.Status == "Paid",
+                    cancellationToken);
+
+        if (isSettledOnlinePayment)
         {
             throw new InvalidOperationException(
-                "Thanh toán đã được ghi nhận Paid và đã chốt vào hóa đơn/báo cáo. Không thể hủy trực tiếp vì thao tác này không hoàn tiền cho khách. Hãy thực hiện đối soát hoặc quy trình hoàn tiền riêng.");
+                "Thanh toán online đã được ghi nhận Paid và đang khóa đối soát. Không thể hủy trực tiếp vì thao tác này không hoàn tiền cho khách. Hãy thực hiện đối soát hoặc quy trình hoàn tiền riêng.");
+        }
+
+        var order = await _context.Orders
+            .FirstOrDefaultAsync(
+                x => x.Id == payment.OrderId,
+                cancellationToken);
+
+        if (order == null)
+        {
+            throw new InvalidOperationException(
+                "Không tìm thấy order của thanh toán.");
         }
 
         payment.Cancel();
@@ -46,6 +65,11 @@ public class DeletePaymentCommandHandler
 
         foreach (var invoice in activeInvoices)
             invoice.Cancel();
+
+        // Manual payments can still be corrected/replaced. Reopen a completed
+        // order to the last payable state so a replacement payment is valid.
+        if (order.Status == "Completed")
+            order.MarkServed();
 
         await _context.SaveChangesAsync(cancellationToken);
 
