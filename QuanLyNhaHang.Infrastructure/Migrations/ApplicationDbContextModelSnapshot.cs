@@ -1404,6 +1404,38 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("AiAssistantEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("AiAssistantKnowledgeBase")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("AiAssistantMaxOutputTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(500);
+
+                    b.Property<string>("AiAssistantModel")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("gemini-3.7-flash");
+
+                    b.Property<string>("AiAssistantSuggestedQuestions")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("AiAssistantSystemPrompt")
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AiAssistantWelcomeMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("ClosingTime")
                         .IsRequired()
                         .HasMaxLength(20)

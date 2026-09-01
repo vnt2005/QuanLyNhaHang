@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Payments;
+using QuanLyNhaHang.Infrastructure.AI;
 using QuanLyNhaHang.Infrastructure.Payments.SePay;
 using QuanLyNhaHang.Infrastructure.Persistence;
 using QuanLyNhaHang.Infrastructure.Services;
@@ -45,6 +46,24 @@ public static class DependencyInjection
         services.AddSingleton<IPaymentGateway, SePayPaymentGateway>();
         services.AddSingleton<IPaymentWebhookAdapter, SePayWebhookParser>();
         services.AddSingleton<IPaymentChannelReadiness, SePayWebhookReadiness>();
+
+        services.Configure<GeminiOptions>(options =>
+        {
+            options.ApiKey = configuration[$"{GeminiOptions.SectionName}:ApiKey"]
+                ?? configuration["GEMINI_API_KEY"]
+                ?? string.Empty;
+            options.BaseUrl = configuration[$"{GeminiOptions.SectionName}:BaseUrl"]
+                ?? "https://generativelanguage.googleapis.com/v1beta";
+            options.DefaultModel = configuration[$"{GeminiOptions.SectionName}:DefaultModel"]
+                ?? "gemini-3.7-flash";
+        });
+
+        services.AddTransient<GeminiRequestNormalizationHandler>();
+        services.AddHttpClient<IAiAssistantService, GeminiAiAssistantService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(45);
+        })
+        .AddHttpMessageHandler<GeminiRequestNormalizationHandler>();
 
         return services;
     }

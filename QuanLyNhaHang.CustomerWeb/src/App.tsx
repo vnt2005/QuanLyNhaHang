@@ -25,6 +25,7 @@ const OrdersPage = lazy(() => import('./pages/OrdersPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const QrOrderPage = lazy(() => import('./pages/QrOrderPage'))
 const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage'))
+const AiAssistantWidget = lazy(() => import('./components/AiAssistantWidget'))
 
 const emptyData: CustomerSiteBootstrap = {
   restaurant: null,
@@ -144,6 +145,9 @@ function CustomerApplication({ pathname, routeKey }: { pathname: string; routeKe
         <Suspense fallback={<PageLoading />}>{content()}</Suspense>
       </div>
       <SiteFooter restaurant={data.restaurant} />
+      <Suspense fallback={null}>
+        <AiAssistantWidget />
+      </Suspense>
     </div>
   )
 }

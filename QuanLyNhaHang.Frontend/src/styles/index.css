@@ -19,6 +19,7 @@
 @import './pages/qr-order.css';
 @import './pages/restaurant-settings.css';
 @import './pages/restaurant-settings-modal-fix.css';
+@import './pages/ai-assistant.css';
 @import './pages/promotions.css';
 @import './pages/inventory.css';
 @import './pages/auth-security.css';
@@ -71,3 +72,4 @@
 @import './pages/table-qr-filter-row-fix.css';
 @import './pages/table-qr-url-inside-panel.css';
 @import './pages/table-qr-controls-same-row.css';
+@import './pages/ai-assistant-final-fix.css';

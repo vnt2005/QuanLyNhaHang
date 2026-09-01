@@ -32,6 +32,20 @@ public class RestaurantSetting
 
     public string? QrOrderWelcomeMessage { get; private set; }
 
+    public bool AiAssistantEnabled { get; private set; }
+
+    public string AiAssistantModel { get; private set; } = "gemini-3.7-flash";
+
+    public string? AiAssistantWelcomeMessage { get; private set; }
+
+    public string? AiAssistantSystemPrompt { get; private set; }
+
+    public string? AiAssistantKnowledgeBase { get; private set; }
+
+    public string? AiAssistantSuggestedQuestions { get; private set; }
+
+    public int AiAssistantMaxOutputTokens { get; private set; } = 500;
+
     public bool IsActive { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
@@ -75,6 +89,13 @@ public class RestaurantSetting
         SetInvoiceFooter(invoiceFooter);
         SetQrOrderWelcomeMessage(qrOrderWelcomeMessage);
 
+        AiAssistantEnabled = false;
+        AiAssistantModel = "gemini-3.7-flash";
+        AiAssistantWelcomeMessage = "Xin chào! Tôi là trợ lý AI của nhà hàng. Tôi có thể gợi ý món, giải đáp về thực đơn, khuyến mãi và cách đặt bàn.";
+        AiAssistantSystemPrompt = "Bạn là trợ lý chăm sóc khách hàng của nhà hàng. Chỉ trả lời trong phạm vi thông tin nhà hàng được cung cấp; nếu không chắc, hãy nói rõ và hướng khách liên hệ nhân viên. Không tự bịa giá, khuyến mãi, trạng thái đơn hàng hay chính sách.";
+        AiAssistantSuggestedQuestions = "Hôm nay có món gì nổi bật?\nCó khuyến mãi nào đang áp dụng?\nTôi muốn đặt bàn thì làm thế nào?";
+        AiAssistantMaxOutputTokens = 500;
+
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
     }
@@ -110,6 +131,31 @@ public class RestaurantSetting
         SetInvoiceFooter(invoiceFooter);
         SetQrOrderWelcomeMessage(qrOrderWelcomeMessage);
 
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateAiAssistant(
+        bool enabled,
+        string model,
+        string? welcomeMessage,
+        string? systemPrompt,
+        string? knowledgeBase,
+        string? suggestedQuestions,
+        int maxOutputTokens)
+    {
+        if (string.IsNullOrWhiteSpace(model))
+            throw new ArgumentException("Model AI không được để trống.");
+
+        if (maxOutputTokens is < 100 or > 2000)
+            throw new ArgumentException("Số token đầu ra của AI phải nằm trong khoảng 100 đến 2000.");
+
+        AiAssistantEnabled = enabled;
+        AiAssistantModel = model.Trim();
+        AiAssistantWelcomeMessage = NormalizeOptional(welcomeMessage);
+        AiAssistantSystemPrompt = NormalizeOptional(systemPrompt);
+        AiAssistantKnowledgeBase = NormalizeOptional(knowledgeBase);
+        AiAssistantSuggestedQuestions = NormalizeOptional(suggestedQuestions);
+        AiAssistantMaxOutputTokens = maxOutputTokens;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -219,15 +265,18 @@ public class RestaurantSetting
 
     private void SetInvoiceFooter(string? invoiceFooter)
     {
-        InvoiceFooter = string.IsNullOrWhiteSpace(invoiceFooter)
-            ? null
-            : invoiceFooter.Trim();
+        InvoiceFooter = NormalizeOptional(invoiceFooter);
     }
 
     private void SetQrOrderWelcomeMessage(string? qrOrderWelcomeMessage)
     {
-        QrOrderWelcomeMessage = string.IsNullOrWhiteSpace(qrOrderWelcomeMessage)
+        QrOrderWelcomeMessage = NormalizeOptional(qrOrderWelcomeMessage);
+    }
+
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
             ? null
-            : qrOrderWelcomeMessage.Trim();
+            : value.Trim();
     }
 }

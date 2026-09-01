@@ -5,6 +5,7 @@
 @import "./sera-system.css";
 @import "./motion.css";
 @import "./hover-motion.css";
+@import "./ai-assistant.css";
 
 @custom-variant dark (&:is(.dark *));
 
