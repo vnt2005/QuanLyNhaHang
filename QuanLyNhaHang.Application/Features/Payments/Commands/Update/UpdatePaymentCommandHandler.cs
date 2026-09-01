@@ -28,10 +28,18 @@ public class UpdatePaymentCommandHandler
         if (payment.Status == "Cancelled")
             throw new InvalidOperationException("Thanh toán đã hủy, không thể cập nhật.");
 
-        if (payment.Status == "Paid")
+        var isSettledOnlinePayment = payment.Status == "Paid" &&
+            await _context.PaymentAttempts
+                .AsNoTracking()
+                .AnyAsync(
+                    attempt => attempt.PaymentId == payment.Id &&
+                               attempt.Status == "Paid",
+                    cancellationToken);
+
+        if (isSettledOnlinePayment)
         {
             throw new InvalidOperationException(
-                "Thanh toán đã được ghi nhận Paid và đã chốt vào hóa đơn/báo cáo. Không thể sửa số tiền, phương thức, VAT, phí hoặc tiền khách trả. Nếu có sai sót, hãy xử lý theo quy trình đối soát/hoàn tiền riêng.");
+                "Thanh toán online đã được ghi nhận Paid và đang khóa đối soát. Không thể sửa số tiền, phương thức, VAT, phí hoặc tiền khách trả. Nếu có sai sót, hãy xử lý theo quy trình đối soát/hoàn tiền riêng.");
         }
 
         payment.UpdateInfo(
