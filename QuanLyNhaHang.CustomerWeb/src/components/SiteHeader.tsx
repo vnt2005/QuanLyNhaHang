@@ -1,6 +1,7 @@
-import { Menu, ShoppingBag, UserRound, UtensilsCrossed, X } from 'lucide-react'
+import { Menu, Moon, ShoppingBag, Sun, UserRound, UtensilsCrossed, X } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
+import { useTheme } from '../hooks/useTheme'
 import type { CustomerSession } from '../services/customerAuth'
 import type { PublicRestaurant } from '../services/customerSite'
 import { navigate } from '../utils/navigation'
@@ -28,8 +29,10 @@ export default function SiteHeader({
 }) {
   const [open, setOpen] = useState(false)
   const [cartCount, setCartCount] = useState(() => takeawayCartCount())
+  const { theme, toggleTheme } = useTheme()
   const accountPath = session ? '/account' : '/login'
   const accountLabel = session ? [session.ho, session.ten].filter(Boolean).join(' ') : 'Đăng nhập'
+  const themeActionLabel = theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'
 
   useEffect(() => {
     const updateCart = () => setCartCount(takeawayCartCount())
@@ -81,6 +84,18 @@ export default function SiteHeader({
         </nav>
 
         <div className="sera-header-actions">
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            className="sera-theme-toggle"
+            aria-label="Chế độ tối"
+            aria-pressed={theme === 'dark'}
+            title={themeActionLabel}
+            onClick={toggleTheme}
+          >
+            {theme === 'dark' ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+          </Button>
           <Button asChild variant="ghost" size="icon" className="sera-cart-button">
             <a href="/takeaway" onClick={event => follow(event, '/takeaway')} aria-label={`Giỏ mang về${cartCount ? `, ${cartCount} phần` : ''}`}>
               <ShoppingBag />

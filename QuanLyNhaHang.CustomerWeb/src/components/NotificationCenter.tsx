@@ -269,7 +269,7 @@ export default function NotificationCenter({
 
       {open ? (
         <section
-          className="absolute right-0 top-[calc(100%+14px)] z-50 w-[min(420px,calc(100vw-24px))] border border-border bg-background shadow-[0_18px_60px_rgba(36,31,27,.14)]"
+          className="sera-floating-surface absolute right-0 top-[calc(100%+14px)] z-50 w-[min(420px,calc(100vw-24px))] border border-border bg-background"
           id="customer-notification-panel"
           aria-label="Thông báo của bạn"
         >
@@ -313,7 +313,7 @@ export default function NotificationCenter({
       ) : null}
 
       {toast && typeof document !== 'undefined' ? createPortal(
-        <aside className="fixed right-5 top-24 z-[100] grid w-[min(400px,calc(100vw-32px))] grid-cols-[1fr_auto] border border-border bg-background shadow-[0_18px_60px_rgba(36,31,27,.18)] max-sm:right-4 max-sm:top-20" role="status">
+        <aside className="sera-floating-surface fixed right-5 top-24 z-[100] grid w-[min(400px,calc(100vw-32px))] grid-cols-[1fr_auto] border border-border bg-background max-sm:right-4 max-sm:top-20" role="status">
           <button type="button" className="flex gap-3 p-4 text-left" onClick={() => void openNotification(toast)}>
             <Bell className="mt-0.5 size-4 shrink-0 text-accent" />
             <span><small className="sera-kicker">Thông báo mới</small><strong className="mt-1 block font-heading text-xl font-medium">{toast.title}</strong><span className="mt-1 block text-xs leading-5 text-muted-foreground">{toast.message}</span></span>
