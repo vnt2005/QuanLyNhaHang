@@ -40,6 +40,8 @@ RestaurantSettings
 
 Gemini API key chỉ tồn tại ở backend. Không tạo biến `VITE_GEMINI_API_KEY` và không đưa key vào JavaScript, CustomerWeb, AdminWeb hoặc source control.
 
+`generateContent` hiện vẫn được Google hỗ trợ. Dự án dùng chế độ stateless với `store=false` để không phụ thuộc vào lịch sử hội thoại được lưu phía provider; lịch sử ngắn cần thiết được CustomerWeb gửi lại trong từng request.
+
 ## Context được cấp cho AI
 
 Mỗi request lấy dữ liệu hiện hành từ database:
@@ -76,11 +78,11 @@ Khi triển khai production có dữ liệu nhạy cảm hoặc cần mức bả
 ### Docker Compose
 
 1. Sao chép `.env.example` thành `.env` nếu chưa có.
-2. Vào Google AI Studio, mở trang API keys và tạo/copy Gemini API key.
-3. Điền key thật vào file `.env` cục bộ:
+2. Vào Google AI Studio, mở trang API Keys và tạo key mới. Google hiện tạo **authorization key** cho key mới; hãy dùng key mới thay vì key Standard không được hạn chế.
+3. Điền nguyên giá trị key mà AI Studio cung cấp vào file `.env` cục bộ, không giả định prefix của key:
 
 ```env
-GEMINI_API_KEY=AIza...
+GEMINI_API_KEY=<YOUR_GEMINI_API_KEY>
 ```
 
 4. Không commit `.env`.
@@ -97,7 +99,7 @@ Compose chỉ chuyển `GEMINI_API_KEY` vào service `api`; hai frontend không 
 PowerShell cho phiên terminal hiện tại:
 
 ```powershell
-$env:GEMINI_API_KEY="AIza..."
+$env:GEMINI_API_KEY="<YOUR_GEMINI_API_KEY>"
 dotnet run --project .\QuanLyNhaHang.Api\QuanLyNhaHang.Api.csproj
 ```
 
@@ -105,9 +107,11 @@ Có thể dùng cấu hình `GoogleAI:ApiKey` ở secret store phù hợp của 
 
 ## Database
 
-Các trường cấu hình AI vẫn dùng `RestaurantSettings`, nên việc đổi provider từ OpenAI sang Gemini không cần thêm cột database. Backend có cơ chế tương thích với giá trị model OpenAI cũ: nếu database local còn `gpt-*`, giao diện và request sẽ tự dùng model Gemini mặc định cho tới khi admin bấm lưu cấu hình mới.
+Các trường cấu hình AI vẫn dùng `RestaurantSettings`, nên việc đổi provider từ OpenAI sang Gemini không cần thêm cột database.
 
-Migration AI hiện có vẫn dùng các guard `COL_LENGTH` để local SQL Server volume có thể tiếp tục an toàn nếu từng bị dừng giữa lúc cập nhật schema. CI tiếp tục kiểm tra `dotnet ef migrations has-pending-model-changes` và khởi động thật `database + api` với startup migration bật.
+Migration `20260901133000_SwitchAiAssistantProviderToGemini` tự chuyển các cấu hình model `gpt-*` đã tồn tại sang `gemini-3.7-flash` và đổi default constraint của `AiAssistantModel`. Vì vậy local database đã từng chạy bản OpenAI không cần xóa volume hay nhập lại cấu hình AI.
+
+Migration AI ban đầu vẫn dùng các guard `COL_LENGTH` để local SQL Server volume có thể tiếp tục an toàn nếu từng bị dừng giữa lúc cập nhật schema. CI tiếp tục kiểm tra `dotnet ef migrations has-pending-model-changes` và khởi động thật `database + api` với startup migration bật.
 
 Với production, vẫn tuân thủ quy trình backup/preflight/migration hiện có của dự án trước khi deploy các migration khác.
 
@@ -117,10 +121,11 @@ Model mặc định là `gemini-3.7-flash`, phù hợp chatbot phản hồi nhan
 
 ## Tài liệu Google đã tham khảo
 
-- Gemini API reference: https://ai.google.dev/api
-- Getting started / API key: https://ai.google.dev/gemini-api/docs/get-started
+- Gemini API overview: https://ai.google.dev/gemini-api/docs
+- Getting started: https://ai.google.dev/gemini-api/docs/get-started
 - Using Gemini API keys: https://ai.google.dev/gemini-api/docs/api-key
 - `generateContent`: https://ai.google.dev/api/generate-content
+- Interactions API overview: https://ai.google.dev/gemini-api/docs/interactions-overview
 - Safety settings: https://ai.google.dev/gemini-api/docs/safety-settings
 - Pricing / Free Tier: https://ai.google.dev/gemini-api/docs/pricing
 - Rate limits: https://ai.google.dev/gemini-api/docs/rate-limits
