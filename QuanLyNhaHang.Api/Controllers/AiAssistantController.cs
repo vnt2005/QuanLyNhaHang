@@ -51,9 +51,7 @@ public sealed class AiAssistantController : ControllerBase
         }
         catch (InvalidOperationException exception)
         {
-            return StatusCode(
-                StatusCodes.Status503ServiceUnavailable,
-                new { message = exception.Message });
+            return MapProviderFailure(exception);
         }
     }
 
@@ -83,9 +81,7 @@ public sealed class AiAssistantController : ControllerBase
         }
         catch (InvalidOperationException exception)
         {
-            return StatusCode(
-                StatusCodes.Status503ServiceUnavailable,
-                new { message = exception.Message });
+            return MapProviderFailure(exception);
         }
     }
 
@@ -135,6 +131,22 @@ public sealed class AiAssistantController : ControllerBase
         {
             return Conflict(new { message = exception.Message });
         }
+    }
+
+    private IActionResult MapProviderFailure(InvalidOperationException exception)
+    {
+        var isQuotaFailure = exception.Message.Contains(
+            "hạn mức",
+            StringComparison.OrdinalIgnoreCase)
+            || exception.Message.Contains(
+                "quota",
+                StringComparison.OrdinalIgnoreCase);
+
+        return StatusCode(
+            isQuotaFailure
+                ? StatusCodes.Status429TooManyRequests
+                : StatusCodes.Status503ServiceUnavailable,
+            new { message = exception.Message });
     }
 
     private AiAssistantCallerContext ResolveCallerContext()
