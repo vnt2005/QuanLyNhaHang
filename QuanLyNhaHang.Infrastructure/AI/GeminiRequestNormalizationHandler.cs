@@ -12,16 +12,18 @@ namespace QuanLyNhaHang.Infrastructure.AI;
 /// Parameterless function declarations are sent without an empty parameters schema because
 /// FunctionDeclaration.parameters is optional when a tool does not accept arguments.
 ///
-/// The handler also protects the customer/admin chat from transient Gemini capacity outages.
-/// It retries retryable responses with exponential backoff and, when Gemini 3.7 Flash stays
-/// unavailable, automatically falls back to the stable 3.6/3.5 Flash models. A short circuit
-/// breaker keeps later tool rounds on the working fallback instead of repeatedly hitting a
-/// model that is already known to be unavailable.
+/// The handler protects customer/admin chat from both transient provider outages and
+/// model-specific free-tier quota exhaustion. Provider 5xx/408 responses are retried with
+/// short backoff. HTTP 429 is not retried against the same model because that only consumes
+/// more quota; instead the request immediately falls through to another stable Flash-Lite
+/// model that supports function calling and has its own model quota. A short circuit breaker
+/// keeps later tool rounds away from a model that was just overloaded/rate-limited.
 /// </summary>
 internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 {
-    private const int MaxAttemptsPerModel = 2;
-    private static readonly TimeSpan ModelCooldown = TimeSpan.FromMinutes(5);
+    private const int MaxTransientAttemptsPerModel = 2;
+    private static readonly TimeSpan TransientModelCooldown = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan QuotaModelCooldown = TimeSpan.FromMinutes(15);
 
     private static readonly ConcurrentDictionary<string, DateTimeOffset>
         UnavailableModels = new(StringComparer.OrdinalIgnoreCase);
@@ -47,20 +49,21 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
             .Where(candidate => candidate.Model is null || !IsCoolingDown(candidate.Model))
             .ToList();
 
-        // If every known model is cooling down, still probe the last fallback instead of
-        // failing locally without contacting Gemini. This also lets the circuit recover early.
+        // If every known model is cooling down, probe the last free-tier fallback once so
+        // the circuit can recover without making the caller wait for every cooldown to expire.
         if (candidatesToTry.Count == 0 && candidates.Count > 0)
             candidatesToTry.Add(candidates[^1]);
 
         Exception? lastTransportError = null;
-        HttpResponseMessage? lastTransientResponse = null;
+        HttpResponseMessage? lastFallbackResponse = null;
 
         for (var candidateIndex = 0; candidateIndex < candidatesToTry.Count; candidateIndex++)
         {
             var candidate = candidatesToTry[candidateIndex];
-            var modelHadTransientResponse = false;
+            var modelHadFallbackResponse = false;
+            var quotaLimited = false;
 
-            for (var attempt = 1; attempt <= MaxAttemptsPerModel; attempt++)
+            for (var attempt = 1; attempt <= MaxTransientAttemptsPerModel; attempt++)
             {
                 using var outboundRequest = template.CreateRequest(candidate.RequestUri);
 
@@ -70,12 +73,29 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                         outboundRequest,
                         cancellationToken);
 
+                    if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                    {
+                        modelHadFallbackResponse = true;
+                        quotaLimited = true;
+                        lastTransportError = null;
+                        lastFallbackResponse?.Dispose();
+                        lastFallbackResponse = response;
+
+                        _logger.LogWarning(
+                            "Gemini model {Model} hit HTTP 429 quota/rate limit; switching to another free-tier model.",
+                            candidate.Model ?? "unknown");
+
+                        // Never retry a 429 against the same model. Free-tier quotas are
+                        // model/project scoped and repeating the request only makes it worse.
+                        break;
+                    }
+
                     if (!IsTransient(response.StatusCode))
                     {
                         if (candidate.Model is not null)
                             UnavailableModels.TryRemove(candidate.Model, out _);
 
-                        lastTransientResponse?.Dispose();
+                        lastFallbackResponse?.Dispose();
 
                         if (candidateIndex > 0 && candidate.Model is not null)
                         {
@@ -87,19 +107,19 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                         return response;
                     }
 
-                    modelHadTransientResponse = true;
+                    modelHadFallbackResponse = true;
                     lastTransportError = null;
-                    lastTransientResponse?.Dispose();
-                    lastTransientResponse = response;
+                    lastFallbackResponse?.Dispose();
+                    lastFallbackResponse = response;
 
                     _logger.LogWarning(
                         "Gemini model {Model} returned transient HTTP {StatusCode} on attempt {Attempt}/{MaxAttempts}.",
                         candidate.Model ?? "unknown",
                         (int)response.StatusCode,
                         attempt,
-                        MaxAttemptsPerModel);
+                        MaxTransientAttemptsPerModel);
 
-                    if (attempt < MaxAttemptsPerModel)
+                    if (attempt < MaxTransientAttemptsPerModel)
                     {
                         await Task.Delay(
                             GetRetryDelay(attempt),
@@ -114,9 +134,9 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                         "Gemini transport request failed for model {Model} on attempt {Attempt}/{MaxAttempts}.",
                         candidate.Model ?? "unknown",
                         attempt,
-                        MaxAttemptsPerModel);
+                        MaxTransientAttemptsPerModel);
 
-                    if (attempt < MaxAttemptsPerModel)
+                    if (attempt < MaxTransientAttemptsPerModel)
                     {
                         await Task.Delay(
                             GetRetryDelay(attempt),
@@ -135,9 +155,9 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                         "Gemini request timed out for model {Model} on attempt {Attempt}/{MaxAttempts}.",
                         candidate.Model ?? "unknown",
                         attempt,
-                        MaxAttemptsPerModel);
+                        MaxTransientAttemptsPerModel);
 
-                    if (attempt < MaxAttemptsPerModel)
+                    if (attempt < MaxTransientAttemptsPerModel)
                     {
                         await Task.Delay(
                             GetRetryDelay(attempt),
@@ -149,28 +169,28 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                 }
             }
 
-            if (modelHadTransientResponse && candidate.Model is not null)
+            if (modelHadFallbackResponse && candidate.Model is not null)
             {
-                UnavailableModels[candidate.Model] = DateTimeOffset.UtcNow.Add(ModelCooldown);
+                UnavailableModels[candidate.Model] = DateTimeOffset.UtcNow.Add(
+                    quotaLimited ? QuotaModelCooldown : TransientModelCooldown);
 
                 if (candidateIndex + 1 < candidatesToTry.Count)
                 {
                     _logger.LogWarning(
-                        "Gemini model {Model} is temporarily unavailable; switching to fallback model {FallbackModel}.",
+                        "Gemini model {Model} is unavailable for this request; switching to fallback model {FallbackModel}.",
                         candidate.Model,
                         candidatesToTry[candidateIndex + 1].Model ?? "unknown");
                 }
             }
 
-            // A pure network/DNS failure is not model-specific, so trying another model URL
-            // would only duplicate traffic. Provider 5xx/408 responses, however, are eligible
-            // for model fallback.
-            if (!modelHadTransientResponse && lastTransportError is not null)
+            // A pure network/DNS failure is not model-specific. Trying another model URL
+            // would duplicate traffic without fixing the transport problem.
+            if (!modelHadFallbackResponse && lastTransportError is not null)
                 break;
         }
 
-        if (lastTransientResponse is not null)
-            return lastTransientResponse;
+        if (lastFallbackResponse is not null)
+            return lastFallbackResponse;
 
         throw new InvalidOperationException(
             "Máy chủ nhà hàng không kết nối ổn định được tới Gemini API sau nhiều lần thử. "
@@ -241,16 +261,13 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 
         var models = new List<string> { model };
 
-        if (model.Equals("gemini-3.7-flash", StringComparison.OrdinalIgnoreCase)
-            || model.Equals("gemini-flash-latest", StringComparison.OrdinalIgnoreCase))
-        {
-            models.Add("gemini-3.6-flash");
-            models.Add("gemini-3.5-flash");
-        }
-        else if (model.Equals("gemini-3.6-flash", StringComparison.OrdinalIgnoreCase))
-        {
-            models.Add("gemini-3.5-flash");
-        }
+        // Flash-Lite is the right safety net for this restaurant assistant: Google exposes
+        // a Free Tier for these stable models and both support function calling.
+        if (!model.Equals("gemini-3.5-flash-lite", StringComparison.OrdinalIgnoreCase))
+            models.Add("gemini-3.5-flash-lite");
+
+        if (!model.Equals("gemini-3.1-flash-lite", StringComparison.OrdinalIgnoreCase))
+            models.Add("gemini-3.1-flash-lite");
 
         return models
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -404,7 +421,7 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                 request.Method,
                 request.RequestUri,
                 request.Version,
-                request.VersionPolicy,
+                request.RequestPolicy,
                 headers,
                 contentHeaders,
                 normalizedContent);
