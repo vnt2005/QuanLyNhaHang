@@ -58,10 +58,12 @@ public static class DependencyInjection
                 ?? "gemini-3.7-flash";
         });
 
+        services.AddTransient<GeminiRequestNormalizationHandler>();
         services.AddHttpClient<IAiAssistantService, GeminiAiAssistantService>(client =>
         {
             client.Timeout = TimeSpan.FromSeconds(45);
-        });
+        })
+        .AddHttpMessageHandler<GeminiRequestNormalizationHandler>();
 
         return services;
     }
