@@ -22,38 +22,62 @@ jobs:
       - name: Apply exact SQL Server mapping
         shell: python
         run: |
+          import re
           from pathlib import Path
 
           snapshot = Path("QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs")
           snapshot_text = snapshot.read_text(encoding="utf-8-sig")
-          old_snapshot = '''                    b.Property<string>("AiAssistantSystemPrompt")
-                        .HasMaxLength(8000)
-                        .HasColumnType("nvarchar(8000)");'''
-          new_snapshot = '''                    b.Property<string>("AiAssistantSystemPrompt")
-                        .HasMaxLength(8000)
-                        .HasColumnType("nvarchar(max)");'''
-          if old_snapshot not in snapshot_text and new_snapshot not in snapshot_text:
-              raise SystemExit("AiAssistantSystemPrompt snapshot mapping not found")
-          snapshot.write_text(snapshot_text.replace(old_snapshot, new_snapshot, 1), encoding="utf-8-sig")
+          snapshot_pattern = re.compile(
+              r'(b\.Property<string>\("AiAssistantSystemPrompt"\)\s*'
+              r'\.HasMaxLength\(8000\)\s*'
+              r'\.HasColumnType\(")nvarchar\(8000\)("\);)'
+          )
+          snapshot_text, snapshot_count = snapshot_pattern.subn(
+              r'\1nvarchar(max)\2', snapshot_text, count=1
+          )
+          if snapshot_count == 0:
+              already_fixed = re.search(
+                  r'b\.Property<string>\("AiAssistantSystemPrompt"\)\s*'
+                  r'\.HasMaxLength\(8000\)\s*'
+                  r'\.HasColumnType\("nvarchar\(max\)"\);',
+                  snapshot_text,
+              )
+              if not already_fixed:
+                  raise SystemExit("AiAssistantSystemPrompt snapshot mapping not found")
+          snapshot.write_text(snapshot_text, encoding="utf-8-sig")
 
           migration = Path("QuanLyNhaHang.Infrastructure/Migrations/20260901111000_AddCustomerAiAssistant.cs")
           migration_text = migration.read_text(encoding="utf-8-sig")
           old_sql = "ADD AiAssistantSystemPrompt nvarchar(8000) NULL;"
           new_sql = "ADD AiAssistantSystemPrompt nvarchar(max) NULL;"
-          if old_sql not in migration_text and new_sql not in migration_text:
+          if old_sql in migration_text:
+              migration_text = migration_text.replace(old_sql, new_sql, 1)
+          elif new_sql not in migration_text:
               raise SystemExit("AiAssistantSystemPrompt migration SQL not found")
-          migration.write_text(migration_text.replace(old_sql, new_sql, 1), encoding="utf-8-sig")
+          migration.write_text(migration_text, encoding="utf-8-sig")
 
           configuration = Path("QuanLyNhaHang.Infrastructure/Configurations/RestaurantSettingConfiguration.cs")
           configuration_text = configuration.read_text(encoding="utf-8-sig")
-          old_config = '''        builder.Property(x => x.AiAssistantSystemPrompt)
-            .HasMaxLength(8000);'''
-          new_config = '''        builder.Property(x => x.AiAssistantSystemPrompt)
-            .HasMaxLength(8000)
-            .HasColumnType("nvarchar(max)");'''
-          if old_config not in configuration_text and new_config not in configuration_text:
-              raise SystemExit("AiAssistantSystemPrompt configuration mapping not found")
-          configuration.write_text(configuration_text.replace(old_config, new_config, 1), encoding="utf-8-sig")
+          config_pattern = re.compile(
+              r'(builder\.Property\(x => x\.AiAssistantSystemPrompt\)\s*'
+              r'\.HasMaxLength\(8000\))(;)',
+              re.MULTILINE,
+          )
+          configuration_text, config_count = config_pattern.subn(
+              r'\1\n            .HasColumnType("nvarchar(max)")\2',
+              configuration_text,
+              count=1,
+          )
+          if config_count == 0:
+              already_fixed = re.search(
+                  r'builder\.Property\(x => x\.AiAssistantSystemPrompt\)\s*'
+                  r'\.HasMaxLength\(8000\)\s*'
+                  r'\.HasColumnType\("nvarchar\(max\)"\);',
+                  configuration_text,
+              )
+              if not already_fixed:
+                  raise SystemExit("AiAssistantSystemPrompt configuration mapping not found")
+          configuration.write_text(configuration_text, encoding="utf-8-sig")
 
       - name: Set up .NET 10
         uses: actions/setup-dotnet@v6
