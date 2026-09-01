@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -8,18 +9,22 @@ namespace QuanLyNhaHang.Infrastructure.AI;
 
 /// <summary>
 /// Normalizes outbound Gemini generateContent requests before they leave the API process.
-/// Gemini rejects (and on some model versions may surface as 5xx for) parameterless
-/// function declarations that are sent as { type: object, properties: {} }.
-/// The API contract allows FunctionDeclaration.parameters to be omitted entirely when
-/// a function does not accept arguments, so we remove only those empty schemas.
+/// Parameterless function declarations are sent without an empty parameters schema because
+/// FunctionDeclaration.parameters is optional when a tool does not accept arguments.
 ///
-/// The handler also retries transient Gemini 5xx/408 responses a small number of times.
-/// It never retries 4xx validation/auth/quota responses because those require an explicit
-/// configuration fix instead of more provider traffic.
+/// The handler also protects the customer/admin chat from transient Gemini capacity outages.
+/// It retries retryable responses with exponential backoff and, when Gemini 3.7 Flash stays
+/// unavailable, automatically falls back to the stable 3.6/3.5 Flash models. A short circuit
+/// breaker keeps later tool rounds on the working fallback instead of repeatedly hitting a
+/// model that is already known to be unavailable.
 /// </summary>
 internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 {
-    private const int MaxAttempts = 3;
+    private const int MaxAttemptsPerModel = 2;
+    private static readonly TimeSpan ModelCooldown = TimeSpan.FromMinutes(5);
+
+    private static readonly ConcurrentDictionary<string, DateTimeOffset>
+        UnavailableModels = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly ILogger<GeminiRequestNormalizationHandler> _logger;
 
@@ -37,72 +42,135 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
             request,
             cancellationToken);
 
+        var candidates = BuildModelCandidates(template.RequestUri);
+        var candidatesToTry = candidates
+            .Where(candidate => candidate.Model is null || !IsCoolingDown(candidate.Model))
+            .ToList();
+
+        // If every known model is cooling down, still probe the last fallback instead of
+        // failing locally without contacting Gemini. This also lets the circuit recover early.
+        if (candidatesToTry.Count == 0 && candidates.Count > 0)
+            candidatesToTry.Add(candidates[^1]);
+
         Exception? lastTransportError = null;
+        HttpResponseMessage? lastTransientResponse = null;
 
-        for (var attempt = 1; attempt <= MaxAttempts; attempt++)
+        for (var candidateIndex = 0; candidateIndex < candidatesToTry.Count; candidateIndex++)
         {
-            using var outboundRequest = template.CreateRequest();
+            var candidate = candidatesToTry[candidateIndex];
+            var modelHadTransientResponse = false;
 
-            try
+            for (var attempt = 1; attempt <= MaxAttemptsPerModel; attempt++)
             {
-                var response = await base.SendAsync(
-                    outboundRequest,
-                    cancellationToken);
+                using var outboundRequest = template.CreateRequest(candidate.RequestUri);
 
-                if (!IsTransient(response.StatusCode))
-                    return response;
-
-                if (attempt == MaxAttempts)
+                try
                 {
-                    var statusCode = (int)response.StatusCode;
-                    response.Dispose();
-                    throw new InvalidOperationException(
-                        $"Gemini API đang lỗi tạm thời (HTTP {statusCode}) sau {MaxAttempts} lần thử. "
-                        + "Vui lòng thử lại sau ít phút.");
+                    var response = await base.SendAsync(
+                        outboundRequest,
+                        cancellationToken);
+
+                    if (!IsTransient(response.StatusCode))
+                    {
+                        if (candidate.Model is not null)
+                            UnavailableModels.TryRemove(candidate.Model, out _);
+
+                        lastTransientResponse?.Dispose();
+
+                        if (candidateIndex > 0 && candidate.Model is not null)
+                        {
+                            _logger.LogInformation(
+                                "Gemini request recovered by fallback model {Model}.",
+                                candidate.Model);
+                        }
+
+                        return response;
+                    }
+
+                    modelHadTransientResponse = true;
+                    lastTransportError = null;
+                    lastTransientResponse?.Dispose();
+                    lastTransientResponse = response;
+
+                    _logger.LogWarning(
+                        "Gemini model {Model} returned transient HTTP {StatusCode} on attempt {Attempt}/{MaxAttempts}.",
+                        candidate.Model ?? "unknown",
+                        (int)response.StatusCode,
+                        attempt,
+                        MaxAttemptsPerModel);
+
+                    if (attempt < MaxAttemptsPerModel)
+                    {
+                        await Task.Delay(
+                            GetRetryDelay(attempt),
+                            cancellationToken);
+                    }
                 }
+                catch (HttpRequestException exception)
+                {
+                    lastTransportError = exception;
+                    _logger.LogWarning(
+                        exception,
+                        "Gemini transport request failed for model {Model} on attempt {Attempt}/{MaxAttempts}.",
+                        candidate.Model ?? "unknown",
+                        attempt,
+                        MaxAttemptsPerModel);
 
-                _logger.LogWarning(
-                    "Gemini returned transient HTTP {StatusCode}; retrying attempt {NextAttempt}/{MaxAttempts}.",
-                    (int)response.StatusCode,
-                    attempt + 1,
-                    MaxAttempts);
+                    if (attempt < MaxAttemptsPerModel)
+                    {
+                        await Task.Delay(
+                            GetRetryDelay(attempt),
+                            cancellationToken);
+                        continue;
+                    }
 
-                response.Dispose();
-                await Task.Delay(GetRetryDelay(attempt), cancellationToken);
+                    break;
+                }
+                catch (TaskCanceledException exception)
+                    when (!cancellationToken.IsCancellationRequested)
+                {
+                    lastTransportError = exception;
+                    _logger.LogWarning(
+                        exception,
+                        "Gemini request timed out for model {Model} on attempt {Attempt}/{MaxAttempts}.",
+                        candidate.Model ?? "unknown",
+                        attempt,
+                        MaxAttemptsPerModel);
+
+                    if (attempt < MaxAttemptsPerModel)
+                    {
+                        await Task.Delay(
+                            GetRetryDelay(attempt),
+                            cancellationToken);
+                        continue;
+                    }
+
+                    break;
+                }
             }
-            catch (HttpRequestException exception) when (attempt < MaxAttempts)
+
+            if (modelHadTransientResponse && candidate.Model is not null)
             {
-                lastTransportError = exception;
-                _logger.LogWarning(
-                    exception,
-                    "Gemini transport request failed; retrying attempt {NextAttempt}/{MaxAttempts}.",
-                    attempt + 1,
-                    MaxAttempts);
-                await Task.Delay(GetRetryDelay(attempt), cancellationToken);
+                UnavailableModels[candidate.Model] = DateTimeOffset.UtcNow.Add(ModelCooldown);
+
+                if (candidateIndex + 1 < candidatesToTry.Count)
+                {
+                    _logger.LogWarning(
+                        "Gemini model {Model} is temporarily unavailable; switching to fallback model {FallbackModel}.",
+                        candidate.Model,
+                        candidatesToTry[candidateIndex + 1].Model ?? "unknown");
+                }
             }
-            catch (TaskCanceledException exception)
-                when (!cancellationToken.IsCancellationRequested && attempt < MaxAttempts)
-            {
-                lastTransportError = exception;
-                _logger.LogWarning(
-                    exception,
-                    "Gemini request timed out; retrying attempt {NextAttempt}/{MaxAttempts}.",
-                    attempt + 1,
-                    MaxAttempts);
-                await Task.Delay(GetRetryDelay(attempt), cancellationToken);
-            }
-            catch (HttpRequestException exception)
-            {
-                lastTransportError = exception;
+
+            // A pure network/DNS failure is not model-specific, so trying another model URL
+            // would only duplicate traffic. Provider 5xx/408 responses, however, are eligible
+            // for model fallback.
+            if (!modelHadTransientResponse && lastTransportError is not null)
                 break;
-            }
-            catch (TaskCanceledException exception)
-                when (!cancellationToken.IsCancellationRequested)
-            {
-                lastTransportError = exception;
-                break;
-            }
         }
+
+        if (lastTransientResponse is not null)
+            return lastTransientResponse;
 
         throw new InvalidOperationException(
             "Máy chủ nhà hàng không kết nối ổn định được tới Gemini API sau nhiều lần thử. "
@@ -151,8 +219,6 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                 if (parameters["properties"] is JsonObject properties
                     && properties.Count == 0)
                 {
-                    // FunctionDeclaration.parameters is optional in Gemini API.
-                    // Omitting it is the correct representation for a no-argument tool.
                     declaration.Remove("parameters");
                     changed = true;
                 }
@@ -168,6 +234,91 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
             : json;
     }
 
+    private static IReadOnlyList<ModelCandidate> BuildModelCandidates(Uri? requestUri)
+    {
+        if (requestUri is null || !TryGetModelName(requestUri, out var model))
+            return [new ModelCandidate(null, requestUri)];
+
+        var models = new List<string> { model };
+
+        if (model.Equals("gemini-3.7-flash", StringComparison.OrdinalIgnoreCase)
+            || model.Equals("gemini-flash-latest", StringComparison.OrdinalIgnoreCase))
+        {
+            models.Add("gemini-3.6-flash");
+            models.Add("gemini-3.5-flash");
+        }
+        else if (model.Equals("gemini-3.6-flash", StringComparison.OrdinalIgnoreCase))
+        {
+            models.Add("gemini-3.5-flash");
+        }
+
+        return models
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(candidateModel => new ModelCandidate(
+                candidateModel,
+                ReplaceModel(requestUri, candidateModel)))
+            .ToList();
+    }
+
+    private static bool TryGetModelName(Uri requestUri, out string model)
+    {
+        const string marker = "/models/";
+        var path = requestUri.AbsolutePath;
+        var markerIndex = path.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (markerIndex < 0)
+        {
+            model = string.Empty;
+            return false;
+        }
+
+        var modelStart = markerIndex + marker.Length;
+        var modelEnd = path.IndexOf(':', modelStart);
+        if (modelEnd <= modelStart)
+        {
+            model = string.Empty;
+            return false;
+        }
+
+        model = Uri.UnescapeDataString(path[modelStart..modelEnd]);
+        return !string.IsNullOrWhiteSpace(model);
+    }
+
+    private static Uri ReplaceModel(Uri requestUri, string model)
+    {
+        const string marker = "/models/";
+        var path = requestUri.AbsolutePath;
+        var markerIndex = path.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (markerIndex < 0)
+            return requestUri;
+
+        var modelStart = markerIndex + marker.Length;
+        var modelEnd = path.IndexOf(':', modelStart);
+        if (modelEnd <= modelStart)
+            return requestUri;
+
+        var builder = new UriBuilder(requestUri)
+        {
+            Path = string.Concat(
+                path.AsSpan(0, modelStart),
+                model,
+                path.AsSpan(modelEnd))
+        };
+
+        return builder.Uri;
+    }
+
+    private static bool IsCoolingDown(string model)
+    {
+        if (!UnavailableModels.TryGetValue(model, out var unavailableUntil))
+            return false;
+
+        if (unavailableUntil > DateTimeOffset.UtcNow)
+            return true;
+
+        UnavailableModels.TryRemove(model, out _);
+        return false;
+    }
+
     private static bool IsTransient(HttpStatusCode statusCode)
     {
         var numeric = (int)statusCode;
@@ -177,12 +328,17 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 
     private static TimeSpan GetRetryDelay(int attempt)
     {
-        return attempt switch
+        var baseMilliseconds = attempt switch
         {
-            1 => TimeSpan.FromMilliseconds(350),
-            _ => TimeSpan.FromMilliseconds(900)
+            1 => 1_000,
+            _ => 2_000
         };
+
+        return TimeSpan.FromMilliseconds(
+            baseMilliseconds + Random.Shared.Next(100, 400));
     }
+
+    private sealed record ModelCandidate(string? Model, Uri? RequestUri);
 
     private sealed class GeminiRequestTemplate
     {
@@ -211,6 +367,8 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
             _contentHeaders = contentHeaders;
             _content = content;
         }
+
+        public Uri? RequestUri => _requestUri;
 
         public static async Task<GeminiRequestTemplate> CreateAsync(
             HttpRequestMessage request,
@@ -252,9 +410,11 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                 normalizedContent);
         }
 
-        public HttpRequestMessage CreateRequest()
+        public HttpRequestMessage CreateRequest(Uri? requestUri = null)
         {
-            var request = new HttpRequestMessage(_method, _requestUri)
+            var request = new HttpRequestMessage(
+                _method,
+                requestUri ?? _requestUri)
             {
                 Version = _version,
                 VersionPolicy = _versionPolicy
