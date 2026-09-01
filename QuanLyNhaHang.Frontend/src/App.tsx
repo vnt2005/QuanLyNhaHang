@@ -10,6 +10,8 @@ import NotificationCenter from './components/NotificationCenter'
 const loadAccessManagementPage = () => import('./pages/AccessManagementPage')
 const loadAccountSecurityPage = () => import('./pages/AccountSecurityPage')
 const loadActivityLogsPage = () => import('./pages/ActivityLogsPage')
+const loadAiAssistantManagementPage = () =>
+  import('./pages/AiAssistantManagementPage')
 const loadAreasTablesPage = () => import('./pages/AreasTablesPage')
 const loadCustomerManagementPage = () =>
   import('./pages/CustomerManagementPage')
@@ -31,6 +33,7 @@ const loadTableQrCodesPage = () => import('./pages/TableQrCodesPage')
 const AccessManagementPage = lazy(loadAccessManagementPage)
 const AccountSecurityPage = lazy(loadAccountSecurityPage)
 const ActivityLogsPage = lazy(loadActivityLogsPage)
+const AiAssistantManagementPage = lazy(loadAiAssistantManagementPage)
 const AreasTablesPage = lazy(loadAreasTablesPage)
 const CustomerManagementPage = lazy(loadCustomerManagementPage)
 const DashboardPage = lazy(loadDashboardPage)
@@ -178,6 +181,13 @@ const navigation: NavigationItem[] = [
     section: 'Hệ thống',
     icon: '◈',
     preload: loadAccountSecurityPage,
+  },
+  {
+    label: 'Trợ lý AI',
+    section: 'Hệ thống',
+    icon: 'AI',
+    permissions: ['RestaurantSettings.Manage'],
+    preload: loadAiAssistantManagementPage,
   },
   {
     label: 'Cấu hình nhà hàng',
@@ -368,6 +378,8 @@ function AdminConsole() {
             onRequireLogin={clearSession}
           />
         )
+      case 'Trợ lý AI':
+        return <AiAssistantManagementPage />
       case 'Cấu hình nhà hàng':
         return <RestaurantSettingsPage />
       default:
