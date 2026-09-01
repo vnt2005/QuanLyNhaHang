@@ -61,11 +61,11 @@
 .sera-header.is-scrolled {
   border-bottom-color: color-mix(in srgb, var(--sera-line) 92%, transparent);
   background: color-mix(in srgb, var(--sera-paper) 98%, transparent);
-  box-shadow: 0 12px 32px rgba(36, 31, 27, .07);
+  box-shadow: 0 12px 32px rgb(var(--sera-shadow-rgb) / .09);
 }
 
 .customer-site.is-scrolling-up .sera-header.is-scrolled {
-  box-shadow: 0 16px 38px rgba(36, 31, 27, .10);
+  box-shadow: 0 16px 38px rgb(var(--sera-shadow-rgb) / .13);
 }
 
 .sera-nav a::after {
@@ -141,7 +141,7 @@ a.motion-interactive:focus-visible,
 button.motion-interactive:focus-visible,
 [role="button"].motion-interactive:focus-visible,
 [data-slot="tabs-trigger"].motion-interactive:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--sera-accent) 72%, white);
+  outline: 2px solid color-mix(in srgb, var(--sera-accent) 72%, var(--sera-paper));
   outline-offset: 3px;
 }
 
@@ -157,7 +157,7 @@ button.motion-interactive:focus-visible,
 
 [data-slot="button"]:not(:disabled):hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(36, 31, 27, .10) !important;
+  box-shadow: 0 8px 22px rgb(var(--sera-shadow-rgb) / .14) !important;
 }
 
 [data-slot="button"]:not(:disabled):active {
@@ -362,9 +362,9 @@ button.motion-interactive:focus-visible,
 }
 
 @keyframes sera-interaction-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(155, 75, 47, .24); }
-  55% { box-shadow: 0 0 0 7px rgba(155, 75, 47, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(155, 75, 47, 0); }
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sera-accent) 24%, transparent); }
+  55% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
 }
 
 @keyframes sera-mobile-nav-enter {

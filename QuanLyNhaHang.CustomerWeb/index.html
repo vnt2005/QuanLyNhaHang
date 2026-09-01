@@ -3,7 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#124d35" />
+    <meta name="theme-color" content="#fdfcf9" />
+    <script>
+      (() => {
+        const storageKey = 'qlnh-customer-theme'
+        let theme = null
+        try { theme = window.localStorage.getItem(storageKey) } catch { /* Storage can be blocked. */ }
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        const root = document.documentElement
+        root.classList.toggle('dark', theme === 'dark')
+        root.dataset.theme = theme
+        root.style.colorScheme = theme
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#171411' : '#fdfcf9')
+      })()
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta
       name="description"

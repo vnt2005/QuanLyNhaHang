@@ -21,7 +21,7 @@
   .customer-site [data-slot="popover-trigger"].motion-interactive:hover {
     filter: brightness(.985) saturate(1.06);
     transform: translate3d(0, -4px, 0) scale(1.018) !important;
-    box-shadow: 0 14px 30px rgba(36, 31, 27, .14) !important;
+    box-shadow: 0 14px 30px rgb(var(--sera-shadow-rgb) / .14) !important;
   }
 
   /* Navigation should feel alive without drawing a card shadow around each label. */
@@ -64,9 +64,9 @@
     position: relative;
     z-index: 2;
     border-color: color-mix(in srgb, var(--sera-accent) 45%, var(--sera-line)) !important;
-    background: color-mix(in srgb, var(--sera-wash) 82%, white) !important;
+    background: color-mix(in srgb, var(--sera-wash) 82%, var(--sera-paper)) !important;
     transform: translate3d(8px, -5px, 0) scale(1.012) !important;
-    box-shadow: 0 18px 38px rgba(36, 31, 27, .13) !important;
+    box-shadow: 0 18px 38px rgb(var(--sera-shadow-rgb) / .18) !important;
   }
 
   .customer-site .sera-dish-row.motion-interactive:hover img,
@@ -98,7 +98,7 @@
     border-color: color-mix(in srgb, var(--sera-accent) 48%, var(--sera-line)) !important;
     background: color-mix(in srgb, var(--sera-wash) 58%, var(--sera-paper)) !important;
     transform: translate3d(0, -5px, 0);
-    box-shadow: 0 16px 34px rgba(36, 31, 27, .11);
+    box-shadow: 0 16px 34px rgb(var(--sera-shadow-rgb) / .16);
   }
 
   /* Inputs now react on hover before focus, then become stronger on focus. */

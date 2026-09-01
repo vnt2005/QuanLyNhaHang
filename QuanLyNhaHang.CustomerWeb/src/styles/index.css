@@ -9,6 +9,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  color-scheme: light;
   --background: #fdfcf9;
   --foreground: #241f1b;
   --card: #ffffff;
@@ -28,6 +29,28 @@
   --input: #d8d1ca;
   --ring: #9b4b2f;
   --radius: 0.25rem;
+}
+
+:root.dark {
+  color-scheme: dark;
+  --background: #171411;
+  --foreground: #f4eee8;
+  --card: #211d19;
+  --card-foreground: #f4eee8;
+  --popover: #211d19;
+  --popover-foreground: #f4eee8;
+  --primary: #ead8cc;
+  --primary-foreground: #211711;
+  --secondary: #2a2521;
+  --secondary-foreground: #f4eee8;
+  --muted: #2b2622;
+  --muted-foreground: #b9aea5;
+  --accent: #d58a68;
+  --accent-foreground: #21130d;
+  --destructive: #ef7d73;
+  --border: #4a423b;
+  --input: #4a423b;
+  --ring: #d58a68;
 }
 
 @theme inline {
