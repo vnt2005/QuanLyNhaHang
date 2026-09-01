@@ -26,56 +26,52 @@ jobs:
           path = Path("QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs")
           text = path.read_text(encoding="utf-8-sig")
 
-          anchor = '''                    b.Property<string>("Address")
-                              .IsRequired()
-                              .HasMaxLength(500)
-                              .HasColumnType("nvarchar(500)");
+          entity_start_marker = 'modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.RestaurantSetting", b =>'
+          entity_end_marker = 'modelBuilder.Entity("QuanLyNhaHang.Domain.Entities.RestaurantTable", b =>'
+          start = text.index(entity_start_marker)
+          end = text.index(entity_end_marker, start)
+          section = text[start:end]
 
-                          b.Property<string>("ClosingTime")'''
+          closing_marker = '                    b.Property<string>("ClosingTime")'
+          ai_properties = '''                    b.Property<bool>("AiAssistantEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
-          replacement = '''                    b.Property<string>("Address")
-                              .IsRequired()
-                              .HasMaxLength(500)
-                              .HasColumnType("nvarchar(500)");
+                    b.Property<string>("AiAssistantKnowledgeBase")
+                        .HasColumnType("nvarchar(max)");
 
-                          b.Property<bool>("AiAssistantEnabled")
-                              .ValueGeneratedOnAdd()
-                              .HasColumnType("bit")
-                              .HasDefaultValue(false);
+                    b.Property<int>("AiAssistantMaxOutputTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(500);
 
-                          b.Property<string>("AiAssistantKnowledgeBase")
-                              .HasColumnType("nvarchar(max)");
+                    b.Property<string>("AiAssistantModel")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("gpt-5.6-luna");
 
-                          b.Property<int>("AiAssistantMaxOutputTokens")
-                              .ValueGeneratedOnAdd()
-                              .HasColumnType("int")
-                              .HasDefaultValue(500);
+                    b.Property<string>("AiAssistantSuggestedQuestions")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
-                          b.Property<string>("AiAssistantModel")
-                              .IsRequired()
-                              .ValueGeneratedOnAdd()
-                              .HasMaxLength(100)
-                              .HasColumnType("nvarchar(100)")
-                              .HasDefaultValue("gpt-5.6-luna");
+                    b.Property<string>("AiAssistantSystemPrompt")
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(8000)");
 
-                          b.Property<string>("AiAssistantSuggestedQuestions")
-                              .HasMaxLength(4000)
-                              .HasColumnType("nvarchar(4000)");
+                    b.Property<string>("AiAssistantWelcomeMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
-                          b.Property<string>("AiAssistantSystemPrompt")
-                              .HasMaxLength(8000)
-                              .HasColumnType("nvarchar(8000)");
+'''
 
-                          b.Property<string>("AiAssistantWelcomeMessage")
-                              .HasMaxLength(1000)
-                              .HasColumnType("nvarchar(1000)");
-
-                          b.Property<string>("ClosingTime")'''
-
-          if "AiAssistantEnabled" not in text:
-              if anchor not in text:
-                  raise SystemExit("RestaurantSetting snapshot anchor not found")
-              text = text.replace(anchor, replacement, 1)
+          if 'b.Property<bool>("AiAssistantEnabled")' not in section:
+              if closing_marker not in section:
+                  raise SystemExit("RestaurantSetting ClosingTime marker not found")
+              section = section.replace(closing_marker, ai_properties + closing_marker, 1)
+              text = text[:start] + section + text[end:]
               path.write_text(text, encoding="utf-8-sig")
 
           temporary_partial = Path(
@@ -100,7 +96,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs
-          git add -A QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.AiAssistant.cs
+          git add -A QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.AiAssistant.cs
           git commit -m "fix: update EF snapshot for AI settings"
           git push origin HEAD:feat/customer-ai-assistant-admin
