@@ -1,3 +1,4 @@
+import { getCustomerAccessToken } from './customerAuth'
 import { apiRequest } from './client'
 
 export type AiAssistantPublicConfig = {
@@ -10,6 +11,7 @@ export type AiAssistantPublicConfig = {
 export type AiAssistantMessage = {
   role: 'user' | 'assistant'
   content: string
+  sources?: string[]
 }
 
 export type AiAssistantChatResponse = {
@@ -19,6 +21,7 @@ export type AiAssistantChatResponse = {
   inputTokens: number
   outputTokens: number
   providerRequestId?: string | null
+  dataSources: string[]
 }
 
 export function getAiAssistantPublicConfig() {
@@ -29,8 +32,15 @@ export function sendAiAssistantMessage(
   message: string,
   history: AiAssistantMessage[],
 ) {
-  return apiRequest<AiAssistantChatResponse>('/api/ai-assistant/chat', {
-    method: 'POST',
-    body: JSON.stringify({ message, history }),
-  })
+  return apiRequest<AiAssistantChatResponse>(
+    '/api/ai-assistant/chat',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        history: history.map(({ role, content }) => ({ role, content })),
+      }),
+    },
+    getCustomerAccessToken(),
+  )
 }
