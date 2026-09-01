@@ -49,8 +49,6 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
             .Where(candidate => candidate.Model is null || !IsCoolingDown(candidate.Model))
             .ToList();
 
-        // If every known model is cooling down, probe the last free-tier fallback once so
-        // the circuit can recover without making the caller wait for every cooldown to expire.
         if (candidatesToTry.Count == 0 && candidates.Count > 0)
             candidatesToTry.Add(candidates[^1]);
 
@@ -85,8 +83,6 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                             "Gemini model {Model} hit HTTP 429 quota/rate limit; switching to another free-tier model.",
                             candidate.Model ?? "unknown");
 
-                        // Never retry a 429 against the same model. Free-tier quotas are
-                        // model/project scoped and repeating the request only makes it worse.
                         break;
                     }
 
@@ -183,8 +179,6 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                 }
             }
 
-            // A pure network/DNS failure is not model-specific. Trying another model URL
-            // would duplicate traffic without fixing the transport problem.
             if (!modelHadFallbackResponse && lastTransportError is not null)
                 break;
         }
@@ -261,8 +255,6 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 
         var models = new List<string> { model };
 
-        // Flash-Lite is the right safety net for this restaurant assistant: Google exposes
-        // a Free Tier for these stable models and both support function calling.
         if (!model.Equals("gemini-3.5-flash-lite", StringComparison.OrdinalIgnoreCase))
             models.Add("gemini-3.5-flash-lite");
 
@@ -421,7 +413,7 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
                 request.Method,
                 request.RequestUri,
                 request.Version,
-                request.RequestPolicy,
+                request.VersionPolicy,
                 headers,
                 contentHeaders,
                 normalizedContent);
