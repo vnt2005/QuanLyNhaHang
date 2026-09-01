@@ -1,13 +1,6 @@
 name: Frontend CI
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'QuanLyNhaHang.Frontend/**'
-      - 'QuanLyNhaHang.CustomerWeb/**'
-      - '.github/workflows/frontend-ci.yml'
   pull_request:
     branches:
       - main
@@ -26,37 +19,98 @@ concurrency:
 
 jobs:
   build:
-    name: Install, audit and build (${{ matrix.project }})
+    name: Build changed frontend
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
-          - QuanLyNhaHang.Frontend
-          - QuanLyNhaHang.CustomerWeb
-
-    defaults:
-      run:
-        working-directory: ${{ matrix.project }}
 
     steps:
       - name: Checkout source
         uses: actions/checkout@v7
 
+      - name: Detect changed frontend projects
+        id: changes
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          admin=false
+          customer=false
+          admin_dependencies=false
+          customer_dependencies=false
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            admin=true
+            customer=true
+            admin_dependencies=true
+            customer_dependencies=true
+          else
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            changed_files="$(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")"
+
+            if grep -qE '^QuanLyNhaHang\.Frontend/' <<<"$changed_files"; then
+              admin=true
+            fi
+
+            if grep -qE '^QuanLyNhaHang\.CustomerWeb/' <<<"$changed_files"; then
+              customer=true
+            fi
+
+            if grep -qE '^QuanLyNhaHang\.Frontend/(package\.json|package-lock\.json)$' <<<"$changed_files"; then
+              admin_dependencies=true
+            fi
+
+            if grep -qE '^QuanLyNhaHang\.CustomerWeb/(package\.json|package-lock\.json)$' <<<"$changed_files"; then
+              customer_dependencies=true
+            fi
+
+            if grep -qE '^\.github/workflows/frontend-ci\.yml$' <<<"$changed_files"; then
+              admin=true
+              customer=true
+            fi
+          fi
+
+          echo "admin=$admin" >> "$GITHUB_OUTPUT"
+          echo "customer=$customer" >> "$GITHUB_OUTPUT"
+          echo "admin_dependencies=$admin_dependencies" >> "$GITHUB_OUTPUT"
+          echo "customer_dependencies=$customer_dependencies" >> "$GITHUB_OUTPUT"
+
       - name: Set up Node.js
+        if: steps.changes.outputs.admin == 'true' || steps.changes.outputs.customer == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: '24.x'
           cache: npm
-          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+          cache-dependency-path: |
+            QuanLyNhaHang.Frontend/package-lock.json
+            QuanLyNhaHang.CustomerWeb/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install Admin Web dependencies
+        if: steps.changes.outputs.admin == 'true'
+        working-directory: QuanLyNhaHang.Frontend
+        run: npm ci --no-audit --fund=false
 
-      - name: Audit production dependencies
+      - name: Audit Admin Web dependencies
+        if: steps.changes.outputs.admin_dependencies == 'true'
+        working-directory: QuanLyNhaHang.Frontend
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Build frontend
+      - name: Build Admin Web
+        if: steps.changes.outputs.admin == 'true'
+        working-directory: QuanLyNhaHang.Frontend
+        run: npm run build
+
+      - name: Install CustomerWeb dependencies
+        if: steps.changes.outputs.customer == 'true'
+        working-directory: QuanLyNhaHang.CustomerWeb
+        run: npm ci --no-audit --fund=false
+
+      - name: Audit CustomerWeb dependencies
+        if: steps.changes.outputs.customer_dependencies == 'true'
+        working-directory: QuanLyNhaHang.CustomerWeb
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Build CustomerWeb
+        if: steps.changes.outputs.customer == 'true'
+        working-directory: QuanLyNhaHang.CustomerWeb
         run: npm run build
