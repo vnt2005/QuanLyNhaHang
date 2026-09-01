@@ -72,7 +72,11 @@ export default function AiAssistantWidget() {
       const result = await sendAiAssistantMessage(message, history)
       setMessages((current) => [
         ...current,
-        { role: 'assistant', content: result.message },
+        {
+          role: 'assistant',
+          content: result.message,
+          sources: result.dataSources ?? [],
+        },
       ])
     } catch (exception) {
       setError(
@@ -102,7 +106,8 @@ export default function AiAssistantWidget() {
           <header className="ai-assistant-header">
             <div>
               <span className="ai-assistant-kicker">TRỢ LÝ AI</span>
-              <strong>Hỏi nhanh về nhà hàng</strong>
+              <strong>Hỏi dữ liệu nhà hàng</strong>
+              <small>Đọc dữ liệu hệ thống theo thời gian thực</small>
             </div>
             <button
               type="button"
@@ -121,16 +126,26 @@ export default function AiAssistantWidget() {
 
             {messages.map((message, index) => (
               <div
-                className={`ai-assistant-message ${message.role}`}
+                className={`ai-assistant-message-group ${message.role}`}
                 key={`${message.role}-${index}-${message.content.slice(0, 24)}`}
               >
-                {message.content}
+                <div className={`ai-assistant-message ${message.role}`}>
+                  {message.content}
+                </div>
+                {message.role === 'assistant' && message.sources?.length ? (
+                  <div className="ai-assistant-sources" aria-label="Nguồn dữ liệu hệ thống">
+                    <span>Dữ liệu:</span>
+                    {message.sources.map((source) => (
+                      <b key={source}>{source}</b>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ))}
 
             {sending ? (
               <div className="ai-assistant-message assistant ai-assistant-thinking">
-                Đang tìm câu trả lời phù hợp…
+                Đang truy vấn dữ liệu nhà hàng…
               </div>
             ) : null}
           </div>
@@ -159,7 +174,7 @@ export default function AiAssistantWidget() {
               onChange={(event) => setInput(event.target.value)}
               maxLength={MAX_MESSAGE_LENGTH}
               rows={2}
-              placeholder="Hỏi về món ăn, khuyến mãi, đặt bàn…"
+              placeholder="Hỏi món, giá, bàn, đơn hàng…"
               aria-label="Nội dung hỏi trợ lý AI"
               disabled={sending}
               onKeyDown={(event) => {
@@ -175,7 +190,7 @@ export default function AiAssistantWidget() {
           </form>
 
           <small className="ai-assistant-privacy">
-            AI có thể nhầm. Không nhập mật khẩu, thông tin thanh toán hoặc dữ liệu nhạy cảm.
+            Khi đăng nhập, AI chỉ được đọc đơn và thông báo của chính tài khoản đó. Không nhập mật khẩu hoặc thông tin thanh toán nhạy cảm.
           </small>
         </section>
       ) : null}
