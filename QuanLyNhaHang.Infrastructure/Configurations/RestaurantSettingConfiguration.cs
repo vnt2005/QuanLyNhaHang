@@ -62,6 +62,31 @@ public class RestaurantSettingConfiguration : IEntityTypeConfiguration<Restauran
         builder.Property(x => x.QrOrderWelcomeMessage)
             .HasMaxLength(1000);
 
+        builder.Property(x => x.AiAssistantEnabled)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(x => x.AiAssistantModel)
+            .IsRequired()
+            .HasMaxLength(100)
+            .HasDefaultValue("gpt-5.6-luna");
+
+        builder.Property(x => x.AiAssistantWelcomeMessage)
+            .HasMaxLength(1000);
+
+        builder.Property(x => x.AiAssistantSystemPrompt)
+            .HasMaxLength(8000);
+
+        builder.Property(x => x.AiAssistantKnowledgeBase)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(x => x.AiAssistantSuggestedQuestions)
+            .HasMaxLength(4000);
+
+        builder.Property(x => x.AiAssistantMaxOutputTokens)
+            .IsRequired()
+            .HasDefaultValue(500);
+
         builder.Property(x => x.IsActive)
             .IsRequired();
 
