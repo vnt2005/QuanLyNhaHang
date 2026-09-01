@@ -98,6 +98,8 @@ Có thể dùng cấu hình `OpenAI:ApiKey` ở secret store phù hợp của m�
 
 Migration `20260901111000_AddCustomerAiAssistant` thêm các trường cấu hình AI vào `RestaurantSettings`. Với local Docker hiện tại, `Database__ApplyMigrationsOnStartup=true` nên API áp dụng migration khi khởi động theo cơ chế sẵn có của dự án.
 
+Migration AI dùng các guard `COL_LENGTH` để có thể tiếp tục an toàn nếu local SQL Server volume từng bị dừng giữa lúc cập nhật schema. CI cũng kiểm tra `dotnet ef migrations has-pending-model-changes` và khởi động thật `database + api` với startup migration bật; vì vậy thay đổi model/snapshot hoặc migration khiến API unhealthy sẽ bị chặn ngay trên PR thay vì chỉ phát hiện trên máy local.
+
 Với production, vẫn tuân thủ quy trình backup/preflight/migration hiện có của dự án trước khi deploy.
 
 ## Model mặc định
@@ -118,6 +120,8 @@ Model mặc định là `gpt-5.6-luna` vì đây là model được OpenAI đị
 - Backend build + unit/integration tests xanh.
 - AdminWeb build xanh.
 - CustomerWeb build xanh.
+- EF Core không còn pending model changes so với migration snapshot.
+- API Docker khởi động healthy khi startup migration bật trên database sạch.
 - Không có `OPENAI_API_KEY` thật trong Git history hoặc frontend bundle.
 - Khi chưa cấu hình key: AdminWeb báo chưa sẵn sàng và CustomerWeb không hiện nút AI.
 - Khi có key nhưng AI đang tắt: CustomerWeb không hiện nút AI, chat API từ chối request.
