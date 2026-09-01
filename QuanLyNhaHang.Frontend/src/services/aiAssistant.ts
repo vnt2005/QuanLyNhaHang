@@ -22,6 +22,22 @@ export type UpdateAiAssistantConfig = {
   maxOutputTokens: number
 }
 
+export type AiAssistantAdminMessage = {
+  role: 'user' | 'assistant'
+  content: string
+  sources?: string[]
+}
+
+export type AiAssistantChatResponse = {
+  message: string
+  model: string
+  blocked: boolean
+  inputTokens: number
+  outputTokens: number
+  providerRequestId?: string | null
+  dataSources: string[]
+}
+
 type UpdateResponse = {
   success: boolean
   message: string
@@ -44,6 +60,7 @@ function getErrorMessage(body: unknown, status: number) {
 
   if (status === 401) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
   if (status === 403) return 'Tài khoản của bạn không có quyền quản lý trợ lý AI.'
+  if (status === 429) return 'Bạn đang hỏi AI quá nhanh. Vui lòng thử lại sau.'
   return 'Không thể kết nối tới cấu hình trợ lý AI.'
 }
 
@@ -71,5 +88,18 @@ export function updateAiAssistantAdminConfig(input: UpdateAiAssistantConfig) {
   return request<UpdateResponse>('/api/ai-assistant/admin-config', {
     method: 'PUT',
     body: JSON.stringify(input),
+  })
+}
+
+export function sendAiAssistantAdminMessage(
+  message: string,
+  history: AiAssistantAdminMessage[],
+) {
+  return request<AiAssistantChatResponse>('/api/ai-assistant/admin-chat', {
+    method: 'POST',
+    body: JSON.stringify({
+      message,
+      history: history.map(({ role, content }) => ({ role, content })),
+    }),
   })
 }
