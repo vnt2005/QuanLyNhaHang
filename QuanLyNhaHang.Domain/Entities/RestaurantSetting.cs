@@ -34,7 +34,7 @@ public class RestaurantSetting
 
     public bool AiAssistantEnabled { get; private set; }
 
-    public string AiAssistantModel { get; private set; } = "gpt-5.6-luna";
+    public string AiAssistantModel { get; private set; } = "gemini-3.7-flash";
 
     public string? AiAssistantWelcomeMessage { get; private set; }
 
@@ -90,7 +90,7 @@ public class RestaurantSetting
         SetQrOrderWelcomeMessage(qrOrderWelcomeMessage);
 
         AiAssistantEnabled = false;
-        AiAssistantModel = "gpt-5.6-luna";
+        AiAssistantModel = "gemini-3.7-flash";
         AiAssistantWelcomeMessage = "Xin chào! Tôi là trợ lý AI của nhà hàng. Tôi có thể gợi ý món, giải đáp về thực đơn, khuyến mãi và cách đặt bàn.";
         AiAssistantSystemPrompt = "Bạn là trợ lý chăm sóc khách hàng của nhà hàng. Chỉ trả lời trong phạm vi thông tin nhà hàng được cung cấp; nếu không chắc, hãy nói rõ và hướng khách liên hệ nhân viên. Không tự bịa giá, khuyến mãi, trạng thái đơn hàng hay chính sách.";
         AiAssistantSuggestedQuestions = "Hôm nay có món gì nổi bật?\nCó khuyến mãi nào đang áp dụng?\nTôi muốn đặt bàn thì làm thế nào?";

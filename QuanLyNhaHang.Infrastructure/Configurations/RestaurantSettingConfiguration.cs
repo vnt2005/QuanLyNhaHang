@@ -69,7 +69,7 @@ public class RestaurantSettingConfiguration : IEntityTypeConfiguration<Restauran
         builder.Property(x => x.AiAssistantModel)
             .IsRequired()
             .HasMaxLength(100)
-            .HasDefaultValue("gpt-5.6-luna");
+            .HasDefaultValue("gemini-3.7-flash");
 
         builder.Property(x => x.AiAssistantWelcomeMessage)
             .HasMaxLength(1000);

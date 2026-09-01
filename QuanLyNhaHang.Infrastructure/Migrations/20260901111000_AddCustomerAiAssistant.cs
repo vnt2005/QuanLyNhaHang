@@ -29,7 +29,7 @@ public partial class AddCustomerAiAssistant : Migration
             BEGIN
                 ALTER TABLE dbo.RestaurantSettings
                     ADD AiAssistantModel nvarchar(100) NOT NULL
-                        CONSTRAINT DF_RestaurantSettings_AiAssistantModel DEFAULT (N'gpt-5.6-luna') WITH VALUES;
+                        CONSTRAINT DF_RestaurantSettings_AiAssistantModel DEFAULT (N'gemini-3.7-flash') WITH VALUES;
             END;
 
             IF COL_LENGTH(N'dbo.RestaurantSettings', N'AiAssistantWelcomeMessage') IS NULL
@@ -67,7 +67,7 @@ public partial class AddCustomerAiAssistant : Migration
         migrationBuilder.Sql(
             """
             UPDATE dbo.RestaurantSettings
-            SET AiAssistantModel = COALESCE(NULLIF(LTRIM(RTRIM(AiAssistantModel)), N''), N'gpt-5.6-luna'),
+            SET AiAssistantModel = COALESCE(NULLIF(LTRIM(RTRIM(AiAssistantModel)), N''), N'gemini-3.7-flash'),
                 AiAssistantMaxOutputTokens = CASE
                     WHEN AiAssistantMaxOutputTokens BETWEEN 100 AND 2000 THEN AiAssistantMaxOutputTokens
                     ELSE 500

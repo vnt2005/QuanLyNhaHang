@@ -1422,7 +1422,7 @@ namespace QuanLyNhaHang.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
-                        .HasDefaultValue("gpt-5.6-luna");
+                        .HasDefaultValue("gemini-3.7-flash");
 
                     b.Property<string>("AiAssistantSuggestedQuestions")
                         .HasMaxLength(4000)
