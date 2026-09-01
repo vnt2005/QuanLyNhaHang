@@ -1,13 +1,33 @@
 name: Backend CI
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
+    paths:
+      - 'QuanLyNhaHang.Api/**'
+      - 'QuanLyNhaHang.Application/**'
+      - 'QuanLyNhaHang.Domain/**'
+      - 'QuanLyNhaHang.Infrastructure/**'
+      - 'QuanLyNhaHang.UnitTests/**'
+      - 'QuanLyNhaHang.IntegrationTests/**'
+      - 'scripts/**'
+      - '**/*.csproj'
+      - '**/*.props'
+      - '**/*.targets'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'docker-compose.yml'
+      - 'docker-compose.*.yml'
+      - 'docker/**'
+      - '.github/workflows/backend-ci.yml'
   workflow_dispatch:
+    inputs:
+      run_docker:
+        description: 'Build and smoke test the API Docker image'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -18,15 +38,56 @@ concurrency:
 
 jobs:
   build:
-    name: Restore, build and test
+    name: Build and test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
 
     steps:
       - name: Checkout source
         uses: actions/checkout@v7
 
+      - name: Detect expensive validation scope
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          RUN_DOCKER: ${{ inputs.run_docker }}
+        run: |
+          scripts_changed=false
+          compose_changed=false
+          docker_changed=false
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            scripts_changed=true
+
+            if [ "$RUN_DOCKER" = "true" ]; then
+              compose_changed=true
+              docker_changed=true
+            fi
+          else
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            changed_files="$(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")"
+
+            if grep -qE '^scripts/.*\.ps1$' <<<"$changed_files"; then
+              scripts_changed=true
+            fi
+
+            if grep -qE '^(docker-compose(\..+)?\.ya?ml|docker/)' <<<"$changed_files"; then
+              compose_changed=true
+            fi
+
+            if grep -qE '^(Dockerfile|\.dockerignore)$' <<<"$changed_files"; then
+              docker_changed=true
+            fi
+          fi
+
+          echo "scripts_changed=$scripts_changed" >> "$GITHUB_OUTPUT"
+          echo "compose_changed=$compose_changed" >> "$GITHUB_OUTPUT"
+          echo "docker_changed=$docker_changed" >> "$GITHUB_OUTPUT"
+
       - name: Validate PowerShell script syntax
+        if: steps.scope.outputs.scripts_changed == 'true'
         shell: pwsh
         run: |
           $hasErrors = $false
@@ -68,41 +129,28 @@ jobs:
           echo "No tracked .env or appsettings secret files were found."
 
       - name: Set up .NET 10
-        id: setup-dotnet
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
-      - name: Pin CI SDK
-        run: >-
-          dotnet new globaljson
-          --sdk-version "${{ steps.setup-dotnet.outputs.dotnet-version }}"
-          --roll-forward latestPatch
-          --force
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
 
-      - name: Show .NET information
-        run: dotnet --info
-
-      - name: Restore backend
-        run: dotnet restore QuanLyNhaHang.Api/QuanLyNhaHang.Api.csproj
-
-      - name: Build backend
-        run: >-
-          dotnet build QuanLyNhaHang.Api/QuanLyNhaHang.Api.csproj
-          --configuration Release
-          --no-restore
+      - name: Restore test projects
+        run: |
+          dotnet restore QuanLyNhaHang.UnitTests/QuanLyNhaHang.UnitTests.csproj
+          dotnet restore QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj
 
       - name: Run unit tests
         run: >-
           dotnet test QuanLyNhaHang.UnitTests/QuanLyNhaHang.UnitTests.csproj
           --configuration Release
-          --verbosity minimal
-
-      - name: Run refresh token session tests
-        run: >-
-          dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj
-          --configuration Release
-          --filter FullyQualifiedName~RefreshTokenSessionTests
+          --no-restore
           --verbosity minimal
 
       - name: Run integration tests
@@ -111,6 +159,7 @@ jobs:
           set -o pipefail
           dotnet test QuanLyNhaHang.IntegrationTests/QuanLyNhaHang.IntegrationTests.csproj \
             --configuration Release \
+            --no-restore \
             --verbosity minimal \
             --logger "console;verbosity=normal" \
             2>&1 | tee integration-tests.log
@@ -123,18 +172,21 @@ jobs:
           name: integration-test-log
           path: integration-tests.log
           if-no-files-found: ignore
-          retention-days: 5
+          retention-days: 3
 
       - name: Validate Docker Compose
+        if: steps.scope.outputs.compose_changed == 'true' || steps.scope.outputs.docker_changed == 'true'
         env:
           MSSQL_SA_PASSWORD: "CiOnly_StrongPassword_123!"
           JWT_SECRET_KEY: "ci-only-jwt-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         run: docker compose config --quiet
 
       - name: Build Docker image
+        if: steps.scope.outputs.docker_changed == 'true'
         run: docker build --tag quan-ly-nha-hang-api:ci .
 
       - name: Smoke test Docker container
+        if: steps.scope.outputs.docker_changed == 'true'
         shell: bash
         env:
           JWT_SECRET_KEY: "ci-only-jwt-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -158,7 +210,7 @@ jobs:
           }
           trap cleanup EXIT
 
-          for attempt in {1..30}; do
+          for attempt in {1..20}; do
             if curl --fail --silent --show-error http://localhost:8080/health; then
               exit 0
             fi
@@ -171,5 +223,5 @@ jobs:
             sleep 2
           done
 
-          echo "::error::Docker container did not become healthy within 60 seconds."
+          echo "::error::Docker container did not become healthy within 40 seconds."
           exit 1
