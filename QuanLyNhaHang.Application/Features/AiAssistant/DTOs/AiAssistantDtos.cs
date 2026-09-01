@@ -1,6 +1,6 @@
 namespace QuanLyNhaHang.Application.Features.AiAssistant.DTOs;
 
-public sealed class AiAssistantPublicConfigDto
+public class AiAssistantPublicConfigDto
 {
     public bool Enabled { get; set; }
     public bool ProviderConfigured { get; set; }
