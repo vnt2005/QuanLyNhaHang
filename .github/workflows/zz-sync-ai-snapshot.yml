@@ -21,6 +21,7 @@ jobs:
       - name: Update EF Core model snapshot
         shell: python
         run: |
+          import base64
           from pathlib import Path
 
           path = Path("QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs")
@@ -33,39 +34,8 @@ jobs:
           section = text[start:end]
 
           closing_marker = '                    b.Property<string>("ClosingTime")'
-          ai_properties = '''                    b.Property<bool>("AiAssistantEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("AiAssistantKnowledgeBase")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("AiAssistantMaxOutputTokens")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(500);
-
-                    b.Property<string>("AiAssistantModel")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasDefaultValue("gpt-5.6-luna");
-
-                    b.Property<string>("AiAssistantSuggestedQuestions")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("AiAssistantSystemPrompt")
-                        .HasMaxLength(8000)
-                        .HasColumnType("nvarchar(8000)");
-
-                    b.Property<string>("AiAssistantWelcomeMessage")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-'''
+          encoded = "ICAgICAgICAgICAgICAgICAgICBiLlByb3BlcnR5PGJvb2w+KCJBaUFzc2lzdGFudEVuYWJsZWQiKQogICAgICAgICAgICAgICAgICAgICAgICAuVmFsdWVHZW5lcmF0ZWRPbkFkZCgpCiAgICAgICAgICAgICAgICAgICAgICAgIC5IYXNDb2x1bW5UeXBlKCJiaXQiKQogICAgICAgICAgICAgICAgICAgICAgICAuSGFzRGVmYXVsdFZhbHVlKGZhbHNlKTsKCiAgICAgICAgICAgICAgICAgICAgYi5Qcm9wZXJ0eTxzdHJpbmc+KCJBaUFzc2lzdGFudEtub3dsZWRnZUJhc2UiKQogICAgICAgICAgICAgICAgICAgICAgICAuSGFzQ29sdW1uVHlwZSgibnZhcmNoYXIobWF4KSIpOwoKICAgICAgICAgICAgICAgICAgICBiLlByb3BlcnR5PGludD4oIkFpQXNzaXN0YW50TWF4T3V0cHV0VG9rZW5zIikKICAgICAgICAgICAgICAgICAgICAgICAgLlZhbHVlR2VuZXJhdGVkT25BZGQoKQogICAgICAgICAgICAgICAgICAgICAgICAuSGFzQ29sdW1uVHlwZSgiaW50IikKICAgICAgICAgICAgICAgICAgICAgICAgLkhhc0RlZmF1bHRWYWx1ZSg1MDApOwoKICAgICAgICAgICAgICAgICAgICBiLlByb3BlcnR5PHN0cmluZz4oIkFpQXNzaXN0YW50TW9kZWwiKQogICAgICAgICAgICAgICAgICAgICAgICAuSXNSZXF1aXJlZCgpCiAgICAgICAgICAgICAgICAgICAgICAgIC5WYWx1ZUdlbmVyYXRlZE9uQWRkKCkKICAgICAgICAgICAgICAgICAgICAgICAgLkhhc01heExlbmd0aCgxMDApCiAgICAgICAgICAgICAgICAgICAgICAgIC5IYXNDb2x1bW5UeXBlKCJudmFyY2hhcigxMDApIikKICAgICAgICAgICAgICAgICAgICAgICAgLkhhc0RlZmF1bHRWYWx1ZSgiZ3B0LTUuNi1sdW5hIik7CgogICAgICAgICAgICAgICAgICAgIGIuUHJvcGVydHk8c3RyaW5nPigiQWlBc3Npc3RhbnRTdWdnZXN0ZWRRdWVzdGlvbnMiKQogICAgICAgICAgICAgICAgICAgICAgICAuSGFzTWF4TGVuZ3RoKDQwMDApCiAgICAgICAgICAgICAgICAgICAgICAgIC5IYXNDb2x1bW5UeXBlKCJudmFyY2hhcig0MDAwKSIpOwoKICAgICAgICAgICAgICAgICAgICBiLlByb3BlcnR5PHN0cmluZz4oIkFpQXNzaXN0YW50U3lzdGVtUHJvbXB0IikKICAgICAgICAgICAgICAgICAgICAgICAgLkhhc01heExlbmd0aCg4MDAwKQogICAgICAgICAgICAgICAgICAgICAgICAuSGFzQ29sdW1uVHlwZSgibnZhcmNoYXIoODAwMCkiKTsKCiAgICAgICAgICAgICAgICAgICAgYi5Qcm9wZXJ0eTxzdHJpbmc+KCJBaUFzc2lzdGFudFdlbGNvbWVNZXNzYWdlIikKICAgICAgICAgICAgICAgICAgICAgICAgLkhhc01heExlbmd0aCgxMDAwKQogICAgICAgICAgICAgICAgICAgICAgICAuSGFzQ29sdW1uVHlwZSgibnZhcmNoYXIoMTAwMCkiKTsKCg=="
+          ai_properties = base64.b64decode(encoded).decode("utf-8")
 
           if 'b.Property<bool>("AiAssistantEnabled")' not in section:
               if closing_marker not in section:
@@ -74,9 +44,7 @@ jobs:
               text = text[:start] + section + text[end:]
               path.write_text(text, encoding="utf-8-sig")
 
-          temporary_partial = Path(
-              "QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.AiAssistant.cs"
-          )
+          temporary_partial = Path("QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.AiAssistant.cs")
           if temporary_partial.exists():
               temporary_partial.unlink()
 
@@ -96,6 +64,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.AiAssistant.cs
+          git add -A
           git commit -m "fix: update EF snapshot for AI settings"
           git push origin HEAD:feat/customer-ai-assistant-admin
