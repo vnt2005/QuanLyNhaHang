@@ -72,7 +72,7 @@ public sealed class AiAssistantController : ControllerBase
 
             var result = await _assistantService.AdminChatAsync(
                 request,
-                userId.Value,
+                userId,
                 cancellationToken);
 
             return Ok(result);
