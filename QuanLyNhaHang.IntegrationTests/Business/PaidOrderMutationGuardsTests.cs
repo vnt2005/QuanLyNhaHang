@@ -65,7 +65,7 @@ public sealed class PaidOrderMutationGuardsTests
             order.MarkCooking();
             order.UpdateTotalAmount(orderItem.TotalPrice);
 
-            var payment = new Payment(
+            var seededPayment = new Payment(
                 order.Id,
                 order.TotalAmount,
                 0m,
@@ -78,7 +78,7 @@ public sealed class PaidOrderMutationGuardsTests
             context.MenuItems.AddRange(firstMenuItem, extraMenuItem);
             context.Orders.Add(order);
             context.OrderItems.Add(orderItem);
-            context.Payments.Add(payment);
+            context.Payments.Add(seededPayment);
             await context.SaveChangesAsync();
 
             orderId = order.Id;
@@ -216,7 +216,7 @@ public sealed class PaidOrderMutationGuardsTests
             PageSize = 100
         });
 
-        var candidate = Assert.Single(result.Items.Where(order => order.Id == orderId));
+        var candidate = Assert.Single(result.Items, order => order.Id == orderId);
         Assert.Equal("Takeaway", candidate.OrderType);
         Assert.Equal("Ready", candidate.Status);
         Assert.False(candidate.IsPaid);
