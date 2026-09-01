@@ -1,4 +1,4 @@
-# Trợ lý AI cho CustomerWeb
+# Trợ lý AI cho CustomerWeb bằng Google AI Studio
 
 ## Mục tiêu
 
@@ -7,12 +7,12 @@ Trợ lý AI hỗ trợ khách hỏi về thực đơn đang bán, giá, khuyế
 AdminWeb quản lý AI tại mục **Hệ thống > Trợ lý AI**:
 
 - Bật/tắt AI trên CustomerWeb.
-- Chọn model OpenAI.
+- Chọn model Gemini.
 - Chỉnh lời chào và câu hỏi gợi ý.
 - Chỉnh system prompt riêng của nhà hàng.
 - Bổ sung kho kiến thức như giữ bàn, bãi xe, quy định nhận món, chính sách riêng.
-- Giới hạn token đầu ra để kiểm soát độ dài và chi phí.
-- Xem trạng thái backend đã có API key hay chưa. API key không được hiển thị hoặc nhập trên AdminWeb.
+- Giới hạn token đầu ra để kiểm soát độ dài và quota.
+- Xem trạng thái backend đã có Gemini API key hay chưa. API key không được hiển thị hoặc nhập trên AdminWeb.
 
 ## Kiến trúc
 
@@ -24,11 +24,11 @@ CustomerWeb
 QuanLyNhaHang.Api
    |
    +--> Rate limiting theo user / X-Client-Id
-   +--> Moderation input
    +--> Ghép context động từ RestaurantSettings + Menu + Promotions
-   +--> Responses API (store=false)
+   +--> Gemini safety settings
+   +--> Gemini generateContent (store=false)
    v
-OpenAI API
+Google AI Studio / Gemini API
 
 AdminWeb
    |
@@ -38,7 +38,7 @@ AdminWeb
 RestaurantSettings
 ```
 
-API key chỉ tồn tại ở backend. Không tạo biến `VITE_OPENAI_API_KEY` và không đưa key vào JavaScript, CustomerWeb, AdminWeb hoặc source control.
+Gemini API key chỉ tồn tại ở backend. Không tạo biến `VITE_GEMINI_API_KEY` và không đưa key vào JavaScript, CustomerWeb, AdminWeb hoặc source control.
 
 ## Context được cấp cho AI
 
@@ -54,78 +54,89 @@ Do context được lấy ở backend tại thời điểm chat, admin không c�
 
 ## Lớp an toàn
 
-1. CustomerWeb không bao giờ nhận OpenAI API key.
+1. CustomerWeb không bao giờ nhận Gemini API key.
 2. Input được giới hạn 1200 ký tự; lịch sử chỉ lấy tối đa 8 tin gần nhất.
 3. Endpoint chat dùng rate limit actor-aware sẵn có của dự án.
-4. Input được kiểm tra qua `omni-moderation-latest`; nếu moderation lỗi, request bị chặn theo nguyên tắc fail-closed.
-5. Responses API được gọi với `store: false`.
+4. Gemini được gọi với safety settings cho hate speech, harassment, sexually explicit, dangerous content và jailbreak ở ngưỡng `BLOCK_MEDIUM_AND_ABOVE`.
+5. Request `generateContent` gửi `store: false`.
 6. System instruction bắt buộc không cho AI tiết lộ prompt, key/cấu hình máy chủ, tự bịa giá/khuyến mãi hoặc tuyên bố đã thao tác dữ liệu nghiệp vụ.
-7. Không lưu nội dung chat của khách vào database trong phiên bản này. Điều này giảm việc lưu trữ dữ liệu hội thoại không cần thiết.
-8. Backend truyền một `safety_identifier` từ user id hoặc `X-Client-Id`, không dùng nội dung tin nhắn làm định danh.
+7. Không lưu nội dung chat của khách vào database trong phiên bản này.
+8. `X-Client-Id`/user id vẫn chỉ dùng trong lớp rate limit của ứng dụng; backend không chuyển định danh người dùng sang Gemini.
+
+## Lưu ý về Free Tier
+
+Google AI Studio/Gemini Developer API có Free Tier cho các model và quota đủ điều kiện. Free Tier có giới hạn tốc độ/số lượt và có thể thay đổi theo model, tài khoản, khu vực và chính sách Google.
+
+Theo bảng giá Gemini Developer API hiện hành, dữ liệu gửi qua Free Tier có thể được Google dùng để cải thiện sản phẩm. Vì vậy trợ lý này không yêu cầu khách nhập mật khẩu, thông tin thanh toán hoặc dữ liệu nhạy cảm, và ứng dụng cũng không tự thêm dữ liệu tài khoản riêng tư vào prompt.
+
+Khi triển khai production có dữ liệu nhạy cảm hoặc cần mức bảo mật/chính sách dữ liệu chặt hơn, cần đánh giá Paid Tier/Vertex AI và điều khoản hiện hành trước khi bật rộng rãi.
 
 ## Cấu hình local
 
 ### Docker Compose
 
 1. Sao chép `.env.example` thành `.env` nếu chưa có.
-2. Điền key thật vào file `.env` cục bộ:
+2. Vào Google AI Studio, mở trang API keys và tạo/copy Gemini API key.
+3. Điền key thật vào file `.env` cục bộ:
 
 ```env
-OPENAI_API_KEY=sk-...
+GEMINI_API_KEY=AIza...
 ```
 
-3. Không commit `.env`.
-4. Build lại API/container sau khi cập nhật branch:
+4. Không commit `.env`.
+5. Build lại API/container sau khi cập nhật branch:
 
 ```powershell
 docker compose up --build -d
 ```
 
-Compose chỉ chuyển `OPENAI_API_KEY` vào service `api`; hai frontend không nhận secret này.
+Compose chỉ chuyển `GEMINI_API_KEY` vào service `api`; hai frontend không nhận secret này.
 
 ### Chạy backend trực tiếp
 
 PowerShell cho phiên terminal hiện tại:
 
 ```powershell
-$env:OPENAI_API_KEY="sk-..."
+$env:GEMINI_API_KEY="AIza..."
 dotnet run --project .\QuanLyNhaHang.Api\QuanLyNhaHang.Api.csproj
 ```
 
-Có thể dùng cấu hình `OpenAI:ApiKey` ở secret store phù hợp của môi trường triển khai, nhưng không ghi key thật vào `appsettings*.json` được commit.
+Có thể dùng cấu hình `GoogleAI:ApiKey` ở secret store phù hợp của môi trường triển khai, nhưng không ghi key thật vào `appsettings*.json` được commit.
 
-## Database migration
+## Database
 
-Migration `20260901111000_AddCustomerAiAssistant` thêm các trường cấu hình AI vào `RestaurantSettings`. Với local Docker hiện tại, `Database__ApplyMigrationsOnStartup=true` nên API áp dụng migration khi khởi động theo cơ chế sẵn có của dự án.
+Các trường cấu hình AI vẫn dùng `RestaurantSettings`, nên việc đổi provider từ OpenAI sang Gemini không cần thêm cột database. Backend có cơ chế tương thích với giá trị model OpenAI cũ: nếu database local còn `gpt-*`, giao diện và request sẽ tự dùng model Gemini mặc định cho tới khi admin bấm lưu cấu hình mới.
 
-Migration AI dùng các guard `COL_LENGTH` để có thể tiếp tục an toàn nếu local SQL Server volume từng bị dừng giữa lúc cập nhật schema. CI cũng kiểm tra `dotnet ef migrations has-pending-model-changes` và khởi động thật `database + api` với startup migration bật; vì vậy thay đổi model/snapshot hoặc migration khiến API unhealthy sẽ bị chặn ngay trên PR thay vì chỉ phát hiện trên máy local.
+Migration AI hiện có vẫn dùng các guard `COL_LENGTH` để local SQL Server volume có thể tiếp tục an toàn nếu từng bị dừng giữa lúc cập nhật schema. CI tiếp tục kiểm tra `dotnet ef migrations has-pending-model-changes` và khởi động thật `database + api` với startup migration bật.
 
-Với production, vẫn tuân thủ quy trình backup/preflight/migration hiện có của dự án trước khi deploy.
+Với production, vẫn tuân thủ quy trình backup/preflight/migration hiện có của dự án trước khi deploy các migration khác.
 
 ## Model mặc định
 
-Model mặc định là `gpt-5.6-luna` vì đây là model được OpenAI định vị cho workload high-volume nhạy chi phí. Admin có thể thay model từ giao diện mà không cần build lại frontend.
+Model mặc định là `gemini-3.7-flash`, phù hợp chatbot phản hồi nhanh và hiện có Free Tier theo bảng giá Google AI for Developers. Admin có thể đổi sang model Gemini khác từ giao diện mà không cần build lại frontend.
 
-## Tài liệu OpenAI đã tham khảo
+## Tài liệu Google đã tham khảo
 
-- Models: https://developers.openai.com/api/docs/models
-- GPT-5.6 model guidance: https://developers.openai.com/api/docs/guides/latest-model
-- Responses API: https://developers.openai.com/api/reference/resources/responses
-- Moderations API: https://developers.openai.com/api/reference/resources/moderations
-- API key safety / production guidance: https://platform.openai.com/docs/guides/production-best-practices
-- Data controls: https://platform.openai.com/docs/guides/your-data
+- Gemini API reference: https://ai.google.dev/api
+- Getting started / API key: https://ai.google.dev/gemini-api/docs/get-started
+- Using Gemini API keys: https://ai.google.dev/gemini-api/docs/api-key
+- `generateContent`: https://ai.google.dev/api/generate-content
+- Safety settings: https://ai.google.dev/gemini-api/docs/safety-settings
+- Pricing / Free Tier: https://ai.google.dev/gemini-api/docs/pricing
+- Rate limits: https://ai.google.dev/gemini-api/docs/rate-limits
 
 ## Checklist kiểm thử
 
 - Backend build + unit/integration tests xanh.
 - AdminWeb build xanh.
 - CustomerWeb build xanh.
-- EF Core không còn pending model changes so với migration snapshot.
+- EF Core không có pending model changes so với migration snapshot.
 - API Docker khởi động healthy khi startup migration bật trên database sạch.
-- Không có `OPENAI_API_KEY` thật trong Git history hoặc frontend bundle.
+- Không có `GEMINI_API_KEY` thật trong Git history hoặc frontend bundle.
 - Khi chưa cấu hình key: AdminWeb báo chưa sẵn sàng và CustomerWeb không hiện nút AI.
 - Khi có key nhưng AI đang tắt: CustomerWeb không hiện nút AI, chat API từ chối request.
 - Khi bật AI: hỏi món/giá/khuyến mãi trả lời từ dữ liệu hiện tại.
-- Nội dung nguy hiểm bị moderation chặn.
+- Nội dung vượt safety threshold bị Gemini chặn.
 - Prompt injection yêu cầu tiết lộ system prompt/API key không được đáp ứng.
+- Khi vượt Free Tier quota, backend trả thông báo quota thay vì làm API crash.
 - Light/dark mode và mobile không che các hành động chính của CustomerWeb.
