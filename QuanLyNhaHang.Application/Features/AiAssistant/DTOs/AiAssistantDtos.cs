@@ -40,6 +40,14 @@ public sealed class AiAssistantChatMessageDto
     public string Content { get; set; } = string.Empty;
 }
 
+public sealed class AiAssistantCallerContext
+{
+    public Guid? UserId { get; set; }
+    public string? Role { get; set; }
+    public string? ClientId { get; set; }
+    public bool IsAuthenticated => UserId.HasValue;
+}
+
 public sealed class AiAssistantChatResponseDto
 {
     public string Message { get; set; } = string.Empty;
@@ -48,4 +56,5 @@ public sealed class AiAssistantChatResponseDto
     public int InputTokens { get; set; }
     public int OutputTokens { get; set; }
     public string? ProviderRequestId { get; set; }
+    public List<string> DataSources { get; set; } = new();
 }
