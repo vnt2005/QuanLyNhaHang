@@ -1,4 +1,4 @@
-name: Diagnose EF model drift
+name: Finalize EF AI model synchronization
 
 on:
   push:
@@ -6,15 +6,54 @@ on:
       - feat/customer-ai-assistant-admin
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  probe:
+  finalize:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout branch
         uses: actions/checkout@v7
+        with:
+          ref: feat/customer-ai-assistant-admin
+          fetch-depth: 0
+
+      - name: Apply exact SQL Server mapping
+        shell: python
+        run: |
+          from pathlib import Path
+
+          snapshot = Path("QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs")
+          snapshot_text = snapshot.read_text(encoding="utf-8-sig")
+          old_snapshot = '''                    b.Property<string>("AiAssistantSystemPrompt")
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(8000)");'''
+          new_snapshot = '''                    b.Property<string>("AiAssistantSystemPrompt")
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");'''
+          if old_snapshot not in snapshot_text and new_snapshot not in snapshot_text:
+              raise SystemExit("AiAssistantSystemPrompt snapshot mapping not found")
+          snapshot.write_text(snapshot_text.replace(old_snapshot, new_snapshot, 1), encoding="utf-8-sig")
+
+          migration = Path("QuanLyNhaHang.Infrastructure/Migrations/20260901111000_AddCustomerAiAssistant.cs")
+          migration_text = migration.read_text(encoding="utf-8-sig")
+          old_sql = "ADD AiAssistantSystemPrompt nvarchar(8000) NULL;"
+          new_sql = "ADD AiAssistantSystemPrompt nvarchar(max) NULL;"
+          if old_sql not in migration_text and new_sql not in migration_text:
+              raise SystemExit("AiAssistantSystemPrompt migration SQL not found")
+          migration.write_text(migration_text.replace(old_sql, new_sql, 1), encoding="utf-8-sig")
+
+          configuration = Path("QuanLyNhaHang.Infrastructure/Configurations/RestaurantSettingConfiguration.cs")
+          configuration_text = configuration.read_text(encoding="utf-8-sig")
+          old_config = '''        builder.Property(x => x.AiAssistantSystemPrompt)
+            .HasMaxLength(8000);'''
+          new_config = '''        builder.Property(x => x.AiAssistantSystemPrompt)
+            .HasMaxLength(8000)
+            .HasColumnType("nvarchar(max)");'''
+          if old_config not in configuration_text and new_config not in configuration_text:
+              raise SystemExit("AiAssistantSystemPrompt configuration mapping not found")
+          configuration.write_text(configuration_text.replace(old_config, new_config, 1), encoding="utf-8-sig")
 
       - name: Set up .NET 10
         uses: actions/setup-dotnet@v6
@@ -27,22 +66,27 @@ jobs:
       - name: Install EF Core CLI
         run: dotnet tool install --tool-path ./.tools dotnet-ef --version 10.0.10
 
-      - name: Generate diagnostic migration
-        shell: bash
+      - name: Verify no pending model changes
         env:
-          ConnectionStrings__DefaultConnection: 'Server=localhost;Database=QuanLyNhaHang;User Id=sa;Password=ProbeOnly_StrongPassword_123!;Encrypt=True;TrustServerCertificate=True'
+          ConnectionStrings__DefaultConnection: 'Server=localhost;Database=QuanLyNhaHang;User Id=sa;Password=FinalizeOnly_StrongPassword_123!;Encrypt=True;TrustServerCertificate=True'
+        run: >-
+          ./.tools/dotnet-ef migrations has-pending-model-changes
+          --project QuanLyNhaHang.Infrastructure/QuanLyNhaHang.Infrastructure.csproj
+          --startup-project QuanLyNhaHang.Api/QuanLyNhaHang.Api.csproj
+
+      - name: Build backend
+        run: dotnet build QuanLyNhaHang.Api/QuanLyNhaHang.Api.csproj --configuration Release --no-restore
+
+      - name: Commit permanent fix and remove temporary workflow
+        shell: bash
         run: |
           set -euo pipefail
-          ./.tools/dotnet-ef migrations add __PendingModelProbe \
-            --project QuanLyNhaHang.Infrastructure/QuanLyNhaHang.Infrastructure.csproj \
-            --startup-project QuanLyNhaHang.Api/QuanLyNhaHang.Api.csproj \
-            --output-dir Migrations/__PendingModelProbe
-
-          echo '===== SNAPSHOT DIFF ====='
-          git --no-pager diff -- QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs
-
-          echo '===== GENERATED PROBE MIGRATION ====='
-          find QuanLyNhaHang.Infrastructure/Migrations/__PendingModelProbe -type f -name '*__PendingModelProbe.cs' -print -exec cat {} \;
-
-          echo '===== GENERATED PROBE DESIGNER ====='
-          find QuanLyNhaHang.Infrastructure/Migrations/__PendingModelProbe -type f -name '*__PendingModelProbe.Designer.cs' -print -exec cat {} \;
+          git rm .github/workflows/zz-ef-model-probe.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            QuanLyNhaHang.Infrastructure/Configurations/RestaurantSettingConfiguration.cs \
+            QuanLyNhaHang.Infrastructure/Migrations/20260901111000_AddCustomerAiAssistant.cs \
+            QuanLyNhaHang.Infrastructure/Migrations/ApplicationDbContextModelSnapshot.cs
+          git commit -m "fix: align AI prompt storage with SQL Server"
+          git push origin HEAD:feat/customer-ai-assistant-admin
