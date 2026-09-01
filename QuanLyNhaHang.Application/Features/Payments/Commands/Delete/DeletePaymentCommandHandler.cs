@@ -30,10 +30,18 @@ public class DeletePaymentCommandHandler
         if (payment.Status == "Cancelled")
             return true;
 
-        if (payment.Status == "Paid")
+        var isSettledOnlinePayment = payment.Status == "Paid" &&
+            await _context.PaymentAttempts
+                .AsNoTracking()
+                .AnyAsync(
+                    attempt => attempt.PaymentId == payment.Id &&
+                               attempt.Status == "Paid",
+                    cancellationToken);
+
+        if (isSettledOnlinePayment)
         {
             throw new InvalidOperationException(
-                "Thanh toán đã được ghi nhận Paid và đã chốt vào hóa đơn/báo cáo. Không thể hủy trực tiếp vì thao tác này không hoàn tiền cho khách. Hãy thực hiện đối soát hoặc quy trình hoàn tiền riêng.");
+                "Thanh toán online đã được ghi nhận Paid và đang khóa đối soát. Không thể hủy trực tiếp vì thao tác này không hoàn tiền cho khách. Hãy thực hiện đối soát hoặc quy trình hoàn tiền riêng.");
         }
 
         payment.Cancel();
