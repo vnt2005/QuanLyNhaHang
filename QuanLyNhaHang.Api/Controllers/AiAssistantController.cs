@@ -40,7 +40,39 @@ public sealed class AiAssistantController : ControllerBase
         {
             var result = await _assistantService.ChatAsync(
                 request,
-                ResolveSafetyIdentifier(),
+                ResolveCallerContext(),
+                cancellationToken);
+
+            return Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new { message = exception.Message });
+        }
+    }
+
+    [Authorize(Roles = SystemRoles.Admin)]
+    [EnableRateLimiting("OrderCreate")]
+    [HttpPost("admin-chat")]
+    public async Task<IActionResult> AdminChat(
+        [FromBody] AiAssistantChatRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var userId = ResolveUserId()
+                ?? throw new InvalidOperationException(
+                    "Không xác định được tài khoản Admin đang đăng nhập.");
+
+            var result = await _assistantService.AdminChatAsync(
+                request,
+                userId.Value,
                 cancellationToken);
 
             return Ok(result);
@@ -105,21 +137,35 @@ public sealed class AiAssistantController : ControllerBase
         }
     }
 
-    private string ResolveSafetyIdentifier()
+    private AiAssistantCallerContext ResolveCallerContext()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!string.IsNullOrWhiteSpace(userId))
-            return $"user:{userId}";
+        return new AiAssistantCallerContext
+        {
+            UserId = ResolveUserId(),
+            Role = User.FindFirstValue(ClaimTypes.Role)
+                ?? User.FindFirstValue("role"),
+            ClientId = ResolveClientId()
+        };
+    }
 
+    private Guid? ResolveUserId()
+    {
+        var rawUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub");
+        return Guid.TryParse(rawUserId, out var userId) ? userId : null;
+    }
+
+    private string? ResolveClientId()
+    {
         var clientId = Request.Headers["X-Client-Id"].ToString().Trim();
         if (clientId.Length is >= 8 and <= 128
             && clientId.All(character =>
                 char.IsAsciiLetterOrDigit(character)
                 || character is '-' or '_' or '.'))
         {
-            return $"client:{clientId}";
+            return clientId;
         }
 
-        return "anonymous";
+        return null;
     }
 }
