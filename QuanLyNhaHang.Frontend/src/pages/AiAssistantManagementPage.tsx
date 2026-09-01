@@ -8,7 +8,7 @@ import {
 const fallbackConfig: AiAssistantAdminConfig = {
   enabled: false,
   providerConfigured: false,
-  model: 'gpt-5.6-luna',
+  model: 'gemini-3.7-flash',
   welcomeMessage: '',
   systemPrompt: '',
   knowledgeBase: '',
@@ -130,12 +130,14 @@ export default function AiAssistantManagementPage() {
           <span aria-hidden="true" />
           <div>
             <strong>
-              {config.providerConfigured ? 'OpenAI đã sẵn sàng' : 'Chưa có OpenAI API key'}
+              {config.providerConfigured
+                ? 'Google AI Studio đã sẵn sàng'
+                : 'Chưa có Gemini API key'}
             </strong>
             <small>
               {config.providerConfigured
                 ? 'API key đang được giữ an toàn ở máy chủ.'
-                : 'Cấu hình OPENAI_API_KEY trên backend để bật trợ lý.'}
+                : 'Cấu hình GEMINI_API_KEY trên backend để bật trợ lý.'}
             </small>
           </div>
         </div>
@@ -176,14 +178,17 @@ export default function AiAssistantManagementPage() {
             </div>
 
             <label>
-              <span>OpenAI model</span>
+              <span>Gemini model</span>
               <input
                 value={config.model}
                 onChange={(event) => updateField('model', event.target.value)}
                 maxLength={100}
-                placeholder="gpt-5.6-luna"
+                placeholder="gemini-3.7-flash"
                 required
               />
+              <small>
+                Nên giữ Gemini Flash để phù hợp chatbot và tận dụng Free Tier khi tài khoản còn quota.
+              </small>
             </label>
 
             <label>
@@ -198,7 +203,7 @@ export default function AiAssistantManagementPage() {
                   updateField('maxOutputTokens', Number(event.target.value) || 100)
                 }
               />
-              <small>Giới hạn 100–2000 token để kiểm soát độ dài và chi phí.</small>
+              <small>Giới hạn 100–2000 token để kiểm soát độ dài và quota.</small>
             </label>
           </div>
 
@@ -281,8 +286,8 @@ export default function AiAssistantManagementPage() {
         <div className="ai-admin-security-note">
           <strong>API key không được quản lý trong giao diện này.</strong>
           <p>
-            Khóa OpenAI chỉ được đọc từ cấu hình máy chủ/biến môi trường
-            <code> OPENAI_API_KEY</code>; CustomerWeb và trình duyệt admin không bao giờ
+            Khóa Gemini chỉ được đọc từ cấu hình máy chủ/biến môi trường
+            <code> GEMINI_API_KEY</code>; CustomerWeb và trình duyệt admin không bao giờ
             nhận giá trị khóa.
           </p>
         </div>
