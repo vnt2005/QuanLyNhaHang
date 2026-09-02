@@ -105,9 +105,8 @@ public class ExceptionHandlingMiddleware
                 "Vui lòng tải lại và kiểm tra trước khi thử lại."),
             _ => new ErrorDescriptor(
                 (int)HttpStatusCode.InternalServerError,
-                "Đã xảy ra lỗi nội bộ",
-                "Hệ thống không thể hoàn tất yêu cầu. " +
-                "Vui lòng thử lại hoặc cung cấp mã traceId cho quản trị viên.")
+                "Đã xảy ra lỗi",
+                "Hệ thống đang gặp sự cố. Vui lòng thử lại sau.")
         };
     }
 
@@ -120,14 +119,14 @@ public class ExceptionHandlingMiddleware
         context.Response.ContentType =
             "application/problem+json; charset=utf-8";
 
+        // Diagnostic identifiers and exception internals are deliberately kept
+        // in server logs only. Client applications receive only user-safe data.
         var response = new
         {
             type = "about:blank",
             title = error.Title,
             status = error.StatusCode,
-            detail = error.Detail,
-            message = error.Detail,
-            traceId = context.TraceIdentifier
+            message = error.Detail
         };
 
         await JsonSerializer.SerializeAsync(
