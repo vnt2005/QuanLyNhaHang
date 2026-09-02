@@ -32,6 +32,8 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
     private const int MaxToolRounds = 4;
     private static readonly TimeSpan ToolConversationTimeout =
         TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan ProviderRequestTimeout =
+        TimeSpan.FromSeconds(20);
 
     private static readonly JsonSerializerOptions FallbackJsonOptions =
         new(JsonSerializerDefaults.Web)
@@ -333,6 +335,10 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         {
             for (var round = 0; round < MaxToolRounds; round++)
             {
+                using var providerCts = CancellationTokenSource.CreateLinkedTokenSource(
+                    timeoutCts.Token);
+                providerCts.CancelAfter(ProviderRequestTimeout);
+
                 using var document = await SendGenerateContentAsync(
                     model,
                     maxOutputTokens,
@@ -341,7 +347,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                     toolDeclarations,
                     round == 0 ? requiredToolNames : [],
                     providerRequestId,
-                    timeoutCts.Token);
+                    providerCts.Token);
 
                 var usage = ExtractUsage(document.RootElement);
                 totalInputTokens += usage.InputTokens;
