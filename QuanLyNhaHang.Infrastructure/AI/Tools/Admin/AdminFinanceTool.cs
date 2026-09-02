@@ -47,7 +47,7 @@ internal sealed partial class AiAssistantDataProvider
             },
             observedPaidMethods = observedMethods,
             readOnly = true,
-            note = "supportedMethods là catalog nghiệp vụ chuẩn; observedPaidMethods chỉ phản ánh dữ liệu giao dịch Paid đã phát sinh."
+            note = "supportedMethods là catalog nghiệp vụ chuẩn; observedPaidMethods phản ánh toàn bộ dữ liệu giao dịch Paid đã phát sinh."
         };
     }
 
@@ -66,6 +66,8 @@ internal sealed partial class AiAssistantDataProvider
         if (to.HasValue)
             query = query.Where(item => item.PaidAt < to.Value);
 
+        var totalCount = await query.CountAsync(cancellationToken);
+        var totalAmount = await query.SumAsync(item => (decimal?)item.FinalAmount, cancellationToken) ?? 0m;
         var payments = await query
             .OrderByDescending(item => item.PaidAt)
             .Take(limit)
@@ -83,8 +85,9 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        var attempts = await _dbContext.PaymentAttempts
-            .AsNoTracking()
+        var attemptsQuery = _dbContext.PaymentAttempts.AsNoTracking();
+        var paymentAttemptTotalCount = await attemptsQuery.CountAsync(cancellationToken);
+        var attempts = await attemptsQuery
             .OrderByDescending(item => item.CreatedAt)
             .Take(limit)
             .Select(item => new
@@ -101,7 +104,21 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { payments, paymentAttempts = attempts };
+        return new
+        {
+            totalCount,
+            totalAmount,
+            returnedCount = payments.Count,
+            hasMore = totalCount > payments.Count,
+            payments,
+            paymentAttempts = new
+            {
+                totalCount = paymentAttemptTotalCount,
+                returnedCount = attempts.Count,
+                hasMore = paymentAttemptTotalCount > attempts.Count,
+                items = attempts
+            }
+        };
     }
 
     private async Task<object> GetInvoicesModuleAsync(
@@ -119,6 +136,8 @@ internal sealed partial class AiAssistantDataProvider
         if (to.HasValue)
             query = query.Where(item => item.IssuedAt < to.Value);
 
+        var totalCount = await query.CountAsync(cancellationToken);
+        var totalAmount = await query.SumAsync(item => (decimal?)item.FinalAmount, cancellationToken) ?? 0m;
         var invoices = await query
             .OrderByDescending(item => item.IssuedAt)
             .Take(limit)
@@ -138,7 +157,14 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { count = invoices.Count, invoices };
+        return new
+        {
+            totalCount,
+            totalAmount,
+            returnedCount = invoices.Count,
+            hasMore = totalCount > invoices.Count,
+            invoices
+        };
     }
 
     private async Task<object> GetRevenueModuleAsync(
@@ -159,8 +185,10 @@ internal sealed partial class AiAssistantDataProvider
             item => (decimal?)item.FinalAmount,
             cancellationToken) ?? 0m;
         var paidCount = await paymentQuery.CountAsync(cancellationToken);
-        var reports = await _dbContext.RevenueReports
-            .AsNoTracking()
+
+        var reportsQuery = _dbContext.RevenueReports.AsNoTracking();
+        var reportTotalCount = await reportsQuery.CountAsync(cancellationToken);
+        var reports = await reportsQuery
             .OrderByDescending(item => item.GeneratedAt)
             .Take(limit)
             .Select(item => new
@@ -177,6 +205,16 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { live = new { from, to, paidCount, liveRevenue }, reports };
+        return new
+        {
+            live = new { from, to, paidCount, liveRevenue },
+            reports = new
+            {
+                totalCount = reportTotalCount,
+                returnedCount = reports.Count,
+                hasMore = reportTotalCount > reports.Count,
+                items = reports
+            }
+        };
     }
 }
