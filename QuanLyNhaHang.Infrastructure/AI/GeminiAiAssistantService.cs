@@ -494,6 +494,27 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                 executeTool,
                 cancellationToken);
         }
+        catch (Exception exception)
+            when (exception is not OperationCanceledException
+                  && !cancellationToken.IsCancellationRequested
+                  && intentRoutes.Count > 0)
+        {
+            _logger.LogError(
+                exception,
+                "Unexpected AI conversation failure; returning read-only tool data. RequestId={RequestId}",
+                providerRequestId);
+            return await BuildReadOnlyFallbackResponseAsync(
+                request,
+                model,
+                providerRequestId,
+                totalInputTokens,
+                totalOutputTokens,
+                dataSources,
+                fallbackToolResults,
+                intentRoutes,
+                executeTool,
+                cancellationToken);
+        }
 
         return new AiAssistantChatResponseDto
         {
