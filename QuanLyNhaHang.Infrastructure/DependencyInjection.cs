@@ -18,8 +18,16 @@ public static class DependencyInjection
     {
         services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection"));
+            var connectionString = configuration
+                .GetConnectionString("DefaultConnection");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Connection string 'DefaultConnection' chưa được cấu hình.");
+            }
+
+            options.UseSqlServer(connectionString);
         });
 
         services.AddScoped<IApplicationDbContext>(provider =>
