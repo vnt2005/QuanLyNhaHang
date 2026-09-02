@@ -73,6 +73,10 @@ public class ExceptionHandlingMiddleware
     {
         return exception switch
         {
+            AiAssistantUnavailableException => new ErrorDescriptor(
+                (int)HttpStatusCode.ServiceUnavailable,
+                "Trợ lý AI tạm thời không khả dụng",
+                AiAssistantUnavailableException.PublicMessage),
             EmailDeliveryException => new ErrorDescriptor(
                 (int)HttpStatusCode.ServiceUnavailable,
                 "Dịch vụ email tạm thời không khả dụng",
