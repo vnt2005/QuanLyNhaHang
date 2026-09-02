@@ -418,7 +418,7 @@ public sealed class AtomicRequestMiddleware
     private static async Task WriteProblemAsync(
         HttpContext context,
         int statusCode,
-        string detail,
+        string message,
         CancellationToken cancellationToken)
     {
         context.Response.StatusCode = statusCode;
@@ -434,9 +434,7 @@ public sealed class AtomicRequestMiddleware
                     ? "Xung đột request"
                     : "Yêu cầu không hợp lệ",
                 status = statusCode,
-                detail,
-                message = detail,
-                traceId = context.TraceIdentifier
+                message
             },
             JsonOptions,
             cancellationToken);
