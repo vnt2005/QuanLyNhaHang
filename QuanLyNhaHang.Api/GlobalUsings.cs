@@ -7,6 +7,8 @@ global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.IdentityModel.Tokens;
 global using QuanLyNhaHang.Api.Authorization;
+global using QuanLyNhaHang.Api.Configuration;
+global using QuanLyNhaHang.Api.Extensions;
 global using QuanLyNhaHang.Api.Health;
 global using QuanLyNhaHang.Api.Hubs;
 global using QuanLyNhaHang.Api.Middlewares;
