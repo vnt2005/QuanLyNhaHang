@@ -24,6 +24,7 @@ internal sealed partial class AiAssistantDataProvider
                 || item.Description.Contains(query));
         }
 
+        var totalCount = await logsQuery.CountAsync(cancellationToken);
         var logs = await logsQuery
             .OrderByDescending(item => item.CreatedAt)
             .Take(limit)
@@ -42,7 +43,9 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
-            count = logs.Count,
+            totalCount,
+            returnedCount = logs.Count,
+            hasMore = totalCount > logs.Count,
             logs,
             excludedFields = new[] { "OldValues", "NewValues", "IpAddress", "UserAgent" }
         };
@@ -59,6 +62,7 @@ internal sealed partial class AiAssistantDataProvider
         if (string.Equals(status, "read", StringComparison.OrdinalIgnoreCase))
             query = query.Where(item => item.IsRead);
 
+        var totalCount = await query.CountAsync(cancellationToken);
         var notifications = await query
             .OrderByDescending(item => item.CreatedAt)
             .Take(limit)
@@ -76,7 +80,13 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { count = notifications.Count, notifications };
+        return new
+        {
+            totalCount,
+            returnedCount = notifications.Count,
+            hasMore = totalCount > notifications.Count,
+            notifications
+        };
     }
 
     private async Task<object> GetTableQrModuleAsync(
@@ -86,8 +96,9 @@ internal sealed partial class AiAssistantDataProvider
         var tables = await _dbContext.RestaurantTables
             .AsNoTracking()
             .ToDictionaryAsync(item => item.Id, item => item.Name, cancellationToken);
-        var qrs = await _dbContext.TableQrCodes
-            .AsNoTracking()
+        var query = _dbContext.TableQrCodes.AsNoTracking();
+        var totalCount = await query.CountAsync(cancellationToken);
+        var qrs = await query
             .OrderByDescending(item => item.UpdatedAt ?? item.CreatedAt)
             .Take(limit)
             .Select(item => new
@@ -103,7 +114,9 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
-            count = qrs.Count,
+            totalCount,
+            returnedCount = qrs.Count,
+            hasMore = totalCount > qrs.Count,
             qrCodes = qrs.Select(item => new
             {
                 table = tables.TryGetValue(item.RestaurantTableId, out var table)
@@ -123,8 +136,9 @@ internal sealed partial class AiAssistantDataProvider
         int limit,
         CancellationToken cancellationToken)
     {
-        var operations = await _dbContext.TableOperations
-            .AsNoTracking()
+        var query = _dbContext.TableOperations.AsNoTracking();
+        var totalCount = await query.CountAsync(cancellationToken);
+        var operations = await query
             .OrderByDescending(item => item.CreatedAt)
             .Take(limit)
             .Select(item => new
@@ -142,7 +156,13 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { count = operations.Count, operations };
+        return new
+        {
+            totalCount,
+            returnedCount = operations.Count,
+            hasMore = totalCount > operations.Count,
+            operations
+        };
     }
 
     private async Task<object> GetPermissionsModuleAsync(
