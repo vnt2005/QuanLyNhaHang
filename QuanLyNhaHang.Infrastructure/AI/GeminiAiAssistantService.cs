@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
@@ -172,6 +173,15 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         {
             throw CreateTimeoutException(exception, "customer");
         }
+        catch (DbException exception)
+        {
+            _logger.LogError(
+                exception,
+                "Customer AI request could not read restaurant data from the database.");
+            throw new InvalidOperationException(
+                "Không đọc được dữ liệu nhà hàng từ cơ sở dữ liệu. Vui lòng kiểm tra SQL Server rồi thử lại.",
+                exception);
+        }
     }
 
     public async Task<AiAssistantChatResponseDto> AdminChatAsync(
@@ -211,6 +221,15 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                   && !cancellationToken.IsCancellationRequested)
         {
             throw CreateTimeoutException(exception, "admin");
+        }
+        catch (DbException exception)
+        {
+            _logger.LogError(
+                exception,
+                "Admin AI request could not read restaurant data from the database.");
+            throw new InvalidOperationException(
+                "Không đọc được dữ liệu vận hành từ cơ sở dữ liệu. Vui lòng kiểm tra SQL Server rồi thử lại.",
+                exception);
         }
     }
 
@@ -456,52 +475,95 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             store = false
         });
 
-        using var response = await _httpClient.SendAsync(
-            httpRequest,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
-        var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            var providerMessage = ExtractProviderErrorMessage(responseJson);
-            _logger.LogWarning(
-                "Gemini generateContent failed with status {StatusCode}. RequestId={RequestId}. ProviderMessage={ProviderMessage}",
-                (int)response.StatusCode,
-                providerRequestId,
-                providerMessage);
+            using var response = await _httpClient.SendAsync(
+                httpRequest,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            if (!response.IsSuccessStatusCode)
             {
+                var providerMessage = ExtractProviderErrorMessage(responseJson);
+                _logger.LogWarning(
+                    "Gemini generateContent failed with status {StatusCode}. RequestId={RequestId}. ProviderMessage={ProviderMessage}",
+                    (int)response.StatusCode,
+                    providerRequestId,
+                    providerMessage);
+
+                if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    throw new InvalidOperationException(
+                        "Gemini đã chạm hạn mức hiện tại. Vui lòng thử lại sau hoặc kiểm tra quota Google AI Studio.");
+                }
+
+                if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    throw new InvalidOperationException(
+                        "Google AI Studio API key không hợp lệ hoặc không có quyền gọi Gemini API.");
+                }
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    throw new InvalidOperationException(
+                        $"Không tìm thấy model Gemini '{model}'. Hãy kiểm tra model trong cấu hình AI.");
+                }
+
+                if (response.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    throw new InvalidOperationException(
+                        string.IsNullOrWhiteSpace(providerMessage)
+                            ? "Gemini từ chối cấu hình yêu cầu. Hãy kiểm tra model và cấu hình AI."
+                            : $"Gemini từ chối yêu cầu: {providerMessage}");
+                }
+
                 throw new InvalidOperationException(
-                    "Gemini đã chạm hạn mức hiện tại. Vui lòng thử lại sau hoặc kiểm tra quota Google AI Studio.");
+                    "Dịch vụ Gemini hiện chưa phản hồi được. Vui lòng thử lại sau.");
             }
 
-            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-            {
-                throw new InvalidOperationException(
-                    "Google AI Studio API key không hợp lệ hoặc không có quyền gọi Gemini API.");
-            }
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                throw new InvalidOperationException(
-                    $"Không tìm thấy model Gemini '{model}'. Hãy kiểm tra model trong cấu hình AI.");
-            }
-
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                throw new InvalidOperationException(
-                    string.IsNullOrWhiteSpace(providerMessage)
-                        ? "Gemini từ chối cấu hình yêu cầu. Hãy kiểm tra model và cấu hình AI."
-                        : $"Gemini từ chối yêu cầu: {providerMessage}");
-            }
-
-            throw new InvalidOperationException(
-                "Dịch vụ Gemini hiện chưa phản hồi được. Vui lòng thử lại sau.");
+            return JsonDocument.Parse(responseJson);
         }
-
-        return JsonDocument.Parse(responseJson);
+        catch (JsonException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini returned an invalid JSON response. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Dịch vụ Gemini trả về dữ liệu không hợp lệ. Vui lòng thử lại sau.",
+                exception);
+        }
+        catch (HttpRequestException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini response could not be read. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Không đọc được phản hồi từ dịch vụ Gemini. Vui lòng kiểm tra kết nối máy chủ rồi thử lại.",
+                exception);
+        }
+        catch (IOException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini response stream failed. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Kết nối tới dịch vụ Gemini bị gián đoạn. Vui lòng thử lại sau.",
+                exception);
+        }
+        catch (TimeoutException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini response timed out while being read. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Dịch vụ Gemini phản hồi quá lâu. Vui lòng thử lại sau.",
+                exception);
+        }
     }
 
     private bool IsProviderConfigured =>
