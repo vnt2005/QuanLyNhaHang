@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using QuanLyNhaHang.Application.Common.Constants;
+using QuanLyNhaHang.Application.Common.Exceptions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.AiAssistant.DTOs;
 
@@ -53,9 +54,13 @@ public sealed class AiAssistantController : ControllerBase
         {
             return BadRequest(new { message = exception.Message });
         }
+        catch (AiAssistantUnavailableException)
+        {
+            return AiUnavailable();
+        }
         catch (InvalidOperationException exception)
         {
-            return MapProviderFailure(exception);
+            return Conflict(new { message = exception.Message });
         }
         catch (Exception exception)
             when (!cancellationToken.IsCancellationRequested)
@@ -74,8 +79,8 @@ public sealed class AiAssistantController : ControllerBase
         try
         {
             var userId = ResolveUserId()
-                ?? throw new InvalidOperationException(
-                    "Không xác định được tài khoản Admin đang đăng nhập.");
+                ?? throw new UnauthorizedAccessException(
+                    "Phiên đăng nhập quản trị không hợp lệ.");
 
             var result = await _assistantService.AdminChatAsync(
                 request,
@@ -88,9 +93,17 @@ public sealed class AiAssistantController : ControllerBase
         {
             return BadRequest(new { message = exception.Message });
         }
+        catch (UnauthorizedAccessException exception)
+        {
+            return Unauthorized(new { message = exception.Message });
+        }
+        catch (AiAssistantUnavailableException)
+        {
+            return AiUnavailable();
+        }
         catch (InvalidOperationException exception)
         {
-            return MapProviderFailure(exception);
+            return Conflict(new { message = exception.Message });
         }
         catch (Exception exception)
             when (!cancellationToken.IsCancellationRequested)
@@ -147,24 +160,11 @@ public sealed class AiAssistantController : ControllerBase
         }
     }
 
-    private IActionResult MapProviderFailure(InvalidOperationException exception)
+    private IActionResult AiUnavailable()
     {
-        var isQuotaFailure = exception.Message.Contains(
-            "hạn mức",
-            StringComparison.OrdinalIgnoreCase)
-            || exception.Message.Contains(
-                "quota",
-                StringComparison.OrdinalIgnoreCase);
-
         return StatusCode(
-            isQuotaFailure
-                ? StatusCodes.Status429TooManyRequests
-                : StatusCodes.Status503ServiceUnavailable,
-            new
-            {
-                message = exception.Message,
-                traceId = HttpContext.TraceIdentifier
-            });
+            StatusCodes.Status503ServiceUnavailable,
+            new { message = AiAssistantUnavailableException.PublicMessage });
     }
 
     private IActionResult HandleUnexpectedAiFailure(
@@ -177,13 +177,7 @@ public sealed class AiAssistantController : ControllerBase
             audience,
             HttpContext.TraceIdentifier);
 
-        return StatusCode(
-            StatusCodes.Status503ServiceUnavailable,
-            new
-            {
-                message = "Trợ lý AI tạm thời không khả dụng. Vui lòng thử lại sau.",
-                traceId = HttpContext.TraceIdentifier
-            });
+        return AiUnavailable();
     }
 
     private AiAssistantCallerContext ResolveCallerContext()
