@@ -49,20 +49,38 @@ type ApiProblem = {
   message?: string
   detail?: string
   title?: string
+  traceId?: string
+}
+
+function withTraceId(message: string, traceId?: string) {
+  return traceId ? `${message} (traceId: ${traceId})` : message
 }
 
 function getErrorMessage(body: unknown, status: number) {
-  if (body && typeof body === 'object') {
-    const problem = body as ApiProblem
-    if (problem.message) return problem.message
-    if (problem.detail) return problem.detail
-    if (problem.title) return problem.title
-  }
+  const problem = body && typeof body === 'object'
+    ? body as ApiProblem
+    : undefined
 
-  if (status === 401) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
-  if (status === 403) return 'Tài khoản của bạn không có quyền quản lý trợ lý AI.'
-  if (status === 429) return 'Bạn đang hỏi AI quá nhanh. Vui lòng thử lại sau.'
-  return 'Không thể kết nối tới cấu hình trợ lý AI.'
+  if (problem?.message) return withTraceId(problem.message, problem.traceId)
+  if (problem?.detail) return withTraceId(problem.detail, problem.traceId)
+  if (problem?.title) return withTraceId(problem.title, problem.traceId)
+
+  if (status === 401) return withTraceId(
+    'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+    problem?.traceId,
+  )
+  if (status === 403) return withTraceId(
+    'Tài khoản của bạn không có quyền quản lý trợ lý AI.',
+    problem?.traceId,
+  )
+  if (status === 429) return withTraceId(
+    'Bạn đang hỏi AI quá nhanh. Vui lòng thử lại sau.',
+    problem?.traceId,
+  )
+  return withTraceId(
+    'Không thể kết nối tới cấu hình trợ lý AI.',
+    problem?.traceId,
+  )
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
