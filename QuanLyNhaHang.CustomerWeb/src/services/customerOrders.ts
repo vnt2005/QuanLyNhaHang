@@ -39,11 +39,22 @@ export type CustomerOrderHistory = {
   hasNextPage: boolean
 }
 
-export function getCustomerOrders(pageNumber = 1, pageSize = 10) {
+export type CustomerOrderFilter = 'all' | 'active' | 'completed' | 'paid' | 'cancelled'
+
+export function getCustomerOrders(
+  pageNumber = 1,
+  pageSize = 10,
+  filter: CustomerOrderFilter = 'all',
+  search = '',
+) {
   const query = new URLSearchParams({
     pageNumber: String(pageNumber),
     pageSize: String(pageSize),
   })
+
+  if (filter !== 'all') query.set('filter', filter)
+  if (search.trim()) query.set('search', search.trim())
+
   return authenticatedCustomerRequest<CustomerOrderHistory>(
     `/api/customer/orders?${query.toString()}`,
   )

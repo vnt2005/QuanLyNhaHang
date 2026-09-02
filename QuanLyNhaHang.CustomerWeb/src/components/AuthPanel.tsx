@@ -143,7 +143,7 @@ export default function AuthPanel({
 
       <div className="pt-7">
         {message ? <Alert className="mb-6"><AlertTitle>Thông báo</AlertTitle><AlertDescription>{message}</AlertDescription></Alert> : null}
-        {error ? <Alert variant="destructive" className="mb-6"><AlertTitle>Không thể hoàn tất</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
+        {error ? <Alert variant="destructive" className="mb-6"><AlertDescription>{error}</AlertDescription></Alert> : null}
 
         <form className="grid gap-6" onSubmit={submit}>
           {mode === 'register' ? (

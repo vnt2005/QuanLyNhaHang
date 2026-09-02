@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using QuanLyNhaHang.Api.Middlewares;
+using QuanLyNhaHang.Application.Common.Exceptions;
 using Xunit;
 
 namespace QuanLyNhaHang.IntegrationTests.Middleware;
@@ -9,7 +10,7 @@ namespace QuanLyNhaHang.IntegrationTests.Middleware;
 public sealed class ExceptionHandlingMiddlewareTests
 {
     [Fact]
-    public async Task UnknownException_ReturnsGeneric500WithTraceId()
+    public async Task UnknownException_ReturnsGeneric500WithoutDiagnostics()
     {
         const string internalMessage =
             "Thông tin nội bộ không được gửi về client";
@@ -36,22 +37,24 @@ public sealed class ExceptionHandlingMiddlewareTests
             StatusCodes.Status500InternalServerError,
             root.GetProperty("status").GetInt32());
         Assert.Equal(
-            traceId,
-            root.GetProperty("traceId").GetString());
-        Assert.DoesNotContain(
-            internalMessage,
-            root.GetProperty("detail").GetString());
+            "Hệ thống đang gặp sự cố. Vui lòng thử lại sau.",
+            root.GetProperty("message").GetString());
+        Assert.False(root.TryGetProperty("traceId", out _));
+        Assert.False(root.TryGetProperty("detail", out _));
+        Assert.DoesNotContain(internalMessage, root.GetRawText());
+        Assert.DoesNotContain(traceId, root.GetRawText());
     }
 
     [Fact]
-    public async Task ExpectedException_ReturnsClientSafe400Details()
+    public async Task ExpectedException_ReturnsOnlyClientSafeDetails()
     {
         const string message = "Số lượng món phải lớn hơn 0.";
+        const string traceId = "validation-trace";
 
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw new ArgumentException(message),
             NullLogger<ExceptionHandlingMiddleware>.Instance);
-        var context = CreateContext("validation-trace");
+        var context = CreateContext(traceId);
 
         await middleware.InvokeAsync(context);
 
@@ -62,12 +65,40 @@ public sealed class ExceptionHandlingMiddlewareTests
         using var document = await ReadResponseAsync(context);
         var root = document.RootElement;
 
+        Assert.Equal(message, root.GetProperty("message").GetString());
+        Assert.False(root.TryGetProperty("traceId", out _));
+        Assert.False(root.TryGetProperty("detail", out _));
+        Assert.DoesNotContain(traceId, root.GetRawText());
+    }
+
+    [Fact]
+    public async Task AiUnavailable_ReturnsGeneric503WithoutProviderDiagnostics()
+    {
+        const string traceId = "ai-provider-trace";
+
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw new AiAssistantUnavailableException(
+                new InvalidOperationException("API key/model/provider detail")),
+            NullLogger<ExceptionHandlingMiddleware>.Instance);
+        var context = CreateContext(traceId);
+
+        await middleware.InvokeAsync(context);
+
         Assert.Equal(
-            message,
-            root.GetProperty("detail").GetString());
+            StatusCodes.Status503ServiceUnavailable,
+            context.Response.StatusCode);
+
+        using var document = await ReadResponseAsync(context);
+        var root = document.RootElement;
+        var raw = root.GetRawText();
+
         Assert.Equal(
-            "validation-trace",
-            root.GetProperty("traceId").GetString());
+            AiAssistantUnavailableException.PublicMessage,
+            root.GetProperty("message").GetString());
+        Assert.False(root.TryGetProperty("traceId", out _));
+        Assert.DoesNotContain("API key", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("provider", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(traceId, raw);
     }
 
     private static DefaultHttpContext CreateContext(string traceId)

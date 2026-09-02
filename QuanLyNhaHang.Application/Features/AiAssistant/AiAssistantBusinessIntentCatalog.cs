@@ -321,9 +321,40 @@ public static class AiAssistantBusinessIntentCatalog
                    "hoa don don cua toi",
                    "thanh toan cua toi",
                    "trang thai thanh toan",
-                   "da thanh toan chua")
+                   "da thanh toan chua",
+                   "don nao",
+                   "toi co don",
+                   "lich su don",
+                   "don dang xu ly",
+                   "don da hoan thanh",
+                   "don hoan thanh",
+                   "don da huy",
+                   "don bi huy",
+                   "don da thanh toan",
+                   "don chua thanh toan")
                || (text.Contains("don hang", StringComparison.Ordinal)
-                   && ContainsAny(text, "cua minh", "toi dat", "toi mua"));
+                   && ContainsAny(
+                       text,
+                       "cua minh",
+                       "toi dat",
+                       "toi mua",
+                       "da huy",
+                       "bi huy",
+                       "hoan thanh",
+                       "dang xu ly",
+                       "thanh toan"))
+               || (text.Contains("don", StringComparison.Ordinal)
+                   && ContainsAny(
+                       text,
+                       "cua minh",
+                       "toi dat",
+                       "toi mua",
+                       "da huy",
+                       "bi huy",
+                       "hoan thanh",
+                       "dang xu ly",
+                       "da thanh toan",
+                       "chua thanh toan"));
     }
 
     private static bool IsPaymentMethodQuestion(string text)

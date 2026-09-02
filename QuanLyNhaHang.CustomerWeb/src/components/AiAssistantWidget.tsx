@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { Bot } from 'lucide-react'
 import {
   getAiAssistantPublicConfig,
   sendAiAssistantMessage,
@@ -202,8 +203,7 @@ export default function AiAssistantWidget() {
         aria-expanded={open}
         aria-label={open ? 'Đóng trợ lý AI' : 'Mở trợ lý AI'}
       >
-        <span aria-hidden="true">AI</span>
-        <strong>Trợ lý</strong>
+        <Bot aria-hidden="true" strokeWidth={1.9} />
       </button>
     </div>
   )
