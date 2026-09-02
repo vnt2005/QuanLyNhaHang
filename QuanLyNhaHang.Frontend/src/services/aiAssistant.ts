@@ -49,11 +49,6 @@ type ApiProblem = {
   message?: string
   detail?: string
   title?: string
-  traceId?: string
-}
-
-function withTraceId(message: string, traceId?: string) {
-  return traceId ? `${message} (traceId: ${traceId})` : message
 }
 
 function getErrorMessage(body: unknown, status: number) {
@@ -61,26 +56,27 @@ function getErrorMessage(body: unknown, status: number) {
     ? body as ApiProblem
     : undefined
 
-  if (problem?.message) return withTraceId(problem.message, problem.traceId)
-  if (problem?.detail) return withTraceId(problem.detail, problem.traceId)
-  if (problem?.title) return withTraceId(problem.title, problem.traceId)
+  if (status >= 500) {
+    return 'Trợ lý AI đang tạm thời gặp sự cố. Vui lòng thử lại sau.'
+  }
+  if (status === 401) {
+    return problem?.message
+      ?? problem?.detail
+      ?? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+  }
+  if (status === 403) {
+    return problem?.message
+      ?? problem?.detail
+      ?? 'Tài khoản của bạn không có quyền quản lý trợ lý AI.'
+  }
+  if (status === 429) {
+    return 'Bạn đang hỏi AI quá nhanh. Vui lòng thử lại sau.'
+  }
 
-  if (status === 401) return withTraceId(
-    'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
-    problem?.traceId,
-  )
-  if (status === 403) return withTraceId(
-    'Tài khoản của bạn không có quyền quản lý trợ lý AI.',
-    problem?.traceId,
-  )
-  if (status === 429) return withTraceId(
-    'Bạn đang hỏi AI quá nhanh. Vui lòng thử lại sau.',
-    problem?.traceId,
-  )
-  return withTraceId(
-    'Không thể kết nối tới cấu hình trợ lý AI.',
-    problem?.traceId,
-  )
+  if (problem?.message) return problem.message
+  if (problem?.detail) return problem.detail
+  if (problem?.title) return problem.title
+  return 'Không thể kết nối tới trợ lý AI.'
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -114,7 +110,7 @@ async function requestAi<T>(path: string, init: RequestInit) {
   } catch (exception) {
     if (controller.signal.aborted) {
       throw new Error(
-        'Trợ lý AI phản hồi quá lâu. Vui lòng kiểm tra kết nối máy chủ/Gemini rồi thử lại.',
+        'Trợ lý AI phản hồi quá lâu. Vui lòng thử lại sau.',
       )
     }
 

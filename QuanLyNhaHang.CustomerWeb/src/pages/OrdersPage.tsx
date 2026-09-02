@@ -1,11 +1,11 @@
 import { ChevronDown, ChevronUp, ClipboardList, CreditCard, MapPin, PackageOpen, RefreshCw, Search, ShoppingBag, UtensilsCrossed, XCircle } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CustomerSession } from '../services/customerAuth'
-import { cancelCustomerOrder, getCustomerOrders, type CustomerOrder, type CustomerOrderHistory } from '../services/customerOrders'
+import { cancelCustomerOrder, getCustomerOrders, type CustomerOrder, type CustomerOrderFilter, type CustomerOrderHistory } from '../services/customerOrders'
 import { CUSTOMER_ORDER_CHANGED_EVENT } from '../services/notifications'
 import AuthPortal from '../components/AuthPortal'
 import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
@@ -13,22 +13,22 @@ import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
 import { getCustomerQrTokenForTable } from '../utils/customerQrAccess'
 
-type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled'
-
 const terminalStatuses = new Set(['Completed', 'Cancelled'])
-const activeStatuses = new Set(['Pending', 'Confirmed', 'Preparing', 'Cooking', 'Ready', 'Served'])
 const statusLabels: Record<string, string> = { Pending: 'Đang chờ', Confirmed: 'Đã xác nhận', Preparing: 'Đang chuẩn bị', Cooking: 'Đang chế biến', Ready: 'Sẵn sàng phục vụ', Served: 'Đã phục vụ', Completed: 'Đã hoàn thành', Cancelled: 'Đã hủy' }
-const orderFilters: Array<{ value: OrderFilter; label: string }> = [
-  { value: 'all', label: 'Tất cả' }, { value: 'active', label: 'Đang xử lý' }, { value: 'completed', label: 'Hoàn thành' }, { value: 'cancelled', label: 'Đã hủy' },
+const orderFilters: Array<{ value: CustomerOrderFilter; label: string }> = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'active', label: 'Đang xử lý' },
+  { value: 'completed', label: 'Đã hoàn thành' },
+  { value: 'paid', label: 'Đã thanh toán' },
+  { value: 'cancelled', label: 'Đã hủy' },
 ]
 
 function money(value: number) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value) }
 function dateTime(value: string) { return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) }
-function matchesFilter(order: CustomerOrder, filter: OrderFilter) { if (filter === 'all') return true; if (filter === 'active') return activeStatuses.has(order.status); if (filter === 'completed') return order.status === 'Completed'; return order.status === 'Cancelled' }
-function matchesSearch(order: CustomerOrder, query: string) { if (!query) return true; return [order.orderCode, order.restaurantTableName, order.customerName, order.customerPhoneNumber, ...order.items.map(item => item.menuItemName)].filter(Boolean).join(' ').toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi')) }
 function orderItemsPreview(order: CustomerOrder) { const first = order.items[0]; if (!first) return 'Chưa có món'; const firstLabel = `${first.menuItemName} ×${first.quantity}`; return order.items.length > 1 ? `${firstLabel} · +${order.items.length - 1} món` : firstLabel }
 function paymentAmountLabel(order: CustomerOrder) { return order.paidAmount != null ? 'Đã thanh toán' : 'Tạm tính món' }
 function paymentAmount(order: CustomerOrder) { return order.paidAmount ?? order.totalAmount }
+function paymentStatusLabel(order: CustomerOrder) { return order.paidAmount != null ? 'Đã thanh toán' : 'Chưa thanh toán' }
 
 function OrderRow({ order, expanded, accessToken, cancelling, onToggle, onCancel }: { order: CustomerOrder; expanded: boolean; accessToken: string; cancelling: boolean; onToggle: () => void; onCancel: () => void }) {
   const tableQrToken = getCustomerQrTokenForTable(order.restaurantTableId)
@@ -43,7 +43,7 @@ function OrderRow({ order, expanded, accessToken, cancelling, onToggle, onCancel
         <span><small className="sera-kicker">{isTakeaway ? 'Mang về' : 'Tại bàn'} · {dateTime(order.createdAt)}</small><strong className="mt-1 block font-heading text-2xl font-medium">{order.orderCode}</strong><span className="mt-1 block text-xs text-muted-foreground">{orderItemsPreview(order)}</span></span>
         <span className="max-md:hidden"><small className="block text-xs text-muted-foreground">Nhận món</small><strong className="text-sm">{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</strong></span>
         <span className="max-md:hidden"><small className="block text-xs text-muted-foreground">{paymentAmountLabel(order)}</small><strong className="text-sm">{money(paymentAmount(order))}</strong></span>
-        <span className="flex items-center gap-3"><Badge variant={order.status === 'Cancelled' ? 'destructive' : 'secondary'}>{statusLabels[order.status] || order.status}</Badge>{expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}</span>
+        <span className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col max-md:items-end"><Badge variant={order.status === 'Cancelled' ? 'destructive' : 'secondary'}>{statusLabels[order.status] || order.status}</Badge><Badge variant={order.paidAmount != null ? 'default' : 'outline'}>{paymentStatusLabel(order)}</Badge>{expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}</span>
       </button>
 
       {expanded ? (
@@ -75,8 +75,14 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
   const [message, setMessage] = useState('')
   const [cancellingId, setCancellingId] = useState('')
   const [orderSearch, setOrderSearch] = useState('')
-  const [orderFilter, setOrderFilter] = useState<OrderFilter>('all')
+  const [debouncedOrderSearch, setDebouncedOrderSearch] = useState('')
+  const [orderFilter, setOrderFilter] = useState<CustomerOrderFilter>('all')
   const loadRequestRef = useRef(0)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedOrderSearch(orderSearch.trim()), 250)
+    return () => window.clearTimeout(timer)
+  }, [orderSearch])
 
   const loadOrders = useCallback(async (targetPage: number) => {
     if (!session) return
@@ -84,7 +90,7 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
     setLoading(true)
     setError('')
     try {
-      const result = await getCustomerOrders(targetPage, 8)
+      const result = await getCustomerOrders(targetPage, 8, orderFilter, debouncedOrderSearch)
       if (loadRequestRef.current !== requestId) return
       setHistory(result)
       setPage(result.pageNumber)
@@ -95,7 +101,7 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
     } finally {
       if (loadRequestRef.current === requestId) setLoading(false)
     }
-  }, [session?.userId])
+  }, [session?.userId, orderFilter, debouncedOrderSearch])
 
   useEffect(() => {
     if (session) void loadOrders(1)
@@ -110,7 +116,7 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
     return () => window.removeEventListener(CUSTOMER_ORDER_CHANGED_EVENT, refreshFromNotification)
   }, [loadOrders, page, session?.userId])
 
-  const visibleOrders = useMemo(() => { const query = orderSearch.trim(); return history?.items.filter(order => matchesFilter(order, orderFilter) && matchesSearch(order, query)) ?? [] }, [history?.items, orderFilter, orderSearch])
+  const hasActiveFilter = orderFilter !== 'all' || debouncedOrderSearch.length > 0
 
   async function cancelOrder(order: CustomerOrder) {
     if (cancellingId || order.status !== 'Pending') return
@@ -128,7 +134,7 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
     <main className="sera-page">
       <header className="sera-page-head">
         <div><p className="sera-kicker">Lịch sử khách hàng</p><h1 className="sera-display mt-3">Đơn của tôi.</h1><p>Theo dõi đơn đang xử lý và xem lại những lần gọi món trước đây.</p></div>
-        <div className="sera-page-summary"><div className="flex items-center gap-3"><ClipboardList className="size-5 text-accent" /><span><small className="block">Tổng cộng</small><strong className="text-foreground">{history?.totalCount ?? '—'} đơn</strong></span></div></div>
+        <div className="sera-page-summary"><div className="flex items-center gap-3"><ClipboardList className="size-5 text-accent" /><span><small className="block">{hasActiveFilter ? 'Kết quả' : 'Tổng cộng'}</small><strong className="text-foreground">{history?.totalCount ?? '—'} đơn</strong></span></div></div>
       </header>
 
       <section className="mt-7 grid gap-4 border-b border-border pb-5 lg:grid-cols-[1fr_auto_auto] lg:items-center">
@@ -140,10 +146,10 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
       {message ? <Alert className="mt-5"><AlertTitle>Đã cập nhật</AlertTitle><AlertDescription>{message}</AlertDescription></Alert> : null}
       {error ? <Alert variant="destructive" className="mt-5"><AlertTitle>Không thể tải đơn</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
 
-      {history?.items.length ? visibleOrders.length ? <>
-        <div className="mt-7 border-t border-border">{visibleOrders.map(order => <OrderRow key={order.id} order={order} accessToken={session.token} expanded={expandedId === order.id} cancelling={cancellingId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} onCancel={() => void cancelOrder(order)} />)}</div>
+      {history?.items.length ? <>
+        <div className="mt-7 border-t border-border">{history.items.map(order => <OrderRow key={order.id} order={order} accessToken={session.token} expanded={expandedId === order.id} cancelling={cancellingId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} onCancel={() => void cancelOrder(order)} />)}</div>
         {history.totalPages > 1 ? <nav className="sera-menu-pagination"><Button variant="outline" disabled={!history.hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trang trước</Button><span>Trang <strong>{history.pageNumber}</strong> / {history.totalPages}</span><Button variant="outline" disabled={!history.hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Trang sau</Button></nav> : null}
-      </> : <section className="sera-empty mt-7"><div><Search /><h2>Không thấy đơn phù hợp.</h2><p>Đổi từ khóa hoặc trạng thái lọc để xem lại.</p><Button variant="outline" onClick={() => { setOrderSearch(''); setOrderFilter('all') }}>Xóa bộ lọc</Button></div></section> : history && !loading ? <section className="sera-empty mt-7"><div><PackageOpen /><h2>Chưa có đơn hàng.</h2><p>Khi bạn gọi món hoặc đặt mang về trong lúc đăng nhập, đơn sẽ xuất hiện tại đây.</p><Button onClick={() => navigate('/menu')}>Xem thực đơn</Button></div></section> : <section className="sera-empty mt-7"><div><RefreshCw className="animate-spin" /><h2>Đang tải đơn hàng…</h2></div></section>}
+      </> : history && !loading && hasActiveFilter ? <section className="sera-empty mt-7"><div><Search /><h2>Không thấy đơn phù hợp.</h2><p>Không có đơn nào trong toàn bộ lịch sử khớp bộ lọc hoặc từ khóa hiện tại.</p><Button variant="outline" onClick={() => { setOrderSearch(''); setOrderFilter('all') }}>Xóa bộ lọc</Button></div></section> : history && !loading ? <section className="sera-empty mt-7"><div><PackageOpen /><h2>Chưa có đơn hàng.</h2><p>Khi bạn gọi món hoặc đặt mang về trong lúc đăng nhập, đơn sẽ xuất hiện tại đây.</p><Button onClick={() => navigate('/menu')}>Xem thực đơn</Button></div></section> : <section className="sera-empty mt-7"><div><RefreshCw className="animate-spin" /><h2>Đang tải đơn hàng…</h2></div></section>}
     </main>
   )
 }
