@@ -1,4 +1,4 @@
-namespace QuanLyNhaHang.Domain.Payments;
+﻿namespace QuanLyNhaHang.Domain.Payments;
 
 public sealed record PaymentMethodDefinition(
     string Code,
