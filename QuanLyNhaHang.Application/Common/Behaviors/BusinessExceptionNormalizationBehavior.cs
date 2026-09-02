@@ -31,7 +31,7 @@ public sealed class BusinessExceptionNormalizationBehavior<TRequest, TResponse>
 
     private static bool LooksLikeNotFound(string message)
     {
-        return message.StartsWith("Không tìm thấy", StringComparison.OrdinalIgnoreCase)
-            || message.StartsWith("Không tồn tại", StringComparison.OrdinalIgnoreCase);
+        return message.Contains("không tìm thấy", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("không tồn tại", StringComparison.OrdinalIgnoreCase);
     }
 }
