@@ -15,6 +15,9 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
         });
 
+        services.AddTransient(
+            typeof(IPipelineBehavior<,>),
+            typeof(BusinessExceptionNormalizationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ActivityLogBehavior<,>));
 
         services.AddScoped<CustomerPaymentAccessService>();
