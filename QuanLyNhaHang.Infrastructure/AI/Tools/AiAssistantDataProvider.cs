@@ -8,8 +8,8 @@ namespace QuanLyNhaHang.Infrastructure.AI;
 
 internal sealed partial class AiAssistantDataProvider
 {
-    private const int DefaultLimit = 20;
-    private const int MaximumLimit = 50;
+    private const int DefaultLimit = 50;
+    private const int MaximumLimit = 100;
 
     private readonly IApplicationDbContext _dbContext;
     private readonly IPaymentGateway _paymentGateway;
