@@ -27,11 +27,11 @@ public class UpdateKitchenOrderItemStatusCommandHandler
     {
         var orderItem = await _context.OrderItems
             .FirstOrDefaultAsync(x => x.Id == request.OrderItemId, cancellationToken)
-            ?? throw new Exception("Không tìm thấy món trong đơn hàng.");
+            ?? throw new KeyNotFoundException("Không tìm thấy món trong đơn hàng.");
 
         var order = await _context.Orders
             .FirstOrDefaultAsync(x => x.Id == orderItem.OrderId, cancellationToken)
-            ?? throw new Exception("Không tìm thấy đơn hàng của món.");
+            ?? throw new KeyNotFoundException("Không tìm thấy đơn hàng của món.");
 
         if (order.Status == "Cancelled")
             throw new InvalidOperationException("Không thể cập nhật bếp cho đơn đã hủy.");
@@ -65,7 +65,10 @@ public class UpdateKitchenOrderItemStatusCommandHandler
             case "Ready": orderItem.MarkReady(); break;
             case "Served": orderItem.MarkServed(); break;
             case "Cancelled": orderItem.Cancel(); break;
-            default: throw new Exception("Trạng thái món không hợp lệ.");
+            default:
+                throw new ArgumentException(
+                    "Trạng thái món không hợp lệ.",
+                    nameof(request.Status));
         }
 
         SynchronizeOrderStatus(order, orderItems);
