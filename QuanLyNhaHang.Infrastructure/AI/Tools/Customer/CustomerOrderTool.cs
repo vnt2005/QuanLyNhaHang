@@ -11,15 +11,57 @@ internal sealed partial class AiAssistantDataProvider
         CancellationToken cancellationToken)
     {
         var orderCode = AiToolArguments.GetString(args, "orderCode");
-        var limit = Math.Clamp(AiToolArguments.GetInt(args, "limit", 8), 1, 10);
+        var status = AiToolArguments.GetString(args, "status").Trim().ToLowerInvariant();
+        var paymentStatus = AiToolArguments.GetString(args, "paymentStatus").Trim().ToLowerInvariant();
+        var limit = AiToolArguments.GetLimit(args, DefaultLimit, MaximumLimit);
 
-        var query = _dbContext.Orders
+        var allCustomerOrders = _dbContext.Orders
             .AsNoTracking()
             .Where(item => item.CustomerUserId == customerUserId);
+
+        var paidOrderIds = _dbContext.Payments
+            .AsNoTracking()
+            .Where(item => item.Status == "Paid")
+            .Select(item => item.OrderId)
+            .Distinct();
+
+        var totalOrders = await allCustomerOrders.CountAsync(cancellationToken);
+        var paidOrders = await allCustomerOrders
+            .CountAsync(item => paidOrderIds.Contains(item.Id), cancellationToken);
+        var statusBreakdown = await allCustomerOrders
+            .GroupBy(item => item.Status)
+            .Select(group => new { status = group.Key, count = group.Count() })
+            .OrderByDescending(item => item.count)
+            .ToListAsync(cancellationToken);
+
+        var query = allCustomerOrders;
 
         if (!string.IsNullOrWhiteSpace(orderCode))
             query = query.Where(item => item.OrderCode == orderCode);
 
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = status switch
+            {
+                "active" => query.Where(item =>
+                    item.Status == "Pending"
+                    || item.Status == "Confirmed"
+                    || item.Status == "Preparing"
+                    || item.Status == "Cooking"
+                    || item.Status == "Ready"),
+                "completed" => query.Where(item => item.Status == "Completed"),
+                "cancelled" or "canceled" => query.Where(item => item.Status == "Cancelled"),
+                "served" => query.Where(item => item.Status == "Served"),
+                _ => query.Where(item => item.Status.ToLower() == status)
+            };
+        }
+
+        if (paymentStatus == "paid")
+            query = query.Where(item => paidOrderIds.Contains(item.Id));
+        else if (paymentStatus == "unpaid")
+            query = query.Where(item => !paidOrderIds.Contains(item.Id));
+
+        var totalCount = await query.CountAsync(cancellationToken);
         var orders = await query
             .OrderByDescending(item => item.CreatedAt)
             .Take(limit)
@@ -111,7 +153,17 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
-            count = orders.Count,
+            summary = new
+            {
+                totalOrders,
+                paidOrders,
+                unpaidOrders = totalOrders - paidOrders,
+                statusBreakdown
+            },
+            filter = new { orderCode, status, paymentStatus },
+            totalCount,
+            returnedCount = orders.Count,
+            hasMore = totalCount > orders.Count,
             orders = orders.Select(order => new
             {
                 order.OrderCode,
@@ -166,10 +218,14 @@ internal sealed partial class AiAssistantDataProvider
         JsonElement args,
         CancellationToken cancellationToken)
     {
-        var limit = Math.Clamp(AiToolArguments.GetInt(args, "limit", 10), 1, 20);
-        var notifications = await _dbContext.Notifications
+        var limit = AiToolArguments.GetLimit(args, DefaultLimit, MaximumLimit);
+        var query = _dbContext.Notifications
             .AsNoTracking()
-            .Where(item => item.UserId == customerUserId)
+            .Where(item => item.UserId == customerUserId);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var unreadCount = await query.CountAsync(item => !item.IsRead, cancellationToken);
+        var notifications = await query
             .OrderByDescending(item => item.CreatedAt)
             .Take(limit)
             .Select(item => new
@@ -185,6 +241,13 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { count = notifications.Count, notifications };
+        return new
+        {
+            totalCount,
+            unreadCount,
+            returnedCount = notifications.Count,
+            hasMore = totalCount > notifications.Count,
+            notifications
+        };
     }
 }
