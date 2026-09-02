@@ -107,6 +107,8 @@ function storedRefreshToken() {
 }
 
 function getErrorMessage(body: unknown, status: number) {
+  if (status >= 500) return 'Hệ thống đang gặp sự cố. Vui lòng thử lại sau.'
+
   if (body && typeof body === 'object') {
     const value = body as ApiProblem
     if (value.message) return value.message
@@ -146,7 +148,7 @@ async function request<T>(
     })
   } catch {
     throw new AuthApiError(
-      'Không kết nối được API của hệ thống. Vui lòng kiểm tra Docker/API đang chạy.',
+      'Không thể kết nối tới hệ thống. Vui lòng thử lại sau.',
       0,
     )
   }
