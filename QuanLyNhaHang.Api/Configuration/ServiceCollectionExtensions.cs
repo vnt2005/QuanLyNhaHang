@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+
 namespace QuanLyNhaHang.Api.Configuration;
 
 public static class ServiceCollectionExtensions
@@ -38,6 +41,35 @@ public static class ServiceCollectionExtensions
                     new UtcDateTimeJsonConverter());
             });
 
+        services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.InvalidModelStateResponseFactory = context =>
+            {
+                var errors = context.ModelState
+                    .Where(entry => entry.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        entry => entry.Key,
+                        entry => entry.Value!.Errors
+                            .Select(ToClientValidationMessage)
+                            .Distinct(StringComparer.Ordinal)
+                            .ToArray());
+
+                var message = errors.Values
+                    .SelectMany(value => value)
+                    .FirstOrDefault()
+                    ?? "Dữ liệu không hợp lệ.";
+
+                return new BadRequestObjectResult(new
+                {
+                    type = "about:blank",
+                    title = "Dữ liệu không hợp lệ",
+                    status = StatusCodes.Status400BadRequest,
+                    message,
+                    errors
+                });
+            };
+        });
+
         services.AddOpenApi();
 
         return services;
@@ -57,5 +89,24 @@ public static class ServiceCollectionExtensions
             PermissionAuthorizationHandler>();
 
         return services;
+    }
+
+    private static string ToClientValidationMessage(ModelError error)
+    {
+        if (error.Exception is not null)
+            return "Dữ liệu gửi lên không đúng định dạng.";
+
+        var message = error.ErrorMessage?.Trim();
+        if (string.IsNullOrWhiteSpace(message))
+            return "Dữ liệu không hợp lệ.";
+
+        if (message.Contains("could not be converted", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("JSON", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("System.", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Dữ liệu gửi lên không đúng định dạng.";
+        }
+
+        return message;
     }
 }
