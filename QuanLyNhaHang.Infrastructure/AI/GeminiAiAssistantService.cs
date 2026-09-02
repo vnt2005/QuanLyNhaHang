@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Payments;
+using QuanLyNhaHang.Application.Features.AiAssistant;
 using QuanLyNhaHang.Application.Features.AiAssistant.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -44,12 +46,17 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
     public GeminiAiAssistantService(
         HttpClient httpClient,
         IApplicationDbContext dbContext,
+        IPaymentGateway paymentGateway,
+        IPaymentChannelReadiness paymentChannelReadiness,
         IOptions<GeminiOptions> options,
         ILogger<GeminiAiAssistantService> logger)
     {
         _httpClient = httpClient;
         _dbContext = dbContext;
-        _dataProvider = new AiAssistantDataProvider(dbContext);
+        _dataProvider = new AiAssistantDataProvider(
+            dbContext,
+            paymentGateway,
+            paymentChannelReadiness);
         _options = options.Value;
         _logger = logger;
     }
@@ -133,7 +140,11 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
     {
         var setting = await ValidateChatAsync(request, requirePublicEnabled: true, cancellationToken);
         var model = ResolveModel(setting.AiAssistantModel);
-        var instructions = BuildCustomerInstructions(setting, callerContext);
+        var routes = AiAssistantBusinessIntentCatalog.ResolveCustomer(
+            request.Message,
+            callerContext.IsAuthenticated);
+        var instructions = BuildCustomerInstructions(setting, callerContext) +
+                           AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
         var tools = _dataProvider.GetCustomerToolDeclarations(callerContext.IsAuthenticated);
 
         return await RunToolConversationAsync(
@@ -142,6 +153,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             setting.AiAssistantMaxOutputTokens,
             instructions,
             tools,
+            routes,
             (name, args, ct) => _dataProvider.ExecuteCustomerToolAsync(name, args, callerContext, ct),
             cancellationToken);
     }
@@ -156,7 +168,9 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
 
         var setting = await ValidateChatAsync(request, requirePublicEnabled: false, cancellationToken);
         var model = ResolveModel(setting.AiAssistantModel);
-        var instructions = BuildAdminInstructions(setting);
+        var routes = AiAssistantBusinessIntentCatalog.ResolveAdmin(request.Message);
+        var instructions = BuildAdminInstructions(setting) +
+                           AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
         var tools = _dataProvider.GetAdminToolDeclarations();
 
         return await RunToolConversationAsync(
@@ -165,6 +179,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             setting.AiAssistantMaxOutputTokens,
             instructions,
             tools,
+            routes,
             (name, args, ct) => _dataProvider.ExecuteAdminToolAsync(name, args, ct),
             cancellationToken);
     }
@@ -198,6 +213,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         int maxOutputTokens,
         string instructions,
         IReadOnlyList<JsonElement> toolDeclarations,
+        IReadOnlyList<AiAssistantIntentRoute> intentRoutes,
         Func<string, JsonElement, CancellationToken, Task<object>> executeTool,
         CancellationToken cancellationToken)
     {
@@ -222,6 +238,10 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         var dataSources = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var totalInputTokens = 0;
         var totalOutputTokens = 0;
+        var requiredToolNames = intentRoutes
+            .Select(route => route.ToolName)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
 
         for (var round = 0; round < MaxToolRounds; round++)
         {
@@ -231,6 +251,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                 instructions,
                 contents,
                 toolDeclarations,
+                round == 0 ? requiredToolNames : [],
                 providerRequestId,
                 cancellationToken);
 
@@ -280,7 +301,10 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             var responseParts = new List<object>();
             foreach (var call in calls)
             {
-                var result = await executeTool(call.Name, call.Args, cancellationToken);
+                var routedArgs = round == 0
+                    ? ApplyRequiredArguments(call, intentRoutes)
+                    : call.Args;
+                var result = await executeTool(call.Name, routedArgs, cancellationToken);
                 dataSources.Add(MapDataSource(call.Name, result));
 
                 responseParts.Add(new
@@ -319,6 +343,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         string instructions,
         IReadOnlyList<JsonElement> contents,
         IReadOnlyList<JsonElement> toolDeclarations,
+        IReadOnlyCollection<string> requiredToolNames,
         string providerRequestId,
         CancellationToken cancellationToken)
     {
@@ -326,6 +351,13 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             HttpMethod.Post,
             BuildGenerateContentUrl(model));
         httpRequest.Headers.Add("x-goog-api-key", _options.ApiKey.Trim());
+        var functionCallingConfig = new Dictionary<string, object>
+        {
+            ["mode"] = requiredToolNames.Count > 0 ? "ANY" : "AUTO"
+        };
+        if (requiredToolNames.Count > 0)
+            functionCallingConfig["allowedFunctionNames"] = requiredToolNames;
+
         httpRequest.Content = JsonContent.Create(new
         {
             systemInstruction = new
@@ -339,7 +371,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             },
             toolConfig = new
             {
-                functionCallingConfig = new { mode = "AUTO" }
+                functionCallingConfig
             },
             safetySettings = SafetySettings,
             generationConfig = new
@@ -459,6 +491,15 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
 
 Bạn có các công cụ READ-ONLY để tự lấy dữ liệu mới nhất từ hệ thống nhà hàng. Khi câu hỏi phụ thuộc dữ liệu thực tế như món, giá, khuyến mãi, bàn, trạng thái đơn, thanh toán hoặc thông báo, PHẢI gọi công cụ phù hợp trước khi trả lời; không đoán từ kiến thức chung.
 
+MAPPING TOOL NGHIỆP VỤ:
+- Phương thức/hình thức thanh toán, tiền mặt, thẻ, QR, chuyển khoản, ví điện tử, MoMo, ZaloPay -> get_payment_options.
+- Giờ mở/đóng cửa, địa chỉ, liên hệ, VAT, phí phục vụ -> get_restaurant_info.
+- Món, thực đơn, danh mục, giá -> search_menu.
+- Khuyến mãi, voucher, mã giảm giá -> get_active_promotions.
+- Bàn trống hoặc bàn theo số khách/thời gian -> get_table_availability.
+- Đơn, món trong đơn, trạng thái bếp, thanh toán hoặc hóa đơn của khách đang đăng nhập -> get_my_orders.
+- Cách dùng CustomerWeb -> get_website_capabilities.
+
 QUY TẮC BẮT BUỘC:
 - Ưu tiên tiếng Việt, rõ ràng, ngắn gọn và lịch sự.
 - Không tự bịa giá, món, khuyến mãi, bàn trống, trạng thái đơn hay trạng thái thanh toán.
@@ -486,6 +527,14 @@ KIẾN THỨC BỔ SUNG DO ADMIN CUNG CẤP:
         return $$"""
 Bạn là trợ lý vận hành READ-ONLY dành riêng cho Admin của hệ thống quản lý nhà hàng.
 Bạn có công cụ để tự truy vấn dữ liệu mới nhất từ các module WebApp: dashboard, tài khoản, nhân viên, ca làm, khu vực/bàn, thực đơn, đơn hàng, bếp, thanh toán, hóa đơn, doanh thu, đặt bàn, khuyến mãi, tồn kho, nhật ký hoạt động, thông báo, QR bàn, thao tác bàn, phân quyền và cấu hình nhà hàng.
+
+MAPPING TOOL NGHIỆP VỤ:
+- Hỏi hệ thống hỗ trợ những phương thức/hình thức thanh toán nào -> get_payment_options.
+- Hỏi giao dịch thanh toán -> get_admin_module_data(module="payments").
+- Hóa đơn -> module="invoices"; doanh thu -> module="revenue"; tồn kho/nguyên liệu -> module="inventory".
+- Món/thực đơn -> module="menu"; bàn/khu vực -> module="tables"; đặt bàn -> module="reservations".
+- Đơn/trạng thái đơn -> module="orders"; bếp -> module="kitchen"; khuyến mãi -> module="promotions".
+- Giờ mở cửa, VAT, phí phục vụ hoặc cấu hình nhà hàng -> module="restaurant_settings".
 
 QUY TẮC BẮT BUỘC:
 - Khi Admin hỏi số liệu/trạng thái/danh sách thực tế, PHẢI gọi công cụ dữ liệu phù hợp trước khi kết luận.
@@ -665,6 +714,32 @@ KIẾN THỨC BỔ SUNG DO ADMIN CUNG CẤP:
         return (inputTokens, outputTokens);
     }
 
+    private static JsonElement ApplyRequiredArguments(
+        GeminiFunctionCall call,
+        IReadOnlyList<AiAssistantIntentRoute> intentRoutes)
+    {
+        if (!call.Name.Equals(
+                AiAssistantToolNames.AdminModuleData,
+                StringComparison.Ordinal))
+        {
+            return call.Args;
+        }
+
+        var matchingRoutes = intentRoutes
+            .Where(route => route.ToolName.Equals(call.Name, StringComparison.Ordinal)
+                            && route.RequiredModule is not null)
+            .ToList();
+        if (matchingRoutes.Count != 1)
+            return call.Args;
+
+        var arguments = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
+                            call.Args.GetRawText())
+                        ?? new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        arguments["module"] = JsonSerializer.SerializeToElement(
+            matchingRoutes[0].RequiredModule);
+        return JsonSerializer.SerializeToElement(arguments);
+    }
+
     private static string ExtractProviderErrorMessage(string responseJson)
     {
         try
@@ -688,15 +763,16 @@ KIẾN THỨC BỔ SUNG DO ADMIN CUNG CẤP:
         _ = result;
         return toolName switch
         {
-            "get_restaurant_info" => "Nhà hàng & bàn",
-            "search_menu" => "Thực đơn",
-            "get_active_promotions" => "Khuyến mãi",
-            "get_table_availability" => "Đặt bàn",
-            "get_website_capabilities" => "Chức năng website",
-            "get_my_orders" => "Đơn/Bếp/Thanh toán của bạn",
-            "get_my_notifications" => "Thông báo của bạn",
-            "get_admin_overview" => "Tổng quan vận hành",
-            "get_admin_module_data" => "Dữ liệu WebApp",
+            AiAssistantToolNames.RestaurantInfo => "Nhà hàng & bàn",
+            AiAssistantToolNames.PaymentOptions => "Phương thức thanh toán",
+            AiAssistantToolNames.SearchMenu => "Thực đơn",
+            AiAssistantToolNames.ActivePromotions => "Khuyến mãi",
+            AiAssistantToolNames.TableAvailability => "Đặt bàn",
+            AiAssistantToolNames.WebsiteCapabilities => "Chức năng website",
+            AiAssistantToolNames.MyOrders => "Đơn/Bếp/Thanh toán của bạn",
+            AiAssistantToolNames.MyNotifications => "Thông báo của bạn",
+            AiAssistantToolNames.AdminOverview => "Tổng quan vận hành",
+            AiAssistantToolNames.AdminModuleData => "Dữ liệu WebApp",
             _ => toolName
         };
     }

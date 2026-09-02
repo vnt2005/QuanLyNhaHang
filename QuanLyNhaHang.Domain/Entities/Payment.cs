@@ -1,3 +1,5 @@
+using QuanLyNhaHang.Domain.Payments;
+
 namespace QuanLyNhaHang.Domain.Entities;
 
 public class Payment
@@ -173,9 +175,7 @@ public class Payment
 
         paymentMethod = paymentMethod.Trim();
 
-        var validMethods = new[] { "Cash", "Card", "BankTransfer", "EWallet", "Momo", "ZaloPay", "Other" };
-
-        if (!validMethods.Contains(paymentMethod))
+        if (!PaymentMethodCatalog.IsSupported(paymentMethod))
             throw new ArgumentException("Phương thức thanh toán không hợp lệ.");
 
         PaymentMethod = paymentMethod;
