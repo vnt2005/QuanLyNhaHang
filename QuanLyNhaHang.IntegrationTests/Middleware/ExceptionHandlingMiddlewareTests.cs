@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using QuanLyNhaHang.Api.Middlewares;
+using QuanLyNhaHang.Application.Common.Exceptions;
 using Xunit;
 
 namespace QuanLyNhaHang.IntegrationTests.Middleware;
@@ -68,6 +69,36 @@ public sealed class ExceptionHandlingMiddlewareTests
         Assert.False(root.TryGetProperty("traceId", out _));
         Assert.False(root.TryGetProperty("detail", out _));
         Assert.DoesNotContain(traceId, root.GetRawText());
+    }
+
+    [Fact]
+    public async Task AiUnavailable_ReturnsGeneric503WithoutProviderDiagnostics()
+    {
+        const string traceId = "ai-provider-trace";
+
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw new AiAssistantUnavailableException(
+                new InvalidOperationException("API key/model/provider detail")),
+            NullLogger<ExceptionHandlingMiddleware>.Instance);
+        var context = CreateContext(traceId);
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(
+            StatusCodes.Status503ServiceUnavailable,
+            context.Response.StatusCode);
+
+        using var document = await ReadResponseAsync(context);
+        var root = document.RootElement;
+        var raw = root.GetRawText();
+
+        Assert.Equal(
+            AiAssistantUnavailableException.PublicMessage,
+            root.GetProperty("message").GetString());
+        Assert.False(root.TryGetProperty("traceId", out _));
+        Assert.DoesNotContain("API key", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("provider", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(traceId, raw);
     }
 
     private static DefaultHttpContext CreateContext(string traceId)
