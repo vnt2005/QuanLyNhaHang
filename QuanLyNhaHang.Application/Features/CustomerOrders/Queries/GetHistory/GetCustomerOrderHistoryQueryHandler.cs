@@ -10,6 +10,16 @@ namespace QuanLyNhaHang.Application.Features.CustomerOrders.Queries.GetHistory;
 public class GetCustomerOrderHistoryQueryHandler
     : IRequestHandler<GetCustomerOrderHistoryQuery, PaginatedList<QrOrderDto>>
 {
+    private static readonly string[] ActiveStatuses =
+    [
+        "Pending",
+        "Confirmed",
+        "Preparing",
+        "Cooking",
+        "Ready",
+        "Served"
+    ];
+
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
 
@@ -42,13 +52,48 @@ public class GetCustomerOrderHistoryQueryHandler
 
         var pageNumber = Math.Max(1, request.PageNumber);
         var pageSize = Math.Clamp(request.PageSize, 1, 50);
+        var filter = request.Filter?.Trim().ToLowerInvariant() ?? "all";
+        var search = request.Search?.Trim() ?? string.Empty;
+
+        var ordersQuery = _context.Orders
+            .AsNoTracking()
+            .Where(order =>
+                order.CustomerUserId == customerUserId &&
+                order.IsActive);
+
+        ordersQuery = filter switch
+        {
+            "active" => ordersQuery.Where(order => ActiveStatuses.Contains(order.Status)),
+            "completed" => ordersQuery.Where(order => order.Status == "Completed"),
+            "cancelled" => ordersQuery.Where(order => order.Status == "Cancelled"),
+            "paid" => ordersQuery.Where(order =>
+                _context.Payments.Any(payment =>
+                    payment.OrderId == order.Id &&
+                    payment.Status == "Paid")),
+            _ => ordersQuery
+        };
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            ordersQuery = ordersQuery.Where(order =>
+                order.OrderCode.Contains(search) ||
+                (order.CustomerName != null && order.CustomerName.Contains(search)) ||
+                (order.CustomerPhoneNumber != null && order.CustomerPhoneNumber.Contains(search)) ||
+                _context.RestaurantTables.Any(table =>
+                    order.RestaurantTableId == table.Id &&
+                    table.Name.Contains(search)) ||
+                _context.OrderItems.Any(item =>
+                    item.OrderId == order.Id &&
+                    item.MenuItemName.Contains(search)));
+        }
+
+        var totalCount = await ordersQuery.CountAsync(cancellationToken);
 
         var query =
-            from order in _context.Orders.AsNoTracking()
+            from order in ordersQuery
             join tableRow in _context.RestaurantTables.AsNoTracking()
                 on order.RestaurantTableId equals (Guid?)tableRow.Id into tableRows
             from table in tableRows.DefaultIfEmpty()
-            where order.CustomerUserId == customerUserId && order.IsActive
             orderby order.CreatedAt descending
             select new QrOrderDto
             {
@@ -66,7 +111,6 @@ public class GetCustomerOrderHistoryQueryHandler
                 CreatedAt = order.CreatedAt
             };
 
-        var totalCount = await query.CountAsync(cancellationToken);
         var orders = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
