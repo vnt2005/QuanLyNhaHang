@@ -48,6 +48,11 @@ public class AiAssistantBusinessQuestionRegressionTests
     public static TheoryData<string, string, string?> AdminQuestions => new()
     {
         {
+            "Tình hình vận hành hôm nay thế nào?",
+            AiAssistantToolNames.AdminOverview,
+            null
+        },
+        {
             "Nhà hàng có các phương thức thanh toán nào?",
             AiAssistantToolNames.PaymentOptions,
             null
