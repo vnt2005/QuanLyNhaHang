@@ -12,7 +12,7 @@ internal sealed partial class AiAssistantDataProvider
         var query = AiToolArguments.GetString(args, "query");
         var category = AiToolArguments.GetString(args, "category");
         var onlyAvailable = AiToolArguments.GetBoolean(args, "onlyAvailable", true);
-        var limit = AiToolArguments.GetLimit(args, 30, MaximumLimit);
+        var limit = AiToolArguments.GetLimit(args, DefaultLimit, MaximumLimit);
 
         var categories = await _dbContext.MenuCategories
             .AsNoTracking()
@@ -31,16 +31,18 @@ internal sealed partial class AiAssistantDataProvider
             .AsNoTracking()
             .Where(item => item.IsActive && (!onlyAvailable || item.IsAvailable))
             .OrderBy(item => item.Name)
-            .Take(200)
             .ToListAsync(cancellationToken);
 
         var normalizedQuery = query.Trim();
-        var filtered = items
+        var matchingItems = items
             .Where(item => categoryIds is null || categoryIds.Contains(item.MenuCategoryId))
             .Where(item => normalizedQuery.Length == 0
                 || item.Name.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase)
                 || (!string.IsNullOrWhiteSpace(item.Description)
                     && item.Description.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        var filtered = matchingItems
             .Take(limit)
             .Select(item => new
             {
@@ -57,7 +59,9 @@ internal sealed partial class AiAssistantDataProvider
             query,
             category,
             onlyAvailable,
-            count = filtered.Count,
+            totalCount = matchingItems.Count,
+            returnedCount = filtered.Count,
+            hasMore = matchingItems.Count > filtered.Count,
             items = filtered
         };
     }
@@ -66,14 +70,17 @@ internal sealed partial class AiAssistantDataProvider
         CancellationToken cancellationToken)
     {
         var now = DateTime.UtcNow;
-        var promotions = await _dbContext.Promotions
+        var query = _dbContext.Promotions
             .AsNoTracking()
             .Where(item => item.IsActive
                 && item.StartDate <= now
                 && item.EndDate >= now
-                && (!item.UsageLimit.HasValue || item.UsedCount < item.UsageLimit.Value))
+                && (!item.UsageLimit.HasValue || item.UsedCount < item.UsageLimit.Value));
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var promotions = await query
             .OrderBy(item => item.EndDate)
-            .Take(30)
+            .Take(MaximumLimit)
             .Select(item => new
             {
                 item.PromotionCode,
@@ -90,6 +97,12 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { count = promotions.Count, promotions };
+        return new
+        {
+            totalCount,
+            returnedCount = promotions.Count,
+            hasMore = totalCount > promotions.Count,
+            promotions
+        };
     }
 }
