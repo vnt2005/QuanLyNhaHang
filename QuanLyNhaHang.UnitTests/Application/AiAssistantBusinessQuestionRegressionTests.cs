@@ -42,6 +42,26 @@ public class AiAssistantBusinessQuestionRegressionTests
             "Hóa đơn của tôi đã có chưa?",
             AiAssistantToolNames.MyOrders,
             null
+        },
+        {
+            "Tôi có đơn nào đã hủy không?",
+            AiAssistantToolNames.MyOrders,
+            null
+        },
+        {
+            "Đơn nào của tôi đã hoàn thành?",
+            AiAssistantToolNames.MyOrders,
+            null
+        },
+        {
+            "Tôi có đơn nào đã thanh toán chưa?",
+            AiAssistantToolNames.MyOrders,
+            null
+        },
+        {
+            "Có đơn nào đang xử lý không?",
+            AiAssistantToolNames.MyOrders,
+            null
         }
     };
 
