@@ -20,6 +20,7 @@ internal sealed partial class AiAssistantDataProvider
             .OrderByDescending(item => item.count)
             .ToListAsync(cancellationToken);
 
+        var totalCount = await _dbContext.Users.CountAsync(cancellationToken);
         var recent = await _dbContext.Users
             .AsNoTracking()
             .OrderByDescending(item => item.CreatedAt)
@@ -42,7 +43,9 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
-            total = await _dbContext.Users.CountAsync(cancellationToken),
+            totalCount,
+            returnedCount = recent.Count,
+            hasMore = totalCount > recent.Count,
             roleBreakdown,
             recent,
             excludedFields = new[] { "PasswordHash", "verification/reset/2FA codes" }
@@ -57,15 +60,16 @@ internal sealed partial class AiAssistantDataProvider
         var employees = await _dbContext.Employees
             .AsNoTracking()
             .OrderBy(item => item.EmployeeCode)
-            .Take(200)
             .ToListAsync(cancellationToken);
 
-        var filtered = employees
+        var matchingEmployees = employees
             .Where(item => string.IsNullOrWhiteSpace(query)
                 || item.EmployeeCode.Contains(query, StringComparison.OrdinalIgnoreCase)
                 || item.Ten.Contains(query, StringComparison.OrdinalIgnoreCase)
                 || (!string.IsNullOrWhiteSpace(item.Ho) && item.Ho.Contains(query, StringComparison.OrdinalIgnoreCase))
                 || item.Position.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var filtered = matchingEmployees
             .Take(limit)
             .Select(item => new
             {
@@ -80,7 +84,13 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToList();
 
-        return new { count = filtered.Count, employees = filtered };
+        return new
+        {
+            totalCount = matchingEmployees.Count,
+            returnedCount = filtered.Count,
+            hasMore = matchingEmployees.Count > filtered.Count,
+            employees = filtered
+        };
     }
 
     private async Task<object> GetShiftsModuleAsync(
@@ -103,9 +113,11 @@ internal sealed partial class AiAssistantDataProvider
 
         var from = DateTime.UtcNow.Date.AddDays(-1);
         var to = from.AddDays(9);
-        var assignments = await _dbContext.EmployeeShifts
+        var assignmentsQuery = _dbContext.EmployeeShifts
             .AsNoTracking()
-            .Where(item => item.IsActive && item.WorkDate >= from && item.WorkDate < to)
+            .Where(item => item.IsActive && item.WorkDate >= from && item.WorkDate < to);
+        var totalAssignmentCount = await assignmentsQuery.CountAsync(cancellationToken);
+        var assignments = await assignmentsQuery
             .OrderBy(item => item.WorkDate)
             .Take(limit)
             .Select(item => new
@@ -131,6 +143,7 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
+            totalShifts = shifts.Count,
             shifts = shifts.Select(item => new
             {
                 item.ShiftCode,
@@ -139,17 +152,23 @@ internal sealed partial class AiAssistantDataProvider
                 item.EndTime,
                 item.IsActive
             }),
-            assignments = assignments.Select(item => new
+            assignments = new
             {
-                employee = employees.TryGetValue(item.EmployeeId, out var employee)
-                    ? employee
-                    : item.EmployeeId.ToString(),
-                shift = shiftNames.TryGetValue(item.ShiftId, out var shift)
-                    ? shift
-                    : item.ShiftId.ToString(),
-                item.WorkDate,
-                item.Note
-            })
+                totalCount = totalAssignmentCount,
+                returnedCount = assignments.Count,
+                hasMore = totalAssignmentCount > assignments.Count,
+                items = assignments.Select(item => new
+                {
+                    employee = employees.TryGetValue(item.EmployeeId, out var employee)
+                        ? employee
+                        : item.EmployeeId.ToString(),
+                    shift = shiftNames.TryGetValue(item.ShiftId, out var shift)
+                        ? shift
+                        : item.ShiftId.ToString(),
+                    item.WorkDate,
+                    item.Note
+                })
+            }
         };
     }
 }
