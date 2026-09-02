@@ -127,7 +127,7 @@ export function CustomerSessionProvider({
       sessionStorage.removeItem('customerReturnPath')
       navigate(returnPath)
     } else if (pathname === '/login') {
-      navigate('/orders')
+      navigate('/')
     }
   }, [pathname])
 
