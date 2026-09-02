@@ -13,18 +13,22 @@ import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
 import { getCustomerQrTokenForTable } from '../utils/customerQrAccess'
 
-type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled'
+type OrderFilter = 'all' | 'active' | 'completed' | 'paid' | 'cancelled'
 
 const terminalStatuses = new Set(['Completed', 'Cancelled'])
 const activeStatuses = new Set(['Pending', 'Confirmed', 'Preparing', 'Cooking', 'Ready', 'Served'])
 const statusLabels: Record<string, string> = { Pending: 'Đang chờ', Confirmed: 'Đã xác nhận', Preparing: 'Đang chuẩn bị', Cooking: 'Đang chế biến', Ready: 'Sẵn sàng phục vụ', Served: 'Đã phục vụ', Completed: 'Đã hoàn thành', Cancelled: 'Đã hủy' }
 const orderFilters: Array<{ value: OrderFilter; label: string }> = [
-  { value: 'all', label: 'Tất cả' }, { value: 'active', label: 'Đang xử lý' }, { value: 'completed', label: 'Hoàn thành' }, { value: 'cancelled', label: 'Đã hủy' },
+  { value: 'all', label: 'Tất cả' },
+  { value: 'active', label: 'Đang xử lý' },
+  { value: 'completed', label: 'Đã hoàn thành' },
+  { value: 'paid', label: 'Đã thanh toán' },
+  { value: 'cancelled', label: 'Đã hủy' },
 ]
 
 function money(value: number) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value) }
 function dateTime(value: string) { return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) }
-function matchesFilter(order: CustomerOrder, filter: OrderFilter) { if (filter === 'all') return true; if (filter === 'active') return activeStatuses.has(order.status); if (filter === 'completed') return order.status === 'Completed'; return order.status === 'Cancelled' }
+function matchesFilter(order: CustomerOrder, filter: OrderFilter) { if (filter === 'all') return true; if (filter === 'active') return activeStatuses.has(order.status); if (filter === 'completed') return order.status === 'Completed'; if (filter === 'paid') return order.paidAmount != null; return order.status === 'Cancelled' }
 function matchesSearch(order: CustomerOrder, query: string) { if (!query) return true; return [order.orderCode, order.restaurantTableName, order.customerName, order.customerPhoneNumber, ...order.items.map(item => item.menuItemName)].filter(Boolean).join(' ').toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi')) }
 function orderItemsPreview(order: CustomerOrder) { const first = order.items[0]; if (!first) return 'Chưa có món'; const firstLabel = `${first.menuItemName} ×${first.quantity}`; return order.items.length > 1 ? `${firstLabel} · +${order.items.length - 1} món` : firstLabel }
 function paymentAmountLabel(order: CustomerOrder) { return order.paidAmount != null ? 'Đã thanh toán' : 'Tạm tính món' }
