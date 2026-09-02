@@ -2,7 +2,10 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Payments;
+using QuanLyNhaHang.Application.Features.AiAssistant;
 using QuanLyNhaHang.Application.Features.AiAssistant.DTOs;
+using QuanLyNhaHang.Domain.Payments;
 
 namespace QuanLyNhaHang.Infrastructure.AI;
 
@@ -12,10 +15,17 @@ internal sealed class AiAssistantDataProvider
     private const int MaximumLimit = 50;
 
     private readonly IApplicationDbContext _dbContext;
+    private readonly IPaymentGateway _paymentGateway;
+    private readonly IPaymentChannelReadiness _paymentChannelReadiness;
 
-    public AiAssistantDataProvider(IApplicationDbContext dbContext)
+    public AiAssistantDataProvider(
+        IApplicationDbContext dbContext,
+        IPaymentGateway paymentGateway,
+        IPaymentChannelReadiness paymentChannelReadiness)
     {
         _dbContext = dbContext;
+        _paymentGateway = paymentGateway;
+        _paymentChannelReadiness = paymentChannelReadiness;
     }
 
     public IReadOnlyList<JsonElement> GetCustomerToolDeclarations(bool authenticated)
@@ -23,12 +33,16 @@ internal sealed class AiAssistantDataProvider
         var declarations = new List<JsonElement>
         {
             Tool(
-                "get_restaurant_info",
-                "Lấy thông tin nhà hàng, giờ mở cửa, phí, khu vực và trạng thái bàn hiện tại. Dùng khi khách hỏi thông tin chung của nhà hàng.",
+                AiAssistantToolNames.RestaurantInfo,
+                "Lấy thông tin nhà hàng, giờ mở/đóng cửa, VAT, phí phục vụ, địa chỉ, liên hệ, khu vực và trạng thái bàn hiện tại. BẮT BUỘC dùng khi khách hỏi các cấu hình này.",
                 new { type = "object", properties = new { } }),
             Tool(
-                "search_menu",
-                "Tìm dữ liệu thực đơn trực tiếp trong hệ thống theo tên món, mô tả hoặc danh mục. Chỉ trả món đang hoạt động; mặc định ưu tiên món đang bán.",
+                AiAssistantToolNames.PaymentOptions,
+                "Lấy danh mục phương thức thanh toán mà hệ thống hỗ trợ, tách rõ thanh toán trên CustomerWeb và tại quầy, đồng thời kiểm tra kênh QR SePay hiện có sẵn hay không. BẮT BUỘC dùng khi khách hỏi nhà hàng nhận thanh toán bằng gì, tiền mặt, thẻ, chuyển khoản, QR, ví điện tử, MoMo hoặc ZaloPay.",
+                new { type = "object", properties = new { } }),
+            Tool(
+                AiAssistantToolNames.SearchMenu,
+                "Tìm dữ liệu thực đơn trực tiếp trong hệ thống theo tên món, mô tả, giá hoặc danh mục. BẮT BUỘC dùng cho câu hỏi về món/thực đơn/giá. Chỉ trả món đang hoạt động; mặc định ưu tiên món đang bán.",
                 new
                 {
                     type = "object",
@@ -41,12 +55,12 @@ internal sealed class AiAssistantDataProvider
                     }
                 }),
             Tool(
-                "get_active_promotions",
-                "Lấy mã khuyến mãi đang hoạt động, còn hạn và còn lượt dùng từ dữ liệu thật.",
+                AiAssistantToolNames.ActivePromotions,
+                "Lấy mã khuyến mãi đang hoạt động, còn hạn và còn lượt dùng từ dữ liệu thật. BẮT BUỘC dùng cho câu hỏi về ưu đãi, voucher hoặc mã giảm giá.",
                 new { type = "object", properties = new { } }),
             Tool(
-                "get_table_availability",
-                "Kiểm tra các bàn/khu vực có thể phù hợp theo số khách và thời gian dự kiến. Không tự tạo đặt bàn.",
+                AiAssistantToolNames.TableAvailability,
+                "Kiểm tra các bàn/khu vực có thể phù hợp theo số khách và thời gian dự kiến. BẮT BUỘC dùng khi hỏi bàn trống/đặt bàn; không tự tạo đặt bàn.",
                 new
                 {
                     type = "object",
@@ -58,7 +72,7 @@ internal sealed class AiAssistantDataProvider
                     required = new[] { "guests" }
                 }),
             Tool(
-                "get_website_capabilities",
+                AiAssistantToolNames.WebsiteCapabilities,
                 "Lấy danh sách chức năng CustomerWeb và hướng dẫn khách tới đúng trang để đặt món, đặt bàn, thanh toán hoặc xem đơn.",
                 new { type = "object", properties = new { } })
         };
@@ -66,8 +80,8 @@ internal sealed class AiAssistantDataProvider
         if (authenticated)
         {
             declarations.Add(Tool(
-                "get_my_orders",
-                "Lấy các đơn hàng, trạng thái món, thanh toán và hóa đơn thuộc đúng tài khoản khách đang đăng nhập. Không được dùng cho khách khác.",
+                AiAssistantToolNames.MyOrders,
+                "Lấy các đơn hàng, trạng thái món/bếp, thanh toán và hóa đơn thuộc đúng tài khoản khách đang đăng nhập. BẮT BUỘC dùng khi khách hỏi đơn, hóa đơn hoặc trạng thái thanh toán của mình. Không được dùng cho khách khác.",
                 new
                 {
                     type = "object",
@@ -79,7 +93,7 @@ internal sealed class AiAssistantDataProvider
                 }));
 
             declarations.Add(Tool(
-                "get_my_notifications",
+                AiAssistantToolNames.MyNotifications,
                 "Lấy các thông báo gần nhất thuộc đúng tài khoản khách đang đăng nhập.",
                 new
                 {
@@ -99,12 +113,16 @@ internal sealed class AiAssistantDataProvider
         return
         [
             Tool(
-                "get_admin_overview",
+                AiAssistantToolNames.AdminOverview,
                 "Lấy tổng quan vận hành hiện tại từ toàn bộ hệ thống: tài khoản, nhân viên, bàn, thực đơn, đơn hàng, bếp, thanh toán, đặt bàn, kho, thông báo và doanh thu hôm nay.",
                 new { type = "object", properties = new { } }),
             Tool(
-                "get_admin_module_data",
-                "Đọc dữ liệu mới nhất của một module quản trị. Chỉ đọc, không thay đổi dữ liệu. Dùng khi admin hỏi chi tiết về bất kỳ chức năng nào trong WebApp.",
+                AiAssistantToolNames.PaymentOptions,
+                "Lấy danh mục phương thức thanh toán chuẩn của hệ thống, trạng thái cấu hình/sẵn sàng của QR SePay và thống kê các phương thức đã được dùng. BẮT BUỘC dùng khi Admin hỏi hệ thống hỗ trợ phương thức thanh toán nào; không dùng thay cho module payments khi hỏi danh sách giao dịch.",
+                new { type = "object", properties = new { } }),
+            Tool(
+                AiAssistantToolNames.AdminModuleData,
+                "Đọc dữ liệu mới nhất của đúng một module quản trị. Chỉ đọc, không thay đổi dữ liệu. Mapping bắt buộc: món/thực đơn -> menu; đơn/trạng thái đơn -> orders; bếp -> kitchen; giao dịch thanh toán -> payments; hóa đơn -> invoices; doanh thu -> revenue; đặt bàn -> reservations; khuyến mãi -> promotions; tồn kho/nguyên liệu -> inventory; giờ mở cửa/VAT/phí/cấu hình -> restaurant_settings.",
                 new
                 {
                     type = "object",
@@ -142,16 +160,17 @@ internal sealed class AiAssistantDataProvider
     {
         return name switch
         {
-            "get_restaurant_info" => await GetRestaurantInfoAsync(cancellationToken),
-            "search_menu" => await SearchMenuAsync(args, cancellationToken),
-            "get_active_promotions" => await GetActivePromotionsAsync(cancellationToken),
-            "get_table_availability" => await GetTableAvailabilityAsync(args, cancellationToken),
-            "get_website_capabilities" => GetWebsiteCapabilities(),
-            "get_my_orders" when caller.UserId.HasValue =>
+            AiAssistantToolNames.RestaurantInfo => await GetRestaurantInfoAsync(cancellationToken),
+            AiAssistantToolNames.PaymentOptions => await GetCustomerPaymentOptionsAsync(cancellationToken),
+            AiAssistantToolNames.SearchMenu => await SearchMenuAsync(args, cancellationToken),
+            AiAssistantToolNames.ActivePromotions => await GetActivePromotionsAsync(cancellationToken),
+            AiAssistantToolNames.TableAvailability => await GetTableAvailabilityAsync(args, cancellationToken),
+            AiAssistantToolNames.WebsiteCapabilities => GetWebsiteCapabilities(),
+            AiAssistantToolNames.MyOrders when caller.UserId.HasValue =>
                 await GetCustomerOrdersAsync(caller.UserId.Value, args, cancellationToken),
-            "get_my_notifications" when caller.UserId.HasValue =>
+            AiAssistantToolNames.MyNotifications when caller.UserId.HasValue =>
                 await GetCustomerNotificationsAsync(caller.UserId.Value, args, cancellationToken),
-            "get_my_orders" or "get_my_notifications" => new
+            AiAssistantToolNames.MyOrders or AiAssistantToolNames.MyNotifications => new
             {
                 available = false,
                 reason = "Khách cần đăng nhập tài khoản Customer để AI đọc dữ liệu riêng của chính họ."
@@ -167,8 +186,9 @@ internal sealed class AiAssistantDataProvider
     {
         return name switch
         {
-            "get_admin_overview" => await GetAdminOverviewAsync(cancellationToken),
-            "get_admin_module_data" => await GetAdminModuleDataAsync(args, cancellationToken),
+            AiAssistantToolNames.AdminOverview => await GetAdminOverviewAsync(cancellationToken),
+            AiAssistantToolNames.PaymentOptions => await GetAdminPaymentOptionsAsync(cancellationToken),
+            AiAssistantToolNames.AdminModuleData => await GetAdminModuleDataAsync(args, cancellationToken),
             _ => new { error = "Công cụ dữ liệu quản trị không hợp lệ." }
         };
     }
@@ -240,6 +260,103 @@ internal sealed class AiAssistantDataProvider
                     item.Name,
                     item.Capacity
                 })
+        };
+    }
+
+    private async Task<object> GetCustomerPaymentOptionsAsync(
+        CancellationToken cancellationToken)
+    {
+        var currency = await _dbContext.RestaurantSettings
+            .AsNoTracking()
+            .Where(item => item.IsActive)
+            .OrderByDescending(item => item.UpdatedAt ?? item.CreatedAt)
+            .Select(item => item.Currency)
+            .FirstOrDefaultAsync(cancellationToken) ?? "VND";
+        var channel = _paymentChannelReadiness.GetSnapshot();
+        var onlineAvailable = _paymentGateway.IsConfigured
+                              && (!channel.Required || channel.Ready);
+        var onlineAvailability = !_paymentGateway.IsConfigured
+            ? "Kênh chuyển khoản QR chưa được cấu hình đầy đủ trên máy chủ."
+            : channel.Required && !channel.Ready
+                ? "Kênh chuyển khoản QR đang tạm khóa vì chưa xác nhận được kết nối webhook."
+                : "Kênh chuyển khoản QR đang sẵn sàng; từng đơn vẫn phải đáp ứng trạng thái và quyền truy cập cho phép thanh toán.";
+
+        return new
+        {
+            audience = "Customer",
+            currency,
+            customerWeb = PaymentMethodCatalog.All
+                .Where(method => method.AvailableOnCustomerWeb)
+                .Select(method => new
+                {
+                    code = method.Code,
+                    name = method.DisplayName,
+                    method.Description,
+                    provider = _paymentGateway.Provider,
+                    configured = _paymentGateway.IsConfigured,
+                    availableNow = onlineAvailable,
+                    availability = onlineAvailability
+                }),
+            atCounter = PaymentMethodCatalog.All
+                .Where(method => method.AvailableAtCounter)
+                .Select(method => new
+                {
+                    code = method.Code,
+                    name = method.DisplayName,
+                    method.Description
+                }),
+            rules = new[]
+            {
+                "CustomerWeb chỉ tự tạo thanh toán chuyển khoản QR/ngân hàng; các phương thức tại quầy do thu ngân ghi nhận.",
+                "Không khẳng định một đơn có thể thanh toán nếu chưa kiểm tra trạng thái và quyền truy cập của chính đơn đó.",
+                "Tool này chỉ đọc catalog và trạng thái kênh; không tạo giao dịch hoặc thay đổi đơn hàng."
+            }
+        };
+    }
+
+    private async Task<object> GetAdminPaymentOptionsAsync(
+        CancellationToken cancellationToken)
+    {
+        var channel = _paymentChannelReadiness.GetSnapshot();
+        var observedMethods = await _dbContext.Payments
+            .AsNoTracking()
+            .Where(payment => payment.Status == "Paid")
+            .GroupBy(payment => payment.PaymentMethod)
+            .Select(group => new
+            {
+                code = group.Key,
+                paidCount = group.Count(),
+                totalAmount = group.Sum(payment => payment.FinalAmount),
+                lastPaidAt = group.Max(payment => payment.PaidAt)
+            })
+            .OrderByDescending(item => item.paidCount)
+            .ToListAsync(cancellationToken);
+
+        return new
+        {
+            audience = "Admin",
+            supportedMethods = PaymentMethodCatalog.All.Select(method => new
+            {
+                code = method.Code,
+                name = method.DisplayName,
+                method.Description,
+                method.AvailableAtCounter,
+                method.AvailableOnCustomerWeb
+            }),
+            onlineChannel = new
+            {
+                provider = _paymentGateway.Provider,
+                configured = _paymentGateway.IsConfigured,
+                channel.Required,
+                channel.Ready,
+                availableNow = _paymentGateway.IsConfigured
+                               && (!channel.Required || channel.Ready),
+                channel.LastConfirmedAtUtc,
+                channel.ValidUntilUtc
+            },
+            observedPaidMethods = observedMethods,
+            readOnly = true,
+            note = "supportedMethods là catalog nghiệp vụ chuẩn; observedPaidMethods chỉ phản ánh dữ liệu giao dịch Paid đã phát sinh."
         };
     }
 

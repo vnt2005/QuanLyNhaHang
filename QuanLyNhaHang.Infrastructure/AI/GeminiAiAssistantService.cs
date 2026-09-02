@@ -1,11 +1,15 @@
+using System.Data.Common;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Payments;
+using QuanLyNhaHang.Application.Features.AiAssistant;
 using QuanLyNhaHang.Application.Features.AiAssistant.DTOs;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -26,6 +30,17 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
     private const int MaxHistoryMessages = 8;
     private const int MaxHistoryMessageLength = 1200;
     private const int MaxToolRounds = 4;
+    private static readonly TimeSpan ToolConversationTimeout =
+        TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan ProviderRequestTimeout =
+        TimeSpan.FromSeconds(20);
+
+    private static readonly JsonSerializerOptions FallbackJsonOptions =
+        new(JsonSerializerDefaults.Web)
+        {
+            WriteIndented = true,
+            MaxDepth = 16
+        };
 
     private static readonly object[] SafetySettings =
     [
@@ -44,12 +59,17 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
     public GeminiAiAssistantService(
         HttpClient httpClient,
         IApplicationDbContext dbContext,
+        IPaymentGateway paymentGateway,
+        IPaymentChannelReadiness paymentChannelReadiness,
         IOptions<GeminiOptions> options,
         ILogger<GeminiAiAssistantService> logger)
     {
         _httpClient = httpClient;
         _dbContext = dbContext;
-        _dataProvider = new AiAssistantDataProvider(dbContext);
+        _dataProvider = new AiAssistantDataProvider(
+            dbContext,
+            paymentGateway,
+            paymentChannelReadiness);
         _options = options.Value;
         _logger = logger;
     }
@@ -131,19 +151,71 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         AiAssistantCallerContext callerContext,
         CancellationToken cancellationToken = default)
     {
-        var setting = await ValidateChatAsync(request, requirePublicEnabled: true, cancellationToken);
-        var model = ResolveModel(setting.AiAssistantModel);
-        var instructions = BuildCustomerInstructions(setting, callerContext);
-        var tools = _dataProvider.GetCustomerToolDeclarations(callerContext.IsAuthenticated);
+        using var timeoutCts = CreateRequestTimeout(cancellationToken);
 
-        return await RunToolConversationAsync(
-            request,
-            model,
-            setting.AiAssistantMaxOutputTokens,
-            instructions,
-            tools,
-            (name, args, ct) => _dataProvider.ExecuteCustomerToolAsync(name, args, callerContext, ct),
-            cancellationToken);
+        try
+        {
+            var setting = await ValidateChatAsync(
+                request,
+                requirePublicEnabled: true,
+                cancellationToken: timeoutCts.Token,
+                requireProviderConfigured: false);
+            var model = ResolveModel(setting.AiAssistantModel);
+            var routes = AiAssistantBusinessIntentCatalog.ResolveCustomer(
+                request.Message,
+                callerContext.IsAuthenticated);
+            var instructions = BuildCustomerInstructions(setting, callerContext) +
+                               AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
+            var tools = _dataProvider.GetCustomerToolDeclarations(callerContext.IsAuthenticated);
+            Func<string, JsonElement, CancellationToken, Task<object>> executeTool =
+                (name, args, ct) => _dataProvider.ExecuteCustomerToolAsync(
+                    name,
+                    args,
+                    callerContext,
+                    ct);
+
+            if (!IsProviderConfigured && routes.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Gemini API key is not configured; serving deterministic customer AI fallback.");
+                return await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    Guid.NewGuid().ToString("N"),
+                    0,
+                    0,
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new List<FallbackToolResult>(),
+                    routes,
+                    executeTool,
+                    timeoutCts.Token);
+            }
+
+            return await RunToolConversationAsync(
+                request,
+                model,
+                setting.AiAssistantMaxOutputTokens,
+                instructions,
+                tools,
+                routes,
+                executeTool,
+                timeoutCts.Token);
+        }
+        catch (OperationCanceledException exception)
+            when (timeoutCts.IsCancellationRequested
+                  && !cancellationToken.IsCancellationRequested)
+        {
+            throw CreateTimeoutException(exception, "customer");
+        }
+        catch (DbException exception)
+        {
+            _logger.LogError(
+                exception,
+                "Customer AI request could not read restaurant data from the database.");
+            throw new InvalidOperationException(
+                "Không đọc được dữ liệu nhà hàng từ cơ sở dữ liệu. Vui lòng kiểm tra SQL Server rồi thử lại.",
+                exception);
+        }
     }
 
     public async Task<AiAssistantChatResponseDto> AdminChatAsync(
@@ -154,25 +226,72 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         if (adminUserId == Guid.Empty)
             throw new ArgumentException("Tài khoản quản trị không hợp lệ.");
 
-        var setting = await ValidateChatAsync(request, requirePublicEnabled: false, cancellationToken);
-        var model = ResolveModel(setting.AiAssistantModel);
-        var instructions = BuildAdminInstructions(setting);
-        var tools = _dataProvider.GetAdminToolDeclarations();
+        using var timeoutCts = CreateRequestTimeout(cancellationToken);
 
-        return await RunToolConversationAsync(
-            request,
-            model,
-            setting.AiAssistantMaxOutputTokens,
-            instructions,
-            tools,
-            (name, args, ct) => _dataProvider.ExecuteAdminToolAsync(name, args, ct),
-            cancellationToken);
+        try
+        {
+            var setting = await ValidateChatAsync(
+                request,
+                requirePublicEnabled: false,
+                cancellationToken: timeoutCts.Token,
+                requireProviderConfigured: false);
+            var model = ResolveModel(setting.AiAssistantModel);
+            var routes = AiAssistantBusinessIntentCatalog.ResolveAdmin(request.Message);
+            var instructions = BuildAdminInstructions(setting) +
+                               AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
+            var tools = _dataProvider.GetAdminToolDeclarations();
+            Func<string, JsonElement, CancellationToken, Task<object>> executeTool =
+                (name, args, ct) => _dataProvider.ExecuteAdminToolAsync(name, args, ct);
+
+            if (!IsProviderConfigured && routes.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Gemini API key is not configured; serving deterministic admin AI fallback.");
+                return await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    Guid.NewGuid().ToString("N"),
+                    0,
+                    0,
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new List<FallbackToolResult>(),
+                    routes,
+                    executeTool,
+                    timeoutCts.Token);
+            }
+
+            return await RunToolConversationAsync(
+                request,
+                model,
+                setting.AiAssistantMaxOutputTokens,
+                instructions,
+                tools,
+                routes,
+                executeTool,
+                timeoutCts.Token);
+        }
+        catch (OperationCanceledException exception)
+            when (timeoutCts.IsCancellationRequested
+                  && !cancellationToken.IsCancellationRequested)
+        {
+            throw CreateTimeoutException(exception, "admin");
+        }
+        catch (DbException exception)
+        {
+            _logger.LogError(
+                exception,
+                "Admin AI request could not read restaurant data from the database.");
+            throw new InvalidOperationException(
+                "Không đọc được dữ liệu vận hành từ cơ sở dữ liệu. Vui lòng kiểm tra SQL Server rồi thử lại.",
+                exception);
+        }
     }
 
     private async Task<RestaurantSetting> ValidateChatAsync(
         AiAssistantChatRequestDto request,
         bool requirePublicEnabled,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool requireProviderConfigured = true)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -185,11 +304,35 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         var setting = await RequireActiveSettingAsync(cancellationToken);
         if (requirePublicEnabled && !setting.AiAssistantEnabled)
             throw new InvalidOperationException("Trợ lý AI đang được quản trị viên tắt.");
-        if (!IsProviderConfigured)
+        if (requireProviderConfigured && !IsProviderConfigured)
             throw new InvalidOperationException(
                 "Google AI Studio API key chưa được cấu hình trên máy chủ.");
 
         return setting;
+    }
+
+    private static CancellationTokenSource CreateRequestTimeout(
+        CancellationToken cancellationToken)
+    {
+        var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken);
+        timeoutCts.CancelAfter(ToolConversationTimeout);
+        return timeoutCts;
+    }
+
+    private InvalidOperationException CreateTimeoutException(
+        OperationCanceledException exception,
+        string audience)
+    {
+        _logger.LogWarning(
+            exception,
+            "Gemini {Audience} request timed out after {TimeoutSeconds} seconds.",
+            audience,
+            ToolConversationTimeout.TotalSeconds);
+
+        return new InvalidOperationException(
+            "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối máy chủ rồi thử lại.",
+            exception);
     }
 
     private async Task<AiAssistantChatResponseDto> RunToolConversationAsync(
@@ -198,6 +341,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         int maxOutputTokens,
         string instructions,
         IReadOnlyList<JsonElement> toolDeclarations,
+        IReadOnlyList<AiAssistantIntentRoute> intentRoutes,
         Func<string, JsonElement, CancellationToken, Task<object>> executeTool,
         CancellationToken cancellationToken)
     {
@@ -222,83 +366,237 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         var dataSources = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var totalInputTokens = 0;
         var totalOutputTokens = 0;
+        var fallbackToolResults = new List<FallbackToolResult>();
+        var requiredToolNames = intentRoutes
+            .Select(route => route.ToolName)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
 
-        for (var round = 0; round < MaxToolRounds; round++)
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken);
+        timeoutCts.CancelAfter(ToolConversationTimeout);
+
+        try
         {
-            using var document = await SendGenerateContentAsync(
-                model,
-                maxOutputTokens,
-                instructions,
-                contents,
-                toolDeclarations,
-                providerRequestId,
-                cancellationToken);
-
-            var usage = ExtractUsage(document.RootElement);
-            totalInputTokens += usage.InputTokens;
-            totalOutputTokens += usage.OutputTokens;
-
-            if (IsSafetyBlocked(document.RootElement))
+            for (var round = 0; round < MaxToolRounds; round++)
             {
-                return new AiAssistantChatResponseDto
-                {
-                    Message = "Tôi không thể hỗ trợ nội dung này. Bạn có thể hỏi về dữ liệu và chức năng của nhà hàng.",
-                    Model = model,
-                    Blocked = true,
-                    InputTokens = totalInputTokens,
-                    OutputTokens = totalOutputTokens,
-                    ProviderRequestId = providerRequestId,
-                    DataSources = dataSources.Order().ToList()
-                };
-            }
+                using var providerCts = CancellationTokenSource.CreateLinkedTokenSource(
+                    timeoutCts.Token);
+                providerCts.CancelAfter(ProviderRequestTimeout);
 
-            var calls = ExtractFunctionCalls(document.RootElement);
-            if (calls.Count == 0)
-            {
-                var answer = ExtractOutputText(document.RootElement);
-                if (string.IsNullOrWhiteSpace(answer))
+                using var document = await SendGenerateContentAsync(
+                    model,
+                    maxOutputTokens,
+                    instructions,
+                    contents,
+                    toolDeclarations,
+                    round == 0 ? requiredToolNames : [],
+                    providerRequestId,
+                    providerCts.Token);
+
+                var usage = ExtractUsage(document.RootElement);
+                totalInputTokens += usage.InputTokens;
+                totalOutputTokens += usage.OutputTokens;
+
+                if (IsSafetyBlocked(document.RootElement))
                 {
-                    answer = "Tôi chưa có đủ dữ liệu để trả lời câu hỏi này. Bạn vui lòng thử diễn đạt cụ thể hơn.";
+                    return new AiAssistantChatResponseDto
+                    {
+                        Message = "Tôi không thể hỗ trợ nội dung này. Bạn có thể hỏi về dữ liệu và chức năng của nhà hàng.",
+                        Model = model,
+                        Blocked = true,
+                        InputTokens = totalInputTokens,
+                        OutputTokens = totalOutputTokens,
+                        ProviderRequestId = providerRequestId,
+                        DataSources = dataSources.Order().ToList()
+                    };
                 }
 
-                return new AiAssistantChatResponseDto
+                var calls = ExtractFunctionCalls(document.RootElement);
+                if (calls.Count == 0)
                 {
-                    Message = answer.Trim(),
-                    Model = model,
-                    Blocked = false,
-                    InputTokens = totalInputTokens,
-                    OutputTokens = totalOutputTokens,
-                    ProviderRequestId = providerRequestId,
-                    DataSources = dataSources.Order().ToList()
-                };
-            }
-
-            var modelContent = ExtractCandidateContent(document.RootElement);
-            if (modelContent.HasValue)
-                contents.Add(modelContent.Value);
-
-            var responseParts = new List<object>();
-            foreach (var call in calls)
-            {
-                var result = await executeTool(call.Name, call.Args, cancellationToken);
-                dataSources.Add(MapDataSource(call.Name, result));
-
-                responseParts.Add(new
-                {
-                    functionResponse = new
+                    var answer = ExtractOutputText(document.RootElement);
+                    if (string.IsNullOrWhiteSpace(answer))
                     {
-                        name = call.Name,
-                        id = call.Id,
-                        response = new { result }
+                        answer = "Tôi chưa có đủ dữ liệu để trả lời câu hỏi này. Bạn vui lòng thử diễn đạt cụ thể hơn.";
                     }
-                });
+
+                    return new AiAssistantChatResponseDto
+                    {
+                        Message = answer.Trim(),
+                        Model = model,
+                        Blocked = false,
+                        InputTokens = totalInputTokens,
+                        OutputTokens = totalOutputTokens,
+                        ProviderRequestId = providerRequestId,
+                        DataSources = dataSources.Order().ToList()
+                    };
+                }
+
+                var modelContent = ExtractCandidateContent(document.RootElement);
+                if (modelContent.HasValue)
+                    contents.Add(modelContent.Value);
+
+                var responseParts = new List<object>();
+                foreach (var call in calls)
+                {
+                    var routedArgs = round == 0
+                        ? ApplyRequiredArguments(call, intentRoutes)
+                        : call.Args;
+                    object result;
+                    try
+                    {
+                        result = await executeTool(
+                            call.Name,
+                            routedArgs,
+                            timeoutCts.Token);
+                    }
+                    catch (OperationCanceledException exception)
+                        when (!timeoutCts.IsCancellationRequested)
+                    {
+                        _logger.LogWarning(
+                            exception,
+                            "AI tool {ToolName} was cancelled by its data source. RequestId={RequestId}",
+                            call.Name,
+                            providerRequestId);
+                        result = CreateToolUnavailableResult(call.Name);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(
+                            exception,
+                            "AI tool {ToolName} failed. RequestId={RequestId}",
+                            call.Name,
+                            providerRequestId);
+                        result = CreateToolUnavailableResult(call.Name);
+                    }
+
+                    fallbackToolResults.Add(new FallbackToolResult(call.Name, result));
+                    dataSources.Add(MapDataSource(call.Name, result));
+
+                    responseParts.Add(new
+                    {
+                        functionResponse = new
+                        {
+                            name = call.Name,
+                            id = call.Id,
+                            response = new { result }
+                        }
+                    });
+                }
+
+                contents.Add(JsonSerializer.SerializeToElement(new
+                {
+                    role = "user",
+                    parts = responseParts
+                }));
+            }
+        }
+        catch (OperationCanceledException exception)
+            when (timeoutCts.IsCancellationRequested
+                  && !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini tool conversation timed out after {TimeoutSeconds} seconds. RequestId={RequestId}",
+                ToolConversationTimeout.TotalSeconds,
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối máy chủ rồi thử lại.",
+                exception);
+        }
+        catch (OperationCanceledException exception)
+            when (!cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini provider request was cancelled before the conversation timeout. RequestId={RequestId}",
+                providerRequestId);
+            return intentRoutes.Count > 0
+                ? await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    providerRequestId,
+                    totalInputTokens,
+                    totalOutputTokens,
+                    dataSources,
+                    fallbackToolResults,
+                    intentRoutes,
+                    executeTool,
+                    cancellationToken)
+                : BuildProviderUnavailableResponse(
+                    model,
+                    providerRequestId,
+                    totalInputTokens,
+                    totalOutputTokens,
+                    dataSources);
+        }
+        catch (InvalidOperationException exception)
+            when (!cancellationToken.IsCancellationRequested)
+        {
+            if (intentRoutes.Count > 0)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Gemini provider request failed; returning read-only tool data. RequestId={RequestId}",
+                    providerRequestId);
+                return await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    providerRequestId,
+                    totalInputTokens,
+                    totalOutputTokens,
+                    dataSources,
+                    fallbackToolResults,
+                    intentRoutes,
+                    executeTool,
+                    cancellationToken);
             }
 
-            contents.Add(JsonSerializer.SerializeToElement(new
+            _logger.LogWarning(
+                exception,
+                "Gemini provider request failed for an unclassified question. RequestId={RequestId}",
+                providerRequestId);
+            return BuildProviderUnavailableResponse(
+                model,
+                providerRequestId,
+                totalInputTokens,
+                totalOutputTokens,
+                dataSources);
+        }
+        catch (Exception exception)
+            when (exception is not OperationCanceledException
+                  && !cancellationToken.IsCancellationRequested)
+        {
+            if (intentRoutes.Count > 0)
             {
-                role = "user",
-                parts = responseParts
-            }));
+                _logger.LogError(
+                    exception,
+                    "Unexpected AI conversation failure; returning read-only tool data. RequestId={RequestId}",
+                    providerRequestId);
+                return await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    providerRequestId,
+                    totalInputTokens,
+                    totalOutputTokens,
+                    dataSources,
+                    fallbackToolResults,
+                    intentRoutes,
+                    executeTool,
+                    cancellationToken);
+            }
+
+            _logger.LogError(
+                exception,
+                "Unexpected AI conversation failure for an unclassified question. RequestId={RequestId}",
+                providerRequestId);
+            return BuildProviderUnavailableResponse(
+                model,
+                providerRequestId,
+                totalInputTokens,
+                totalOutputTokens,
+                dataSources);
         }
 
         return new AiAssistantChatResponseDto
@@ -313,12 +611,181 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         };
     }
 
+    private static AiAssistantChatResponseDto BuildProviderUnavailableResponse(
+        string model,
+        string providerRequestId,
+        int totalInputTokens,
+        int totalOutputTokens,
+        HashSet<string> dataSources)
+    {
+        return new AiAssistantChatResponseDto
+        {
+            Message = "Dịch vụ AI đang tạm thời chưa sẵn sàng nên tôi chưa thể trả lời câu hỏi tự do này mà không suy đoán. Bạn có thể hỏi về thực đơn, phương thức thanh toán, bàn, khuyến mãi, đơn hàng hoặc doanh thu.",
+            Model = model,
+            Blocked = false,
+            InputTokens = totalInputTokens,
+            OutputTokens = totalOutputTokens,
+            ProviderRequestId = providerRequestId,
+            DataSources = dataSources.Order().ToList()
+        };
+    }
+
+    private async Task<AiAssistantChatResponseDto> BuildReadOnlyFallbackResponseAsync(
+        AiAssistantChatRequestDto request,
+        string model,
+        string providerRequestId,
+        int totalInputTokens,
+        int totalOutputTokens,
+        HashSet<string> dataSources,
+        List<FallbackToolResult> toolResults,
+        IReadOnlyList<AiAssistantIntentRoute> intentRoutes,
+        Func<string, JsonElement, CancellationToken, Task<object>> executeTool,
+        CancellationToken cancellationToken)
+    {
+        if (toolResults.Count == 0)
+        {
+            foreach (var route in intentRoutes
+                         .GroupBy(item => $"{item.ToolName}:{item.RequiredModule}", StringComparer.Ordinal)
+                         .Select(group => group.First()))
+            {
+                var args = BuildFallbackArguments(route, request.Message);
+                object result;
+                try
+                {
+                    result = await executeTool(
+                        route.ToolName,
+                        args,
+                        cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(
+                        exception,
+                        "AI fallback tool {ToolName} failed. RequestId={RequestId}",
+                        route.ToolName,
+                        providerRequestId);
+                    result = CreateToolUnavailableResult(route.ToolName);
+                }
+
+                toolResults.Add(new FallbackToolResult(route.ToolName, result));
+                dataSources.Add(MapDataSource(route.ToolName, result));
+            }
+        }
+
+        var message = new StringBuilder();
+        message.AppendLine(
+            "Mình đã đọc dữ liệu READ-ONLY từ hệ thống. Dịch vụ Gemini đang tạm gián đoạn nên mình trả kết quả dữ liệu trực tiếp để bạn không phải chờ thêm:");
+
+        foreach (var toolResult in toolResults)
+        {
+            message.AppendLine();
+            message.Append('[')
+                .Append(GetFallbackToolLabel(toolResult.ToolName))
+                .AppendLine("]");
+            message.AppendLine(SerializeFallbackResult(toolResult.Result));
+        }
+
+        return new AiAssistantChatResponseDto
+        {
+            Message = message.ToString().Trim(),
+            Model = model,
+            Blocked = false,
+            InputTokens = totalInputTokens,
+            OutputTokens = totalOutputTokens,
+            ProviderRequestId = providerRequestId,
+            DataSources = dataSources.Order().ToList()
+        };
+    }
+
+    private static JsonElement BuildFallbackArguments(
+        AiAssistantIntentRoute route,
+        string message)
+    {
+        if (route.ToolName == AiAssistantToolNames.AdminModuleData
+            && !string.IsNullOrWhiteSpace(route.RequiredModule))
+        {
+            return JsonSerializer.SerializeToElement(new
+            {
+                module = route.RequiredModule
+            });
+        }
+
+        if (route.ToolName == AiAssistantToolNames.TableAvailability)
+        {
+            var match = Regex.Match(
+                message,
+                @"(?<guests>\d{1,3})\s*(?:người|khách)",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            var guests = match.Success
+                         && int.TryParse(match.Groups["guests"].Value, out var parsed)
+                ? Math.Clamp(parsed, 1, 100)
+                : 1;
+
+            return JsonSerializer.SerializeToElement(new { guests });
+        }
+
+        return JsonSerializer.SerializeToElement(new { });
+    }
+
+    private static object CreateToolUnavailableResult(string toolName)
+        => new
+        {
+            available = false,
+            tool = toolName,
+            error = "Công cụ chưa đọc được dữ liệu ở thời điểm này."
+        };
+
+    private static string GetFallbackToolLabel(string toolName)
+        => toolName switch
+        {
+            AiAssistantToolNames.AdminOverview => "Tổng quan vận hành",
+            AiAssistantToolNames.AdminModuleData => "Dữ liệu module quản trị",
+            AiAssistantToolNames.PaymentOptions => "Phương thức thanh toán",
+            AiAssistantToolNames.SearchMenu => "Thực đơn",
+            AiAssistantToolNames.ActivePromotions => "Khuyến mãi",
+            AiAssistantToolNames.RestaurantInfo => "Thông tin nhà hàng",
+            AiAssistantToolNames.TableAvailability => "Bàn phù hợp",
+            AiAssistantToolNames.MyOrders => "Đơn hàng của bạn",
+            AiAssistantToolNames.MyNotifications => "Thông báo của bạn",
+            _ => toolName
+        };
+
+    private string SerializeFallbackResult(object result)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(result, FallbackJsonOptions);
+            return json.Length <= 12000
+                ? json
+                : json[..12000] + "\n… (đã rút gọn để bảo vệ kích thước phản hồi)";
+        }
+        catch (JsonException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "AI fallback result could not be serialized as JSON.");
+            return "Dữ liệu đã được truy vấn nhưng không thể hiển thị chi tiết.";
+        }
+        catch (NotSupportedException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "AI fallback result contains an unsupported value.");
+            return "Dữ liệu đã được truy vấn nhưng không thể hiển thị chi tiết.";
+        }
+    }
+
     private async Task<JsonDocument> SendGenerateContentAsync(
         string model,
         int maxOutputTokens,
         string instructions,
         IReadOnlyList<JsonElement> contents,
         IReadOnlyList<JsonElement> toolDeclarations,
+        IReadOnlyCollection<string> requiredToolNames,
         string providerRequestId,
         CancellationToken cancellationToken)
     {
@@ -326,6 +793,13 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             HttpMethod.Post,
             BuildGenerateContentUrl(model));
         httpRequest.Headers.Add("x-goog-api-key", _options.ApiKey.Trim());
+        var functionCallingConfig = new Dictionary<string, object>
+        {
+            ["mode"] = requiredToolNames.Count > 0 ? "ANY" : "AUTO"
+        };
+        if (requiredToolNames.Count > 0)
+            functionCallingConfig["allowedFunctionNames"] = requiredToolNames;
+
         httpRequest.Content = JsonContent.Create(new
         {
             systemInstruction = new
@@ -339,7 +813,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             },
             toolConfig = new
             {
-                functionCallingConfig = new { mode = "AUTO" }
+                functionCallingConfig
             },
             safetySettings = SafetySettings,
             generationConfig = new
@@ -350,52 +824,106 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             store = false
         });
 
-        using var response = await _httpClient.SendAsync(
-            httpRequest,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
-        var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            var providerMessage = ExtractProviderErrorMessage(responseJson);
-            _logger.LogWarning(
-                "Gemini generateContent failed with status {StatusCode}. RequestId={RequestId}. ProviderMessage={ProviderMessage}",
-                (int)response.StatusCode,
-                providerRequestId,
-                providerMessage);
+            using var response = await _httpClient.SendAsync(
+                httpRequest,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            if (!response.IsSuccessStatusCode)
             {
+                var providerMessage = ExtractProviderErrorMessage(responseJson);
+                _logger.LogWarning(
+                    "Gemini generateContent failed with status {StatusCode}. RequestId={RequestId}. ProviderMessage={ProviderMessage}",
+                    (int)response.StatusCode,
+                    providerRequestId,
+                    providerMessage);
+
+                if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    throw new InvalidOperationException(
+                        "Gemini đã chạm hạn mức hiện tại. Vui lòng thử lại sau hoặc kiểm tra quota Google AI Studio.");
+                }
+
+                if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    throw new InvalidOperationException(
+                        "Google AI Studio API key không hợp lệ hoặc không có quyền gọi Gemini API.");
+                }
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    throw new InvalidOperationException(
+                        $"Không tìm thấy model Gemini '{model}'. Hãy kiểm tra model trong cấu hình AI.");
+                }
+
+                if (response.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    throw new InvalidOperationException(
+                        string.IsNullOrWhiteSpace(providerMessage)
+                            ? "Gemini từ chối cấu hình yêu cầu. Hãy kiểm tra model và cấu hình AI."
+                            : $"Gemini từ chối yêu cầu: {providerMessage}");
+                }
+
                 throw new InvalidOperationException(
-                    "Gemini đã chạm hạn mức hiện tại. Vui lòng thử lại sau hoặc kiểm tra quota Google AI Studio.");
+                    "Dịch vụ Gemini hiện chưa phản hồi được. Vui lòng thử lại sau.");
             }
 
-            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-            {
-                throw new InvalidOperationException(
-                    "Google AI Studio API key không hợp lệ hoặc không có quyền gọi Gemini API.");
-            }
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                throw new InvalidOperationException(
-                    $"Không tìm thấy model Gemini '{model}'. Hãy kiểm tra model trong cấu hình AI.");
-            }
-
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                throw new InvalidOperationException(
-                    string.IsNullOrWhiteSpace(providerMessage)
-                        ? "Gemini từ chối cấu hình yêu cầu. Hãy kiểm tra model và cấu hình AI."
-                        : $"Gemini từ chối yêu cầu: {providerMessage}");
-            }
-
-            throw new InvalidOperationException(
-                "Dịch vụ Gemini hiện chưa phản hồi được. Vui lòng thử lại sau.");
+            return JsonDocument.Parse(responseJson);
         }
-
-        return JsonDocument.Parse(responseJson);
+        catch (JsonException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini returned an invalid JSON response. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Dịch vụ Gemini trả về dữ liệu không hợp lệ. Vui lòng thử lại sau.",
+                exception);
+        }
+        catch (HttpRequestException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini response could not be read. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Không đọc được phản hồi từ dịch vụ Gemini. Vui lòng kiểm tra kết nối máy chủ rồi thử lại.",
+                exception);
+        }
+        catch (IOException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini response stream failed. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Kết nối tới dịch vụ Gemini bị gián đoạn. Vui lòng thử lại sau.",
+                exception);
+        }
+        catch (TimeoutException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini response timed out while being read. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Dịch vụ Gemini phản hồi quá lâu. Vui lòng thử lại sau.",
+                exception);
+        }
+        catch (OperationCanceledException exception)
+            when (!cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini HTTP client timeout occurred before the tool conversation timeout. RequestId={RequestId}",
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Dịch vụ Gemini không phản hồi trong thời gian cho phép.",
+                exception);
+        }
     }
 
     private bool IsProviderConfigured =>
@@ -459,6 +987,15 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
 
 Bạn có các công cụ READ-ONLY để tự lấy dữ liệu mới nhất từ hệ thống nhà hàng. Khi câu hỏi phụ thuộc dữ liệu thực tế như món, giá, khuyến mãi, bàn, trạng thái đơn, thanh toán hoặc thông báo, PHẢI gọi công cụ phù hợp trước khi trả lời; không đoán từ kiến thức chung.
 
+MAPPING TOOL NGHIỆP VỤ:
+- Phương thức/hình thức thanh toán, tiền mặt, thẻ, QR, chuyển khoản, ví điện tử, MoMo, ZaloPay -> get_payment_options.
+- Giờ mở/đóng cửa, địa chỉ, liên hệ, VAT, phí phục vụ -> get_restaurant_info.
+- Món, thực đơn, danh mục, giá -> search_menu.
+- Khuyến mãi, voucher, mã giảm giá -> get_active_promotions.
+- Bàn trống hoặc bàn theo số khách/thời gian -> get_table_availability.
+- Đơn, món trong đơn, trạng thái bếp, thanh toán hoặc hóa đơn của khách đang đăng nhập -> get_my_orders.
+- Cách dùng CustomerWeb -> get_website_capabilities.
+
 QUY TẮC BẮT BUỘC:
 - Ưu tiên tiếng Việt, rõ ràng, ngắn gọn và lịch sự.
 - Không tự bịa giá, món, khuyến mãi, bàn trống, trạng thái đơn hay trạng thái thanh toán.
@@ -486,6 +1023,14 @@ KIẾN THỨC BỔ SUNG DO ADMIN CUNG CẤP:
         return $$"""
 Bạn là trợ lý vận hành READ-ONLY dành riêng cho Admin của hệ thống quản lý nhà hàng.
 Bạn có công cụ để tự truy vấn dữ liệu mới nhất từ các module WebApp: dashboard, tài khoản, nhân viên, ca làm, khu vực/bàn, thực đơn, đơn hàng, bếp, thanh toán, hóa đơn, doanh thu, đặt bàn, khuyến mãi, tồn kho, nhật ký hoạt động, thông báo, QR bàn, thao tác bàn, phân quyền và cấu hình nhà hàng.
+
+MAPPING TOOL NGHIỆP VỤ:
+- Hỏi hệ thống hỗ trợ những phương thức/hình thức thanh toán nào -> get_payment_options.
+- Hỏi giao dịch thanh toán -> get_admin_module_data(module="payments").
+- Hóa đơn -> module="invoices"; doanh thu -> module="revenue"; tồn kho/nguyên liệu -> module="inventory".
+- Món/thực đơn -> module="menu"; bàn/khu vực -> module="tables"; đặt bàn -> module="reservations".
+- Đơn/trạng thái đơn -> module="orders"; bếp -> module="kitchen"; khuyến mãi -> module="promotions".
+- Giờ mở cửa, VAT, phí phục vụ hoặc cấu hình nhà hàng -> module="restaurant_settings".
 
 QUY TẮC BẮT BUỘC:
 - Khi Admin hỏi số liệu/trạng thái/danh sách thực tế, PHẢI gọi công cụ dữ liệu phù hợp trước khi kết luận.
@@ -665,6 +1210,32 @@ KIẾN THỨC BỔ SUNG DO ADMIN CUNG CẤP:
         return (inputTokens, outputTokens);
     }
 
+    private static JsonElement ApplyRequiredArguments(
+        GeminiFunctionCall call,
+        IReadOnlyList<AiAssistantIntentRoute> intentRoutes)
+    {
+        if (!call.Name.Equals(
+                AiAssistantToolNames.AdminModuleData,
+                StringComparison.Ordinal))
+        {
+            return call.Args;
+        }
+
+        var matchingRoutes = intentRoutes
+            .Where(route => route.ToolName.Equals(call.Name, StringComparison.Ordinal)
+                            && route.RequiredModule is not null)
+            .ToList();
+        if (matchingRoutes.Count != 1)
+            return call.Args;
+
+        var arguments = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
+                            call.Args.GetRawText())
+                        ?? new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        arguments["module"] = JsonSerializer.SerializeToElement(
+            matchingRoutes[0].RequiredModule);
+        return JsonSerializer.SerializeToElement(arguments);
+    }
+
     private static string ExtractProviderErrorMessage(string responseJson)
     {
         try
@@ -688,15 +1259,16 @@ KIẾN THỨC BỔ SUNG DO ADMIN CUNG CẤP:
         _ = result;
         return toolName switch
         {
-            "get_restaurant_info" => "Nhà hàng & bàn",
-            "search_menu" => "Thực đơn",
-            "get_active_promotions" => "Khuyến mãi",
-            "get_table_availability" => "Đặt bàn",
-            "get_website_capabilities" => "Chức năng website",
-            "get_my_orders" => "Đơn/Bếp/Thanh toán của bạn",
-            "get_my_notifications" => "Thông báo của bạn",
-            "get_admin_overview" => "Tổng quan vận hành",
-            "get_admin_module_data" => "Dữ liệu WebApp",
+            AiAssistantToolNames.RestaurantInfo => "Nhà hàng & bàn",
+            AiAssistantToolNames.PaymentOptions => "Phương thức thanh toán",
+            AiAssistantToolNames.SearchMenu => "Thực đơn",
+            AiAssistantToolNames.ActivePromotions => "Khuyến mãi",
+            AiAssistantToolNames.TableAvailability => "Đặt bàn",
+            AiAssistantToolNames.WebsiteCapabilities => "Chức năng website",
+            AiAssistantToolNames.MyOrders => "Đơn/Bếp/Thanh toán của bạn",
+            AiAssistantToolNames.MyNotifications => "Thông báo của bạn",
+            AiAssistantToolNames.AdminOverview => "Tổng quan vận hành",
+            AiAssistantToolNames.AdminModuleData => "Dữ liệu WebApp",
             _ => toolName
         };
     }
@@ -710,4 +1282,8 @@ KIẾN THỨC BỔ SUNG DO ADMIN CUNG CẤP:
         string Name,
         string? Id,
         JsonElement Args);
+
+    private sealed record FallbackToolResult(
+        string ToolName,
+        object Result);
 }

@@ -83,6 +83,7 @@ type ApiProblem = {
   title?: string
   detail?: string
   errors?: Record<string, string[]>
+  traceId?: string
 }
 
 export class ApiError extends Error {
@@ -95,22 +96,42 @@ export class ApiError extends Error {
   }
 }
 
-function errorMessage(body: unknown, status: number) {
-  if (body && typeof body === 'object') {
-    const problem = body as ApiProblem
-    if (problem.message) return problem.message
-    if (problem.detail) return problem.detail
-    if (problem.errors) {
-      return Object.values(problem.errors).flat().find(Boolean)
-        ?? 'Dữ liệu chưa hợp lệ.'
-    }
-    if (problem.title) return problem.title
-  }
+function withTraceId(message: string, traceId?: string) {
+  return traceId ? `${message} (traceId: ${traceId})` : message
+}
 
-  if (status === 401) return 'Phiên đăng nhập đã hết hạn.'
-  if (status === 403) return 'Bạn không có quyền thực hiện thao tác này.'
-  if (status === 429) return 'Bạn thao tác quá nhanh. Vui lòng thử lại sau.'
-  return 'Không thể kết nối tới hệ thống nhà hàng.'
+function errorMessage(body: unknown, status: number) {
+  const problem = body && typeof body === 'object'
+    ? body as ApiProblem
+    : undefined
+
+  if (problem?.message) return withTraceId(problem.message, problem.traceId)
+  if (problem?.detail) return withTraceId(problem.detail, problem.traceId)
+  if (problem?.errors) {
+    return withTraceId(
+      Object.values(problem.errors).flat().find(Boolean)
+        ?? 'Dữ liệu chưa hợp lệ.',
+      problem.traceId,
+    )
+  }
+  if (problem?.title) return withTraceId(problem.title, problem.traceId)
+
+  if (status === 401) return withTraceId(
+    'Phiên đăng nhập đã hết hạn.',
+    problem?.traceId,
+  )
+  if (status === 403) return withTraceId(
+    'Bạn không có quyền thực hiện thao tác này.',
+    problem?.traceId,
+  )
+  if (status === 429) return withTraceId(
+    'Bạn thao tác quá nhanh. Vui lòng thử lại sau.',
+    problem?.traceId,
+  )
+  return withTraceId(
+    'Không thể kết nối tới hệ thống nhà hàng.',
+    problem?.traceId,
+  )
 }
 
 async function executeRequest<T>(

@@ -13,10 +13,14 @@ namespace QuanLyNhaHang.Api.Controllers;
 public sealed class AiAssistantController : ControllerBase
 {
     private readonly IAiAssistantService _assistantService;
+    private readonly ILogger<AiAssistantController> _logger;
 
-    public AiAssistantController(IAiAssistantService assistantService)
+    public AiAssistantController(
+        IAiAssistantService assistantService,
+        ILogger<AiAssistantController> logger)
     {
         _assistantService = assistantService;
+        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -53,6 +57,11 @@ public sealed class AiAssistantController : ControllerBase
         {
             return MapProviderFailure(exception);
         }
+        catch (Exception exception)
+            when (!cancellationToken.IsCancellationRequested)
+        {
+            return HandleUnexpectedAiFailure(exception, "customer");
+        }
     }
 
     [Authorize(Roles = SystemRoles.Admin)]
@@ -82,6 +91,11 @@ public sealed class AiAssistantController : ControllerBase
         catch (InvalidOperationException exception)
         {
             return MapProviderFailure(exception);
+        }
+        catch (Exception exception)
+            when (!cancellationToken.IsCancellationRequested)
+        {
+            return HandleUnexpectedAiFailure(exception, "admin");
         }
     }
 
@@ -146,7 +160,30 @@ public sealed class AiAssistantController : ControllerBase
             isQuotaFailure
                 ? StatusCodes.Status429TooManyRequests
                 : StatusCodes.Status503ServiceUnavailable,
-            new { message = exception.Message });
+            new
+            {
+                message = exception.Message,
+                traceId = HttpContext.TraceIdentifier
+            });
+    }
+
+    private IActionResult HandleUnexpectedAiFailure(
+        Exception exception,
+        string audience)
+    {
+        _logger.LogError(
+            exception,
+            "Unhandled {Audience} AI request failure. TraceId={TraceId}",
+            audience,
+            HttpContext.TraceIdentifier);
+
+        return StatusCode(
+            StatusCodes.Status503ServiceUnavailable,
+            new
+            {
+                message = "Trợ lý AI tạm thời không khả dụng. Vui lòng thử lại sau.",
+                traceId = HttpContext.TraceIdentifier
+            });
     }
 
     private AiAssistantCallerContext ResolveCallerContext()
