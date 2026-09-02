@@ -158,7 +158,8 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             var setting = await ValidateChatAsync(
                 request,
                 requirePublicEnabled: true,
-                timeoutCts.Token);
+                cancellationToken: timeoutCts.Token,
+                requireProviderConfigured: false);
             var model = ResolveModel(setting.AiAssistantModel);
             var routes = AiAssistantBusinessIntentCatalog.ResolveCustomer(
                 request.Message,
@@ -166,6 +167,29 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             var instructions = BuildCustomerInstructions(setting, callerContext) +
                                AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
             var tools = _dataProvider.GetCustomerToolDeclarations(callerContext.IsAuthenticated);
+            Func<string, JsonElement, CancellationToken, Task<object>> executeTool =
+                (name, args, ct) => _dataProvider.ExecuteCustomerToolAsync(
+                    name,
+                    args,
+                    callerContext,
+                    ct);
+
+            if (!IsProviderConfigured && routes.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Gemini API key is not configured; serving deterministic customer AI fallback.");
+                return await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    Guid.NewGuid().ToString("N"),
+                    0,
+                    0,
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new List<FallbackToolResult>(),
+                    routes,
+                    executeTool,
+                    timeoutCts.Token);
+            }
 
             return await RunToolConversationAsync(
                 request,
@@ -174,7 +198,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                 instructions,
                 tools,
                 routes,
-                (name, args, ct) => _dataProvider.ExecuteCustomerToolAsync(name, args, callerContext, ct),
+                executeTool,
                 timeoutCts.Token);
         }
         catch (OperationCanceledException exception)
@@ -209,12 +233,32 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             var setting = await ValidateChatAsync(
                 request,
                 requirePublicEnabled: false,
-                timeoutCts.Token);
+                cancellationToken: timeoutCts.Token,
+                requireProviderConfigured: false);
             var model = ResolveModel(setting.AiAssistantModel);
             var routes = AiAssistantBusinessIntentCatalog.ResolveAdmin(request.Message);
             var instructions = BuildAdminInstructions(setting) +
                                AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
             var tools = _dataProvider.GetAdminToolDeclarations();
+            Func<string, JsonElement, CancellationToken, Task<object>> executeTool =
+                (name, args, ct) => _dataProvider.ExecuteAdminToolAsync(name, args, ct);
+
+            if (!IsProviderConfigured && routes.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Gemini API key is not configured; serving deterministic admin AI fallback.");
+                return await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    Guid.NewGuid().ToString("N"),
+                    0,
+                    0,
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new List<FallbackToolResult>(),
+                    routes,
+                    executeTool,
+                    timeoutCts.Token);
+            }
 
             return await RunToolConversationAsync(
                 request,
@@ -223,7 +267,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                 instructions,
                 tools,
                 routes,
-                (name, args, ct) => _dataProvider.ExecuteAdminToolAsync(name, args, ct),
+                executeTool,
                 timeoutCts.Token);
         }
         catch (OperationCanceledException exception)
@@ -246,7 +290,8 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
     private async Task<RestaurantSetting> ValidateChatAsync(
         AiAssistantChatRequestDto request,
         bool requirePublicEnabled,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool requireProviderConfigured = true)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -259,7 +304,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         var setting = await RequireActiveSettingAsync(cancellationToken);
         if (requirePublicEnabled && !setting.AiAssistantEnabled)
             throw new InvalidOperationException("Trợ lý AI đang được quản trị viên tắt.");
-        if (!IsProviderConfigured)
+        if (requireProviderConfigured && !IsProviderConfigured)
             throw new InvalidOperationException(
                 "Google AI Studio API key chưa được cấu hình trên máy chủ.");
 
