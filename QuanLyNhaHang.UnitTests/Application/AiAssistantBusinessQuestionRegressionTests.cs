@@ -200,7 +200,8 @@ public class AiAssistantBusinessQuestionRegressionTests
             method => Assert.True(method.AvailableAtCounter));
 
         var customerWebMethod = Assert.Single(
-            PaymentMethodCatalog.All.Where(method => method.AvailableOnCustomerWeb));
+            PaymentMethodCatalog.All,
+            method => method.AvailableOnCustomerWeb);
         Assert.Equal(PaymentMethodCatalog.BankTransfer, customerWebMethod.Code);
     }
 

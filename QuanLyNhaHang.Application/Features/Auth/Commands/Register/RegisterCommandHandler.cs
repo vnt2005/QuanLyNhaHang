@@ -35,13 +35,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             .AnyAsync(x => x.Email == email, cancellationToken);
 
         if (emailExists)
-            throw new Exception("Email đã tồn tại.");
+            throw new InvalidOperationException("Email đã tồn tại.");
 
         var phoneExists = await _context.Users
             .AnyAsync(x => x.PhoneNumber == phoneNumber, cancellationToken);
 
         if (phoneExists)
-            throw new Exception("Số điện thoại đã tồn tại.");
+            throw new InvalidOperationException("Số điện thoại đã tồn tại.");
 
         var passwordHash = _passwordHasher.HashPassword(request.Password);
 

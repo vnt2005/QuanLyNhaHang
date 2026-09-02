@@ -24,19 +24,36 @@ public class JwtTokenService : IJwtTokenService
         IEnumerable<string>? permissions = null)
     {
         if (sessionId == Guid.Empty)
-            throw new ArgumentException("SessionId của JWT không hợp lệ.");
+        {
+            throw new ArgumentException(
+                "SessionId của JWT không hợp lệ.",
+                nameof(sessionId));
+        }
 
         var secretKey = _configuration["Jwt:SecretKey"];
-
         if (string.IsNullOrWhiteSpace(secretKey))
-            throw new Exception("JWT SecretKey chưa được cấu hình.");
+        {
+            throw new InvalidOperationException(
+                "JWT SecretKey chưa được cấu hình.");
+        }
 
         var issuer = _configuration["Jwt:Issuer"];
+        if (string.IsNullOrWhiteSpace(issuer))
+        {
+            throw new InvalidOperationException(
+                "JWT Issuer chưa được cấu hình.");
+        }
+
         var audience = _configuration["Jwt:Audience"];
+        if (string.IsNullOrWhiteSpace(audience))
+        {
+            throw new InvalidOperationException(
+                "JWT Audience chưa được cấu hình.");
+        }
 
         var expiresInMinutes = int.TryParse(
             _configuration["Jwt:ExpiresInMinutes"],
-            out var minutes)
+            out var minutes) && minutes > 0
             ? minutes
             : 60;
 
