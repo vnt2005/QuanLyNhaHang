@@ -61,7 +61,10 @@ public static class DependencyInjection
         services.AddTransient<GeminiRequestNormalizationHandler>();
         services.AddHttpClient<IAiAssistantService, GeminiAiAssistantService>(client =>
         {
-            client.Timeout = TimeSpan.FromSeconds(45);
+            // GeminiAiAssistantService owns the linked 60-second conversation
+            // timeout. An independent HttpClient timeout used to throw a
+            // TaskCanceledException first and bypass the service fallback.
+            client.Timeout = Timeout.InfiniteTimeSpan;
         })
         .AddHttpMessageHandler<GeminiRequestNormalizationHandler>();
 
