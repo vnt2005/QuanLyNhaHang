@@ -506,70 +506,121 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                 exception);
         }
         catch (OperationCanceledException exception)
-            when (!cancellationToken.IsCancellationRequested
-                  && intentRoutes.Count > 0)
+            when (!cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning(
                 exception,
                 "Gemini provider request was cancelled before the conversation timeout. RequestId={RequestId}",
                 providerRequestId);
-            return await BuildReadOnlyFallbackResponseAsync(
-                request,
-                model,
-                providerRequestId,
-                totalInputTokens,
-                totalOutputTokens,
-                dataSources,
-                fallbackToolResults,
-                intentRoutes,
-                executeTool,
-                cancellationToken);
+            return intentRoutes.Count > 0
+                ? await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    providerRequestId,
+                    totalInputTokens,
+                    totalOutputTokens,
+                    dataSources,
+                    fallbackToolResults,
+                    intentRoutes,
+                    executeTool,
+                    cancellationToken)
+                : BuildProviderUnavailableResponse(
+                    model,
+                    providerRequestId,
+                    totalInputTokens,
+                    totalOutputTokens,
+                    dataSources);
         }
         catch (InvalidOperationException exception)
-            when (!cancellationToken.IsCancellationRequested
-                  && intentRoutes.Count > 0)
+            when (!cancellationToken.IsCancellationRequested)
         {
+            if (intentRoutes.Count > 0)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Gemini provider request failed; returning read-only tool data. RequestId={RequestId}",
+                    providerRequestId);
+                return await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    providerRequestId,
+                    totalInputTokens,
+                    totalOutputTokens,
+                    dataSources,
+                    fallbackToolResults,
+                    intentRoutes,
+                    executeTool,
+                    cancellationToken);
+            }
+
             _logger.LogWarning(
                 exception,
-                "Gemini provider request failed; returning read-only tool data. RequestId={RequestId}",
+                "Gemini provider request failed for an unclassified question. RequestId={RequestId}",
                 providerRequestId);
-            return await BuildReadOnlyFallbackResponseAsync(
-                request,
+            return BuildProviderUnavailableResponse(
                 model,
                 providerRequestId,
                 totalInputTokens,
                 totalOutputTokens,
-                dataSources,
-                fallbackToolResults,
-                intentRoutes,
-                executeTool,
-                cancellationToken);
+                dataSources);
         }
         catch (Exception exception)
             when (exception is not OperationCanceledException
-                  && !cancellationToken.IsCancellationRequested
-                  && intentRoutes.Count > 0)
+                  && !cancellationToken.IsCancellationRequested)
         {
+            if (intentRoutes.Count > 0)
+            {
+                _logger.LogError(
+                    exception,
+                    "Unexpected AI conversation failure; returning read-only tool data. RequestId={RequestId}",
+                    providerRequestId);
+                return await BuildReadOnlyFallbackResponseAsync(
+                    request,
+                    model,
+                    providerRequestId,
+                    totalInputTokens,
+                    totalOutputTokens,
+                    dataSources,
+                    fallbackToolResults,
+                    intentRoutes,
+                    executeTool,
+                    cancellationToken);
+            }
+
             _logger.LogError(
                 exception,
-                "Unexpected AI conversation failure; returning read-only tool data. RequestId={RequestId}",
+                "Unexpected AI conversation failure for an unclassified question. RequestId={RequestId}",
                 providerRequestId);
-            return await BuildReadOnlyFallbackResponseAsync(
-                request,
+            return BuildProviderUnavailableResponse(
                 model,
                 providerRequestId,
                 totalInputTokens,
                 totalOutputTokens,
-                dataSources,
-                fallbackToolResults,
-                intentRoutes,
-                executeTool,
-                cancellationToken);
+                dataSources);
         }
 
         return new AiAssistantChatResponseDto
         {
             Message = "Tôi đã truy vấn dữ liệu nhưng câu hỏi cần quá nhiều bước trong một lượt. Bạn hãy hỏi cụ thể hơn một phần để tôi kiểm tra chính xác.",
+            Model = model,
+            Blocked = false,
+            InputTokens = totalInputTokens,
+            OutputTokens = totalOutputTokens,
+            ProviderRequestId = providerRequestId,
+            DataSources = dataSources.Order().ToList()
+        };
+    }
+
+    private static AiAssistantChatResponseDto BuildProviderUnavailableResponse(
+        string model,
+        string providerRequestId,
+        int totalInputTokens,
+        int totalOutputTokens,
+        HashSet<string> dataSources)
+    {
+        return new AiAssistantChatResponseDto
+        {
+            Message = "Dịch vụ AI đang tạm thời chưa sẵn sàng nên tôi chưa thể trả lời câu hỏi tự do này mà không suy đoán. Bạn có thể hỏi về thực đơn, phương thức thanh toán, bàn, khuyến mãi, đơn hàng hoặc doanh thu.",
             Model = model,
             Blocked = false,
             InputTokens = totalInputTokens,
