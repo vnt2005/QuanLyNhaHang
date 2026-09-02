@@ -256,12 +256,9 @@ public static class RateLimitingExtensions
                 type = "about:blank",
                 title = "Thao tác quá nhanh",
                 status = StatusCodes.Status429TooManyRequests,
-                detail = "Bạn đã thực hiện quá nhiều thao tác. " +
-                         $"Vui lòng thử lại sau {retryAfterSeconds} giây.",
                 message =
-                    "Bạn thao tác quá nhanh. Vui lòng thử lại sau.",
-                retryAfterSeconds,
-                traceId = rejected.HttpContext.TraceIdentifier
+                    $"Bạn thao tác quá nhanh. Vui lòng thử lại sau {retryAfterSeconds} giây.",
+                retryAfterSeconds
             },
             cancellationToken: cancellationToken);
     }
