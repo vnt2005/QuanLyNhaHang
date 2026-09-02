@@ -54,9 +54,20 @@ public static class ServiceCollectionExtensions
                             .Distinct(StringComparer.Ordinal)
                             .ToArray());
 
-                var message = errors.Values
+                var flattenedErrors = errors.Values
                     .SelectMany(value => value)
-                    .FirstOrDefault()
+                    .ToArray();
+
+                // When JSON deserialization fails, ASP.NET Core can also add an
+                // implicit "command field is required" model-binding error.
+                // Prefer the sanitized malformed-payload message so clients do
+                // not receive a misleading parameter-level validation message.
+                var message = flattenedErrors
+                    .FirstOrDefault(value => string.Equals(
+                        value,
+                        "Dữ liệu gửi lên không đúng định dạng.",
+                        StringComparison.Ordinal))
+                    ?? flattenedErrors.FirstOrDefault()
                     ?? "Dữ liệu không hợp lệ.";
 
                 return new BadRequestObjectResult(new
