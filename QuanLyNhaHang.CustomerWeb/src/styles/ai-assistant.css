@@ -11,14 +11,14 @@
 .ai-assistant-launcher {
   display: grid;
   place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--sera-accent) 52%, var(--sera-line));
   border-radius: 50%;
   background: color-mix(in srgb, var(--sera-paper) 92%, var(--sera-wash));
   color: var(--sera-ink);
-  box-shadow: 0 16px 40px rgb(var(--sera-shadow-rgb) / 16%);
+  box-shadow: 0 10px 28px rgb(var(--sera-shadow-rgb) / 14%);
   cursor: pointer;
   transition:
     border-color 160ms ease,
@@ -28,8 +28,8 @@
 }
 
 .ai-assistant-launcher svg {
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 1.35rem;
+  height: 1.35rem;
   color: currentColor;
   stroke: currentColor;
 }
