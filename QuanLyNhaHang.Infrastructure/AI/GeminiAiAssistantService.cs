@@ -257,7 +257,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             ToolConversationTimeout.TotalSeconds);
 
         return new InvalidOperationException(
-            "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối, quota/API key rồi thử lại.",
+            "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối máy chủ rồi thử lại.",
             exception);
     }
 
@@ -395,7 +395,7 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                 ToolConversationTimeout.TotalSeconds,
                 providerRequestId);
             throw new InvalidOperationException(
-                "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối, quota/API key rồi thử lại.",
+                "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối máy chủ rồi thử lại.",
                 exception);
         }
 
