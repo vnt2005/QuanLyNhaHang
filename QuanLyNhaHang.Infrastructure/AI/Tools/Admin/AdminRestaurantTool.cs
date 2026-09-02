@@ -20,6 +20,8 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
+            totalAreas = areas.Count,
+            totalTables = tables.Count,
             areas = areas.Select(item => new { item.Name, item.Description, item.IsActive }),
             tables = tables.Select(item => new
             {
@@ -47,14 +49,15 @@ internal sealed partial class AiAssistantDataProvider
         var items = await _dbContext.MenuItems
             .AsNoTracking()
             .OrderBy(item => item.Name)
-            .Take(250)
             .ToListAsync(cancellationToken);
 
-        var filtered = items
+        var matchingItems = items
             .Where(item => string.IsNullOrWhiteSpace(query)
                 || item.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
                 || (!string.IsNullOrWhiteSpace(item.Description)
                     && item.Description.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        var filtered = matchingItems
             .Take(limit)
             .Select(item => new
             {
@@ -71,6 +74,10 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
+            totalCategories = categories.Count,
+            totalCount = matchingItems.Count,
+            returnedCount = filtered.Count,
+            hasMore = matchingItems.Count > filtered.Count,
             categories = categories.Select(item => new { item.Name, item.IsActive }),
             items = filtered
         };
@@ -94,6 +101,7 @@ internal sealed partial class AiAssistantDataProvider
         if (!string.IsNullOrWhiteSpace(query))
             ordersQuery = ordersQuery.Where(item => item.OrderCode.Contains(query));
 
+        var totalCount = await ordersQuery.CountAsync(cancellationToken);
         var orders = await ordersQuery
             .OrderByDescending(item => item.CreatedAt)
             .Take(limit)
@@ -129,7 +137,9 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
-            count = orders.Count,
+            totalCount,
+            returnedCount = orders.Count,
+            hasMore = totalCount > orders.Count,
             orders = orders.Select(order => new
             {
                 order.OrderCode,
@@ -164,6 +174,7 @@ internal sealed partial class AiAssistantDataProvider
         else
             query = query.Where(item => item.Status == "Pending" || item.Status == "Cooking" || item.Status == "Ready");
 
+        var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderBy(item => item.Status)
             .ThenBy(item => item.CreatedAt)
@@ -181,6 +192,12 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { count = items.Count, items };
+        return new
+        {
+            totalCount,
+            returnedCount = items.Count,
+            hasMore = totalCount > items.Count,
+            items
+        };
     }
 }
