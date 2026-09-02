@@ -19,6 +19,7 @@ internal sealed partial class AiAssistantDataProvider
         if (to.HasValue)
             query = query.Where(item => item.ReservationTime < to.Value);
 
+        var totalCount = await query.CountAsync(cancellationToken);
         var reservations = await query
             .OrderByDescending(item => item.ReservationTime)
             .Take(limit)
@@ -40,7 +41,9 @@ internal sealed partial class AiAssistantDataProvider
 
         return new
         {
-            count = reservations.Count,
+            totalCount,
+            returnedCount = reservations.Count,
+            hasMore = totalCount > reservations.Count,
             reservations,
             privacy = "Tên, email và số điện thoại khách đặt bàn không được chuyển sang Gemini."
         };
@@ -50,8 +53,9 @@ internal sealed partial class AiAssistantDataProvider
         int limit,
         CancellationToken cancellationToken)
     {
-        var promotions = await _dbContext.Promotions
-            .AsNoTracking()
+        var query = _dbContext.Promotions.AsNoTracking();
+        var totalCount = await query.CountAsync(cancellationToken);
+        var promotions = await query
             .OrderByDescending(item => item.CreatedAt)
             .Take(limit)
             .Select(item => new
@@ -71,7 +75,13 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { count = promotions.Count, promotions };
+        return new
+        {
+            totalCount,
+            returnedCount = promotions.Count,
+            hasMore = totalCount > promotions.Count,
+            promotions
+        };
     }
 
     private async Task<object> GetInventoryModuleAsync(
@@ -82,12 +92,13 @@ internal sealed partial class AiAssistantDataProvider
         var ingredients = await _dbContext.Ingredients
             .AsNoTracking()
             .OrderBy(item => item.Name)
-            .Take(250)
             .ToListAsync(cancellationToken);
-        var filtered = ingredients
+        var matchingIngredients = ingredients
             .Where(item => string.IsNullOrWhiteSpace(query)
                 || item.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
                 || item.IngredientCode.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var filtered = matchingIngredients
             .Take(limit)
             .Select(item => new
             {
@@ -102,8 +113,9 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToList();
 
-        var transactions = await _dbContext.InventoryTransactions
-            .AsNoTracking()
+        var transactionsQuery = _dbContext.InventoryTransactions.AsNoTracking();
+        var transactionTotalCount = await transactionsQuery.CountAsync(cancellationToken);
+        var transactions = await transactionsQuery
             .OrderByDescending(item => item.TransactionDate)
             .Take(limit)
             .Select(item => new
@@ -121,6 +133,22 @@ internal sealed partial class AiAssistantDataProvider
             })
             .ToListAsync(cancellationToken);
 
-        return new { ingredients = filtered, recentTransactions = transactions };
+        return new
+        {
+            ingredients = new
+            {
+                totalCount = matchingIngredients.Count,
+                returnedCount = filtered.Count,
+                hasMore = matchingIngredients.Count > filtered.Count,
+                items = filtered
+            },
+            recentTransactions = new
+            {
+                totalCount = transactionTotalCount,
+                returnedCount = transactions.Count,
+                hasMore = transactionTotalCount > transactions.Count,
+                items = transactions
+            }
+        };
     }
 }
