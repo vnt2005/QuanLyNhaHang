@@ -50,6 +50,19 @@ internal sealed partial class AiAssistantDataProvider
         var tableSummary = tables
             .GroupBy(item => item.Status)
             .ToDictionary(group => group.Key, group => group.Count());
+        var availableTables = tables
+            .Where(item => item.Status == "Available")
+            .OrderBy(item => item.Capacity)
+            .ToList();
+        var returnedAvailableTables = availableTables
+            .Take(MaximumLimit)
+            .Select(item => new
+            {
+                area = areaNames.TryGetValue(item.AreaId, out var areaName) ? areaName : "Khác",
+                item.Name,
+                item.Capacity
+            })
+            .ToList();
 
         return new
         {
@@ -62,16 +75,11 @@ internal sealed partial class AiAssistantDataProvider
                 availableNow = tables.Count(table => table.AreaId == item.Id && table.Status == "Available")
             }),
             tableStatus = tableSummary,
-            availableTables = tables
-                .Where(item => item.Status == "Available")
-                .OrderBy(item => item.Capacity)
-                .Take(20)
-                .Select(item => new
-                {
-                    area = areaNames.TryGetValue(item.AreaId, out var areaName) ? areaName : "Khác",
-                    item.Name,
-                    item.Capacity
-                })
+            totalActiveTables = tables.Count,
+            availableTableCount = availableTables.Count,
+            returnedAvailableTableCount = returnedAvailableTables.Count,
+            hasMoreAvailableTables = availableTables.Count > returnedAvailableTables.Count,
+            availableTables = returnedAvailableTables
         };
     }
 
@@ -108,11 +116,13 @@ internal sealed partial class AiAssistantDataProvider
                 .ToHashSetAsync(cancellationToken);
         }
 
-        var candidates = tables
+        var matchingCandidates = tables
             .Where(item => requestedAt.HasValue
                 ? !conflictingTableIds.Contains(item.Id)
                 : item.Status == "Available")
-            .Take(20)
+            .ToList();
+        var candidates = matchingCandidates
+            .Take(MaximumLimit)
             .Select(item => new
             {
                 area = areas.TryGetValue(item.AreaId, out var areaName) ? areaName : "Khác",
@@ -126,7 +136,9 @@ internal sealed partial class AiAssistantDataProvider
         {
             guests,
             requestedAt,
-            candidateCount = candidates.Count,
+            totalCandidateCount = matchingCandidates.Count,
+            returnedCount = candidates.Count,
+            hasMore = matchingCandidates.Count > candidates.Count,
             candidates,
             note = "Đây là dữ liệu tham khảo tại thời điểm hỏi. Khách vẫn phải gửi yêu cầu ở trang Đặt bàn để hệ thống kiểm tra/xác nhận theo luồng nghiệp vụ."
         };
