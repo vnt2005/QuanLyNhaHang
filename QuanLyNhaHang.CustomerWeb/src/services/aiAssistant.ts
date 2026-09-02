@@ -55,9 +55,7 @@ export async function sendAiAssistantMessage(
     )
   } catch (exception) {
     if (controller.signal.aborted) {
-      throw new Error(
-        'Trợ lý AI phản hồi quá lâu. Vui lòng kiểm tra kết nối máy chủ/Gemini rồi thử lại.',
-      )
+      throw new Error('Trợ lý AI phản hồi quá lâu. Vui lòng thử lại sau.')
     }
 
     throw exception
