@@ -28,6 +28,7 @@ function dateTime(value: string) { return new Intl.DateTimeFormat('vi-VN', { dat
 function orderItemsPreview(order: CustomerOrder) { const first = order.items[0]; if (!first) return 'Chưa có món'; const firstLabel = `${first.menuItemName} ×${first.quantity}`; return order.items.length > 1 ? `${firstLabel} · +${order.items.length - 1} món` : firstLabel }
 function paymentAmountLabel(order: CustomerOrder) { return order.paidAmount != null ? 'Đã thanh toán' : 'Tạm tính món' }
 function paymentAmount(order: CustomerOrder) { return order.paidAmount ?? order.totalAmount }
+function paymentStatusLabel(order: CustomerOrder) { return order.paidAmount != null ? 'Đã thanh toán' : 'Chưa thanh toán' }
 
 function OrderRow({ order, expanded, accessToken, cancelling, onToggle, onCancel }: { order: CustomerOrder; expanded: boolean; accessToken: string; cancelling: boolean; onToggle: () => void; onCancel: () => void }) {
   const tableQrToken = getCustomerQrTokenForTable(order.restaurantTableId)
@@ -42,7 +43,7 @@ function OrderRow({ order, expanded, accessToken, cancelling, onToggle, onCancel
         <span><small className="sera-kicker">{isTakeaway ? 'Mang về' : 'Tại bàn'} · {dateTime(order.createdAt)}</small><strong className="mt-1 block font-heading text-2xl font-medium">{order.orderCode}</strong><span className="mt-1 block text-xs text-muted-foreground">{orderItemsPreview(order)}</span></span>
         <span className="max-md:hidden"><small className="block text-xs text-muted-foreground">Nhận món</small><strong className="text-sm">{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</strong></span>
         <span className="max-md:hidden"><small className="block text-xs text-muted-foreground">{paymentAmountLabel(order)}</small><strong className="text-sm">{money(paymentAmount(order))}</strong></span>
-        <span className="flex items-center gap-3"><Badge variant={order.status === 'Cancelled' ? 'destructive' : 'secondary'}>{statusLabels[order.status] || order.status}</Badge>{expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}</span>
+        <span className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col max-md:items-end"><Badge variant={order.status === 'Cancelled' ? 'destructive' : 'secondary'}>{statusLabels[order.status] || order.status}</Badge><Badge variant={order.paidAmount != null ? 'default' : 'outline'}>{paymentStatusLabel(order)}</Badge>{expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}</span>
       </button>
 
       {expanded ? (
