@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7134'
+const AI_REQUEST_TIMEOUT_MS = 70_000
 
 export type AiAssistantAdminConfig = {
   enabled: boolean
@@ -80,6 +81,31 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
+async function requestAi<T>(path: string, init: RequestInit) {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    AI_REQUEST_TIMEOUT_MS,
+  )
+
+  try {
+    return await request<T>(path, {
+      ...init,
+      signal: controller.signal,
+    })
+  } catch (exception) {
+    if (controller.signal.aborted) {
+      throw new Error(
+        'Trợ lý AI phản hồi quá lâu. Vui lòng kiểm tra kết nối máy chủ/Gemini rồi thử lại.',
+      )
+    }
+
+    throw exception
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
 export function getAiAssistantAdminConfig() {
   return request<AiAssistantAdminConfig>('/api/ai-assistant/admin-config')
 }
@@ -95,7 +121,7 @@ export function sendAiAssistantAdminMessage(
   message: string,
   history: AiAssistantAdminMessage[],
 ) {
-  return request<AiAssistantChatResponse>('/api/ai-assistant/admin-chat', {
+  return requestAi<AiAssistantChatResponse>('/api/ai-assistant/admin-chat', {
     method: 'POST',
     body: JSON.stringify({
       message,

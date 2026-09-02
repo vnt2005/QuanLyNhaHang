@@ -121,7 +121,7 @@ Backend gửi danh sách function declarations cho Gemini. Nếu model cần d�
 
 Các câu hỏi nghiệp vụ phổ biến còn đi qua lớp định tuyến xác định trước. Ở vòng đầu, backend dùng `mode=ANY` cùng `allowedFunctionNames` để buộc Gemini gọi đúng nhóm tool đã nhận diện; từ vòng tiếp theo chuyển lại `AUTO` để Gemini tổng hợp câu trả lời hoặc gọi thêm nguồn. Với Admin, khi chỉ có một intent module, backend cũng khóa lại giá trị `module` đã mapping để tránh model gửi nhầm module.
 
-Mỗi lượt chỉ cho phép số vòng tool hữu hạn để tránh vòng lặp. Các tool đều read-only và giới hạn số bản ghi trả về.
+Mỗi lượt chỉ cho phép số vòng tool hữu hạn để tránh vòng lặp. Toàn bộ tool conversation có deadline 60 giây; nếu provider/mạng chậm quá thời hạn, backend trả lỗi có chủ đích thay vì giữ request vô hạn. Hai frontend cũng tự hủy request AI sau 70 giây và hiển thị hướng dẫn kiểm tra kết nối/quota. Các tool đều read-only và giới hạn số bản ghi trả về.
 
 ## Gemini 3.7 Flash
 

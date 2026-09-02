@@ -28,6 +28,8 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
     private const int MaxHistoryMessages = 8;
     private const int MaxHistoryMessageLength = 1200;
     private const int MaxToolRounds = 4;
+    private static readonly TimeSpan ToolConversationTimeout =
+        TimeSpan.FromSeconds(60);
 
     private static readonly object[] SafetySettings =
     [
@@ -138,24 +140,38 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         AiAssistantCallerContext callerContext,
         CancellationToken cancellationToken = default)
     {
-        var setting = await ValidateChatAsync(request, requirePublicEnabled: true, cancellationToken);
-        var model = ResolveModel(setting.AiAssistantModel);
-        var routes = AiAssistantBusinessIntentCatalog.ResolveCustomer(
-            request.Message,
-            callerContext.IsAuthenticated);
-        var instructions = BuildCustomerInstructions(setting, callerContext) +
-                           AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
-        var tools = _dataProvider.GetCustomerToolDeclarations(callerContext.IsAuthenticated);
+        using var timeoutCts = CreateRequestTimeout(cancellationToken);
 
-        return await RunToolConversationAsync(
-            request,
-            model,
-            setting.AiAssistantMaxOutputTokens,
-            instructions,
-            tools,
-            routes,
-            (name, args, ct) => _dataProvider.ExecuteCustomerToolAsync(name, args, callerContext, ct),
-            cancellationToken);
+        try
+        {
+            var setting = await ValidateChatAsync(
+                request,
+                requirePublicEnabled: true,
+                timeoutCts.Token);
+            var model = ResolveModel(setting.AiAssistantModel);
+            var routes = AiAssistantBusinessIntentCatalog.ResolveCustomer(
+                request.Message,
+                callerContext.IsAuthenticated);
+            var instructions = BuildCustomerInstructions(setting, callerContext) +
+                               AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
+            var tools = _dataProvider.GetCustomerToolDeclarations(callerContext.IsAuthenticated);
+
+            return await RunToolConversationAsync(
+                request,
+                model,
+                setting.AiAssistantMaxOutputTokens,
+                instructions,
+                tools,
+                routes,
+                (name, args, ct) => _dataProvider.ExecuteCustomerToolAsync(name, args, callerContext, ct),
+                timeoutCts.Token);
+        }
+        catch (OperationCanceledException exception)
+            when (timeoutCts.IsCancellationRequested
+                  && !cancellationToken.IsCancellationRequested)
+        {
+            throw CreateTimeoutException(exception, "customer");
+        }
     }
 
     public async Task<AiAssistantChatResponseDto> AdminChatAsync(
@@ -166,22 +182,36 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
         if (adminUserId == Guid.Empty)
             throw new ArgumentException("Tài khoản quản trị không hợp lệ.");
 
-        var setting = await ValidateChatAsync(request, requirePublicEnabled: false, cancellationToken);
-        var model = ResolveModel(setting.AiAssistantModel);
-        var routes = AiAssistantBusinessIntentCatalog.ResolveAdmin(request.Message);
-        var instructions = BuildAdminInstructions(setting) +
-                           AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
-        var tools = _dataProvider.GetAdminToolDeclarations();
+        using var timeoutCts = CreateRequestTimeout(cancellationToken);
 
-        return await RunToolConversationAsync(
-            request,
-            model,
-            setting.AiAssistantMaxOutputTokens,
-            instructions,
-            tools,
-            routes,
-            (name, args, ct) => _dataProvider.ExecuteAdminToolAsync(name, args, ct),
-            cancellationToken);
+        try
+        {
+            var setting = await ValidateChatAsync(
+                request,
+                requirePublicEnabled: false,
+                timeoutCts.Token);
+            var model = ResolveModel(setting.AiAssistantModel);
+            var routes = AiAssistantBusinessIntentCatalog.ResolveAdmin(request.Message);
+            var instructions = BuildAdminInstructions(setting) +
+                               AiAssistantBusinessIntentCatalog.BuildRoutingDirective(routes);
+            var tools = _dataProvider.GetAdminToolDeclarations();
+
+            return await RunToolConversationAsync(
+                request,
+                model,
+                setting.AiAssistantMaxOutputTokens,
+                instructions,
+                tools,
+                routes,
+                (name, args, ct) => _dataProvider.ExecuteAdminToolAsync(name, args, ct),
+                timeoutCts.Token);
+        }
+        catch (OperationCanceledException exception)
+            when (timeoutCts.IsCancellationRequested
+                  && !cancellationToken.IsCancellationRequested)
+        {
+            throw CreateTimeoutException(exception, "admin");
+        }
     }
 
     private async Task<RestaurantSetting> ValidateChatAsync(
@@ -205,6 +235,30 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
                 "Google AI Studio API key chưa được cấu hình trên máy chủ.");
 
         return setting;
+    }
+
+    private static CancellationTokenSource CreateRequestTimeout(
+        CancellationToken cancellationToken)
+    {
+        var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken);
+        timeoutCts.CancelAfter(ToolConversationTimeout);
+        return timeoutCts;
+    }
+
+    private InvalidOperationException CreateTimeoutException(
+        OperationCanceledException exception,
+        string audience)
+    {
+        _logger.LogWarning(
+            exception,
+            "Gemini {Audience} request timed out after {TimeoutSeconds} seconds.",
+            audience,
+            ToolConversationTimeout.TotalSeconds);
+
+        return new InvalidOperationException(
+            "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối, quota/API key rồi thử lại.",
+            exception);
     }
 
     private async Task<AiAssistantChatResponseDto> RunToolConversationAsync(
@@ -243,86 +297,106 @@ public sealed class GeminiAiAssistantService : IAiAssistantService
             .Distinct(StringComparer.Ordinal)
             .ToArray();
 
-        for (var round = 0; round < MaxToolRounds; round++)
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken);
+        timeoutCts.CancelAfter(ToolConversationTimeout);
+
+        try
         {
-            using var document = await SendGenerateContentAsync(
-                model,
-                maxOutputTokens,
-                instructions,
-                contents,
-                toolDeclarations,
-                round == 0 ? requiredToolNames : [],
-                providerRequestId,
-                cancellationToken);
-
-            var usage = ExtractUsage(document.RootElement);
-            totalInputTokens += usage.InputTokens;
-            totalOutputTokens += usage.OutputTokens;
-
-            if (IsSafetyBlocked(document.RootElement))
+            for (var round = 0; round < MaxToolRounds; round++)
             {
-                return new AiAssistantChatResponseDto
-                {
-                    Message = "Tôi không thể hỗ trợ nội dung này. Bạn có thể hỏi về dữ liệu và chức năng của nhà hàng.",
-                    Model = model,
-                    Blocked = true,
-                    InputTokens = totalInputTokens,
-                    OutputTokens = totalOutputTokens,
-                    ProviderRequestId = providerRequestId,
-                    DataSources = dataSources.Order().ToList()
-                };
-            }
+                using var document = await SendGenerateContentAsync(
+                    model,
+                    maxOutputTokens,
+                    instructions,
+                    contents,
+                    toolDeclarations,
+                    round == 0 ? requiredToolNames : [],
+                    providerRequestId,
+                    timeoutCts.Token);
 
-            var calls = ExtractFunctionCalls(document.RootElement);
-            if (calls.Count == 0)
-            {
-                var answer = ExtractOutputText(document.RootElement);
-                if (string.IsNullOrWhiteSpace(answer))
+                var usage = ExtractUsage(document.RootElement);
+                totalInputTokens += usage.InputTokens;
+                totalOutputTokens += usage.OutputTokens;
+
+                if (IsSafetyBlocked(document.RootElement))
                 {
-                    answer = "Tôi chưa có đủ dữ liệu để trả lời câu hỏi này. Bạn vui lòng thử diễn đạt cụ thể hơn.";
+                    return new AiAssistantChatResponseDto
+                    {
+                        Message = "Tôi không thể hỗ trợ nội dung này. Bạn có thể hỏi về dữ liệu và chức năng của nhà hàng.",
+                        Model = model,
+                        Blocked = true,
+                        InputTokens = totalInputTokens,
+                        OutputTokens = totalOutputTokens,
+                        ProviderRequestId = providerRequestId,
+                        DataSources = dataSources.Order().ToList()
+                    };
                 }
 
-                return new AiAssistantChatResponseDto
+                var calls = ExtractFunctionCalls(document.RootElement);
+                if (calls.Count == 0)
                 {
-                    Message = answer.Trim(),
-                    Model = model,
-                    Blocked = false,
-                    InputTokens = totalInputTokens,
-                    OutputTokens = totalOutputTokens,
-                    ProviderRequestId = providerRequestId,
-                    DataSources = dataSources.Order().ToList()
-                };
-            }
-
-            var modelContent = ExtractCandidateContent(document.RootElement);
-            if (modelContent.HasValue)
-                contents.Add(modelContent.Value);
-
-            var responseParts = new List<object>();
-            foreach (var call in calls)
-            {
-                var routedArgs = round == 0
-                    ? ApplyRequiredArguments(call, intentRoutes)
-                    : call.Args;
-                var result = await executeTool(call.Name, routedArgs, cancellationToken);
-                dataSources.Add(MapDataSource(call.Name, result));
-
-                responseParts.Add(new
-                {
-                    functionResponse = new
+                    var answer = ExtractOutputText(document.RootElement);
+                    if (string.IsNullOrWhiteSpace(answer))
                     {
-                        name = call.Name,
-                        id = call.Id,
-                        response = new { result }
+                        answer = "Tôi chưa có đủ dữ liệu để trả lời câu hỏi này. Bạn vui lòng thử diễn đạt cụ thể hơn.";
                     }
-                });
-            }
 
-            contents.Add(JsonSerializer.SerializeToElement(new
-            {
-                role = "user",
-                parts = responseParts
-            }));
+                    return new AiAssistantChatResponseDto
+                    {
+                        Message = answer.Trim(),
+                        Model = model,
+                        Blocked = false,
+                        InputTokens = totalInputTokens,
+                        OutputTokens = totalOutputTokens,
+                        ProviderRequestId = providerRequestId,
+                        DataSources = dataSources.Order().ToList()
+                    };
+                }
+
+                var modelContent = ExtractCandidateContent(document.RootElement);
+                if (modelContent.HasValue)
+                    contents.Add(modelContent.Value);
+
+                var responseParts = new List<object>();
+                foreach (var call in calls)
+                {
+                    var routedArgs = round == 0
+                        ? ApplyRequiredArguments(call, intentRoutes)
+                        : call.Args;
+                    var result = await executeTool(call.Name, routedArgs, timeoutCts.Token);
+                    dataSources.Add(MapDataSource(call.Name, result));
+
+                    responseParts.Add(new
+                    {
+                        functionResponse = new
+                        {
+                            name = call.Name,
+                            id = call.Id,
+                            response = new { result }
+                        }
+                    });
+                }
+
+                contents.Add(JsonSerializer.SerializeToElement(new
+                {
+                    role = "user",
+                    parts = responseParts
+                }));
+            }
+        }
+        catch (OperationCanceledException exception)
+            when (timeoutCts.IsCancellationRequested
+                  && !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(
+                exception,
+                "Gemini tool conversation timed out after {TimeoutSeconds} seconds. RequestId={RequestId}",
+                ToolConversationTimeout.TotalSeconds,
+                providerRequestId);
+            throw new InvalidOperationException(
+                "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối, quota/API key rồi thử lại.",
+                exception);
         }
 
         return new AiAssistantChatResponseDto
