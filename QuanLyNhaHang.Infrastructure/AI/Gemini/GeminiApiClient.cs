@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using QuanLyNhaHang.Application.Common.Exceptions;
 
 namespace QuanLyNhaHang.Infrastructure.AI;
 
@@ -78,37 +79,14 @@ public sealed partial class GeminiAiAssistantService
                     providerRequestId,
                     providerMessage);
 
-                if (response.StatusCode == HttpStatusCode.TooManyRequests)
-                {
-                    throw new InvalidOperationException(
-                        "Gemini đã chạm hạn mức hiện tại. Vui lòng thử lại sau hoặc kiểm tra quota Google AI Studio.");
-                }
-
-                if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-                {
-                    throw new InvalidOperationException(
-                        "Google AI Studio API key không hợp lệ hoặc không có quyền gọi Gemini API.");
-                }
-
-                if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    throw new InvalidOperationException(
-                        $"Không tìm thấy model Gemini '{model}'. Hãy kiểm tra model trong cấu hình AI.");
-                }
-
-                if (response.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    throw new InvalidOperationException(
-                        string.IsNullOrWhiteSpace(providerMessage)
-                            ? "Gemini từ chối cấu hình yêu cầu. Hãy kiểm tra model và cấu hình AI."
-                            : $"Gemini từ chối yêu cầu: {providerMessage}");
-                }
-
-                throw new InvalidOperationException(
-                    "Dịch vụ Gemini hiện chưa phản hồi được. Vui lòng thử lại sau.");
+                throw new AiAssistantUnavailableException();
             }
 
             return JsonDocument.Parse(responseJson);
+        }
+        catch (AiAssistantUnavailableException)
+        {
+            throw;
         }
         catch (JsonException exception)
         {
@@ -116,9 +94,7 @@ public sealed partial class GeminiAiAssistantService
                 exception,
                 "Gemini returned an invalid JSON response. RequestId={RequestId}",
                 providerRequestId);
-            throw new InvalidOperationException(
-                "Dịch vụ Gemini trả về dữ liệu không hợp lệ. Vui lòng thử lại sau.",
-                exception);
+            throw new AiAssistantUnavailableException(exception);
         }
         catch (HttpRequestException exception)
         {
@@ -126,9 +102,7 @@ public sealed partial class GeminiAiAssistantService
                 exception,
                 "Gemini response could not be read. RequestId={RequestId}",
                 providerRequestId);
-            throw new InvalidOperationException(
-                "Không đọc được phản hồi từ dịch vụ Gemini. Vui lòng kiểm tra kết nối máy chủ rồi thử lại.",
-                exception);
+            throw new AiAssistantUnavailableException(exception);
         }
         catch (IOException exception)
         {
@@ -136,9 +110,7 @@ public sealed partial class GeminiAiAssistantService
                 exception,
                 "Gemini response stream failed. RequestId={RequestId}",
                 providerRequestId);
-            throw new InvalidOperationException(
-                "Kết nối tới dịch vụ Gemini bị gián đoạn. Vui lòng thử lại sau.",
-                exception);
+            throw new AiAssistantUnavailableException(exception);
         }
         catch (TimeoutException exception)
         {
@@ -146,9 +118,7 @@ public sealed partial class GeminiAiAssistantService
                 exception,
                 "Gemini response timed out while being read. RequestId={RequestId}",
                 providerRequestId);
-            throw new InvalidOperationException(
-                "Dịch vụ Gemini phản hồi quá lâu. Vui lòng thử lại sau.",
-                exception);
+            throw new AiAssistantUnavailableException(exception);
         }
         catch (OperationCanceledException exception)
             when (!cancellationToken.IsCancellationRequested)
@@ -157,9 +127,7 @@ public sealed partial class GeminiAiAssistantService
                 exception,
                 "Gemini HTTP client timeout occurred before the tool conversation timeout. RequestId={RequestId}",
                 providerRequestId);
-            throw new InvalidOperationException(
-                "Dịch vụ Gemini không phản hồi trong thời gian cho phép.",
-                exception);
+            throw new AiAssistantUnavailableException(exception);
         }
     }
 
