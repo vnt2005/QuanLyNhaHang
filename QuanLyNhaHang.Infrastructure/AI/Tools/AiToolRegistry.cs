@@ -19,7 +19,7 @@ internal static class AiToolRegistry
                 new { type = "object", properties = new { } }),
             Tool(
                 AiAssistantToolNames.SearchMenu,
-                "Tìm dữ liệu thực đơn trực tiếp trong hệ thống theo tên món, mô tả, giá hoặc danh mục. BẮT BUỘC dùng cho câu hỏi về món/thực đơn/giá. Chỉ trả món đang hoạt động; mặc định ưu tiên món đang bán.",
+                "Tìm dữ liệu thực đơn trực tiếp trong hệ thống theo tên món, mô tả, giá hoặc danh mục. Kết quả luôn kèm tổng số bản ghi phù hợp trên toàn bộ dữ liệu, không được suy ra tổng số từ số dòng đang trả về. BẮT BUỘC dùng cho câu hỏi về món/thực đơn/giá.",
                 new
                 {
                     type = "object",
@@ -28,16 +28,16 @@ internal static class AiToolRegistry
                         query = new { type = "string", description = "Từ khóa tên món hoặc mô tả. Có thể để trống để lấy danh sách món." },
                         category = new { type = "string", description = "Tên danh mục nếu khách hỏi theo nhóm món." },
                         onlyAvailable = new { type = "boolean", description = "true để chỉ lấy món đang bán; mặc định true." },
-                        limit = new { type = "integer", description = "Số món tối đa, từ 1 đến 30." }
+                        limit = new { type = "integer", description = "Số dòng chi tiết tối đa cần trả, từ 1 đến 100. Tổng số phù hợp luôn được tính trên toàn bộ dữ liệu." }
                     }
                 }),
             Tool(
                 AiAssistantToolNames.ActivePromotions,
-                "Lấy mã khuyến mãi đang hoạt động, còn hạn và còn lượt dùng từ dữ liệu thật. BẮT BUỘC dùng cho câu hỏi về ưu đãi, voucher hoặc mã giảm giá.",
+                "Lấy mã khuyến mãi đang hoạt động, còn hạn và còn lượt dùng từ dữ liệu thật; tổng số luôn tính trên toàn bộ dữ liệu chứ không dựa trên một trang gần nhất.",
                 new { type = "object", properties = new { } }),
             Tool(
                 AiAssistantToolNames.TableAvailability,
-                "Kiểm tra các bàn/khu vực có thể phù hợp theo số khách và thời gian dự kiến. BẮT BUỘC dùng khi hỏi bàn trống/đặt bàn; không tự tạo đặt bàn.",
+                "Kiểm tra các bàn/khu vực có thể phù hợp theo số khách và thời gian dự kiến. Kết quả luôn kèm tổng số bàn phù hợp trên toàn bộ dữ liệu. BẮT BUỘC dùng khi hỏi bàn trống/đặt bàn; không tự tạo đặt bàn.",
                 new
                 {
                     type = "object",
@@ -58,26 +58,28 @@ internal static class AiToolRegistry
         {
             declarations.Add(Tool(
                 AiAssistantToolNames.MyOrders,
-                "Lấy các đơn hàng, trạng thái món/bếp, thanh toán và hóa đơn thuộc đúng tài khoản khách đang đăng nhập. BẮT BUỘC dùng khi khách hỏi đơn, hóa đơn hoặc trạng thái thanh toán của mình. Không được dùng cho khách khác.",
+                "Đọc lịch sử đơn của đúng tài khoản Customer đang đăng nhập trên TOÀN BỘ dữ liệu, không chỉ 10 đơn gần nhất. Kết quả có tổng số đơn thật, thống kê trạng thái đơn, số đơn đã/chưa thanh toán và danh sách chi tiết đã lọc. BẮT BUỘC dùng khi khách hỏi tổng số đơn, đơn đã hủy/hoàn thành/đang xử lý, đơn đã/chưa thanh toán, hóa đơn hoặc trạng thái bếp.",
                 new
                 {
                     type = "object",
                     properties = new
                     {
-                        orderCode = new { type = "string", description = "Mã đơn cụ thể nếu khách hỏi; để trống để lấy các đơn gần nhất." },
-                        limit = new { type = "integer", description = "Số đơn tối đa, từ 1 đến 10." }
+                        orderCode = new { type = "string", description = "Mã đơn cụ thể nếu khách hỏi." },
+                        status = new { type = "string", description = "Lọc trạng thái đơn. Có thể dùng active, completed, cancelled, served hoặc trạng thái hệ thống cụ thể." },
+                        paymentStatus = new { type = "string", description = "Lọc theo thanh toán: paid hoặc unpaid." },
+                        limit = new { type = "integer", description = "Số đơn chi tiết tối đa cần trả, từ 1 đến 100. Tổng số và thống kê luôn tính trên toàn bộ lịch sử." }
                     }
                 }));
 
             declarations.Add(Tool(
                 AiAssistantToolNames.MyNotifications,
-                "Lấy các thông báo gần nhất thuộc đúng tài khoản khách đang đăng nhập.",
+                "Lấy thông báo thuộc đúng tài khoản khách đang đăng nhập. Kết quả luôn kèm tổng số và số chưa đọc trên toàn bộ dữ liệu, không suy ra từ số thông báo gần nhất.",
                 new
                 {
                     type = "object",
                     properties = new
                     {
-                        limit = new { type = "integer", description = "Số thông báo tối đa, từ 1 đến 20." }
+                        limit = new { type = "integer", description = "Số thông báo chi tiết tối đa cần trả, từ 1 đến 100." }
                     }
                 }));
         }
@@ -99,7 +101,7 @@ internal static class AiToolRegistry
                 new { type = "object", properties = new { } }),
             Tool(
                 AiAssistantToolNames.AdminModuleData,
-                "Đọc dữ liệu mới nhất của đúng một module quản trị. Chỉ đọc, không thay đổi dữ liệu. Mapping bắt buộc: món/thực đơn -> menu; đơn/trạng thái đơn -> orders; bếp -> kitchen; giao dịch thanh toán -> payments; hóa đơn -> invoices; doanh thu -> revenue; đặt bàn -> reservations; khuyến mãi -> promotions; tồn kho/nguyên liệu -> inventory; giờ mở cửa/VAT/phí/cấu hình -> restaurant_settings.",
+                "Đọc dữ liệu mới nhất của đúng một module quản trị. Mọi module dạng danh sách phải trả totalCount tính trên toàn bộ tập dữ liệu đã lọc trước khi giới hạn số dòng chi tiết. Chỉ đọc, không thay đổi dữ liệu.",
                 new
                 {
                     type = "object",
@@ -122,7 +124,7 @@ internal static class AiToolRegistry
                         query = new { type = "string", description = "Từ khóa tìm kiếm nếu module hỗ trợ." },
                         fromDate = new { type = "string", description = "Ngày bắt đầu dạng yyyy-MM-dd nếu cần." },
                         toDate = new { type = "string", description = "Ngày kết thúc dạng yyyy-MM-dd nếu cần." },
-                        limit = new { type = "integer", description = "Số dòng tối đa, từ 1 đến 50." }
+                        limit = new { type = "integer", description = "Số dòng chi tiết tối đa, từ 1 đến 100. totalCount vẫn phản ánh toàn bộ dữ liệu phù hợp." }
                     },
                     required = new[] { "module" }
                 })
