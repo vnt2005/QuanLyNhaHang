@@ -16,8 +16,7 @@ public class GetCustomerOrderHistoryQueryHandler
         "Confirmed",
         "Preparing",
         "Cooking",
-        "Ready",
-        "Served"
+        "Ready"
     ];
 
     private readonly IApplicationDbContext _context;
