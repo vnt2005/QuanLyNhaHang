@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using QuanLyNhaHang.Application.Common.Exceptions;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Payments;
 using QuanLyNhaHang.Application.Features.AiAssistant;
@@ -158,6 +159,9 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
                     timeoutCts.Token);
             }
 
+            if (!IsProviderConfigured)
+                throw new AiAssistantUnavailableException();
+
             return await RunToolConversationAsync(
                 request,
                 model,
@@ -179,9 +183,7 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
             _logger.LogError(
                 exception,
                 "Customer AI request could not read restaurant data from the database.");
-            throw new InvalidOperationException(
-                "Không đọc được dữ liệu nhà hàng từ cơ sở dữ liệu. Vui lòng kiểm tra SQL Server rồi thử lại.",
-                exception);
+            throw new AiAssistantUnavailableException(exception);
         }
     }
 
@@ -227,6 +229,9 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
                     timeoutCts.Token);
             }
 
+            if (!IsProviderConfigured)
+                throw new AiAssistantUnavailableException();
+
             return await RunToolConversationAsync(
                 request,
                 model,
@@ -248,9 +253,7 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
             _logger.LogError(
                 exception,
                 "Admin AI request could not read restaurant data from the database.");
-            throw new InvalidOperationException(
-                "Không đọc được dữ liệu vận hành từ cơ sở dữ liệu. Vui lòng kiểm tra SQL Server rồi thử lại.",
-                exception);
+            throw new AiAssistantUnavailableException(exception);
         }
     }
 
@@ -272,8 +275,7 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
         if (requirePublicEnabled && !setting.AiAssistantEnabled)
             throw new InvalidOperationException("Trợ lý AI đang được quản trị viên tắt.");
         if (requireProviderConfigured && !IsProviderConfigured)
-            throw new InvalidOperationException(
-                "Google AI Studio API key chưa được cấu hình trên máy chủ.");
+            throw new AiAssistantUnavailableException();
 
         return setting;
     }
@@ -286,7 +288,7 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
         return timeoutCts;
     }
 
-    private InvalidOperationException CreateTimeoutException(
+    private AiAssistantUnavailableException CreateTimeoutException(
         OperationCanceledException exception,
         string audience)
     {
@@ -296,9 +298,7 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
             audience,
             ToolConversationTimeout.TotalSeconds);
 
-        return new InvalidOperationException(
-            "Gemini phản hồi quá lâu. Vui lòng kiểm tra kết nối máy chủ rồi thử lại.",
-            exception);
+        return new AiAssistantUnavailableException(exception);
     }
 
     private bool IsProviderConfigured => !string.IsNullOrWhiteSpace(_options.ApiKey);
@@ -317,7 +317,7 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
     {
         return await GetActiveSettingAsync(cancellationToken)
             ?? throw new InvalidOperationException(
-                "Chưa có cấu hình nhà hàng đang hoạt động để gắn trợ lý AI.");
+                "Trợ lý AI hiện chưa sẵn sàng.");
     }
 
     private AiAssistantAdminConfigDto MapAdminConfig(RestaurantSetting setting)
