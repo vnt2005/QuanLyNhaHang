@@ -8,7 +8,6 @@ public static class DefaultRolePermissions
             PermissionCodes.KitchenView,
             PermissionCodes.KitchenUpdateStatus,
             PermissionCodes.PaymentsView,
-            PermissionCodes.PaymentsCreate,
             PermissionCodes.InvoicesView,
             PermissionCodes.InvoicesManage,
             PermissionCodes.OrdersView,
