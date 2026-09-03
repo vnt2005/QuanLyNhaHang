@@ -14,6 +14,7 @@ public static class MiddlewareExtensions
         app.UseRouting();
         app.UseCors(CorsExtensions.FrontendPolicy);
         app.UseAuthentication();
+        app.UseMiddleware<AnonymousOrderAbuseMiddleware>();
         app.UseRateLimiter();
         app.UseAuthorization();
         app.UseMiddleware<AtomicRequestMiddleware>();

@@ -21,18 +21,82 @@ public sealed class CustomerOrderCancellationAbuseGuardTests
     }
 
     [Theory]
-    [InlineData(1, "5 phút")]
-    [InlineData(2, "30 phút")]
-    [InlineData(3, "6 giờ")]
-    [InlineData(5, "24 giờ")]
-    [InlineData(8, "7 ngày")]
-    public async Task RepeatedCustomerCancellation_EscalatesCooldown(
-        int cancellationCount,
-        string expectedRemaining)
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public async Task FewerThanFiveCustomerCancellations_AllowsOrderCreation(
+        int cancellationCount)
+    {
+        await using var context = CreateContext();
+        var customerUserId = Guid.NewGuid();
+        AddCustomerCancellationNotifications(
+            context,
+            customerUserId,
+            cancellationCount);
+        await context.SaveChangesAsync();
+
+        await CustomerOrderCancellationAbuseGuard.EnsureCanCreateOrderAsync(
+            context,
+            customerUserId,
+            CancellationToken.None);
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(8)]
+    public async Task FiveOrMoreRecentCustomerCancellations_BlocksForThirtyMinutes(
+        int cancellationCount)
+    {
+        await using var context = CreateContext();
+        var customerUserId = Guid.NewGuid();
+        AddCustomerCancellationNotifications(
+            context,
+            customerUserId,
+            cancellationCount);
+        await context.SaveChangesAsync();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            CustomerOrderCancellationAbuseGuard.EnsureCanCreateOrderAsync(
+                context,
+                customerUserId,
+                CancellationToken.None));
+
+        Assert.Contains("đã tự hủy 5 đơn", exception.Message);
+        Assert.Contains("30 phút", exception.Message);
+        Assert.DoesNotContain("ngày", exception.Message);
+    }
+
+    [Fact]
+    public async Task AdminCancellationNotification_DoesNotTriggerCustomerCooldown()
     {
         await using var context = CreateContext();
         var customerUserId = Guid.NewGuid();
 
+        for (var index = 0; index < 8; index++)
+        {
+            context.Notifications.Add(new Notification(
+                customerUserId,
+                "Order.Cancelled",
+                "Đơn đã bị hủy",
+                $"Nhà hàng đã hủy đơn test {index + 1}.",
+                "warning",
+                "/orders",
+                Guid.NewGuid()));
+        }
+        await context.SaveChangesAsync();
+
+        await CustomerOrderCancellationAbuseGuard.EnsureCanCreateOrderAsync(
+            context,
+            customerUserId,
+            CancellationToken.None);
+    }
+
+    private static void AddCustomerCancellationNotifications(
+        ApplicationDbContext context,
+        Guid customerUserId,
+        int cancellationCount)
+    {
         for (var index = 0; index < cancellationCount; index++)
         {
             context.Notifications.Add(new Notification(
@@ -44,39 +108,6 @@ public sealed class CustomerOrderCancellationAbuseGuardTests
                 "/orders",
                 Guid.NewGuid()));
         }
-
-        await context.SaveChangesAsync();
-
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            CustomerOrderCancellationAbuseGuard.EnsureCanCreateOrderAsync(
-                context,
-                customerUserId,
-                CancellationToken.None));
-
-        Assert.Contains("hủy đơn liên tục", exception.Message);
-        Assert.Contains(expectedRemaining, exception.Message);
-    }
-
-    [Fact]
-    public async Task AdminCancellationNotification_DoesNotTriggerCustomerCooldown()
-    {
-        await using var context = CreateContext();
-        var customerUserId = Guid.NewGuid();
-
-        context.Notifications.Add(new Notification(
-            customerUserId,
-            "Order.Cancelled",
-            "Đơn đã bị hủy",
-            "Nhà hàng đã hủy đơn test.",
-            "warning",
-            "/orders",
-            Guid.NewGuid()));
-        await context.SaveChangesAsync();
-
-        await CustomerOrderCancellationAbuseGuard.EnsureCanCreateOrderAsync(
-            context,
-            customerUserId,
-            CancellationToken.None);
     }
 
     private static ApplicationDbContext CreateContext()

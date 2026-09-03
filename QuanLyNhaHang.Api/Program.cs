@@ -1,3 +1,5 @@
+using QuanLyNhaHang.Application.Common.Orders;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.ConfigureApiHost();
@@ -9,6 +11,8 @@ builder.Services
     .AddApiAuthentication(builder.Configuration)
     .AddApiRateLimiting()
     .AddApiAuthorization();
+
+builder.Services.AddSingleton<AnonymousOrderAbuseGuard>();
 
 var app = builder.Build();
 

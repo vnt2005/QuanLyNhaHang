@@ -18,11 +18,10 @@ public static class CustomerOrderCancellationAbuseGuard
 
         var utcNow = DateTime.UtcNow;
         var historyStart = utcNow.Subtract(
-            CustomerOrderLimits.CancellationAbuseHistoryWindow);
+            CustomerOrderLimits.CancellationAbuseWindow);
 
-        // Dựa vào notification do chính luồng khách tự hủy tạo ra thay vì chỉ
-        // nhìn Order.Status=Cancelled. Nhờ vậy đơn bị Admin/hệ thống hủy không
-        // làm khách bị tính nhầm vào cơ chế chống spam.
+        // Chỉ notification do chính khách tự hủy mới được tính. Đơn bị Admin
+        // hoặc hệ thống hủy không làm tăng bộ đếm chống abuse của tài khoản.
         var cancellationRecords = await context.Notifications
             .AsNoTracking()
             .Where(notification =>
@@ -42,94 +41,25 @@ public static class CustomerOrderCancellationAbuseGuard
             .OrderByDescending(value => value)
             .ToArray();
 
-        if (cancellationTimes.Length == 0)
+        if (cancellationTimes.Length < CustomerOrderLimits.CancellationAbuseThreshold)
             return;
 
-        var blockUntil = ResolveBlockUntil(cancellationTimes, utcNow);
-        if (!blockUntil.HasValue || blockUntil.Value <= utcNow)
+        var latestCancellation = cancellationTimes[0];
+        var blockUntil = latestCancellation.Add(
+            CustomerOrderLimits.CancellationAbuseCooldown);
+
+        if (blockUntil <= utcNow)
             return;
 
         throw new InvalidOperationException(
-            "Tài khoản tạm thời bị hạn chế tạo đơn mới do hủy đơn liên tục. " +
-            $"Vui lòng thử lại sau {FormatRemaining(blockUntil.Value - utcNow)}.");
-    }
-
-    private static DateTime? ResolveBlockUntil(
-        IReadOnlyCollection<DateTime> cancellationTimes,
-        DateTime utcNow)
-    {
-        var severe = ResolveTier(
-            cancellationTimes,
-            utcNow,
-            CustomerOrderLimits.SevereCancellationThreshold,
-            CustomerOrderLimits.SevereCancellationWindow,
-            CustomerOrderLimits.SevereCancellationCooldown);
-        if (severe.HasValue)
-            return severe;
-
-        var daily = ResolveTier(
-            cancellationTimes,
-            utcNow,
-            CustomerOrderLimits.DailyCancellationThreshold,
-            CustomerOrderLimits.DailyCancellationWindow,
-            CustomerOrderLimits.DailyCancellationCooldown);
-        if (daily.HasValue)
-            return daily;
-
-        var frequent = ResolveTier(
-            cancellationTimes,
-            utcNow,
-            CustomerOrderLimits.FrequentCancellationThreshold,
-            CustomerOrderLimits.FrequentCancellationWindow,
-            CustomerOrderLimits.FrequentCancellationCooldown);
-        if (frequent.HasValue)
-            return frequent;
-
-        var repeated = ResolveTier(
-            cancellationTimes,
-            utcNow,
-            CustomerOrderLimits.RepeatedCancellationThreshold,
-            CustomerOrderLimits.RepeatedCancellationWindow,
-            CustomerOrderLimits.RepeatedCancellationCooldown);
-        if (repeated.HasValue)
-            return repeated;
-
-        return ResolveTier(
-            cancellationTimes,
-            utcNow,
-            1,
-            CustomerOrderLimits.FirstCancellationWindow,
-            CustomerOrderLimits.FirstCancellationCooldown);
-    }
-
-    private static DateTime? ResolveTier(
-        IReadOnlyCollection<DateTime> cancellationTimes,
-        DateTime utcNow,
-        int threshold,
-        TimeSpan historyWindow,
-        TimeSpan cooldown)
-    {
-        var windowStart = utcNow.Subtract(historyWindow);
-        var matches = cancellationTimes
-            .Where(value => value >= windowStart)
-            .OrderByDescending(value => value)
-            .ToArray();
-
-        if (matches.Length < threshold)
-            return null;
-
-        var blockUntil = matches[0].Add(cooldown);
-        return blockUntil > utcNow ? blockUntil : null;
+            $"Tài khoản tạm thời bị hạn chế tạo đơn mới vì đã tự hủy " +
+            $"{CustomerOrderLimits.CancellationAbuseThreshold} đơn trong " +
+            $"{CustomerOrderLimits.CancellationAbuseWindow.TotalMinutes:0} phút gần đây. " +
+            $"Vui lòng thử lại sau {FormatRemaining(blockUntil - utcNow)}.");
     }
 
     private static string FormatRemaining(TimeSpan remaining)
     {
-        if (remaining >= TimeSpan.FromDays(1))
-        {
-            var days = Math.Max(1, (int)Math.Ceiling(remaining.TotalDays));
-            return $"khoảng {days} ngày";
-        }
-
         if (remaining >= TimeSpan.FromHours(1))
         {
             var hours = Math.Max(1, (int)Math.Ceiling(remaining.TotalHours));
