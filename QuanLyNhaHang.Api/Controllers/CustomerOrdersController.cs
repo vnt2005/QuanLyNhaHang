@@ -82,7 +82,7 @@ public class CustomerOrdersController : ControllerBase
     }
 
     [HttpPost("{orderId:guid}/cancel")]
-    [EnableRateLimiting("OrderItemMutation")]
+    [EnableRateLimiting("CustomerOrderCancel")]
     [IdempotentRequest("customer-order-cancel")]
     public async Task<IActionResult> CancelOrder(Guid orderId)
     {

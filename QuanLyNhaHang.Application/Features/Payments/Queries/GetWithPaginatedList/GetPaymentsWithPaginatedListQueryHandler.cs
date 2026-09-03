@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
+using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Queries.GetWithPaginatedList;
 
@@ -21,7 +22,13 @@ public class GetPaymentsWithPaginatedListQueryHandler
     {
         var query = _context.Payments
             .AsNoTracking()
-            .AsQueryable();
+            .Where(payment =>
+                payment.Status == "Paid" &&
+                payment.PaymentMethod == "BankTransfer" &&
+                _context.PaymentAttempts.Any(attempt =>
+                    attempt.PaymentId == payment.Id &&
+                    attempt.Provider == "SePay" &&
+                    attempt.Status == PaymentAttempt.PaidStatus));
 
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
@@ -29,29 +36,13 @@ public class GetPaymentsWithPaginatedListQueryHandler
 
             query = query.Where(x =>
                 x.PaymentCode.Contains(keyword) ||
-                x.PaymentMethod.Contains(keyword) ||
-                x.Status.Contains(keyword));
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Status))
-        {
-            query = query.Where(x => x.Status == request.Status);
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.PaymentMethod))
-        {
-            query = query.Where(x => x.PaymentMethod == request.PaymentMethod);
+                (x.Note != null && x.Note.Contains(keyword)));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
-        var paidCount = await query.CountAsync(
-            x => x.Status == "Paid",
-            cancellationToken);
-        var cancelledCount = await query.CountAsync(
-            x => x.Status == "Cancelled",
-            cancellationToken);
+        var paidCount = totalCount;
+        const int cancelledCount = 0;
         var revenue = await query
-            .Where(x => x.Status == "Paid")
             .SumAsync(
                 x => (decimal?)x.FinalAmount,
                 cancellationToken) ?? 0m;

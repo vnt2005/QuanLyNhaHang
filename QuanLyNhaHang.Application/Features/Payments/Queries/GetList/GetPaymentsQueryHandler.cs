@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
+using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Queries.GetList;
 
@@ -19,21 +20,15 @@ public class GetPaymentsQueryHandler
         GetPaymentsQuery request,
         CancellationToken cancellationToken)
     {
-        var query = _context.Payments
+        var payments = await _context.Payments
             .AsNoTracking()
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(request.Status))
-        {
-            query = query.Where(x => x.Status == request.Status);
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.PaymentMethod))
-        {
-            query = query.Where(x => x.PaymentMethod == request.PaymentMethod);
-        }
-
-        var payments = await query
+            .Where(payment =>
+                payment.Status == "Paid" &&
+                payment.PaymentMethod == "BankTransfer" &&
+                _context.PaymentAttempts.Any(attempt =>
+                    attempt.PaymentId == payment.Id &&
+                    attempt.Provider == "SePay" &&
+                    attempt.Status == PaymentAttempt.PaidStatus))
             .OrderByDescending(x => x.PaidAt)
             .Select(x => new PaymentDto
             {
