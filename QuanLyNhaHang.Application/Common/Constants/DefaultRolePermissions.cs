@@ -58,7 +58,6 @@ public static class DefaultRolePermissions
         {
             PermissionCodes.OrdersView,
             PermissionCodes.PaymentsView,
-            PermissionCodes.PaymentsCreate,
             PermissionCodes.InvoicesView,
             PermissionCodes.ReservationsView,
             PermissionCodes.ReservationsCreate,
