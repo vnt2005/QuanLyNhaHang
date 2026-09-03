@@ -250,12 +250,12 @@ const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <numFmt numFmtId="165" formatCode="dd/mm/yyyy"/>
   </numFmts>
   <fonts count="6">
-    <font><sz val="10.5"/><color rgb="FF334155"/><name val="Aptos"/><family val="2"/></font>
-    <font><b/><sz val="19"/><color rgb="FF9A4B1F"/><name val="Aptos Display"/><family val="2"/></font>
-    <font><b/><sz val="10.5"/><color rgb="FF64748B"/><name val="Aptos"/><family val="2"/></font>
-    <font><b/><sz val="11"/><color rgb="FF0F5D64"/><name val="Aptos"/><family val="2"/></font>
-    <font><b/><sz val="10.5"/><color rgb="FF334155"/><name val="Aptos"/><family val="2"/></font>
-    <font><b/><sz val="11"/><color rgb="FFC65D21"/><name val="Aptos"/><family val="2"/></font>
+    <font><sz val="10.5"/><color rgb="FF334155"/><name val="Times New Roman"/><family val="2"/></font>
+    <font><b/><sz val="19"/><color rgb="FF9A4B1F"/><name val="Times New Roman"/><family val="2"/></font>
+    <font><b/><sz val="10.5"/><color rgb="FF64748B"/><name val="Times New Roman"/><family val="2"/></font>
+    <font><b/><sz val="11"/><color rgb="FF0F5D64"/><name val="Times New Roman"/><family val="2"/></font>
+    <font><b/><sz val="10.5"/><color rgb="FF334155"/><name val="Times New Roman"/><family val="2"/></font>
+    <font><b/><sz val="11"/><color rgb="FFC65D21"/><name val="Times New Roman"/><family val="2"/></font>
   </fonts>
   <fills count="9">
     <fill><patternFill patternType="none"/></fill>
