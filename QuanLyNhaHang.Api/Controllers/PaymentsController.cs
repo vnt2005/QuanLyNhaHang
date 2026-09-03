@@ -6,6 +6,7 @@ using QuanLyNhaHang.Application.Features.Payments.Commands.Create;
 using QuanLyNhaHang.Application.Features.Payments.Commands.Delete;
 using QuanLyNhaHang.Application.Features.Payments.Commands.Update;
 using QuanLyNhaHang.Application.Features.Payments.Queries.GetById;
+using QuanLyNhaHang.Application.Features.Payments.Queries.GetEligibleCounterOrders;
 using QuanLyNhaHang.Application.Features.Payments.Queries.GetList;
 using QuanLyNhaHang.Application.Features.Payments.Queries.GetWithPaginatedList;
 
@@ -36,6 +37,14 @@ public class PaymentsController : ControllerBase
             PaymentMethod = paymentMethod
         });
 
+        return Ok(result);
+    }
+
+    [HttpGet("eligible-counter-orders")]
+    [HasPermission(PermissionCodes.PaymentsView)]
+    public async Task<IActionResult> GetEligibleCounterOrders()
+    {
+        var result = await _mediator.Send(new GetEligibleCounterPaymentOrdersQuery());
         return Ok(result);
     }
 
