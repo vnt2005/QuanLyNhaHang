@@ -9,7 +9,7 @@ public sealed class DefaultRolePermissionsTests
     [InlineData(
         SystemRoles.Manager,
         "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
-        "Payments.Update|Payments.Cancel|Invoices.View|Invoices.Manage|" +
+        "Invoices.View|Invoices.Manage|" +
         "Orders.View|Orders.Create|Orders.Update|Orders.Delete|" +
         "Inventory.View|Inventory.ManageCatalog|Inventory.Transact|" +
         "Inventory.Adjust|Reservations.View|Reservations.Create|" +
@@ -26,13 +26,12 @@ public sealed class DefaultRolePermissionsTests
         "RevenueReports.Manage|Dashboard.View")]
     [InlineData(
         SystemRoles.Cashier,
-        "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
-        "Payments.Cancel|Invoices.View|Reservations.View|" +
-        "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
-        "Menu.View|Tables.View|Tables.UpdateStatus|TableOperations.View|" +
-        "Promotions.View|Promotions.Apply|PromotionUsages.View|" +
-        "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
-        "RestaurantSettings.View")]
+        "Orders.View|Payments.View|Payments.Create|Invoices.View|" +
+        "Reservations.View|Reservations.Create|Reservations.Update|" +
+        "Reservations.Cancel|Menu.View|Tables.View|Tables.UpdateStatus|" +
+        "TableOperations.View|Promotions.View|Promotions.Apply|" +
+        "PromotionUsages.View|PromotionUsages.UpdatePayment|" +
+        "PromotionUsages.Cancel|RestaurantSettings.View")]
     [InlineData(
         SystemRoles.Kitchen,
         "Kitchen.View|Kitchen.UpdateStatus|Menu.View|" +
@@ -106,6 +105,28 @@ public sealed class DefaultRolePermissionsTests
         Assert.Contains(PermissionCodes.ShiftsManage, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsView, permissions);
         Assert.Contains(PermissionCodes.EmployeeShiftsManage, permissions);
+    }
+
+    [Fact]
+    public void PaymentRoles_CanCreateCounterPaymentButCannotMutateSettledPaymentByDefault()
+    {
+        var manager = DefaultRolePermissions.GetForRole(SystemRoles.Manager);
+        var cashier = DefaultRolePermissions.GetForRole(SystemRoles.Cashier);
+        var staff = DefaultRolePermissions.GetForRole(SystemRoles.Staff);
+
+        Assert.Contains(PermissionCodes.PaymentsView, manager);
+        Assert.Contains(PermissionCodes.PaymentsCreate, manager);
+        Assert.DoesNotContain(PermissionCodes.PaymentsUpdate, manager);
+        Assert.DoesNotContain(PermissionCodes.PaymentsCancel, manager);
+
+        Assert.Contains(PermissionCodes.PaymentsView, cashier);
+        Assert.Contains(PermissionCodes.PaymentsCreate, cashier);
+        Assert.DoesNotContain(PermissionCodes.PaymentsUpdate, cashier);
+        Assert.DoesNotContain(PermissionCodes.PaymentsCancel, cashier);
+
+        Assert.DoesNotContain(PermissionCodes.PaymentsCreate, staff);
+        Assert.DoesNotContain(PermissionCodes.PaymentsUpdate, staff);
+        Assert.DoesNotContain(PermissionCodes.PaymentsCancel, staff);
     }
 
     [Fact]
