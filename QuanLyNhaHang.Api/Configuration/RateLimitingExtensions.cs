@@ -104,7 +104,7 @@ public static class RateLimitingExtensions
                     factory: _ => SlidingWindow(
                         context.User.Identity?.IsAuthenticated == true
                             ? 8
-                            : 3,
+                            : 4,
                         TimeSpan.FromMinutes(5),
                         5)));
 
