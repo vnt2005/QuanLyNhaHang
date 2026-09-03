@@ -13,6 +13,9 @@ import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
 import { clearTakeawayCart, MAX_TAKEAWAY_CART_QUANTITY, MAX_TAKEAWAY_ITEM_QUANTITY, readTakeawayCart, setTakeawayItemQuantity, type TakeawayCart } from '../utils/takeawayCart'
 
+const CUSTOMER_NAME_PATTERN = /^[\p{L}][\p{L}'’-]*(?:\s+[\p{L}][\p{L}'’-]*)+$/u
+const VIETNAMESE_MOBILE_PATTERN = /^0[35789]\d{8}$/
+
 function money(value: number, code = 'VND') {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: code || 'VND', maximumFractionDigits: 0 }).format(value)
 }
@@ -22,6 +25,33 @@ function pickupLabel(value: string) {
   const parsed = new Date(value)
   if (Number.isNaN(parsed.getTime())) return 'Sớm nhất có thể'
   return parsed.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+}
+
+function normalizeCustomerName(value: string) {
+  return value.trim().replace(/\s+/g, ' ').normalize('NFC')
+}
+
+function normalizeVietnameseMobile(value: string) {
+  let compact = value.trim().replace(/[\s.-]/g, '')
+  if (compact.startsWith('+84')) compact = `0${compact.slice(3)}`
+  else if (compact.startsWith('84') && compact.length === 11) compact = `0${compact.slice(2)}`
+  return compact
+}
+
+function validateContact(customerName: string, phoneNumber: string) {
+  const normalizedName = normalizeCustomerName(customerName)
+  const normalizedPhone = normalizeVietnameseMobile(phoneNumber)
+  const letterCount = normalizedName.match(/\p{L}/gu)?.length ?? 0
+
+  if (normalizedName.length < 4 || normalizedName.length > 60 || letterCount < 4 || !CUSTOMER_NAME_PATTERN.test(normalizedName)) {
+    return { error: 'Họ và tên phải có ít nhất 2 từ, chỉ gồm chữ cái, khoảng trắng, dấu nháy hoặc gạch nối.' }
+  }
+
+  if (!VIETNAMESE_MOBILE_PATTERN.test(normalizedPhone)) {
+    return { error: 'Số điện thoại di động Việt Nam phải gồm 10 số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.' }
+  }
+
+  return { customerName: normalizedName, phoneNumber: normalizedPhone }
 }
 
 export default function TakeawayPage({ data, session }: { data: CustomerSiteBootstrap; session: CustomerSession | null }) {
@@ -54,7 +84,9 @@ export default function TakeawayPage({ data, session }: { data: CustomerSiteBoot
     if (!lines.length || submitting) return
     if (totalQuantity > MAX_TAKEAWAY_CART_QUANTITY) return setError(`Một đơn chỉ được tối đa ${MAX_TAKEAWAY_CART_QUANTITY} phần.`)
     if (lines.some(line => line.quantity > MAX_TAKEAWAY_ITEM_QUANTITY)) return setError(`Mỗi món chỉ được tối đa ${MAX_TAKEAWAY_ITEM_QUANTITY} phần.`)
-    if (!customerName.trim() || !phoneNumber.trim()) return setError('Vui lòng nhập tên và số điện thoại người nhận món.')
+
+    const contact = validateContact(customerName, phoneNumber)
+    if (contact.error || !contact.customerName || !contact.phoneNumber) return setError(contact.error || 'Thông tin người nhận không hợp lệ.')
 
     let pickupIso: string | null = null
     if (pickupTime) {
@@ -64,10 +96,12 @@ export default function TakeawayPage({ data, session }: { data: CustomerSiteBoot
       pickupIso = date.toISOString()
     }
 
+    setCustomerName(contact.customerName)
+    setPhoneNumber(contact.phoneNumber)
     setSubmitting(true); setError('')
     try {
       const response = await createTakeawayOrder({
-        customerName: customerName.trim(), phoneNumber: phoneNumber.trim(), pickupTime: pickupIso,
+        customerName: contact.customerName, phoneNumber: contact.phoneNumber, pickupTime: pickupIso,
         note: note.trim() || null, items: lines.map(line => ({ menuItemId: line.item.id, quantity: line.quantity })),
       }, session?.token)
       clearTakeawayCart(); setCart({}); setResult(response.data); window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -119,7 +153,7 @@ export default function TakeawayPage({ data, session }: { data: CustomerSiteBoot
         <div className="sera-page-summary"><span>{lines.length} món · {totalQuantity}/{MAX_TAKEAWAY_CART_QUANTITY} phần</span></div>
       </header>
 
-      {!session ? <button className="mt-6 flex w-full items-center gap-4 border-y border-border py-4 text-left" type="button" onClick={signIn}><UserRound className="size-5 text-accent" /><span className="flex-1"><strong className="block text-sm">Đăng nhập để lưu đơn</strong><small className="text-muted-foreground">Bạn vẫn có thể đặt món mà không cần tài khoản.</small></span><span className="sera-link">Đăng nhập</span></button> : null}
+      {!session ? <button className="mt-6 flex w-full items-center gap-4 border-y border-border py-4 text-left" type="button" onClick={signIn}><UserRound className="size-5 text-accent" /><span className="flex-1"><strong className="block text-sm">Đăng nhập để lưu đơn</strong><small className="text-muted-foreground">Bạn vẫn có thể đặt món mà không cần tài khoản; hệ thống áp dụng giới hạn chống spam theo thiết bị và IP.</small></span><span className="sera-link">Đăng nhập</span></button> : null}
       {error ? <Alert variant="destructive" className="mt-6"><AlertTitle>Không thể gửi đơn</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
 
       {!lines.length ? (
@@ -141,7 +175,7 @@ export default function TakeawayPage({ data, session }: { data: CustomerSiteBoot
 
           <aside>
             <section className="sera-panel"><p className="sera-kicker">01 · Nhận món</p><h2 className="mt-2 text-3xl">Tại nhà hàng</h2><div className="mt-5 flex gap-3 text-sm"><MapPin className="size-5 text-accent" /><div><strong>{data.restaurant?.restaurantName || 'Nhà hàng'}</strong><small className="block text-muted-foreground">{data.restaurant?.address || 'Địa chỉ đang cập nhật'}</small></div></div><label className="sera-field mt-6">Thời gian muốn nhận<Input type="datetime-local" value={pickupTime} onChange={event => setPickupTime(event.target.value)} /></label></section>
-            <section className="sera-panel"><p className="sera-kicker">02 · Người nhận</p><h2 className="mt-2 text-3xl">Thông tin liên hệ</h2><div className="sera-field-grid mt-5"><label className="sera-field">Họ và tên<Input required maxLength={150} value={customerName} onChange={event => setCustomerName(event.target.value)} /></label><label className="sera-field">Số điện thoại<Input required maxLength={30} value={phoneNumber} onChange={event => setPhoneNumber(event.target.value)} inputMode="tel" /></label><label className="sera-field wide">Ghi chú<Textarea maxLength={500} value={note} onChange={event => setNote(event.target.value)} /></label></div></section>
+            <section className="sera-panel"><p className="sera-kicker">02 · Người nhận</p><h2 className="mt-2 text-3xl">Thông tin liên hệ</h2><div className="sera-field-grid mt-5"><label className="sera-field">Họ và tên<Input required minLength={4} maxLength={60} autoComplete="name" placeholder="Nguyễn Văn An" value={customerName} onChange={event => setCustomerName(event.target.value)} /><small className="text-muted-foreground">Tối thiểu 2 từ; không dùng số hoặc ký tự lạ.</small></label><label className="sera-field">Số điện thoại<Input required maxLength={16} autoComplete="tel" placeholder="0912345678" value={phoneNumber} onChange={event => setPhoneNumber(event.target.value)} inputMode="tel" /><small className="text-muted-foreground">Số di động Việt Nam 10 số, đầu 03/05/07/08/09.</small></label><label className="sera-field wide">Ghi chú<Textarea maxLength={500} value={note} onChange={event => setNote(event.target.value)} /></label></div></section>
             <section className="sera-panel"><div className="grid gap-3 text-sm"><span className="flex justify-between"><small className="text-muted-foreground">Nhận món</small><strong>{pickupLabel(pickupTime)}</strong></span><span className="flex justify-between"><small className="text-muted-foreground">Tổng số phần</small><strong>{totalQuantity}</strong></span><span className="flex justify-between border-t border-border pt-3 text-base"><small>Tổng cộng</small><strong>{money(totalAmount, data.restaurant?.currency)}</strong></span></div><Button className="mt-5 w-full" size="lg" type="submit" disabled={submitting}><ShoppingBag />{submitting ? 'Đang gửi đơn…' : 'Gửi đơn cho nhà hàng'}</Button></section>
           </aside>
         </form>
