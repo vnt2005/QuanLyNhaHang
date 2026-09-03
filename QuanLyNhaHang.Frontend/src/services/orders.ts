@@ -1,3 +1,4 @@
+import { getEligibleCounterPaymentOrders } from './payments'
 import { getRequestProtectionHeaders } from './requestProtection'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7134'
@@ -96,7 +97,38 @@ export function getOrders(
   pageNumber = 1,
   pageSize = 10,
   onlyUnpaid = false,
-) {
+): Promise<PaginatedOrders> {
+  // Màn thanh toán tại quầy từng suy diễn danh sách từ API Orders chung,
+  // khiến đơn đã hủy có thể còn xuất hiện nếu trạng thái dữ liệu cũ không đồng bộ.
+  // Với đúng truy vấn nghiệp vụ này, backend Payments là nguồn quyết định duy nhất.
+  if (!keyword.trim() && !restaurantTableId && status === 'Served' && onlyUnpaid) {
+    return getEligibleCounterPaymentOrders().then(result => ({
+      items: result.map(order => ({
+        id: order.id,
+        restaurantTableId: null,
+        restaurantTableName: order.restaurantTableName,
+        orderType: order.orderType,
+        customerName: order.customerName,
+        customerPhoneNumber: null,
+        pickupTime: null,
+        orderCode: order.orderCode,
+        status: order.status,
+        totalAmount: order.totalAmount,
+        isPaid: false,
+        note: null,
+        isActive: true,
+        createdAt: '',
+        updatedAt: null,
+        items: [],
+      })),
+      pageNumber: 1,
+      totalPages: 1,
+      totalCount: result.length,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    }))
+  }
+
   const params = new URLSearchParams({
     pageNumber: String(pageNumber),
     pageSize: String(pageSize),
