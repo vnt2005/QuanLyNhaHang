@@ -18,8 +18,7 @@ public sealed class EmployeeAuthorizationTests
         yield return new object[]
         {
             SystemRoles.Manager,
-            "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
-            "Invoices.View|Invoices.Manage|" +
+            "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Invoices.View|Invoices.Manage|" +
             "Orders.View|Orders.Create|Orders.Update|Orders.Delete|" +
             "Inventory.View|Inventory.ManageCatalog|Inventory.Transact|" +
             "Inventory.Adjust|Reservations.View|Reservations.Create|" +
