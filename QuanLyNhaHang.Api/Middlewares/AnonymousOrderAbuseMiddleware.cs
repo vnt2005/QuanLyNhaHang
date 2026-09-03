@@ -43,7 +43,7 @@ public sealed class AnonymousOrderAbuseMiddleware
 
         context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.Response.ContentType = "application/problem+json; charset=utf-8";
-        context.Response.Headers.RetryAfter =
+        context.Response.Headers["Retry-After"] =
             retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
 
         await JsonSerializer.SerializeAsync(
