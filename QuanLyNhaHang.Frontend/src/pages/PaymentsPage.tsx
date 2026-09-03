@@ -28,7 +28,13 @@ export default function PaymentsPage() {
     setError('')
 
     try {
-      const result = await getPayments(keyword, targetPage, 10)
+      const result = await getPayments(
+        keyword,
+        'Paid',
+        'BankTransfer',
+        targetPage,
+        10,
+      )
       if (requestId !== latestRequest.current) return
 
       setPayments(result.items ?? [])
