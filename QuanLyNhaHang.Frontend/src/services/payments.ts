@@ -52,7 +52,13 @@ async function request<T>(path: string): Promise<T> {
   return body as T
 }
 
-export function getPayments(keyword = '', pageNumber = 1, pageSize = 10) {
+export function getPayments(
+  keyword = '',
+  _status = '',
+  _paymentMethod = '',
+  pageNumber = 1,
+  pageSize = 10,
+) {
   const params = new URLSearchParams({
     pageNumber: String(pageNumber),
     pageSize: String(pageSize),
