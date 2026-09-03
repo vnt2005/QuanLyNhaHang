@@ -24,7 +24,7 @@ public sealed class CustomerOrderCancellationAbuseGuardTests
     [InlineData(1, "5 phút")]
     [InlineData(2, "30 phút")]
     [InlineData(3, "6 giờ")]
-    [InlineData(5, "1 ngày")]
+    [InlineData(5, "24 giờ")]
     [InlineData(8, "7 ngày")]
     public async Task RepeatedCustomerCancellation_EscalatesCooldown(
         int cancellationCount,
