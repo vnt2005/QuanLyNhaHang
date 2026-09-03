@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Domain.Entities;
 using QuanLyNhaHang.Infrastructure.Persistence;
 using QuanLyNhaHang.IntegrationTests.Infrastructure;
@@ -62,8 +63,6 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
             firstRequest);
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
 
-        // Dùng payload khác để đây thực sự là một yêu cầu tạo đơn mới,
-        // không phải retry giống hệt được idempotency middleware replay.
         var secondRequest = new
         {
             customerName = "Khách đặt lặp",
@@ -118,6 +117,96 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Assert.False(await context.Payments.AnyAsync(x => x.OrderId == orderId));
+    }
+
+    [Fact]
+    public async Task Manager_WithLegacyPaymentCreatePermission_StillCannotSettleAtCounter()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateRoleWithPaymentCreatePermissionAsync(
+            factory,
+            client,
+            SystemRoles.Manager);
+
+        var orderId = await SeedServedTakeawayAsync(factory, "Khách của quản lý");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/payments",
+            new
+            {
+                orderId,
+                discountAmount = 0m,
+                serviceChargeAmount = 0m,
+                vatAmount = 0m,
+                customerPaid = 100_000m,
+                paymentMethod = "Cash",
+                note = "Manager thử ghi nhận tiền tại quầy",
+                issueInvoice = true
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        Assert.Contains(
+            "Chỉ Admin hoặc Cashier",
+            json.RootElement.GetProperty("message").GetString());
+    }
+
+    [Fact]
+    public async Task Cashier_CounterPayment_CreatesImmutablePaymentInvoiceAndAuditLog()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        var userId = await AuthenticateRoleWithPaymentCreatePermissionAsync(
+            factory,
+            client,
+            SystemRoles.Cashier);
+
+        var orderId = await SeedServedTakeawayAsync(factory, "Khách trả tiền mặt");
+        var auditReason = $"Thu tiền mặt tại quầy REF-{Guid.NewGuid():N}";
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/payments",
+            new
+            {
+                orderId,
+                discountAmount = 0m,
+                serviceChargeAmount = 0m,
+                vatAmount = 0m,
+                customerPaid = 120_000m,
+                paymentMethod = "Cash",
+                note = auditReason,
+                issueInvoice = true
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var payment = await context.Payments
+            .AsNoTracking()
+            .SingleAsync(x => x.OrderId == orderId);
+        var order = await context.Orders
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == orderId);
+
+        Assert.Equal("Paid", payment.Status);
+        Assert.Equal("Cash", payment.PaymentMethod);
+        Assert.Equal(100_000m, payment.FinalAmount);
+        Assert.Equal(20_000m, payment.ChangeAmount);
+        Assert.Equal("Completed", order.Status);
+        Assert.True(await context.Invoices.AnyAsync(
+            invoice => invoice.PaymentId == payment.Id && invoice.Status != "Cancelled"));
+
+        var auditLog = await context.ActivityLogs
+            .AsNoTracking()
+            .Where(log => log.UserId == userId && log.NewValues != null)
+            .OrderByDescending(log => log.CreatedAt)
+            .FirstOrDefaultAsync(log => log.NewValues!.Contains(auditReason));
+
+        Assert.NotNull(auditLog);
+        Assert.Equal("Success", auditLog!.Status);
+        Assert.NotEqual(default, auditLog.CreatedAt);
     }
 
     [Fact]
@@ -566,6 +655,66 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
         await context.SaveChangesAsync();
 
         return payment.Id;
+    }
+
+    private static async Task<Guid> AuthenticateRoleWithPaymentCreatePermissionAsync(
+        ApiWebApplicationFactory factory,
+        HttpClient client,
+        string roleName)
+    {
+        var suffix = Guid.NewGuid().ToString("N");
+        var email = $"payment-role-{roleName.ToLowerInvariant()}-{suffix}@example.com";
+        const string password = "Password123!";
+        var userId = await factory.SeedUserAsync(
+            email,
+            password,
+            role: roleName);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var role = await context.Roles.FirstOrDefaultAsync(x => x.Name == roleName);
+            if (role == null)
+            {
+                role = new Role(roleName, roleName, "Payment integrity test role");
+                context.Roles.Add(role);
+            }
+
+            var permission = await context.Permissions
+                .FirstOrDefaultAsync(x => x.Code == PermissionCodes.PaymentsCreate);
+            if (permission == null)
+            {
+                permission = new Permission(
+                    PermissionCodes.PaymentsCreate,
+                    "Ghi nhận thanh toán",
+                    "Payments",
+                    null);
+                context.Permissions.Add(permission);
+            }
+
+            if (!await context.RolePermissions.AnyAsync(
+                    x => x.RoleId == role.Id && x.PermissionId == permission.Id))
+            {
+                context.RolePermissions.Add(new RolePermission(role.Id, permission.Id));
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { email, password });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        var token = json.RootElement
+            .GetProperty("data")
+            .GetProperty("token")
+            .GetString();
+        Assert.False(string.IsNullOrWhiteSpace(token));
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
+
+        return userId;
     }
 
     private static async Task AuthenticateAdminAsync(
