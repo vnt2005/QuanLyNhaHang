@@ -108,7 +108,7 @@ public sealed class OrderPaymentWorkflowTests
         using var prematureJson = await ReadJsonAsync(
             prematurePaymentResponse);
         Assert.Contains(
-            "chưa hoàn thành",
+            "toàn bộ món đã được phục vụ",
             prematureJson.RootElement
                 .GetProperty("message")
                 .GetString());
@@ -126,11 +126,15 @@ public sealed class OrderPaymentWorkflowTests
             paymentData.GetProperty("status").GetString());
         Assert.Equal(250_000m,
             paymentData.GetProperty("totalAmount").GetDecimal());
-        Assert.Equal(10_000m,
+        Assert.Equal(0m,
+            paymentData.GetProperty("discountAmount").GetDecimal());
+        Assert.Equal(0m,
             paymentData.GetProperty("serviceChargeAmount").GetDecimal());
-        Assert.Equal(257_500m,
+        Assert.Equal(0m,
+            paymentData.GetProperty("vatAmount").GetDecimal());
+        Assert.Equal(250_000m,
             paymentData.GetProperty("finalAmount").GetDecimal());
-        Assert.Equal(42_500m,
+        Assert.Equal(50_000m,
             paymentData.GetProperty("changeAmount").GetDecimal());
 
         using var scope = factory.Services.CreateScope();
@@ -210,7 +214,10 @@ public sealed class OrderPaymentWorkflowTests
             promotionUsageId = usage.Id;
         }
 
-        using var paymentResponse = await PayAsync(client, orderId);
+        using var paymentResponse = await PayAsync(
+            client,
+            orderId,
+            discountAmount: 40_000m);
         Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
 
         using var paymentJson = await ReadJsonAsync(paymentResponse);
@@ -221,7 +228,7 @@ public sealed class OrderPaymentWorkflowTests
             40_000m,
             paymentData.GetProperty("discountAmount").GetDecimal());
         Assert.Equal(
-            242_500m,
+            210_000m,
             paymentData.GetProperty("finalAmount").GetDecimal());
 
         using var verificationScope = factory.Services.CreateScope();
@@ -318,8 +325,8 @@ public sealed class OrderPaymentWorkflowTests
             {
                 orderId,
                 discountAmount = 0m,
-                serviceChargeAmount = 1_000m,
-                vatAmount = 1_100m,
+                serviceChargeAmount = 0m,
+                vatAmount = 1_000m,
                 customerPaid = 12_100m,
                 paymentMethod = "Cash",
                 note = "Không thu phí phục vụ cho đơn mang về",
@@ -352,7 +359,7 @@ public sealed class OrderPaymentWorkflowTests
     }
 
     [Fact]
-    public async Task UpdatePayment_SynchronizesActiveInvoiceSnapshot()
+    public async Task PaidPayment_RejectsPostSettlementMutationAndPreservesInvoiceSnapshot()
     {
         using var factory = new ApiWebApplicationFactory();
         using var client = factory.CreateHttpsClient();
@@ -380,10 +387,10 @@ public sealed class OrderPaymentWorkflowTests
                 vatAmount = 10_000m,
                 customerPaid = 300_000m,
                 paymentMethod = "EWallet",
-                note = "Đã đối soát"
+                note = "Thử sửa payment đã Paid"
             });
 
-        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider
@@ -396,9 +403,12 @@ public sealed class OrderPaymentWorkflowTests
             .AsNoTracking()
             .SingleAsync(x => x.PaymentId == paymentId);
 
-        Assert.Equal(5_000m, payment.ServiceChargeAmount);
-        Assert.Equal(245_000m, payment.FinalAmount);
-        Assert.Equal("EWallet", payment.PaymentMethod);
+        Assert.Equal("Paid", payment.Status);
+        Assert.Equal(0m, payment.DiscountAmount);
+        Assert.Equal(0m, payment.ServiceChargeAmount);
+        Assert.Equal(0m, payment.VatAmount);
+        Assert.Equal(250_000m, payment.FinalAmount);
+        Assert.Equal("Cash", payment.PaymentMethod);
         Assert.Equal(payment.TotalAmount, invoice.TotalAmount);
         Assert.Equal(payment.DiscountAmount, invoice.DiscountAmount);
         Assert.Equal(payment.ServiceChargeAmount, invoice.ServiceChargeAmount);
@@ -469,7 +479,7 @@ public sealed class OrderPaymentWorkflowTests
     }
 
     [Fact]
-    public async Task CancelPayment_CancelsInvoiceAndAllowsReplacement()
+    public async Task PaidPayment_RejectsDirectCancellationAndKeepsFinancialStateIntact()
     {
         using var factory = new ApiWebApplicationFactory();
         using var client = factory.CreateHttpsClient();
@@ -491,58 +501,34 @@ public sealed class OrderPaymentWorkflowTests
         using var cancelResponse = await client.DeleteAsync(
             $"/api/payments/{paymentId}");
 
-        Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, cancelResponse.StatusCode);
 
-        using (var cancelledScope = factory.Services.CreateScope())
-        {
-            var context = cancelledScope.ServiceProvider
-                .GetRequiredService<ApplicationDbContext>();
-
-            var order = await context.Orders
-                .AsNoTracking()
-                .SingleAsync(x => x.Id == orderId);
-            var table = await context.RestaurantTables
-                .AsNoTracking()
-                .SingleAsync(x => x.Id == scenario.TableId);
-            var payment = await context.Payments
-                .AsNoTracking()
-                .SingleAsync(x => x.Id == paymentId);
-            var invoice = await context.Invoices
-                .AsNoTracking()
-                .SingleAsync(x => x.PaymentId == paymentId);
-
-            Assert.Equal("Served", order.Status);
-            Assert.Equal("Available", table.Status);
-            Assert.Equal("Cancelled", payment.Status);
-            Assert.Equal("Cancelled", invoice.Status);
-        }
-
-        using var replacementResponse = await PayAsync(client, orderId);
-        Assert.Equal(HttpStatusCode.OK, replacementResponse.StatusCode);
-
-        using var replacementScope = factory.Services.CreateScope();
-        var replacementContext = replacementScope.ServiceProvider
+        using var verificationScope = factory.Services.CreateScope();
+        var context = verificationScope.ServiceProvider
             .GetRequiredService<ApplicationDbContext>();
 
-        var replacementOrder = await replacementContext.Orders
+        var order = await context.Orders
             .AsNoTracking()
             .SingleAsync(x => x.Id == orderId);
-        var payments = await replacementContext.Payments
+        var table = await context.RestaurantTables
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == scenario.TableId);
+        var payments = await context.Payments
             .AsNoTracking()
             .Where(x => x.OrderId == orderId)
             .ToListAsync();
-        var invoices = await replacementContext.Invoices
+        var invoices = await context.Invoices
             .AsNoTracking()
             .Where(x => x.OrderId == orderId)
             .ToListAsync();
 
-        Assert.Equal("Completed", replacementOrder.Status);
-        Assert.Equal(2, payments.Count);
-        Assert.Single(payments, x => x.Status == "Cancelled");
-        Assert.Single(payments, x => x.Status == "Paid");
-        Assert.Equal(2, invoices.Count);
-        Assert.Single(invoices, x => x.Status == "Cancelled");
-        Assert.Single(invoices, x => x.Status == "Issued");
+        var payment = Assert.Single(payments);
+        var invoice = Assert.Single(invoices);
+        Assert.Equal("Completed", order.Status);
+        Assert.Equal("Available", table.Status);
+        Assert.Equal("Paid", payment.Status);
+        Assert.Equal("Issued", invoice.Status);
+        Assert.Equal(payment.Id, invoice.PaymentId);
     }
 
     private static async Task AuthenticateAdminAsync(
@@ -711,17 +697,21 @@ public sealed class OrderPaymentWorkflowTests
 
     private static Task<HttpResponseMessage> PayAsync(
         HttpClient client,
-        Guid orderId)
+        Guid orderId,
+        decimal discountAmount = 0m,
+        decimal serviceChargeAmount = 0m,
+        decimal vatAmount = 0m,
+        decimal customerPaid = 300_000m)
     {
         return client.PostAsJsonAsync(
             "/api/payments",
             new
             {
                 orderId,
-                discountAmount = 25_000m,
-                serviceChargeAmount = 10_000m,
-                vatAmount = 22_500m,
-                customerPaid = 300_000m,
+                discountAmount,
+                serviceChargeAmount,
+                vatAmount,
+                customerPaid,
                 paymentMethod = "Cash",
                 note = "Thanh toán integration test",
                 issueInvoice = true
