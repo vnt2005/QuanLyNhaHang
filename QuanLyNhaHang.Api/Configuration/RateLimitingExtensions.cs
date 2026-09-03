@@ -103,9 +103,18 @@ public static class RateLimitingExtensions
                         $"order-create:{ResolveRateLimitActor(context)}",
                     factory: _ => SlidingWindow(
                         context.User.Identity?.IsAuthenticated == true
-                            ? 30
-                            : 6,
-                        TimeSpan.FromMinutes(1),
+                            ? 8
+                            : 3,
+                        TimeSpan.FromMinutes(5),
+                        5)));
+
+            options.AddPolicy("CustomerOrderCancel", context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey:
+                        $"order-cancel:{ResolveRateLimitActor(context)}",
+                    factory: _ => SlidingWindow(
+                        4,
+                        TimeSpan.FromMinutes(30),
                         6)));
 
             options.AddPolicy("OrderItemMutation", context =>
