@@ -215,8 +215,14 @@ public class AiAssistantBusinessQuestionRegressionTests
                 "BankTransfer", "Cash", "Card", "EWallet", "Momo", "ZaloPay", "Other"
             },
             PaymentMethodCatalog.All.Select(method => method.Code));
+
+        var bankTransfer = PaymentMethodCatalog.All.Single(
+            method => method.Code == PaymentMethodCatalog.BankTransfer);
+        Assert.False(bankTransfer.AvailableAtCounter);
+        Assert.True(bankTransfer.AvailableOnCustomerWeb);
+
         Assert.All(
-            PaymentMethodCatalog.All,
+            PaymentMethodCatalog.All.Where(method => method.Code != PaymentMethodCatalog.BankTransfer),
             method => Assert.True(method.AvailableAtCounter));
 
         var customerWebMethod = Assert.Single(

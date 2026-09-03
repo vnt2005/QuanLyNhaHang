@@ -61,6 +61,11 @@ public class CreateQrOrderCommandHandler : IRequestHandler<CreateQrOrderCommand,
                 throw new UnauthorizedAccessException("Tài khoản khách hàng không còn hợp lệ.");
         }
 
+        await CustomerOrderCancellationAbuseGuard.EnsureCanCreateOrderAsync(
+            _context,
+            request.CustomerUserId,
+            cancellationToken);
+
         var order = new Order(table.Id, GenerateOrderCode(), request.Note);
         if (request.CustomerUserId.HasValue) order.AssignCustomer(request.CustomerUserId.Value);
         await _context.Orders.AddAsync(order, cancellationToken);

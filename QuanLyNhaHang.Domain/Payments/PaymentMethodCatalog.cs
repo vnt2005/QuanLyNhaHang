@@ -28,54 +28,64 @@ public static class PaymentMethodCatalog
             new(
                 BankTransfer,
                 "Chuyển khoản QR/ngân hàng",
-                "Khách có thể quét QR trên CustomerWeb; giao dịch online được SePay đối soát.",
-                AvailableAtCounter: true,
+                "Chỉ được ghi nhận Paid từ giao dịch online đã được SePay/webhook đối soát; nhân viên không được tự khai báo tại quầy.",
+                AvailableAtCounter: false,
                 AvailableOnCustomerWeb: true),
             new(
                 Cash,
                 "Tiền mặt",
-                "Thu ngân ghi nhận thanh toán trực tiếp tại quầy.",
+                "Thu ngân ghi nhận thanh toán trực tiếp tại quầy và phải để lại lý do kiểm toán.",
                 AvailableAtCounter: true,
                 AvailableOnCustomerWeb: false),
             new(
                 Card,
                 "Thẻ",
-                "Thu ngân ghi nhận thanh toán thẻ tại quầy.",
+                "Thu ngân ghi nhận thanh toán thẻ tại quầy và phải để lại lý do/thông tin đối chiếu.",
                 AvailableAtCounter: true,
                 AvailableOnCustomerWeb: false),
             new(
                 EWallet,
                 "Ví điện tử",
-                "Thu ngân ghi nhận một ví điện tử không thuộc lựa chọn chuyên biệt.",
+                "Thu ngân ghi nhận ví điện tử tại quầy và phải để lại lý do/thông tin đối chiếu.",
                 AvailableAtCounter: true,
                 AvailableOnCustomerWeb: false),
             new(
                 Momo,
                 "MoMo",
-                "Thu ngân ghi nhận thanh toán MoMo tại quầy.",
+                "Thu ngân ghi nhận MoMo tại quầy và phải để lại lý do/thông tin đối chiếu.",
                 AvailableAtCounter: true,
                 AvailableOnCustomerWeb: false),
             new(
                 ZaloPay,
                 "ZaloPay",
-                "Thu ngân ghi nhận thanh toán ZaloPay tại quầy.",
+                "Thu ngân ghi nhận ZaloPay tại quầy và phải để lại lý do/thông tin đối chiếu.",
                 AvailableAtCounter: true,
                 AvailableOnCustomerWeb: false),
             new(
                 Other,
                 "Khác",
-                "Phương thức khác do thu ngân xác nhận và ghi chú tại quầy.",
+                "Phương thức khác do thu ngân xác nhận tại quầy; bắt buộc ghi rõ lý do và dữ liệu liên quan.",
                 AvailableAtCounter: true,
                 AvailableOnCustomerWeb: false)
         });
 
     public static bool IsSupported(string? code)
+        => Find(code) != null;
+
+    public static bool IsAvailableAtCounter(string? code)
+        => Find(code)?.AvailableAtCounter == true;
+
+    public static bool IsAvailableOnCustomerWeb(string? code)
+        => Find(code)?.AvailableOnCustomerWeb == true;
+
+    public static PaymentMethodDefinition? Find(string? code)
     {
         if (string.IsNullOrWhiteSpace(code))
-            return false;
+            return null;
 
-        return All.Any(method => method.Code.Equals(
-            code.Trim(),
+        var normalized = code.Trim();
+        return All.FirstOrDefault(method => method.Code.Equals(
+            normalized,
             StringComparison.Ordinal));
     }
 }

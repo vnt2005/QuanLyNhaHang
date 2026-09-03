@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
+using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Queries.GetById;
 
@@ -21,7 +22,14 @@ public class GetPaymentByIdQueryHandler
     {
         var payment = await _context.Payments
             .AsNoTracking()
-            .Where(x => x.Id == request.Id)
+            .Where(x =>
+                x.Id == request.Id &&
+                x.Status == "Paid" &&
+                x.PaymentMethod == "BankTransfer" &&
+                _context.PaymentAttempts.Any(attempt =>
+                    attempt.PaymentId == x.Id &&
+                    attempt.Provider == "SePay" &&
+                    attempt.Status == PaymentAttempt.PaidStatus))
             .Select(x => new PaymentDto
             {
                 Id = x.Id,
