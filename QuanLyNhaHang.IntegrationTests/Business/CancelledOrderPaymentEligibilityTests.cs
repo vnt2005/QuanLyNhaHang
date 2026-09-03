@@ -14,116 +14,125 @@ namespace QuanLyNhaHang.IntegrationTests.Business;
 public sealed class CancelledOrderPaymentEligibilityTests
 {
     [Fact]
-    public async Task CancelledOrder_IsNotOfferedAtCounter_AndCannotBePaidByDirectApiCall()
+    public async Task AdminPayments_IsReadOnly_AndListsOnlyVerifiedSePayPayments()
     {
         using var factory = new ApiWebApplicationFactory();
         using var client = factory.CreateHttpsClient();
         await AuthenticateAdminAsync(factory, client);
 
-        var eligibleOrderId = await SeedServedTakeawayAsync(factory, "Khách hợp lệ");
-        var cancelledOrderId = await SeedServedTakeawayAsync(factory, "Khách đã hủy");
+        var verifiedPaymentId = await SeedVerifiedSePayPaymentAsync(factory);
+        var manualPaymentId = await SeedUnverifiedCashPaymentAsync(factory);
 
-        using (var scope = factory.Services.CreateScope())
-        {
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var cancelledOrder = await context.Orders
-                .SingleAsync(order => order.Id == cancelledOrderId);
-            cancelledOrder.Cancel();
-            await context.SaveChangesAsync();
-        }
-
-        using var listResponse = await client.GetAsync(
-            "/api/payments/eligible-counter-orders");
+        using var listResponse = await client.GetAsync("/api/payments/paginated?pageNumber=1&pageSize=20");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
 
         using var listJson = await ReadJsonAsync(listResponse);
-        var listedOrderIds = listJson.RootElement
-            .EnumerateArray()
-            .Select(item => item.GetProperty("id").GetGuid())
-            .ToArray();
+        var items = listJson.RootElement.GetProperty("items").EnumerateArray().ToArray();
 
-        Assert.Contains(eligibleOrderId, listedOrderIds);
-        Assert.DoesNotContain(cancelledOrderId, listedOrderIds);
+        Assert.Single(items);
+        Assert.Equal(verifiedPaymentId, items[0].GetProperty("id").GetGuid());
+        Assert.Equal("BankTransfer", items[0].GetProperty("paymentMethod").GetString());
+        Assert.Equal("Paid", items[0].GetProperty("status").GetString());
+        Assert.DoesNotContain(items, item => item.GetProperty("id").GetGuid() == manualPaymentId);
 
-        using var paymentResponse = await client.PostAsJsonAsync(
+        using var createResponse = await client.PostAsJsonAsync(
             "/api/payments",
             new
             {
-                orderId = cancelledOrderId,
-                discountAmount = 0m,
-                serviceChargeAmount = 0m,
-                vatAmount = 0m,
+                orderId = Guid.NewGuid(),
                 customerPaid = 100_000m,
-                paymentMethod = "Cash",
-                note = "Cố tình thu tiền cho đơn đã hủy",
-                issueInvoice = true
+                paymentMethod = "Cash"
             });
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, createResponse.StatusCode);
 
-        Assert.Equal(HttpStatusCode.BadRequest, paymentResponse.StatusCode);
-        using var paymentJson = await ReadJsonAsync(paymentResponse);
-        Assert.Contains(
-            "đã hủy",
-            paymentJson.RootElement.GetProperty("message").GetString());
+        using var updateResponse = await client.PutAsJsonAsync(
+            $"/api/payments/{verifiedPaymentId}",
+            new { customerPaid = 1m });
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, updateResponse.StatusCode);
 
-        using var verificationScope = factory.Services.CreateScope();
-        var verificationContext = verificationScope.ServiceProvider
-            .GetRequiredService<ApplicationDbContext>();
-        Assert.False(await verificationContext.Payments
-            .AnyAsync(payment => payment.OrderId == cancelledOrderId));
+        using var deleteResponse = await client.DeleteAsync($"/api/payments/{verifiedPaymentId}");
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, deleteResponse.StatusCode);
     }
 
-    private static async Task<Guid> SeedServedTakeawayAsync(
-        ApiWebApplicationFactory factory,
-        string customerName)
+    private static async Task<Guid> SeedVerifiedSePayPaymentAsync(ApiWebApplicationFactory factory)
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await context.Database.EnsureCreatedAsync();
 
-        var category = new MenuCategory(
-            $"Counter eligibility {Guid.NewGuid():N}",
-            null,
-            1);
-        var menuItem = new MenuItem(
-            category.Id,
-            $"Món test {Guid.NewGuid():N}",
-            null,
-            100_000m,
-            null);
         var order = Order.CreateTakeaway(
             $"ORD-{Guid.NewGuid():N}",
-            customerName,
+            "Khách SePay",
             $"09{Random.Shared.Next(10_000_000, 99_999_999)}",
             null,
             null);
-        var orderItem = new OrderItem(
+        order.UpdateTotalAmount(100_000m);
+
+        var payment = new Payment(
             order.Id,
-            menuItem.Id,
-            menuItem.Name,
-            1,
-            menuItem.Price,
-            null);
+            100_000m,
+            0m,
+            0m,
+            100_000m,
+            "BankTransfer",
+            "SePay | transactionId=verified-test",
+            0m);
 
-        orderItem.MarkCooking();
-        orderItem.MarkReady();
-        orderItem.MarkServed();
-        order.UpdateTotalAmount(orderItem.TotalPrice);
-        order.MarkServed();
+        var attempt = new PaymentAttempt(
+            order.Id,
+            "SePay",
+            Random.Shared.NextInt64(1, long.MaxValue),
+            100_000m,
+            DateTime.UtcNow.AddMinutes(10));
+        attempt.AttachPaymentRequest(
+            $"test-{Guid.NewGuid():N}",
+            "https://pay.sepay.vn/test",
+            "PENDING");
+        attempt.MarkPaid(payment.Id, 100_000m, $"txn-{Guid.NewGuid():N}");
 
-        context.MenuCategories.Add(category);
-        context.MenuItems.Add(menuItem);
         context.Orders.Add(order);
-        context.OrderItems.Add(orderItem);
+        context.Payments.Add(payment);
+        context.PaymentAttempts.Add(attempt);
         await context.SaveChangesAsync();
 
-        return order.Id;
+        return payment.Id;
+    }
+
+    private static async Task<Guid> SeedUnverifiedCashPaymentAsync(ApiWebApplicationFactory factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var order = Order.CreateTakeaway(
+            $"ORD-{Guid.NewGuid():N}",
+            "Khách dữ liệu cũ",
+            $"09{Random.Shared.Next(10_000_000, 99_999_999)}",
+            null,
+            null);
+        order.UpdateTotalAmount(50_000m);
+
+        var payment = new Payment(
+            order.Id,
+            50_000m,
+            0m,
+            0m,
+            50_000m,
+            "Cash",
+            "Dữ liệu thanh toán thủ công cũ",
+            0m);
+
+        context.Orders.Add(order);
+        context.Payments.Add(payment);
+        await context.SaveChangesAsync();
+
+        return payment.Id;
     }
 
     private static async Task AuthenticateAdminAsync(
         ApiWebApplicationFactory factory,
         HttpClient client)
     {
-        var email = $"cancelled-payment-{Guid.NewGuid():N}@example.com";
+        var email = $"payment-read-only-{Guid.NewGuid():N}@example.com";
         const string password = "Password123!";
 
         await factory.SeedUserAsync(email, password);
@@ -144,8 +153,7 @@ public sealed class CancelledOrderPaymentEligibilityTests
             new AuthenticationHeaderValue("Bearer", token);
     }
 
-    private static async Task<JsonDocument> ReadJsonAsync(
-        HttpResponseMessage response)
+    private static async Task<JsonDocument> ReadJsonAsync(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
         return JsonDocument.Parse(content);
