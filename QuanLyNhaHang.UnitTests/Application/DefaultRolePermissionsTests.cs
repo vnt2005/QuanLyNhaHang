@@ -8,8 +8,7 @@ public sealed class DefaultRolePermissionsTests
     [Theory]
     [InlineData(
         SystemRoles.Manager,
-        "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
-        "Invoices.View|Invoices.Manage|" +
+        "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Invoices.View|Invoices.Manage|" +
         "Orders.View|Orders.Create|Orders.Update|Orders.Delete|" +
         "Inventory.View|Inventory.ManageCatalog|Inventory.Transact|" +
         "Inventory.Adjust|Reservations.View|Reservations.Create|" +
@@ -108,14 +107,14 @@ public sealed class DefaultRolePermissionsTests
     }
 
     [Fact]
-    public void PaymentRoles_CanCreateCounterPaymentButCannotMutateSettledPaymentByDefault()
+    public void PaymentRoles_ReserveCounterSettlementForCashierAndLockMutations()
     {
         var manager = DefaultRolePermissions.GetForRole(SystemRoles.Manager);
         var cashier = DefaultRolePermissions.GetForRole(SystemRoles.Cashier);
         var staff = DefaultRolePermissions.GetForRole(SystemRoles.Staff);
 
         Assert.Contains(PermissionCodes.PaymentsView, manager);
-        Assert.Contains(PermissionCodes.PaymentsCreate, manager);
+        Assert.DoesNotContain(PermissionCodes.PaymentsCreate, manager);
         Assert.DoesNotContain(PermissionCodes.PaymentsUpdate, manager);
         Assert.DoesNotContain(PermissionCodes.PaymentsCancel, manager);
 
