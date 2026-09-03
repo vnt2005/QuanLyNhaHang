@@ -87,6 +87,134 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
     }
 
     [Fact]
+    public async Task ManualBankTransfer_CannotBeCreatedEvenByAdmin()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var orderId = await SeedServedTakeawayAsync(factory, "Khách giả chuyển khoản");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/payments",
+            new
+            {
+                orderId,
+                discountAmount = 0m,
+                serviceChargeAmount = 0m,
+                vatAmount = 0m,
+                customerPaid = 100_000m,
+                paymentMethod = "BankTransfer",
+                note = "Nhân viên tự khai khách đã chuyển khoản",
+                issueInvoice = true
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        Assert.Contains(
+            "không được phép ghi nhận thủ công",
+            json.RootElement.GetProperty("message").GetString());
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.False(await context.Payments.AnyAsync(x => x.OrderId == orderId));
+    }
+
+    [Fact]
+    public async Task ManualPayment_RejectsClientSideQuoteTampering()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var orderId = await SeedServedTakeawayAsync(factory, "Khách sửa số tiền");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/payments",
+            new
+            {
+                orderId,
+                discountAmount = 10_000m,
+                serviceChargeAmount = 0m,
+                vatAmount = 0m,
+                customerPaid = 90_000m,
+                paymentMethod = "Cash",
+                note = "Cố tình sửa giảm giá từ client",
+                issueInvoice = true
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        Assert.Contains(
+            "backend tính toán",
+            json.RootElement.GetProperty("message").GetString());
+
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.False(await context.Payments.AnyAsync(x => x.OrderId == orderId));
+    }
+
+    [Fact]
+    public async Task ManualPayment_RequiresAuditReason()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var orderId = await SeedServedTakeawayAsync(factory, "Khách thiếu lý do");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/payments",
+            new
+            {
+                orderId,
+                discountAmount = 0m,
+                serviceChargeAmount = 0m,
+                vatAmount = 0m,
+                customerPaid = 100_000m,
+                paymentMethod = "Cash",
+                note = "   ",
+                issueInvoice = true
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        Assert.Contains(
+            "bắt buộc ghi rõ lý do",
+            json.RootElement.GetProperty("message").GetString());
+    }
+
+    [Fact]
+    public async Task ManualNonCashPayment_RejectsDeclaredAmountDifferentFromServerTotal()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var orderId = await SeedServedTakeawayAsync(factory, "Khách thanh toán thẻ");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/payments",
+            new
+            {
+                orderId,
+                discountAmount = 0m,
+                serviceChargeAmount = 0m,
+                vatAmount = 0m,
+                customerPaid = 110_000m,
+                paymentMethod = "Card",
+                note = "Đối chiếu giao dịch thẻ tại quầy TEST-001",
+                issueInvoice = true
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        Assert.Contains(
+            "đúng số tiền backend yêu cầu",
+            json.RootElement.GetProperty("message").GetString());
+    }
+
+    [Fact]
     public async Task ManualPayment_IsBlockedWhileOnlineAttemptIsPending()
     {
         using var factory = new ApiWebApplicationFactory();
@@ -121,6 +249,67 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
     }
 
     [Fact]
+    public async Task PaidManualPayment_CannotBeUpdatedOrCancelled()
+    {
+        using var factory = new ApiWebApplicationFactory();
+        using var client = factory.CreateHttpsClient();
+        await AuthenticateAdminAsync(factory, client);
+
+        var (orderId, paymentId) = await SeedPaidManualPaymentAsync(factory);
+
+        using var updateResponse = await client.PutAsJsonAsync(
+            $"/api/payments/{paymentId}",
+            new
+            {
+                discountAmount = 0m,
+                serviceChargeAmount = 0m,
+                vatAmount = 0m,
+                customerPaid = 100_000m,
+                paymentMethod = "Card",
+                note = "Thử đổi payment đã chốt"
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
+        using var updateJson = await ReadJsonAsync(updateResponse);
+        Assert.Contains(
+            "dữ liệu tài chính bất biến",
+            updateJson.RootElement.GetProperty("message").GetString());
+
+        using var cancelResponse = await client.DeleteAsync($"/api/payments/{paymentId}");
+        Assert.Equal(HttpStatusCode.BadRequest, cancelResponse.StatusCode);
+        using var cancelJson = await ReadJsonAsync(cancelResponse);
+        Assert.Contains(
+            "không thể hủy trực tiếp",
+            cancelJson.RootElement.GetProperty("message").GetString());
+
+        using var duplicateResponse = await client.PostAsJsonAsync(
+            "/api/payments",
+            new
+            {
+                orderId,
+                discountAmount = 0m,
+                serviceChargeAmount = 0m,
+                vatAmount = 0m,
+                customerPaid = 100_000m,
+                paymentMethod = "Cash",
+                note = "Thử thanh toán trùng",
+                issueInvoice = true
+            });
+        Assert.Equal(HttpStatusCode.BadRequest, duplicateResponse.StatusCode);
+
+        using var verificationScope = factory.Services.CreateScope();
+        var context = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var payments = await context.Payments
+            .AsNoTracking()
+            .Where(x => x.OrderId == orderId)
+            .ToListAsync();
+        var payment = Assert.Single(payments);
+        Assert.Equal("Paid", payment.Status);
+        Assert.Equal("Cash", payment.PaymentMethod);
+        Assert.Equal(100_000m, payment.FinalAmount);
+    }
+
+    [Fact]
     public async Task SettledOnlinePayment_CannotBeUpdatedOrCancelled()
     {
         using var factory = new ApiWebApplicationFactory();
@@ -144,7 +333,7 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
         Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
         using var updateJson = await ReadJsonAsync(updateResponse);
         Assert.Contains(
-            "khóa đối soát",
+            "dữ liệu tài chính bất biến",
             updateJson.RootElement.GetProperty("message").GetString());
 
         using var cancelResponse = await client.DeleteAsync(
@@ -191,6 +380,53 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
         await context.SaveChangesAsync();
 
         return menuItem.Id;
+    }
+
+    private static async Task<Guid> SeedServedTakeawayAsync(
+        ApiWebApplicationFactory factory,
+        string customerName)
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await context.Database.EnsureCreatedAsync();
+
+        var category = new MenuCategory(
+            $"Payment security {Guid.NewGuid():N}",
+            null,
+            1);
+        var menuItem = new MenuItem(
+            category.Id,
+            $"Món test thanh toán {Guid.NewGuid():N}",
+            null,
+            100_000m,
+            null);
+        var order = Order.CreateTakeaway(
+            $"ORD-{Guid.NewGuid():N}",
+            customerName,
+            $"09{Random.Shared.Next(10_000_000, 99_999_999)}",
+            null,
+            null);
+        var orderItem = new OrderItem(
+            order.Id,
+            menuItem.Id,
+            menuItem.Name,
+            1,
+            menuItem.Price,
+            null);
+
+        orderItem.MarkCooking();
+        orderItem.MarkReady();
+        orderItem.MarkServed();
+        order.UpdateTotalAmount(orderItem.TotalPrice);
+        order.MarkServed();
+
+        context.MenuCategories.Add(category);
+        context.MenuItems.Add(menuItem);
+        context.Orders.Add(order);
+        context.OrderItems.Add(orderItem);
+        await context.SaveChangesAsync();
+
+        return order.Id;
     }
 
     private static async Task<Guid> SeedServedTakeawayWithPendingOnlineAttemptAsync(
@@ -249,6 +485,38 @@ public sealed class PaymentIntegrityAndOrderAbuseTests
         await context.SaveChangesAsync();
 
         return order.Id;
+    }
+
+    private static async Task<(Guid OrderId, Guid PaymentId)> SeedPaidManualPaymentAsync(
+        ApiWebApplicationFactory factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await context.Database.EnsureCreatedAsync();
+
+        var order = Order.CreateTakeaway(
+            $"ORD-{Guid.NewGuid():N}",
+            "Khách đã trả tiền mặt",
+            "0901000005",
+            null,
+            null);
+        order.UpdateTotalAmount(100_000m);
+        order.MarkCompleted();
+
+        var payment = new Payment(
+            order.Id,
+            100_000m,
+            0m,
+            0m,
+            100_000m,
+            "Cash",
+            "Thu tiền mặt tại quầy; đối chiếu TEST-CASH-001");
+
+        context.Orders.Add(order);
+        context.Payments.Add(payment);
+        await context.SaveChangesAsync();
+
+        return (order.Id, payment.Id);
     }
 
     private static async Task<Guid> SeedSettledOnlinePaymentAsync(
