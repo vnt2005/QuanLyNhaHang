@@ -19,7 +19,7 @@ public sealed class EmployeeAuthorizationTests
         {
             SystemRoles.Manager,
             "Kitchen.View|Kitchen.UpdateStatus|Payments.View|Payments.Create|" +
-            "Payments.Update|Payments.Cancel|Invoices.View|Invoices.Manage|" +
+            "Invoices.View|Invoices.Manage|" +
             "Orders.View|Orders.Create|Orders.Update|Orders.Delete|" +
             "Inventory.View|Inventory.ManageCatalog|Inventory.Transact|" +
             "Inventory.Adjust|Reservations.View|Reservations.Create|" +
@@ -41,13 +41,12 @@ public sealed class EmployeeAuthorizationTests
         yield return new object[]
         {
             SystemRoles.Cashier,
-            "Orders.View|Payments.View|Payments.Create|Payments.Update|" +
-            "Payments.Cancel|Invoices.View|Reservations.View|" +
-            "Reservations.Create|Reservations.Update|Reservations.Cancel|" +
-            "Menu.View|Tables.View|Tables.UpdateStatus|TableOperations.View|" +
-            "Promotions.View|Promotions.Apply|PromotionUsages.View|" +
-            "PromotionUsages.UpdatePayment|PromotionUsages.Cancel|" +
-            "RestaurantSettings.View",
+            "Orders.View|Payments.View|Payments.Create|Invoices.View|" +
+            "Reservations.View|Reservations.Create|Reservations.Update|" +
+            "Reservations.Cancel|Menu.View|Tables.View|Tables.UpdateStatus|" +
+            "TableOperations.View|Promotions.View|Promotions.Apply|" +
+            "PromotionUsages.View|PromotionUsages.UpdatePayment|" +
+            "PromotionUsages.Cancel|RestaurantSettings.View",
             true, true, true, false, false, false, false,
             true, true, true, false, false, true, true, false, true
         };
