@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Constants;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Notifications;
 using QuanLyNhaHang.Application.Common.Payments;
@@ -16,21 +17,26 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
     private readonly IApplicationDbContext _context;
     private readonly IAdminNotificationPublisher _notificationPublisher;
     private readonly CustomerPaymentQuoteService _quoteService;
+    private readonly ICurrentUserService _currentUserService;
 
     public CreatePaymentCommandHandler(
         IApplicationDbContext context,
         IAdminNotificationPublisher notificationPublisher,
-        CustomerPaymentQuoteService quoteService)
+        CustomerPaymentQuoteService quoteService,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _notificationPublisher = notificationPublisher;
         _quoteService = quoteService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PaymentDto> Handle(
         CreatePaymentCommand request,
         CancellationToken cancellationToken)
     {
+        await EnsureCounterPaymentRoleAsync(cancellationToken);
+
         var paymentMethod = request.PaymentMethod?.Trim() ?? string.Empty;
         var methodDefinition = PaymentMethodCatalog.Find(paymentMethod)
             ?? throw new ArgumentException("Phương thức thanh toán không hợp lệ.");
@@ -211,6 +217,26 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
             CreatedAt = payment.CreatedAt,
             UpdatedAt = payment.UpdatedAt
         };
+    }
+
+    private async Task EnsureCounterPaymentRoleAsync(CancellationToken cancellationToken)
+    {
+        if (!_currentUserService.UserId.HasValue)
+            throw new InvalidOperationException("Không xác định được người thực hiện thanh toán tại quầy.");
+
+        var currentRole = await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Id == _currentUserService.UserId.Value && user.IsActive)
+            .Select(user => user.Role)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (currentRole == null ||
+            (!currentRole.Equals(SystemRoles.Admin, StringComparison.OrdinalIgnoreCase) &&
+             !currentRole.Equals(SystemRoles.Cashier, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException(
+                "Chỉ Admin hoặc Cashier đang hoạt động mới được ghi nhận thanh toán thủ công tại quầy.");
+        }
     }
 
     private async Task EnsureManualPaymentIsSafeAsync(
