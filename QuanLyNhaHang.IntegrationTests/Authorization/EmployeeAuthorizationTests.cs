@@ -40,7 +40,7 @@ public sealed class EmployeeAuthorizationTests
         yield return new object[]
         {
             SystemRoles.Cashier,
-            "Orders.View|Payments.View|Payments.Create|Invoices.View|" +
+            "Orders.View|Payments.View|Invoices.View|" +
             "Reservations.View|Reservations.Create|Reservations.Update|" +
             "Reservations.Cancel|Menu.View|Tables.View|Tables.UpdateStatus|" +
             "TableOperations.View|Promotions.View|Promotions.Apply|" +
