@@ -23,23 +23,15 @@ public class UpdatePaymentCommandHandler
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         if (payment == null)
-            throw new Exception("Không tìm thấy thanh toán.");
+            throw new KeyNotFoundException("Không tìm thấy thanh toán.");
 
         if (payment.Status == "Cancelled")
             throw new InvalidOperationException("Thanh toán đã hủy, không thể cập nhật.");
 
-        var isSettledOnlinePayment = payment.Status == "Paid" &&
-            await _context.PaymentAttempts
-                .AsNoTracking()
-                .AnyAsync(
-                    attempt => attempt.PaymentId == payment.Id &&
-                               attempt.Status == "Paid",
-                    cancellationToken);
-
-        if (isSettledOnlinePayment)
+        if (payment.Status == "Paid")
         {
             throw new InvalidOperationException(
-                "Thanh toán online đã được ghi nhận Paid và đang khóa đối soát. Không thể sửa số tiền, phương thức, VAT, phí hoặc tiền khách trả. Nếu có sai sót, hãy xử lý theo quy trình đối soát/hoàn tiền riêng.");
+                "Thanh toán đã được ghi nhận Paid và là dữ liệu tài chính bất biến. Không thể sửa số tiền, phương thức, VAT, phí, tiền khách trả hoặc ghi chú sau khi chốt. Nếu có sai sót, phải xử lý bằng quy trình đối soát/hoàn tiền hoặc bút toán điều chỉnh riêng.");
         }
 
         payment.UpdateInfo(

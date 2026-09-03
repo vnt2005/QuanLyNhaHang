@@ -140,7 +140,7 @@ public sealed class AiAssistantPaymentOptionsToolTests
         var customerWeb = Assert.Single(json.GetProperty("customerWeb").EnumerateArray());
         Assert.Equal("BankTransfer", customerWeb.GetProperty("code").GetString());
         Assert.True(customerWeb.GetProperty("availableNow").GetBoolean());
-        Assert.Equal(7, json.GetProperty("atCounter").GetArrayLength());
+        Assert.Equal(6, json.GetProperty("atCounter").GetArrayLength());
         Assert.False(json.TryGetProperty("observedPaidMethods", out _));
         Assert.False(json.GetRawText().Contains("AccountNumber", StringComparison.OrdinalIgnoreCase));
     }

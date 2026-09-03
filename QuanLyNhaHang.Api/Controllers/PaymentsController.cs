@@ -2,9 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyNhaHang.Application.Common.Constants;
-using QuanLyNhaHang.Application.Features.Payments.Commands.Create;
-using QuanLyNhaHang.Application.Features.Payments.Commands.Delete;
-using QuanLyNhaHang.Application.Features.Payments.Commands.Update;
 using QuanLyNhaHang.Application.Features.Payments.Queries.GetById;
 using QuanLyNhaHang.Application.Features.Payments.Queries.GetList;
 using QuanLyNhaHang.Application.Features.Payments.Queries.GetWithPaginatedList;
@@ -14,7 +11,6 @@ namespace QuanLyNhaHang.Api.Controllers;
 [ApiController]
 [Route("api/payments")]
 [Authorize]
-[AtomicRequest]
 public class PaymentsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -49,10 +45,12 @@ public class PaymentsController : ControllerBase
         });
 
         if (result == null)
+        {
             return NotFound(new
             {
-                message = "Không tìm thấy thanh toán."
+                message = "Không tìm thấy giao dịch SePay đã xác minh."
             });
+        }
 
         return Ok(result);
     }
@@ -76,59 +74,5 @@ public class PaymentsController : ControllerBase
         });
 
         return Ok(result);
-    }
-
-    [HttpPost]
-    [EnableRateLimiting("PaymentMutation")]
-    [IdempotentRequest("admin-payment-create")]
-    [HasPermission(PermissionCodes.PaymentsCreate)]
-    public async Task<IActionResult> Create([FromBody] CreatePaymentCommand command)
-    {
-        var result = await _mediator.Send(command);
-
-        return Ok(new
-        {
-            success = true,
-            message = "Thanh toán thành công.",
-            data = result
-        });
-    }
-
-    [HttpPut("{id:guid}")]
-    [EnableRateLimiting("PaymentMutation")]
-    [AtomicRequest]
-    [HasPermission(PermissionCodes.PaymentsUpdate)]
-    public async Task<IActionResult> Update(
-        Guid id,
-        [FromBody] UpdatePaymentCommand command)
-    {
-        command.Id = id;
-
-        var result = await _mediator.Send(command);
-
-        return Ok(new
-        {
-            success = true,
-            message = "Cập nhật thanh toán thành công.",
-            data = result
-        });
-    }
-
-    [HttpDelete("{id:guid}")]
-    [EnableRateLimiting("PaymentMutation")]
-    [AtomicRequest]
-    [HasPermission(PermissionCodes.PaymentsCancel)]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var result = await _mediator.Send(new DeletePaymentCommand
-        {
-            Id = id
-        });
-
-        return Ok(new
-        {
-            success = result,
-            message = "Hủy thanh toán thành công."
-        });
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 using MediatR;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
@@ -203,7 +205,10 @@ public class ActivityLogBehavior<TRequest, TResponse>
         var options = new JsonSerializerOptions
         {
             WriteIndented = false,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            // Giữ tiếng Việt ở dạng đọc được trong audit trail nhưng vẫn dùng
+            // JavaScriptEncoder an toàn (các ký tự HTML-sensitive vẫn bị escape).
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
         return JsonSerializer.Serialize(sanitized, options);

@@ -15,6 +15,10 @@ import {
   ADMIN_NOTIFICATION_EVENT,
   type AdminNotification,
 } from '../services/notifications'
+import {
+  downloadRevenueReportCsv,
+  downloadRevenueReportXlsx,
+} from '../utils/revenueReportExport'
 
 const statusLabels: Record<string, string> = {
   Generated: 'Đã tạo',
@@ -70,13 +74,9 @@ function escapeHtml(value: string) {
   )
 }
 
-function csvCell(value: string | number) {
-  const safeValue = typeof value === 'string' && /^[=+\-@]/.test(value) ? `'${value}` : value
-  const normalized = String(safeValue).replace(/"/g, '""')
-  return `"${normalized}"`
-}
-
 type RevenuePeriod = 'today' | 'week' | 'month' | 'year' | 'custom'
+
+type RevenueExportFormat = 'csv' | 'xlsx'
 
 function getQuickRange(period: Exclude<RevenuePeriod, 'custom'>) {
   const today = new Date()
@@ -158,38 +158,6 @@ function ArrowLeftIcon() {
 
 function ArrowRightIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
-}
-
-function downloadReportCsv(report: RevenueReport) {
-  const rows: Array<Array<string | number>> = [
-    ['Mã báo cáo', report.reportCode],
-    ['Từ ngày', displayDate(report.fromDate)],
-    ['Đến ngày', displayDate(report.toDate)],
-    ['Số hóa đơn', report.totalInvoices],
-    ['Số đơn hàng', report.totalOrders],
-    ['Tổng tiền món', report.totalAmount],
-    ['Giảm giá', report.totalDiscountAmount],
-    ['VAT', report.totalVatAmount],
-    ['Doanh thu', report.totalRevenue],
-    ['Trung bình/hóa đơn', report.averageRevenuePerInvoice],
-    ['Ghi chú', report.note ?? ''],
-    [],
-    ['Món', 'Số lượng bán', 'Doanh thu'],
-    ...(report.items ?? []).map(item => [
-      item.menuItemName,
-      item.quantitySold,
-      item.totalRevenue,
-    ]),
-  ]
-  const csv = `\uFEFF${rows.map(row => row.map(csvCell).join(',')).join('\r\n')}`
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${report.reportCode}.csv`
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 export default function RevenueReportsPage() {
@@ -442,15 +410,21 @@ export default function RevenueReportsPage() {
     }
   }
 
-  async function exportCsv(report: RevenueReport) {
+  async function exportReport(report: RevenueReport, format: RevenueExportFormat) {
     setSaving(true)
     setError('')
     setMessage('')
     try {
       const current = await getRevenueReport(report.id)
       await updateRevenueReport(current.id, 'Exported', current.note ?? '')
-      downloadReportCsv(current)
-      setMessage(`Đã xuất ${current.reportCode} thành tệp CSV.`)
+
+      if (format === 'xlsx') {
+        downloadRevenueReportXlsx(current)
+      } else {
+        downloadRevenueReportCsv(current)
+      }
+
+      setMessage(`Đã xuất ${current.reportCode} thành tệp ${format.toUpperCase()}.`)
       await loadReports(page)
       if (detail?.id === current.id) setDetail(await getRevenueReport(current.id))
     } catch (exception) {
@@ -729,7 +703,7 @@ export default function RevenueReportsPage() {
         <div className="revenue-report-panel-heading">
           <div>
             <h3>Báo cáo đã lưu</h3>
-            <p>Tìm kiếm, xem chi tiết, xuất CSV, in hoặc hủy báo cáo.</p>
+            <p>Tìm kiếm, xem chi tiết, xuất CSV/XLSX, in hoặc hủy báo cáo.</p>
           </div>
           <span>{totalCount} báo cáo</span>
         </div>
@@ -868,9 +842,18 @@ export default function RevenueReportsPage() {
                           title="Xuất CSV"
                           aria-label={`Xuất CSV báo cáo ${report.reportCode}`}
                           disabled={saving || report.status === 'Cancelled'}
-                          onClick={() => void exportCsv(report)}
+                          onClick={() => void exportReport(report, 'csv')}
                         >
                           <DownloadIcon />
+                        </button>
+                        <button
+                          type="button"
+                          title="Xuất Excel (.xlsx)"
+                          aria-label={`Xuất Excel báo cáo ${report.reportCode}`}
+                          disabled={saving || report.status === 'Cancelled'}
+                          onClick={() => void exportReport(report, 'xlsx')}
+                        >
+                          <span aria-hidden="true">X</span>
                         </button>
                         <button
                           type="button"
@@ -1020,10 +1003,18 @@ export default function RevenueReportsPage() {
               <button
                 type="button"
                 disabled={saving || detail.status === 'Cancelled'}
-                onClick={() => void exportCsv(detail)}
+                onClick={() => void exportReport(detail, 'csv')}
               >
                 <DownloadIcon />
                 <span>Xuất CSV</span>
+              </button>
+              <button
+                type="button"
+                disabled={saving || detail.status === 'Cancelled'}
+                onClick={() => void exportReport(detail, 'xlsx')}
+              >
+                <DownloadIcon />
+                <span>Xuất Excel</span>
               </button>
               <button
                 type="button"

@@ -82,14 +82,14 @@ public sealed class RequestProtectionWorkflowTests
     }
 
     [Fact]
-    public async Task AnonymousTakeaway_SeventhRequestInOneMinute_IsRateLimited()
+    public async Task AnonymousTakeaway_FifthRequestInFiveMinutes_IsRateLimited()
     {
         using var factory = new ApiWebApplicationFactory();
         var menuItemId = await SeedMenuItemAsync(factory);
         using var client = factory.CreateHttpsClient();
         const string clientId = "request-protection-rate-client";
 
-        for (var requestNumber = 1; requestNumber <= 6; requestNumber++)
+        for (var requestNumber = 1; requestNumber <= 4; requestNumber++)
         {
             using var accepted = await SendTakeawayAsync(
                 client,
@@ -104,9 +104,9 @@ public sealed class RequestProtectionWorkflowTests
 
         using var rejected = await SendTakeawayAsync(
             client,
-            CreatePayload(menuItemId, "0900000007"),
+            CreatePayload(menuItemId, "0900000005"),
             clientId,
-            "rate-limit-order-00000007");
+            "rate-limit-order-00000005");
 
         Assert.Equal(HttpStatusCode.TooManyRequests, rejected.StatusCode);
         Assert.True(rejected.Headers.Contains("Retry-After"));

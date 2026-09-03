@@ -78,6 +78,7 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
   const [debouncedOrderSearch, setDebouncedOrderSearch] = useState('')
   const [orderFilter, setOrderFilter] = useState<CustomerOrderFilter>('all')
   const loadRequestRef = useRef(0)
+  const ordersListRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedOrderSearch(orderSearch.trim()), 250)
@@ -85,19 +86,21 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
   }, [orderSearch])
 
   const loadOrders = useCallback(async (targetPage: number) => {
-    if (!session) return
+    if (!session) return null
     const requestId = ++loadRequestRef.current
     setLoading(true)
     setError('')
     try {
       const result = await getCustomerOrders(targetPage, 8, orderFilter, debouncedOrderSearch)
-      if (loadRequestRef.current !== requestId) return
+      if (loadRequestRef.current !== requestId) return null
       setHistory(result)
       setPage(result.pageNumber)
       setExpandedId(current => current && result.items.some(item => item.id === current) ? current : '')
+      return result.pageNumber
     } catch (exception) {
-      if (loadRequestRef.current !== requestId) return
+      if (loadRequestRef.current !== requestId) return null
       setError(exception instanceof Error ? exception.message : 'Không tải được đơn hàng.')
+      return null
     } finally {
       if (loadRequestRef.current === requestId) setLoading(false)
     }
@@ -117,6 +120,25 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
   }, [loadOrders, page, session?.userId])
 
   const hasActiveFilter = orderFilter !== 'all' || debouncedOrderSearch.length > 0
+
+  function scrollToOrdersStart() {
+    const list = ordersListRef.current
+    if (!list) return
+
+    const stickyHeader = document.querySelector<HTMLElement>('.sera-header')
+    const headerOffset = (stickyHeader?.getBoundingClientRect().height ?? 0) + 16
+    const top = Math.max(0, list.getBoundingClientRect().top + window.scrollY - headerOffset)
+    const behavior: ScrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+
+    window.scrollTo({ top, behavior })
+  }
+
+  async function changePage(targetPage: number) {
+    if (loading || targetPage === page) return
+    const loadedPage = await loadOrders(targetPage)
+    if (loadedPage !== targetPage) return
+    window.requestAnimationFrame(() => scrollToOrdersStart())
+  }
 
   async function cancelOrder(order: CustomerOrder) {
     if (cancellingId || order.status !== 'Pending') return
@@ -147,8 +169,8 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
       {error ? <Alert variant="destructive" className="mt-5"><AlertTitle>Không thể tải đơn</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
 
       {history?.items.length ? <>
-        <div className="mt-7 border-t border-border">{history.items.map(order => <OrderRow key={order.id} order={order} accessToken={session.token} expanded={expandedId === order.id} cancelling={cancellingId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} onCancel={() => void cancelOrder(order)} />)}</div>
-        {history.totalPages > 1 ? <nav className="sera-menu-pagination"><Button variant="outline" disabled={!history.hasPreviousPage || loading} onClick={() => void loadOrders(page - 1)}>Trang trước</Button><span>Trang <strong>{history.pageNumber}</strong> / {history.totalPages}</span><Button variant="outline" disabled={!history.hasNextPage || loading} onClick={() => void loadOrders(page + 1)}>Trang sau</Button></nav> : null}
+        <div ref={ordersListRef} className="mt-7 border-t border-border">{history.items.map(order => <OrderRow key={order.id} order={order} accessToken={session.token} expanded={expandedId === order.id} cancelling={cancellingId === order.id} onToggle={() => setExpandedId(current => current === order.id ? '' : order.id)} onCancel={() => void cancelOrder(order)} />)}</div>
+        {history.totalPages > 1 ? <nav className="sera-menu-pagination"><Button variant="outline" disabled={!history.hasPreviousPage || loading} onClick={() => void changePage(page - 1)}>Trang trước</Button><span>Trang <strong>{history.pageNumber}</strong> / {history.totalPages}</span><Button variant="outline" disabled={!history.hasNextPage || loading} onClick={() => void changePage(page + 1)}>Trang sau</Button></nav> : null}
       </> : history && !loading && hasActiveFilter ? <section className="sera-empty mt-7"><div><Search /><h2>Không thấy đơn phù hợp.</h2><p>Không có đơn nào trong toàn bộ lịch sử khớp bộ lọc hoặc từ khóa hiện tại.</p><Button variant="outline" onClick={() => { setOrderSearch(''); setOrderFilter('all') }}>Xóa bộ lọc</Button></div></section> : history && !loading ? <section className="sera-empty mt-7"><div><PackageOpen /><h2>Chưa có đơn hàng.</h2><p>Khi bạn gọi món hoặc đặt mang về trong lúc đăng nhập, đơn sẽ xuất hiện tại đây.</p><Button onClick={() => navigate('/menu')}>Xem thực đơn</Button></div></section> : <section className="sera-empty mt-7"><div><RefreshCw className="animate-spin" /><h2>Đang tải đơn hàng…</h2></div></section>}
     </main>
   )

@@ -57,6 +57,11 @@ public sealed class CreateTakeawayOrderCommandHandler
                 throw new UnauthorizedAccessException("Tài khoản khách hàng không còn hợp lệ.");
         }
 
+        await CustomerOrderCancellationAbuseGuard.EnsureCanCreateOrderAsync(
+            _context,
+            request.CustomerUserId,
+            cancellationToken);
+
         var recentWindowStart = DateTime.UtcNow.Subtract(CustomerOrderLimits.TakeawayDuplicateWindow);
         var normalizedPhoneNumber = request.PhoneNumber.Trim();
         var recentOpenTakeawayOrders = _context.Orders.AsNoTracking().Where(x =>
