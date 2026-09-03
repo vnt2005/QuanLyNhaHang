@@ -25,7 +25,7 @@ public sealed class DefaultRolePermissionsTests
         "RevenueReports.Manage|Dashboard.View")]
     [InlineData(
         SystemRoles.Cashier,
-        "Orders.View|Payments.View|Payments.Create|Invoices.View|" +
+        "Orders.View|Payments.View|Invoices.View|" +
         "Reservations.View|Reservations.Create|Reservations.Update|" +
         "Reservations.Cancel|Menu.View|Tables.View|Tables.UpdateStatus|" +
         "TableOperations.View|Promotions.View|Promotions.Apply|" +
@@ -107,7 +107,7 @@ public sealed class DefaultRolePermissionsTests
     }
 
     [Fact]
-    public void PaymentRoles_ReserveCounterSettlementForCashierAndLockMutations()
+    public void PaymentRoles_AreViewOnly()
     {
         var manager = DefaultRolePermissions.GetForRole(SystemRoles.Manager);
         var cashier = DefaultRolePermissions.GetForRole(SystemRoles.Cashier);
@@ -119,7 +119,7 @@ public sealed class DefaultRolePermissionsTests
         Assert.DoesNotContain(PermissionCodes.PaymentsCancel, manager);
 
         Assert.Contains(PermissionCodes.PaymentsView, cashier);
-        Assert.Contains(PermissionCodes.PaymentsCreate, cashier);
+        Assert.DoesNotContain(PermissionCodes.PaymentsCreate, cashier);
         Assert.DoesNotContain(PermissionCodes.PaymentsUpdate, cashier);
         Assert.DoesNotContain(PermissionCodes.PaymentsCancel, cashier);
 
