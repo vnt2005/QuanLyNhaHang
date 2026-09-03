@@ -130,7 +130,13 @@ function buildWorksheet(report: RevenueReport) {
     inlineCell('C6', 'Số đơn hàng', 4),
     numberCell('D6', report.totalOrders, 6),
     inlineCell('E6', 'Ngày tạo', 4),
-    inlineCell('F6', new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(report.generatedAt)), 5),
+    inlineCell(
+      'F6',
+      new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(
+        new Date(report.generatedAt),
+      ),
+      5,
+    ),
   ]))
   rows.push(row(7, []))
   rows.push(row(8, [inlineCell('A8', 'TỔNG HỢP TÀI CHÍNH', 3)], 22))
@@ -177,15 +183,21 @@ function buildWorksheet(report: RevenueReport) {
     nextRow += 1
   }
 
+  const noteHeaderRow = nextRow + 1
+  const noteValueRow = nextRow + 2
   rows.push(row(nextRow, []))
-  rows.push(row(nextRow + 1, [inlineCell(`A${nextRow + 1}`, 'GHI CHÚ', 3)], 22))
-  rows.push(row(nextRow + 2, [inlineCell(`A${nextRow + 2}`, report.note?.trim() || 'Không có ghi chú.', 11)], 34))
+  rows.push(row(noteHeaderRow, [inlineCell(`A${noteHeaderRow}`, 'GHI CHÚ', 3)], 22))
+  rows.push(row(
+    noteValueRow,
+    [inlineCell(`A${noteValueRow}`, report.note?.trim() || 'Không có ghi chú.', 11)],
+    34,
+  ))
 
   const lastItemRow = Math.max(15, nextRow - 1)
-  const finalRow = nextRow + 2
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <dimension ref="A1:F${noteValueRow}"/>
   <sheetViews><sheetView workbookViewId="0"><pane ySplit="14" topLeftCell="A15" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
   <sheetFormatPr defaultRowHeight="18"/>
   <cols>
@@ -197,24 +209,25 @@ function buildWorksheet(report: RevenueReport) {
     <col min="6" max="6" width="22" customWidth="1"/>
   </cols>
   <sheetData>${rows.join('')}</sheetData>
-  <mergeCells count="5">
+  <autoFilter ref="A14:C${lastItemRow}"/>
+  <mergeCells count="7">
     <mergeCell ref="A1:F1"/>
     <mergeCell ref="A2:F2"/>
     <mergeCell ref="A4:F4"/>
     <mergeCell ref="A8:F8"/>
     <mergeCell ref="A13:F13"/>
+    <mergeCell ref="A${noteHeaderRow}:F${noteHeaderRow}"/>
+    <mergeCell ref="A${noteValueRow}:F${noteValueRow}"/>
   </mergeCells>
-  <autoFilter ref="A14:C${lastItemRow}"/>
   <pageMargins left="0.4" right="0.4" top="0.55" bottom="0.55" header="0.2" footer="0.2"/>
   <pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>
-  <dimension ref="A1:F${finalRow}"/>
 </worksheet>`
 }
 
 const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <numFmts count="2">
-    <numFmt numFmtId="164" formatCode="#\,##0 [$₫-vi-VN]"/>
+    <numFmt numFmtId="164" formatCode="#,##0 [$₫-vi-VN]"/>
     <numFmt numFmtId="165" formatCode="dd/mm/yyyy"/>
   </numFmts>
   <fonts count="4">
@@ -278,6 +291,10 @@ function pushUint32(target: number[], value: number) {
   target.push(value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff)
 }
 
+function pushBytes(target: number[], bytes: Uint8Array) {
+  for (const byte of bytes) target.push(byte)
+}
+
 function dosDateTime(date: Date) {
   const year = Math.max(1980, date.getFullYear())
   const time = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2)
@@ -309,7 +326,8 @@ function createStoredZip(entries: ZipEntry[]) {
     pushUint32(body, data.length)
     pushUint16(body, name.length)
     pushUint16(body, 0)
-    body.push(...name, ...data)
+    pushBytes(body, name)
+    pushBytes(body, data)
 
     pushUint32(centralDirectory, 0x02014b50)
     pushUint16(centralDirectory, 20)
@@ -328,11 +346,11 @@ function createStoredZip(entries: ZipEntry[]) {
     pushUint16(centralDirectory, 0)
     pushUint32(centralDirectory, 0)
     pushUint32(centralDirectory, offset)
-    centralDirectory.push(...name)
+    pushBytes(centralDirectory, name)
   }
 
   const centralOffset = body.length
-  body.push(...centralDirectory)
+  for (const byte of centralDirectory) body.push(byte)
   pushUint32(body, 0x06054b50)
   pushUint16(body, 0)
   pushUint16(body, 0)
@@ -382,7 +400,7 @@ export function downloadRevenueReportXlsx(report: RevenueReport) {
     {
       name: 'xl/workbook.xml',
       content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Báo cáo doanh thu" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="Báo cáo doanh thu" sheetId="1" r:id="rId1"/></sheets></workbook>`,
     },
     {
       name: 'xl/_rels/workbook.xml.rels',
@@ -395,7 +413,9 @@ export function downloadRevenueReportXlsx(report: RevenueReport) {
 
   const archive = createStoredZip(entries)
   downloadBlob(
-    new Blob([archive], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    new Blob([archive.buffer as ArrayBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }),
     `${safeFileName(report.reportCode)}.xlsx`,
   )
 }
