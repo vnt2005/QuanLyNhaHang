@@ -35,6 +35,7 @@ const methods = [
   'ZaloPay',
   'Other',
 ]
+const counterMethods = methods.filter(value => value !== 'BankTransfer')
 const methodLabels: Record<string, string> = {
   Cash: 'Tiền mặt',
   BankTransfer: 'Chuyển khoản QR/ngân hàng',
@@ -47,9 +48,8 @@ const methodLabels: Record<string, string> = {
 
 function paidAmountLabel(paymentMethod: string) {
   if (paymentMethod === 'Cash') return 'Khách đưa'
-  if (paymentMethod === 'BankTransfer') return 'Đã chuyển khoản'
   if (paymentMethod === 'Card') return 'Đã thanh toán thẻ'
-  return 'Đã thanh toán'
+  return 'Số tiền đã nhận'
 }
 
 function isSettledOnlinePayment(payment: Payment) {
@@ -66,7 +66,7 @@ const percent = (value: number) => new Intl.NumberFormat('vi-VN', { maximumFract
 
 const emptyForm: CreatePaymentForm = {
   orderId: '', discountAmount: 0, serviceChargeAmount: 0, vatAmount: 0, customerPaid: 0,
-  paymentMethod: 'BankTransfer', note: '', issueInvoice: true,
+  paymentMethod: 'Cash', note: '', issueInvoice: true,
 }
 
 export default function PaymentsPage() {
@@ -270,6 +270,14 @@ export default function PaymentsPage() {
     }))
   }
 
+  function changePaymentMethod(paymentMethod: string) {
+    setForm(current => ({
+      ...current,
+      paymentMethod,
+      customerPaid: paymentMethod === 'Cash' ? current.customerPaid : preview.final,
+    }))
+  }
+
   function openCreate() {
     setEditing(null)
     setForm(emptyForm)
@@ -363,8 +371,11 @@ export default function PaymentsPage() {
     event.preventDefault()
     if (promotionApplying) { setError('Vui lòng chờ xử lý mã khuyến mãi.'); return }
     if (!editing && !form.orderId) { setError('Vui lòng chọn đơn hàng.'); return }
+    if (!editing && form.paymentMethod === 'BankTransfer') { setError('Chuyển khoản QR/ngân hàng chỉ được ghi nhận tự động sau khi SePay xác minh giao dịch.'); return }
+    if (!editing && !form.note.trim()) { setError('Vui lòng nhập lý do hoặc thông tin đối chiếu cho thanh toán tại quầy.'); return }
     if (preview.final <= 0) { setError('Số tiền thanh toán phải lớn hơn 0.'); return }
     if (form.customerPaid < preview.final) { setError(`${paidAmountLabel(form.paymentMethod)} chưa đủ.`); return }
+    if (!editing && form.paymentMethod !== 'Cash' && form.customerPaid !== preview.final) { setError('Phương thức không dùng tiền mặt phải ghi nhận đúng số tiền cần thanh toán.'); return }
     setSaving(true); setError(''); setMessage('')
     try {
       const result = editing
@@ -411,7 +422,7 @@ export default function PaymentsPage() {
   }
 
   return <section className="payments-page">
-    <div className="page-toolbar"><div><h2>Quản lý thanh toán</h2><p>Thu tiền, áp dụng giảm giá, phí phục vụ, VAT và xuất hóa đơn theo đơn hàng.</p></div><button className="primary-button" disabled={settingsLoading || promotionUsagesLoading} onClick={openCreate}>+ Thanh toán mới</button></div>
+    <div className="page-toolbar"><div><h2>Quản lý thanh toán</h2><p>Thu tiền tại quầy bằng phương thức hợp lệ. Chuyển khoản QR/ngân hàng chỉ được ghi nhận từ giao dịch SePay đã xác minh.</p></div><button className="primary-button" disabled={settingsLoading || promotionUsagesLoading} onClick={openCreate}>+ Thanh toán mới</button></div>
 
     <div className="payment-summary">
       <article><span>Tổng phù hợp</span><strong>{totalCount}</strong></article>
@@ -444,17 +455,17 @@ export default function PaymentsPage() {
 
     <div className="pagination"><span>Trang {page}/{totalPages} • {totalCount} thanh toán</span><div><button disabled={page <= 1 || loading} onClick={() => void loadPayments(page - 1)}>Trước</button><button disabled={page >= totalPages || loading} onClick={() => void loadPayments(page + 1)}>Sau</button></div></div>
 
-    {modalOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setModalOpen(false)}><div className="employee-modal payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">{editing ? 'CẬP NHẬT GIAO DỊCH' : 'THANH TOÁN'}</span><h2 id="payment-modal-title">{editing ? 'Cập nhật thanh toán' : 'Thanh toán đơn hàng'}</h2><p>{editing ? editing.paymentCode : 'Kiểm tra số tiền và phương thức trước khi xác nhận.'}</p></div><button type="button" aria-label="Đóng" onClick={() => setModalOpen(false)}>×</button></div>
+    {modalOpen && <div className="modal-backdrop" onMouseDown={() => !saving && setModalOpen(false)}><div className="employee-modal payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" onMouseDown={event => event.stopPropagation()}><div className="modal-heading"><div><span className="modal-kicker">{editing ? 'CẬP NHẬT GIAO DỊCH' : 'THANH TOÁN TẠI QUẦY'}</span><h2 id="payment-modal-title">{editing ? 'Cập nhật thanh toán' : 'Thanh toán đơn hàng'}</h2><p>{editing ? editing.paymentCode : 'Chỉ ghi nhận tiền thực tế đã nhận tại quầy. Chuyển khoản QR/ngân hàng do SePay xác minh tự động.'}</p></div><button type="button" aria-label="Đóng" onClick={() => setModalOpen(false)}>×</button></div>
       <form id="payment-form" className="payment-form" onSubmit={submit}>
         {error && <div className="modal-alert error" role="alert">{error}</div>}
         {!editing && <label>Đơn hàng<select required value={form.orderId} onChange={event => changeOrder(event.target.value)}><option value="">Chọn đơn chờ thanh toán</option>{eligibleOrders.map(order => <option key={order.id} value={order.id}>{order.orderCode} • {order.orderType === 'Takeaway' ? `Mang về${order.customerName ? ` - ${order.customerName}` : ''}` : order.restaurantTableName} • {money(order.totalAmount)}</option>)}</select></label>}
-        {!editing && <div className="payment-promotion-controls"><label>Mã khuyến mãi<input value={checkoutPromotionCode} readOnly={Boolean(selectedPromotionUsage)} placeholder="Nhập mã khách cung cấp" autoComplete="off" onChange={event => { setCheckoutPromotionCode(event.target.value.toUpperCase()); setPromotionError('') }} onKeyDown={event => { if (event.key === 'Enter' && !selectedPromotionUsage) { event.preventDefault(); void applyCheckoutPromotion() } }}/></label>{selectedPromotionUsage ? <button type="button" className="remove-promotion-button" disabled={promotionApplying} onClick={() => void removeCheckoutPromotion()}>{promotionApplying ? 'Đang gỡ...' : 'Gỡ mã'}</button> : <button type="button" className="primary-button" disabled={promotionApplying || !form.orderId || !checkoutPromotionCode.trim()} onClick={() => void applyCheckoutPromotion()}>{promotionApplying ? 'Đang áp dụng...' : 'Áp dụng'}</button>}{promotionError ? <small className="payment-promotion-message error" role="alert">{promotionError}</small> : selectedPromotionUsage ? <small className="payment-promotion-message success">Đã áp dụng mã {selectedPromotionUsage.promotionCode}, giảm {money(selectedPromotionUsage.discountAmount)}.</small> : <small className="payment-promotion-message">Nhập mã khách cung cấp; hệ thống sẽ kiểm tra điều kiện trước khi tính tiền.</small>}</div>}
-        <div className="payment-form-grid"><label>Giảm giá<input type="number" aria-label="Giảm giá" min={0} max={preview.total} value={form.discountAmount} readOnly={!editing && Boolean(selectedPromotionUsage)} aria-describedby={!editing && selectedPromotionUsage ? 'applied-promotion-note' : undefined} onChange={event => changeDiscount(Number(event.target.value))}/>{!editing && selectedPromotionUsage ? <small id="applied-promotion-note">Mã {selectedPromotionUsage.promotionCode} đã được tự động áp dụng.</small> : null}</label><label>Phí phục vụ{!editing && selectedOrder?.orderType === 'Takeaway' ? ' (không áp dụng cho mang về)' : !editing && activeSetting ? ` (${percent(activeSetting.serviceChargePercent)}%)` : ''}<input type="number" min={0} value={form.serviceChargeAmount} readOnly={!editing && selectedOrder?.orderType === 'Takeaway'} onChange={event => setForm({...form,serviceChargeAmount:Number(event.target.value)})}/></label><label>VAT{!editing && activeSetting ? ` (${percent(activeSetting.defaultVatPercent)}%)` : ''}<input type="number" min={0} value={form.vatAmount} readOnly={!editing && selectedOrder?.orderType === 'Takeaway'} onChange={event => setForm({...form,vatAmount:Number(event.target.value)})}/></label><label>{paidAmountLabel(form.paymentMethod)}<input type="number" min={0} value={form.customerPaid} onChange={event => setForm({...form,customerPaid:Number(event.target.value)})}/></label><label>Phương thức<select value={form.paymentMethod} onChange={event => setForm({...form,paymentMethod:event.target.value})}>{methods.map(value => <option key={value} value={value}>{methodLabels[value]}</option>)}</select></label></div>
-        <label>Ghi chú<textarea value={form.note} onChange={event => setForm({...form,note:event.target.value})}/></label>
-        {!editing && <p className="invoice-toggle">Hóa đơn được phát hành tự động sau khi thanh toán, kể cả đơn mang về.</p>}
-        <div className="payment-preview"><div><span>Tiền món</span><strong>{money(preview.total)}</strong></div>{!editing && selectedPromotionUsage ? <div><span>Khuyến mãi</span><strong>{selectedPromotionUsage.promotionCode}</strong></div> : null}<div><span>Giảm giá</span><strong>-{money(form.discountAmount)}</strong></div><div><span>Phí phục vụ</span><strong>+{money(form.serviceChargeAmount)}</strong></div><div><span>VAT</span><strong>+{money(form.vatAmount)}</strong></div><div className="final"><span>Khách cần trả</span><strong>{money(preview.final)}</strong></div><div><span>{form.paymentMethod === 'Cash' ? 'Tiền thối' : 'Tiền hoàn lại'}</span><strong>{money(preview.change)}</strong></div></div>
+        {!editing && <div className="payment-promotion-controls"><label>Mã khuyến mãi<input value={checkoutPromotionCode} readOnly={Boolean(selectedPromotionUsage)} placeholder="Nhập mã khách cung cấp" autoComplete="off" onChange={event => { setCheckoutPromotionCode(event.target.value.toUpperCase()); setPromotionError('') }} onKeyDown={event => { if (event.key === 'Enter' && !selectedPromotionUsage) { event.preventDefault(); void applyCheckoutPromotion() } }}/></label>{selectedPromotionUsage ? <button type="button" className="remove-promotion-button" disabled={promotionApplying} onClick={() => void removeCheckoutPromotion()}>{promotionApplying ? 'Đang gỡ...' : 'Gỡ mã'}</button> : <button type="button" className="primary-button" disabled={promotionApplying || !form.orderId || !checkoutPromotionCode.trim()} onClick={() => void applyCheckoutPromotion()}>{promotionApplying ? 'Đang áp dụng...' : 'Áp dụng'}</button>}{promotionError ? <small className="payment-promotion-message error" role="alert">{promotionError}</small> : selectedPromotionUsage ? <small className="payment-promotion-message success">Đã áp dụng mã {selectedPromotionUsage.promotionCode}, giảm {money(selectedPromotionUsage.discountAmount)}.</small> : <small className="payment-promotion-message">Nhập mã khách cung cấp; backend sẽ tính và xác minh lại toàn bộ số tiền trước khi ghi nhận Paid.</small>}</div>}
+        <div className="payment-form-grid"><label>Giảm giá<input type="number" aria-label="Giảm giá" min={0} max={preview.total} value={form.discountAmount} readOnly={!editing} aria-describedby={!editing && selectedPromotionUsage ? 'applied-promotion-note' : undefined} onChange={event => changeDiscount(Number(event.target.value))}/>{!editing && selectedPromotionUsage ? <small id="applied-promotion-note">Mã {selectedPromotionUsage.promotionCode} đã được tự động áp dụng.</small> : null}</label><label>Phí phục vụ{!editing && selectedOrder?.orderType === 'Takeaway' ? ' (không áp dụng cho mang về)' : !editing && activeSetting ? ` (${percent(activeSetting.serviceChargePercent)}%)` : ''}<input type="number" min={0} value={form.serviceChargeAmount} readOnly={!editing} onChange={event => setForm({...form,serviceChargeAmount:Number(event.target.value)})}/></label><label>VAT{!editing && activeSetting ? ` (${percent(activeSetting.defaultVatPercent)}%)` : ''}<input type="number" min={0} value={form.vatAmount} readOnly={!editing} onChange={event => setForm({...form,vatAmount:Number(event.target.value)})}/></label><label>{paidAmountLabel(form.paymentMethod)}<input type="number" min={0} value={form.customerPaid} readOnly={!editing && form.paymentMethod !== 'Cash'} onChange={event => setForm({...form,customerPaid:Number(event.target.value)})}/></label><label>Phương thức<select value={form.paymentMethod} onChange={event => changePaymentMethod(event.target.value)}>{(editing ? methods : counterMethods).map(value => <option key={value} value={value}>{methodLabels[value]}</option>)}</select></label></div>
+        <label>{editing ? 'Ghi chú' : 'Lý do / thông tin đối chiếu'}<textarea required={!editing} value={form.note} placeholder={!editing ? 'Ví dụ: Thu tiền mặt tại quầy; khách thanh toán trực tiếp cho thu ngân.' : undefined} onChange={event => setForm({...form,note:event.target.value})}/></label>
+        {!editing && <p className="invoice-toggle">Hóa đơn được phát hành tự động sau khi backend xác minh số tiền. Giao dịch QR/ngân hàng chỉ chuyển sang Paid từ payment attempt + webhook SePay hợp lệ.</p>}
+        <div className="payment-preview"><div><span>Tiền món</span><strong>{money(preview.total)}</strong></div>{!editing && selectedPromotionUsage ? <div><span>Khuyến mãi</span><strong>{selectedPromotionUsage.promotionCode}</strong></div> : null}<div><span>Giảm giá</span><strong>-{money(form.discountAmount)}</strong></div><div><span>Phí phục vụ</span><strong>+{money(form.serviceChargeAmount)}</strong></div><div><span>VAT</span><strong>+{money(form.vatAmount)}</strong></div><div className="final"><span>Khách cần trả</span><strong>{money(preview.final)}</strong></div><div><span>{form.paymentMethod === 'Cash' ? 'Tiền thối' : 'Chênh lệch'}</span><strong>{money(preview.change)}</strong></div></div>
       </form>
-      <div className="modal-actions modal-footer"><button type="button" onClick={() => setModalOpen(false)}>Đóng</button><button type="submit" form="payment-form" className="primary-button" disabled={saving || promotionApplying}>{saving ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Xác nhận thanh toán'}</button></div>
+      <div className="modal-actions modal-footer"><button type="button" onClick={() => setModalOpen(false)}>Đóng</button><button type="submit" form="payment-form" className="primary-button" disabled={saving || promotionApplying}>{saving ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Xác nhận đã thu tại quầy'}</button></div>
     </div></div>}
   </section>
 }
