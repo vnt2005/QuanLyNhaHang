@@ -21,6 +21,16 @@ export type Payment = {
   updatedAt?: string | null
 }
 
+export type EligibleCounterPaymentOrder = {
+  id: string
+  orderCode: string
+  orderType: 'DineIn' | 'Takeaway'
+  restaurantTableName: string
+  customerName?: string | null
+  status: 'Ready' | 'Served'
+  totalAmount: number
+}
+
 export type PaginatedPayments = {
   items: Payment[]
   pageNumber: number
@@ -78,6 +88,10 @@ export function getPayments(keyword = '', status = '', paymentMethod = '', pageN
   if (status) params.set('status', status)
   if (paymentMethod) params.set('paymentMethod', paymentMethod)
   return request<PaginatedPayments>(`/api/payments/paginated?${params}`)
+}
+
+export function getEligibleCounterPaymentOrders() {
+  return request<EligibleCounterPaymentOrder[]>('/api/payments/eligible-counter-orders')
 }
 
 export function createPayment(form: CreatePaymentForm) {
