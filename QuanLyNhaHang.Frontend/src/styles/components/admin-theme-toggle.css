@@ -1,0 +1,78 @@
+.admin-theme-toggle {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 190;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  gap: 8px;
+  padding: 0 13px 0 10px;
+  color: #405069;
+  border: 1px solid #d7e0e8;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(14px);
+  font-size: 12px;
+  font-weight: 800;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.admin-theme-toggle:hover {
+  color: #1d4ed8;
+  border-color: #a9c8f8;
+  transform: translateY(-1px);
+}
+
+.admin-theme-toggle-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.admin-theme-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+html[data-admin-theme='dark'] .admin-theme-toggle {
+  color: #d7e2ef;
+  border-color: #263852;
+  background: rgba(8, 19, 35, 0.94);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+}
+
+html[data-admin-theme='dark'] .admin-theme-toggle:hover {
+  color: #f8fafc;
+  border-color: #3b5273;
+  background: rgba(13, 29, 51, 0.97);
+}
+
+html[data-admin-theme='dark'] .admin-theme-toggle-icon {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.14);
+}
+
+@media (max-width: 760px) {
+  .admin-theme-toggle {
+    right: 14px;
+    bottom: 14px;
+    width: 44px;
+    padding: 0;
+  }
+
+  .admin-theme-toggle-label {
+    display: none;
+  }
+}
