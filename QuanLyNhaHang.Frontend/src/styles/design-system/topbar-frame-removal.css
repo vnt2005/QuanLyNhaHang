@@ -1,10 +1,10 @@
 /* Shared Admin shell/header cleanup --------------------------------------
-   Keep layout and controls intact, but remove framed header surfaces across
-   Admin modules in both themes. The global topbar also scrolls with content
-   instead of sticking over each module. */
+   This file is imported last on purpose. Several legacy light/dark sheets use
+   high-specificity !important paint for toolbars, so the selectors below are
+   intentionally stronger and only remove the outer heading frame. Feature
+   layout, CTA buttons and business behavior stay untouched. */
 
-html[data-admin-theme='light'] .admin-layout > .dashboard > .topbar,
-html[data-admin-theme='dark'] .admin-layout > .dashboard > .topbar {
+html[data-admin-theme] body .admin-layout > .dashboard > .topbar {
   position: static !important;
   top: auto !important;
   z-index: auto !important;
@@ -19,9 +19,30 @@ html[data-admin-theme='dark'] .admin-layout > .dashboard > .topbar {
   -webkit-backdrop-filter: none !important;
 }
 
-/* Remove the full-width card/frame around module titles and primary actions.
-   These are the shared heading containers used by the Admin feature pages. */
-.admin-layout > .dashboard
+/* Module title/action rows. The extra [class] raises specificity above the
+   light-theme regression safety net which otherwise paints every *-toolbar
+   as a white card. Apply to both light and dark themes. */
+html[data-admin-theme] body .admin-layout .dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-qr-page
+  )
   :is(
     .page-toolbar,
     .customers-heading,
@@ -34,8 +55,9 @@ html[data-admin-theme='dark'] .admin-layout > .dashboard > .topbar {
     .table-qr-toolbar,
     .account-security-header,
     .kitchen-toolbar,
+    .space-page-heading,
     .revenue-command-bar
-  ) {
+  )[class] {
   border: 0 !important;
   border-top: 0 !important;
   border-right: 0 !important;
@@ -50,22 +72,101 @@ html[data-admin-theme='dark'] .admin-layout > .dashboard > .topbar {
   -webkit-backdrop-filter: none !important;
 }
 
-/* Payments owns a high-specificity dark topbar skin. In light mode it must not
-   leak onto the shared account/logout/theme controls or make the title white. */
-html[data-admin-theme='light'] .dashboard:has(.payments-page) .topbar .eyebrow {
+html[data-admin-theme] body .admin-layout .dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-qr-page
+  )
+  :is(
+    .page-toolbar,
+    .customers-heading,
+    .activity-logs-heading,
+    .scheduling-header,
+    .inventory-toolbar,
+    .promotions-toolbar,
+    .reservations-toolbar,
+    .restaurant-settings-toolbar,
+    .table-qr-toolbar,
+    .account-security-header,
+    .kitchen-toolbar,
+    .space-page-heading,
+    .revenue-command-bar
+  )[class]::before,
+html[data-admin-theme] body .admin-layout .dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-qr-page
+  )
+  :is(
+    .page-toolbar,
+    .customers-heading,
+    .activity-logs-heading,
+    .scheduling-header,
+    .inventory-toolbar,
+    .promotions-toolbar,
+    .reservations-toolbar,
+    .restaurant-settings-toolbar,
+    .table-qr-toolbar,
+    .account-security-header,
+    .kitchen-toolbar,
+    .space-page-heading,
+    .revenue-command-bar
+  )[class]::after {
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Payments has a page-specific dark topbar skin with !important rules. The
+   controls below must use the light palette whenever the explicit theme is
+   light; otherwise profile/logout/theme toggle remain navy/black. */
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .eyebrow {
   color: #2563eb !important;
 }
 
-html[data-admin-theme='light'] .dashboard:has(.payments-page) .topbar h1,
-html[data-admin-theme='light'] .dashboard:has(.payments-page) .topbar .profile-button strong {
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar h1,
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .profile-button strong {
   color: #172033 !important;
 }
 
-html[data-admin-theme='light'] .dashboard:has(.payments-page) .topbar .profile-button small {
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .profile-button small {
   color: #748399 !important;
 }
 
-html[data-admin-theme='light'] .dashboard:has(.payments-page) .topbar button {
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .topbar-actions
+  :is(.notification-trigger, .profile-button, .logout, .admin-theme-toggle)[class] {
   color: #405069 !important;
   border-color: #dfe6ee !important;
   background: #ffffff !important;
@@ -74,10 +175,13 @@ html[data-admin-theme='light'] .dashboard:has(.payments-page) .topbar button {
   box-shadow: 0 2px 8px rgb(15 23 42 / 4%) !important;
 }
 
-html[data-admin-theme='light'] .dashboard:has(.payments-page) .topbar button:hover:not(:disabled),
-html[data-admin-theme='light'] .dashboard:has(.payments-page) .topbar .profile-button.active {
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .topbar-actions
+  :is(.notification-trigger, .profile-button, .logout, .admin-theme-toggle)[class]:hover:not(:disabled),
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .topbar-actions
+  .profile-button.active[class] {
   color: #172033 !important;
   border-color: #c8d2de !important;
   background: #f7f9fc !important;
   background-color: #f7f9fc !important;
+  background-image: none !important;
 }
