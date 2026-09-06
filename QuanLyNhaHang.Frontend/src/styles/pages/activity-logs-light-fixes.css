@@ -1,0 +1,304 @@
+/* Activity Logs light-mode regression fixes -----------------------------
+   activity-logs-dark.css and activity-logs-final-fix.css intentionally own
+   geometry/sticky behavior. Keep that layout, but neutralize every dark paint
+   when the explicit Admin theme is light. */
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) {
+  --activity-bg: #f3f6fa;
+  --activity-bg-deep: #f3f6fa;
+  --activity-surface: #ffffff;
+  --activity-surface-raised: #f8fafc;
+  --activity-input: #ffffff;
+  --activity-border: #dfe6ee;
+  --activity-border-soft: #e8edf3;
+  --activity-text: #172033;
+  --activity-text-soft: #52657a;
+  --activity-muted: #748399;
+  --activity-orange: #ff9800;
+  --activity-orange-hover: #f59e0b;
+  --activity-teal: #10b981;
+  --activity-blue: #3b82f6;
+  --activity-purple: #8b5cf6;
+  --activity-danger: #d13f57;
+  color-scheme: light !important;
+}
+
+/* Table canvas / sticky action column ----------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard :is(.activity-table-wrap, .activity-table, .activity-table tbody) {
+  color: #52657a !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-table tbody :is(tr, td),
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-table tbody tr:nth-child(even) > td {
+  color: #52657a !important;
+  border-bottom-color: #e8edf3 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-table tbody tr:hover > td,
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-table tbody tr:nth-child(even):hover > td {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-table th {
+  color: #66778b !important;
+  border-bottom-color: #dfe6ee !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-table td strong {
+  color: #263449 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-table td small,
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-description {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-table th:last-child,
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-table td:last-child:not([colspan]) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: -0.65rem 0 1rem rgb(15 23 42 / 6%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-table th:last-child {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-table tbody tr:hover > td:last-child:not([colspan]) {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+/* Row actions retain semantic colors, but never a navy button canvas. */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-row-actions button:not(.danger) {
+  color: #42658b !important;
+  border-color: #cfe0f3 !important;
+  background: #f5f9ff !important;
+  background-color: #f5f9ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-row-actions button:not(.danger):hover:not(:disabled) {
+  color: #1d4f82 !important;
+  border-color: #a9c8e8 !important;
+  background: #eaf3fd !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-row-actions .danger {
+  color: #d13f57 !important;
+  border-color: #f3c2cc !important;
+  background: #fff4f6 !important;
+  background-color: #fff4f6 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-row-actions .danger:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #d13f57 !important;
+  background: #d13f57 !important;
+}
+
+/* Pagination ------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-pagination {
+  color: #52657a !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-pagination button {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-pagination button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #f4b55f !important;
+  background: #fff8ed !important;
+  background-color: #fff8ed !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-pagination button:disabled {
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  opacity: 1 !important;
+}
+
+/* Detail modal ----------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal {
+  color: #263449 !important;
+  border-color: #d9e2ec !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  scrollbar-color: #c8d2de transparent !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal > header {
+  color: #263449 !important;
+  border-bottom-color: #e4eaf1 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 0 #e4eaf1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal > header h3 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal > header button {
+  color: #64748b !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal > header button:hover {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-detail-grid > div,
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-detail-description,
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-json-grid > article {
+  color: #52657a !important;
+  border-color: #dfe6ee !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  :is(.activity-detail-grid span, .activity-detail-description span, .activity-json-grid > article > span) {
+  color: #64748b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-detail-grid strong,
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-detail-grid .agent-text {
+  color: #263449 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-detail-grid small,
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-detail-description p {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-json-grid pre {
+  color: #263449 !important;
+  border-color: #dbe4ec !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: inset 0 1px 2px rgb(15 23 42 / 3%) !important;
+  scrollbar-color: #c8d2de transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal > footer {
+  border-top-color: #e4eaf1 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 -0.8rem 1.5rem rgb(15 23 42 / 6%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal > footer .danger {
+  color: #d13f57 !important;
+  border-color: #f3c2cc !important;
+  background: #fff4f6 !important;
+  background-color: #fff4f6 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-modal > footer .danger:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #d13f57 !important;
+  background: #d13f57 !important;
+}
+
+/* Activity-specific guard for the shared destructive confirm. */
+html[data-admin-theme='light'] body:has(.activity-logs-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.activity-logs-page) .ds-confirm-dialog.danger {
+  color: #263449 !important;
+  border-color: #e8d9de !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body:has(.activity-logs-page) .ds-confirm-dialog::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.activity-logs-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
