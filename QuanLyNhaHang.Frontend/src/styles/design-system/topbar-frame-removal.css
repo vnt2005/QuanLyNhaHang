@@ -1,10 +1,13 @@
-/* Shared Admin topbar frame removal ---------------------------------------
+/* Shared Admin topbar cleanup --------------------------------------------
    The topbar is rendered for every Admin module. Keep its layout/spacing and
-   controls, but remove the full-width framed surface in both light and dark
-   themes so the header blends into the page background. */
+   controls, but remove the framed surface in both themes and let it scroll
+   away with the page instead of sticking over module content. */
 
 html[data-admin-theme='light'] .admin-layout > .dashboard > .topbar,
 html[data-admin-theme='dark'] .admin-layout > .dashboard > .topbar {
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
   border: 0 !important;
   border-bottom: 0 !important;
   background: transparent !important;
