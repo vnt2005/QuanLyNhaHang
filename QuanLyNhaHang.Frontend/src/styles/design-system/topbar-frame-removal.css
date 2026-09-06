@@ -149,6 +149,29 @@ html[data-admin-theme] body .admin-layout .dashboard
   box-shadow: none !important;
 }
 
+/* Orders and Payments were still receiving a white full-page surface from
+   historical page paint. Remove only that outer wrapper so the page background
+   shows through; KPI/filter/table cards keep their own intended surfaces. */
+html[data-admin-theme] body .admin-layout .dashboard > .orders-page[class],
+html[data-admin-theme] body .admin-layout .dashboard > .payments-page[class] {
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard > .orders-page[class]::before,
+html[data-admin-theme] body .admin-layout .dashboard > .orders-page[class]::after,
+html[data-admin-theme] body .admin-layout .dashboard > .payments-page[class]::before,
+html[data-admin-theme] body .admin-layout .dashboard > .payments-page[class]::after {
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
 /* Payments has a page-specific dark topbar skin with !important rules. The
    controls below must use the light palette whenever the explicit theme is
    light; otherwise profile/logout/theme toggle remain navy/black. */
@@ -184,4 +207,42 @@ html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboa
   background: #f7f9fc !important;
   background-color: #f7f9fc !important;
   background-image: none !important;
+}
+
+/* The payment dark skin also repaints the search field on focus. In light
+   mode hover/focus must stay light instead of flashing navy/black. */
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input[class],
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input:not([class]) {
+  color: #263449 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #263449 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input:hover,
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input:focus,
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input:focus-visible {
+  color: #172033 !important;
+  border-color: #7aa7e8 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #172033 !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%) !important;
+  outline: 0 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input::placeholder {
+  color: #8b99aa !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #8b99aa !important;
 }
