@@ -104,3 +104,6 @@
 @import './pages/account-security-light-fixes.css';
 @import './pages/ai-assistant-light-fixes.css';
 @import './pages/restaurant-settings-light-fixes.css';
+
+/* Shared shell cleanup must run last for both light and dark themes. */
+@import './design-system/topbar-frame-removal.css';
