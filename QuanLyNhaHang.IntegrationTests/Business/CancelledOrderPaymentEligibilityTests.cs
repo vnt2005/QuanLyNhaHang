@@ -68,16 +68,6 @@ public sealed class CancelledOrderPaymentEligibilityTests
             null);
         order.UpdateTotalAmount(100_000m);
 
-        var payment = new Payment(
-            order.Id,
-            100_000m,
-            0m,
-            0m,
-            100_000m,
-            "BankTransfer",
-            "SePay | transactionId=verified-test",
-            0m);
-
         var attempt = new PaymentAttempt(
             order.Id,
             "SePay",
@@ -88,7 +78,19 @@ public sealed class CancelledOrderPaymentEligibilityTests
             $"test-{Guid.NewGuid():N}",
             "https://pay.sepay.vn/test",
             "PENDING");
-        attempt.MarkPaid(payment.Id, 100_000m, $"txn-{Guid.NewGuid():N}");
+
+        var providerReference = $"txn-{Guid.NewGuid():N}";
+        var payment = new Payment(
+            order.Id,
+            100_000m,
+            0m,
+            0m,
+            100_000m,
+            "BankTransfer",
+            $"SePay | transactionId=verified-test | reference={providerReference} | gateway=TEST | attempt={attempt.Id}",
+            0m);
+
+        attempt.MarkPaid(payment.Id, 100_000m, providerReference);
 
         context.Orders.Add(order);
         context.Payments.Add(payment);
