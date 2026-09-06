@@ -1,0 +1,227 @@
+/* Menu management light-mode regression fixes ----------------------------
+   menu-management-dark.css is intentionally dark-first and uses strong page
+   selectors. Keep its layout/spacing, but repaint remaining dark surfaces
+   only when the Admin theme is light. */
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) {
+  color-scheme: light !important;
+}
+
+/* Item image/placeholder column ----------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .menu-page .menu-image-wrap {
+  border-right: 1px solid #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .menu-page .menu-image-wrap img,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .menu-page .menu-image-placeholder {
+  color: #f59e0b !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 5%) !important;
+}
+
+/* Add/edit item and category modals ------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .modal-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal {
+  color: #263449 !important;
+  border-color: #d7e0ea !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .modal-heading {
+  color: #263449 !important;
+  border-bottom-color: #e3e9f0 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .modal-heading h2 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .modal-heading p {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .modal-heading button {
+  color: #64748b !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .modal-heading button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .employee-form {
+  color: #263449 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .employee-form label {
+  color: #52657a !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .employee-form :is(input, select, textarea) {
+  color: #263449 !important;
+  border-color: #cfd9e5 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-text-fill-color: #263449 !important;
+  color-scheme: light !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .employee-form :is(input, textarea)::placeholder {
+  color: #8a98aa !important;
+  -webkit-text-fill-color: #8a98aa !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .employee-form select option {
+  color: #263449 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .employee-form :is(input, select, textarea):focus {
+  border-color: #f0a12b !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgb(245 158 11 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .modal-actions {
+  border-top-color: #e3e9f0 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .modal-actions > button[type='button'] {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .employee-modal.menu-modal .modal-actions > button[type='button']:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+/* Pagination ------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .menu-page .pagination {
+  color: #52657a !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .menu-page .pagination button {
+  color: #42556c !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .menu-page .pagination button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .menu-page .pagination button:disabled {
+  color: #96a2b2 !important;
+  border-color: #e2e8f0 !important;
+  background: #f1f5f9 !important;
+  opacity: 1 !important;
+}
+
+/* Shared confirmations opened from the menu page ------------------------ */
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-dialog.danger {
+  color: #263449 !important;
+  border-color: #ead9de !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-dialog::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-copy h2 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-copy p {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-actions button:first-child {
+  color: #42556c !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.menu-page) .ds-confirm-actions button:first-child:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
