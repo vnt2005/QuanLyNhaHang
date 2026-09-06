@@ -1,0 +1,211 @@
+/* Kitchen light-mode regression fixes -----------------------------------
+   kitchen.css and kitchen-dark-overrides.css are dark-first and use
+   high-specificity selectors. Keep their layout, but repaint the remaining
+   controls/cards only when the Admin theme is light. */
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-live-stats > span {
+  color: #52657a !important;
+  border-color: #d8e2ec !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-live-stats strong {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls {
+  color: #263449 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-tabs {
+  border-color: #d8e2ec !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-tabs button {
+  color: #708198 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-tabs button.active {
+  color: #2563eb !important;
+  border-color: #bfd3f5 !important;
+  background: #eef5ff !important;
+  background-color: #eef5ff !important;
+  background-image: none !important;
+  box-shadow: inset 0 0 0 1px #c8d9f4 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls .kitchen-search {
+  color: #708198 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search input,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls .kitchen-search input {
+  color: #263449 !important;
+  background: transparent !important;
+  -webkit-text-fill-color: #263449 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search input::placeholder {
+  color: #8392a7 !important;
+  -webkit-text-fill-color: #8392a7 !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls > select {
+  color: #263449 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color-scheme: light !important;
+  -webkit-text-fill-color: #263449 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls > select option {
+  color: #263449 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls > select:hover,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search:hover {
+  border-color: #bdc9d6 !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls > select:focus,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search:focus-within {
+  border-color: #7aa7ef !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 10%) !important;
+}
+
+/* History rows ----------------------------------------------------------- */
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-order {
+  color: #263449 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 4px 14px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-order > header {
+  color: #172033 !important;
+  border-bottom-color: #e4eaf1 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-order > header strong,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-item strong {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-order header span,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-item span {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-item {
+  border-bottom-color: #edf1f5 !important;
+  background: #ffffff !important;
+}
+
+/* Counts / quantities ---------------------------------------------------- */
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-count,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .ticket-quantity {
+  color: #355f91 !important;
+  border-color: #c9d9eb !important;
+  background: #eef5fb !important;
+  background-color: #eef5fb !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.cooking .kitchen-count {
+  color: #b45309 !important;
+  border-color: #f4d2aa !important;
+  background: #fff7ed !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.ready .kitchen-count {
+  color: #0f8a70 !important;
+  border-color: #b9e7db !important;
+  background: #ecfdf8 !important;
+}
+
+/* Shared cancel confirmation -------------------------------------------- */
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-dialog.danger {
+  color: #263449 !important;
+  border-color: #ead9de !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-dialog::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-copy h2 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-copy p {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-actions button:first-child {
+  color: #42556c !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.kitchen-page) .ds-confirm-actions button:first-child:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
