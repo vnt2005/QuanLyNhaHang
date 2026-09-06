@@ -1,0 +1,221 @@
+/* Orders light-mode regression fixes ------------------------------------
+   The Orders dark skin owns modal/confirm geometry with high-specificity
+   !important rules. Keep that geometry, but repaint it only in light mode. */
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) {
+  --orders-override-bg: #f3f6fa;
+  --orders-override-surface: #ffffff;
+  --orders-override-surface-2: #f8fafc;
+  --orders-override-border: #dfe6ee;
+  --orders-override-border-strong: #cbd6e2;
+  --orders-override-text: #172033;
+  --orders-override-soft: #52657a;
+  --orders-override-muted: #748399;
+  --orders-override-accent: #ff9800;
+  --orders-override-danger: #d13f57;
+  color-scheme: light !important;
+}
+
+/* Detail modal ----------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .modal-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal {
+  color: #263449 !important;
+  border-color: #d7e0ea !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  color-scheme: light !important;
+  scrollbar-color: #c6d0dc transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-heading {
+  color: #263449 !important;
+  border-bottom-color: #e3e9f0 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-heading h2 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-heading p {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-heading > button {
+  color: #64748b !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-heading > button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .order-detail-content {
+  color: #263449 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .order-detail-section {
+  color: #263449 !important;
+  border-color: #e0e7ef !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 4px 14px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .order-detail-section-heading h3,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .detail-item strong {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .order-detail-section-heading small,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .detail-item span,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .detail-item-actions label {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .detail-item {
+  color: #263449 !important;
+  border-color: #e0e7ef !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  :is(
+    .employee-modal.order-detail-modal .detail-note textarea,
+    .employee-modal.order-detail-modal .add-order-item input,
+    .employee-modal.order-detail-modal .add-order-item select,
+    .employee-modal.order-detail-modal .detail-item-actions input
+  ) {
+  color: #263449 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #263449 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-footer {
+  color: #263449 !important;
+  border-top-color: #e3e9f0 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 -8px 18px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-footer button {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-footer button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+/* Delete/cancel confirmation -------------------------------------------- */
+html[data-admin-theme='light'] body:has(.orders-page) .ds-confirm-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.orders-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.orders-page) .ds-confirm-dialog.danger {
+  color: #263449 !important;
+  border-color: #ead9de !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body:has(.orders-page) .ds-confirm-dialog::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.orders-page) .ds-confirm-copy h2 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] body:has(.orders-page) .ds-confirm-copy p {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] body:has(.orders-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.orders-page)
+  .ds-confirm-actions button:first-child {
+  color: #42556c !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.orders-page)
+  .ds-confirm-actions button:first-child:hover {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
