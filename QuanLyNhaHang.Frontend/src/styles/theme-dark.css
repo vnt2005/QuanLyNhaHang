@@ -67,8 +67,181 @@
 
 html,
 body,
-#root {
+#root,
+.admin-layout,
+.dashboard {
   background: var(--ds-color-bg);
+}
+
+.admin-layout > .sidebar {
+  color: #dbe6f3;
+  border-right-color: #18283f;
+  background: linear-gradient(180deg, #081323, #050b18);
+}
+
+.admin-layout > .sidebar .logo strong,
+.admin-layout > .sidebar .system-status strong {
+  color: #f8fafc;
+}
+
+.admin-layout > .sidebar .logo small,
+.admin-layout > .sidebar .nav-section-label,
+.admin-layout > .sidebar .system-status small {
+  color: #7488a1;
+}
+
+.admin-layout > .sidebar nav button {
+  color: #a9b8ca;
+}
+
+.admin-layout > .sidebar nav button:hover {
+  color: #eef5fc;
+  background: #0d1a2d;
+}
+
+.dashboard > .topbar {
+  border-bottom-color: #18283f;
+  background: rgba(8, 19, 35, 0.96);
+}
+
+.dashboard > .topbar .eyebrow,
+.dashboard > .topbar .profile-button small {
+  color: #7488a1;
+}
+
+.dashboard > .topbar h1,
+.dashboard > .topbar .profile-button strong {
+  color: #f8fafc;
+}
+
+.dashboard > .topbar .profile-button,
+.dashboard > .topbar .logout,
+.notification-trigger {
+  color: #cbd5e1;
+  border-color: #20314a;
+  background: #0b1628;
+}
+
+.dashboard > .topbar .profile-button:hover,
+.dashboard > .topbar .logout:hover:not(:disabled),
+.notification-trigger:hover,
+.notification-trigger.active {
+  color: #f8fafc;
+  border-color: #334968;
+  background: #111f34;
+}
+
+.notification-badge {
+  border-color: #081323;
+}
+
+.notification-panel,
+.notification-toast {
+  color: #dbe6f3;
+  border-color: #22334d;
+  background: #081323;
+  box-shadow: 0 26px 68px rgba(0, 0, 0, 0.46);
+}
+
+.notification-panel-header,
+.notification-tabs {
+  background: #0b1628;
+}
+
+.notification-panel-header h2,
+.notification-copy strong,
+.notification-empty strong,
+.notification-toast-main strong {
+  color: #eef5fc;
+}
+
+.notification-panel-header span,
+.notification-copy > span,
+.notification-toast-main > span > span {
+  color: #a6b6c9;
+}
+
+.notification-copy small,
+.notification-empty,
+.notification-realtime {
+  color: #7488a1;
+}
+
+.notification-panel-header button,
+.notification-tabs button.active,
+.notification-toast-main small {
+  color: #7dd3fc;
+  background: transparent;
+}
+
+.notification-panel-header button:hover:not(:disabled) {
+  color: #bae6fd;
+  background: transparent;
+}
+
+.notification-tabs {
+  border-bottom-color: #1d2c42;
+}
+
+.notification-tabs button {
+  color: #8da0ba;
+  background: transparent;
+}
+
+.notification-tabs button:hover:not(:disabled) {
+  color: #dce7f4;
+  background: #111f34;
+}
+
+.notification-tabs button.active {
+  background: #11233a;
+}
+
+.notification-list,
+.notification-empty {
+  background: #081323;
+}
+
+.notification-item {
+  color: #dbe6f3;
+  border-bottom-color: #1d2c42;
+  background: #081323;
+}
+
+.notification-item:hover {
+  background: #0d1a2d;
+}
+
+.notification-item.unread {
+  background: #0b2034;
+}
+
+.notification-item.unread:hover {
+  background: #102a43;
+}
+
+.notification-realtime {
+  border-top-color: #1d2c42;
+  background: #07111f;
+}
+
+.notification-toast-main,
+.notification-toast-close {
+  color: inherit;
+  background: transparent;
+}
+
+.notification-toast-main:hover {
+  background: #0d1a2d;
+}
+
+.notification-toast-close {
+  color: #8da0ba;
+}
+
+.notification-toast-close:hover {
+  color: #f8fafc;
+  background: #111f34;
 }
 
 /* Inventory did not have a dedicated dark skin yet. Keep its current layout
