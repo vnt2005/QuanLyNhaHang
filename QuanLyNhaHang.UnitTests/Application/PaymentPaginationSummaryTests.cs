@@ -25,15 +25,6 @@ public sealed class PaymentPaginationSummaryTests
         {
             var amount = index * 10_000m;
             var orderId = Guid.NewGuid();
-            var payment = new Payment(
-                orderId,
-                amount,
-                0,
-                0,
-                amount,
-                "BankTransfer",
-                $"SePay | transactionId=verified-{index}");
-
             var attempt = new PaymentAttempt(
                 orderId,
                 "SePay",
@@ -44,10 +35,21 @@ public sealed class PaymentPaginationSummaryTests
                 $"payment-link-{index}",
                 $"https://pay.sepay.vn/test/{index}",
                 "PENDING");
+
+            var transactionId = $"transaction-{index}";
+            var payment = new Payment(
+                orderId,
+                amount,
+                0,
+                0,
+                amount,
+                "BankTransfer",
+                $"SePay | transactionId={transactionId} | reference=bank-ref-{index} | gateway=SePay | attempt={attempt.Id}");
+
             attempt.MarkPaid(
                 payment.Id,
                 amount,
-                $"transaction-{index}");
+                transactionId);
 
             verifiedPayments.Add(payment);
             attempts.Add(attempt);
@@ -109,15 +111,6 @@ public sealed class PaymentPaginationSummaryTests
 
         const decimal amount = 10_000m;
         var orderId = Guid.NewGuid();
-        var payment = new Payment(
-            orderId,
-            amount,
-            0,
-            0,
-            amount,
-            "BankTransfer",
-            "SePay | transactionId=legacy-manual-webapp");
-
         var legacyAttempt = new PaymentAttempt(
             orderId,
             "SePay",
@@ -129,8 +122,17 @@ public sealed class PaymentPaginationSummaryTests
             "https://pay.sepay.vn/legacy",
             "PENDING");
 
-        // Mô phỏng dữ liệu cũ từng bị Web App tự ghi Paid: có attempt và PaymentId,
-        // nhưng không có transaction id do webhook SePay cung cấp.
+        var payment = new Payment(
+            orderId,
+            amount,
+            0,
+            0,
+            amount,
+            "BankTransfer",
+            $"SePay | transactionId=legacy-manual-webapp | reference=legacy | gateway=SePay | attempt={legacyAttempt.Id}");
+
+        // Mô phỏng dữ liệu cũ từng bị Web App tự ghi Paid: note trông giống SePay,
+        // có attempt và PaymentId nhưng không có transaction id do webhook cung cấp.
         legacyAttempt.MarkPaid(payment.Id, amount, null, "PAID");
 
         context.Payments.Add(payment);
