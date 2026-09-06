@@ -8,6 +8,9 @@ public static class VerifiedSePayPaymentPolicy
 {
     public const string Provider = "SePay";
     public const string WebhookNotePrefix = "SePay | transactionId=";
+    public const string ReferenceMarker = " | reference=";
+    public const string GatewayMarker = " | gateway=";
+    public const string AttemptMarker = " | attempt=";
 
     public static IQueryable<Payment> Apply(
         IQueryable<Payment> payments,
@@ -18,6 +21,9 @@ public static class VerifiedSePayPaymentPolicy
             payment.PaymentMethod == "BankTransfer" &&
             payment.Note != null &&
             payment.Note.StartsWith(WebhookNotePrefix) &&
+            payment.Note.Contains(ReferenceMarker) &&
+            payment.Note.Contains(GatewayMarker) &&
+            payment.Note.Contains(AttemptMarker) &&
             context.PaymentAttempts.Any(attempt =>
                 attempt.PaymentId == payment.Id &&
                 attempt.OrderId == payment.OrderId &&
@@ -30,7 +36,8 @@ public static class VerifiedSePayPaymentPolicy
                 attempt.ProviderStatus == "PAID" &&
                 attempt.Amount == payment.FinalAmount &&
                 attempt.ReceivedAmount == payment.FinalAmount &&
-                attempt.PaidAt != null));
+                attempt.PaidAt != null &&
+                payment.Note.Contains(attempt.ProviderReference)));
     }
 
     public static async Task<bool> IsVerifiedAsync(
@@ -41,7 +48,10 @@ public static class VerifiedSePayPaymentPolicy
         if (payment.Status != "Paid" ||
             payment.PaymentMethod != "BankTransfer" ||
             string.IsNullOrWhiteSpace(payment.Note) ||
-            !payment.Note.StartsWith(WebhookNotePrefix, StringComparison.Ordinal))
+            !payment.Note.StartsWith(WebhookNotePrefix, StringComparison.Ordinal) ||
+            !payment.Note.Contains(ReferenceMarker, StringComparison.Ordinal) ||
+            !payment.Note.Contains(GatewayMarker, StringComparison.Ordinal) ||
+            !payment.Note.Contains(AttemptMarker, StringComparison.Ordinal))
         {
             return false;
         }
@@ -60,7 +70,8 @@ public static class VerifiedSePayPaymentPolicy
                 attempt.ProviderStatus == "PAID" &&
                 attempt.Amount == payment.FinalAmount &&
                 attempt.ReceivedAmount == payment.FinalAmount &&
-                attempt.PaidAt != null,
+                attempt.PaidAt != null &&
+                payment.Note.Contains(attempt.ProviderReference),
                 cancellationToken);
     }
 }
