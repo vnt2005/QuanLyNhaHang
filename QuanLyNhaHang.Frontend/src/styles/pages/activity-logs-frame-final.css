@@ -1,0 +1,104 @@
+/* Final Activity Logs frame removal --------------------------------------
+   Loaded after all activity light/dark/row-spacing styles. The audit controls
+   and row cards should sit directly on the page background, not inside one
+   large white/navy container. Visual only. */
+
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page,
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page .activity-panel {
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page::before,
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page::after,
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page .activity-panel::before,
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page .activity-panel::after {
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Filter controls float directly on the page. */
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page .activity-filters {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove the white/navy canvas behind the separated rows. This canvas was the
+   remaining "large frame" even after the wrapper border had been removed. */
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page .activity-table-wrap,
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page .activity-table,
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page .activity-table tbody {
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep the table heading readable as a simple strip while body row gaps expose
+   the page background. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table thead,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table thead tr {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table thead,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table thead tr {
+  background: #0b1427 !important;
+  background-color: #0b1427 !important;
+}
+
+/* Light-mode text must remain readable without hover. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody td {
+  color: #52657a !important;
+  -webkit-text-fill-color: #52657a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody td strong {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody td small {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody td.activity-description {
+  color: #52657a !important;
+  -webkit-text-fill-color: #52657a !important;
+}
+
+/* Sticky action column remains usable, but never casts a side shadow/frame. */
+html[data-admin-theme] body .admin-layout .activity-logs-page .activity-table th:last-child,
+html[data-admin-theme] body .admin-layout .activity-logs-page .activity-table td:last-child:not([colspan]) {
+  box-shadow: none !important;
+}
