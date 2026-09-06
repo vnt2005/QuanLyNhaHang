@@ -78,3 +78,4 @@
    all layout/icon geometry, while light mode only overrides visual colors. */
 @import './components/admin-theme-toggle.css';
 @import './theme-light-overrides.css';
+@import './theme-light-regression-fixes.css';
