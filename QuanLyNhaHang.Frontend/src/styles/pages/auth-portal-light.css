@@ -1,0 +1,308 @@
+/* Light restaurant portal skin for AuthPage.
+   Loaded last so it can safely override auth-portal-dark.css without touching
+   any authentication behavior or dark-mode styling. */
+
+html[data-admin-theme='light'] body:has(.auth-shell),
+html[data-admin-theme='light'] #root:has(.auth-shell) {
+  min-height: 100svh;
+  background: #eef3f8 !important;
+}
+
+html[data-admin-theme='light'] #root:has(.auth-shell) {
+  padding: 1px 0;
+  background:
+    radial-gradient(circle at 15% 10%, rgb(59 130 246 / 7%), transparent 31%),
+    radial-gradient(circle at 88% 88%, rgb(255 152 0 / 6%), transparent 28%),
+    #eef3f8 !important;
+}
+
+html[data-admin-theme='light'] .auth-shell {
+  --auth-bg: #eef3f8;
+  --auth-surface: #ffffff;
+  --auth-surface-soft: #f7f9fc;
+  --auth-input: #f8fafc;
+  --auth-border: #d7e0e8;
+  --auth-border-strong: #c4d0dc;
+  --auth-text: #172033;
+  --auth-muted: #66778b;
+  --auth-label: #53657b;
+  --auth-orange: #ff9800;
+  --auth-orange-strong: #f57c00;
+  color: var(--auth-text) !important;
+  border-color: #d8e2eb !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 28px 70px rgb(15 23 42 / 13%),
+    0 0 0 1px rgb(255 255 255 / 80%) inset !important;
+  color-scheme: light !important;
+}
+
+/* Keep the restaurant photography as the visual brand anchor in both themes. */
+html[data-admin-theme='light'] .auth-brand-panel {
+  color: #f8fafc !important;
+  background:
+    linear-gradient(180deg, rgb(4 9 24 / 10%) 0%, rgb(4 9 24 / 38%) 44%, rgb(4 9 24 / 93%) 100%),
+    linear-gradient(100deg, rgb(4 10 27 / 72%) 0%, rgb(4 10 27 / 14%) 72%),
+    url('../../assets/auth-restaurant-interior.webp') center / cover no-repeat !important;
+}
+
+html[data-admin-theme='light'] .auth-brand-panel::before {
+  background:
+    linear-gradient(90deg, rgb(3 8 22 / 48%), transparent 52%),
+    linear-gradient(180deg, rgb(3 8 22 / 5%), rgb(3 8 22 / 27%)) !important;
+}
+
+html[data-admin-theme='light'] .auth-brand-panel::after {
+  background: radial-gradient(circle, rgb(255 112 23 / 17%), transparent 67%) !important;
+}
+
+html[data-admin-theme='light'] .auth-brand-header strong,
+html[data-admin-theme='light'] .auth-brand-copy h1 {
+  color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .auth-brand-copy p {
+  color: #d4dde9 !important;
+}
+
+html[data-admin-theme='light'] .auth-standard {
+  color: #ffd05d !important;
+  border-color: rgb(255 174 55 / 58%) !important;
+  background: rgb(4 10 24 / 58%) !important;
+}
+
+html[data-admin-theme='light'] .auth-brand-footer {
+  color: #9aa9be !important;
+  border-top-color: rgb(160 176 204 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .auth-brand-footer strong {
+  color: #d7e0eb !important;
+}
+
+/* Right side: light mode must be fully light, not a white card floating on a
+   dark navy page. */
+html[data-admin-theme='light'] .auth-form-panel {
+  color: var(--auth-text) !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(37 99 235 / 5%), transparent 32%),
+    linear-gradient(180deg, #f8fafc 0%, #f3f6fa 100%) !important;
+}
+
+html[data-admin-theme='light'] .auth-card {
+  width: min(100%, 560px);
+  padding: clamp(28px, 3.5vw, 42px) !important;
+  color: var(--auth-text) !important;
+  border: 1px solid #dce5ed !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  box-shadow: 0 22px 55px rgb(30 50 75 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .auth-card > header {
+  margin-bottom: 24px;
+}
+
+html[data-admin-theme='light'] .auth-card > header h2 {
+  margin: 8px 0 8px;
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .auth-card > header p {
+  color: #66778b !important;
+}
+
+html[data-admin-theme='light'] .auth-card > header .auth-eyebrow,
+html[data-admin-theme='light'] .auth-card > .auth-eyebrow,
+html[data-admin-theme='light'] .auth-eyebrow {
+  color: #e88400 !important;
+}
+
+html[data-admin-theme='light'] .auth-back-button {
+  color: #356fb2 !important;
+}
+
+html[data-admin-theme='light'] .auth-back-button:hover {
+  color: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .auth-card form label {
+  color: #52657b !important;
+}
+
+html[data-admin-theme='light'] .auth-card form label > small {
+  color: #8795a7 !important;
+}
+
+html[data-admin-theme='light'] .auth-card form input {
+  color: #172033 !important;
+  border-color: #d5dfe8 !important;
+  background: #f8fafc !important;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 80%) inset !important;
+  -webkit-text-fill-color: #172033 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .auth-card form input:hover {
+  border-color: #bcc9d6 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .auth-card form input:focus {
+  color: #172033 !important;
+  border-color: #f59e0b !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 0 0 3px rgb(245 158 11 / 12%),
+    0 7px 20px rgb(15 23 42 / 5%) !important;
+  -webkit-text-fill-color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .auth-card form input::placeholder {
+  color: #9aa8b8 !important;
+  -webkit-text-fill-color: #9aa8b8 !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .auth-card .auth-code-input {
+  color: #b86600 !important;
+  -webkit-text-fill-color: #b86600 !important;
+}
+
+html[data-admin-theme='light'] .auth-login-links {
+  color: #66778b;
+}
+
+html[data-admin-theme='light'] .auth-link,
+html[data-admin-theme='light'] .auth-register-prompt button {
+  color: #2563a9 !important;
+}
+
+html[data-admin-theme='light'] .auth-link:hover,
+html[data-admin-theme='light'] .auth-register-prompt button:hover {
+  color: #d97706 !important;
+}
+
+html[data-admin-theme='light'] .auth-submit {
+  color: #201300 !important;
+  border: 0 !important;
+  background: linear-gradient(100deg, #ffb10a, #ff7a00) !important;
+  box-shadow: 0 12px 26px rgb(255 122 0 / 17%) !important;
+}
+
+html[data-admin-theme='light'] .auth-secondary {
+  color: #40546a !important;
+  border-color: #d7e0e8 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .auth-secondary:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #c4d0dc !important;
+  background: #f1f5f9 !important;
+}
+
+html[data-admin-theme='light'] .auth-alert {
+  font-weight: 700;
+}
+
+html[data-admin-theme='light'] .auth-alert.success {
+  color: #176b55 !important;
+  border-color: #b7dfd1 !important;
+  background: #eaf8f3 !important;
+}
+
+html[data-admin-theme='light'] .auth-alert.error {
+  color: #a43d39 !important;
+  border-color: #efc3bf !important;
+  background: #fff1f0 !important;
+}
+
+html[data-admin-theme='light'] .auth-email-chip,
+html[data-admin-theme='light'] .auth-register-note {
+  color: #40546a !important;
+  border-color: #d9e5e5 !important;
+  background: #f3faf8 !important;
+}
+
+html[data-admin-theme='light'] .auth-email-chip strong,
+html[data-admin-theme='light'] .auth-register-note strong {
+  color: #263f50 !important;
+}
+
+html[data-admin-theme='light'] .auth-email-chip small,
+html[data-admin-theme='light'] .auth-register-note small,
+html[data-admin-theme='light'] .auth-hint,
+html[data-admin-theme='light'] .auth-register-prompt {
+  color: #7a899a !important;
+}
+
+html[data-admin-theme='light'] .auth-registration-complete > strong {
+  color: #28495a !important;
+}
+
+html[data-admin-theme='light'] .auth-registration-complete > p {
+  color: #6f8191 !important;
+}
+
+html[data-admin-theme='light'] .auth-card > footer {
+  color: #8795a5 !important;
+  border-top-color: #e8edf2 !important;
+}
+
+html[data-admin-theme='light'] .auth-card > footer span {
+  color: #30846f !important;
+}
+
+/* Theme switch remains a compact icon and should read as part of the login
+   surface instead of floating as a dark control over a light page. */
+html[data-admin-theme='light'] body:has(.auth-shell) .admin-theme-toggle {
+  color: #405069 !important;
+  border-color: #d7e0e8 !important;
+  background: rgb(255 255 255 / 96%) !important;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 10%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.auth-shell) .admin-theme-toggle:hover {
+  color: #1d4ed8 !important;
+  border-color: #b9c9da !important;
+  background: #ffffff !important;
+}
+
+@media (max-width: 900px) {
+  html[data-admin-theme='light'] .auth-shell {
+    width: min(760px, calc(100% - 28px));
+    margin: 14px auto;
+    grid-template-columns: 1fr;
+  }
+
+  html[data-admin-theme='light'] .auth-brand-panel {
+    min-height: 330px;
+  }
+
+  html[data-admin-theme='light'] .auth-form-panel {
+    padding: 28px;
+  }
+}
+
+@media (max-width: 560px) {
+  html[data-admin-theme='light'] .auth-shell {
+    width: calc(100% - 16px);
+    margin: 8px auto;
+    border-radius: 16px;
+  }
+
+  html[data-admin-theme='light'] .auth-brand-panel {
+    min-height: 260px;
+    padding: 26px;
+  }
+
+  html[data-admin-theme='light'] .auth-form-panel {
+    padding: 18px;
+  }
+
+  html[data-admin-theme='light'] .auth-card {
+    padding: 24px 20px !important;
+    border-radius: 16px !important;
+  }
+}
