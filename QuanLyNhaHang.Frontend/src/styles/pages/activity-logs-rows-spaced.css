@@ -18,6 +18,20 @@ html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
   box-shadow: none !important;
 }
 
+/* The filter controls should sit directly on the page instead of inside one
+   large white/navy card. Keep only the individual input/select controls. */
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-filters {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
 html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
   .activity-table {
   border-collapse: separate !important;
@@ -65,6 +79,10 @@ html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
   background: #ffffff !important;
   background-color: #ffffff !important;
   background-image: none !important;
+  -webkit-text-fill-color: #52657a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: none !important;
 }
 
 html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
@@ -80,13 +98,87 @@ html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
   box-shadow: none !important;
 }
 
+/* activity-logs-hover-fix.css is intentionally dark-first and used
+   -webkit-text-fill-color with !important. Reassert every normal light-mode
+   foreground here so rows are readable without requiring hover. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr td strong,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:not(:hover) td strong,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover td strong {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr td small,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:not(:hover) td small,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover td small {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td.activity-description,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:not(:hover) > td.activity-description,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover > td.activity-description {
+  color: #52657a !important;
+  -webkit-text-fill-color: #52657a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr .activity-action,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover .activity-action {
+  color: #7c5ce0 !important;
+  -webkit-text-fill-color: #7c5ce0 !important;
+  border-color: #ddd2ff !important;
+  background: #f7f3ff !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr .activity-status.success,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover .activity-status.success {
+  color: #10b981 !important;
+  -webkit-text-fill-color: #10b981 !important;
+  border-color: #a7ead4 !important;
+  background: #ecfdf7 !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr .activity-status.failed,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover .activity-status.failed {
+  color: #d13f57 !important;
+  -webkit-text-fill-color: #d13f57 !important;
+  border-color: #f3c2cc !important;
+  background: #fff4f6 !important;
+  opacity: 1 !important;
+}
+
 html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
   .activity-table tbody tr:hover > td,
 html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
   .activity-table tbody tr:hover > td:last-child:not([colspan]) {
+  color: #40536a !important;
+  -webkit-text-fill-color: #40536a !important;
   background: #f8fafc !important;
   background-color: #f8fafc !important;
   background-image: none !important;
+  box-shadow: none !important;
 }
 
 /* Dark theme row cards. */
