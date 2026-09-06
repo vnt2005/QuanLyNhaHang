@@ -1,0 +1,168 @@
+/* Access Management / Accounts row spacing -------------------------------
+   Match the separated-row treatment used by SePay, Reservations and Invoices.
+   Scope only to the account table; the Roles tab keeps its existing layout.
+   Visual-only: no API, permission or business-logic changes. */
+
+/* Remove the large outer card around the account table. */
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) > .table-scroll {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 12px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Keep the column headings as one clean strip above the separated rows. */
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) thead th {
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Each account row becomes an independent card. */
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td,
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr:last-child > td {
+  border-top: 1px solid var(--access-border-soft) !important;
+  border-bottom: 1px solid var(--access-border-soft) !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td:first-child {
+  border-left: 1px solid var(--access-border-soft) !important;
+  border-radius: 14px 0 0 14px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td:last-child:not([colspan]) {
+  border-right: 1px solid var(--access-border-soft) !important;
+  border-radius: 0 14px 14px 0 !important;
+  box-shadow: none !important;
+}
+
+/* Light mode ------------------------------------------------------------- */
+html[data-admin-theme='light'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td {
+  color: #52657a !important;
+  border-top-color: #dfe6ee !important;
+  border-bottom-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td:first-child {
+  border-left-color: #dfe6ee !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td:last-child:not([colspan]) {
+  border-right-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr:hover > td,
+html[data-admin-theme='light'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr:hover > td:last-child:not([colspan]) {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+/* Dark mode -------------------------------------------------------------- */
+html[data-admin-theme='dark'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td {
+  border-top-color: #243149 !important;
+  border-bottom-color: #243149 !important;
+  background: #10192d !important;
+  background-color: #10192d !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td:first-child {
+  border-left-color: #243149 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr > td:last-child:not([colspan]) {
+  border-right-color: #243149 !important;
+  background: #10192d !important;
+  background-color: #10192d !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr:hover > td,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) tbody tr:hover > td:last-child:not([colspan]) {
+  background: #142038 !important;
+  background-color: #142038 !important;
+  background-image: none !important;
+}
+
+/* Shared sticky-column rules must not recreate a right-side outer frame. */
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) th:last-child,
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) td:last-child:not([colspan]) {
+  box-shadow: none !important;
+}
+
+/* Pagination should sit below the separated account rows, not visually merge
+   with the removed outer table card. */
+html[data-admin-theme] body .admin-layout .dashboard .access-page
+  .access-table-panel.table-card:not(.role-table-panel) > .pagination {
+  margin-top: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
