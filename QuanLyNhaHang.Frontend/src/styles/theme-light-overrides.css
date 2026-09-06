@@ -1,0 +1,174 @@
+html[data-admin-theme='light'] {
+  color-scheme: light;
+}
+
+/* Kitchen is intentionally dark-first in its original stylesheet. Restore its
+   working layout in light mode without changing any kitchen behavior. */
+html[data-admin-theme='light'] .admin-layout:has(.kitchen-page),
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) {
+  background: #f3f6fa;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .topbar {
+  border-bottom-color: #e0e7ef;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .topbar .eyebrow,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .topbar .profile-button small {
+  color: #748399;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .topbar h1,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .topbar .profile-button strong {
+  color: #172033;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .topbar button {
+  color: #405069;
+  border-color: #dfe6ee;
+  background: #fff;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-page {
+  color: #263449;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-hero {
+  border-bottom-color: #dde5ed;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-breadcrumb {
+  color: #748399;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-breadcrumb b {
+  color: #98a5b7;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-breadcrumb strong,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-title-row h2 {
+  color: #172033;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-title-row p,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-updated {
+  color: #748399;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-delay-badge {
+  color: #596a80;
+  border-color: #d8e1e9;
+  background: #fff;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-tabs {
+  border-color: #dde5ed;
+  background: #fff;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-tabs button {
+  color: #65778d;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-tabs button.active {
+  color: #172033;
+  background: #edf3f8;
+  box-shadow: inset 0 0 0 1px #d7e0e9;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls > select {
+  color: #405069 !important;
+  border-color: #d7e0e8 !important;
+  background: #fff !important;
+  color-scheme: light;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search input {
+  color: #263449 !important;
+  -webkit-text-fill-color: #263449 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search input::placeholder {
+  color: #8a98a9 !important;
+  -webkit-text-fill-color: #8a98a9 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-live-stats > span {
+  color: #65778d;
+  border-color: #dfe6ee;
+  background: #fff;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-live-stats strong {
+  color: #263449;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column {
+  border-color: #dce4ec;
+  background: #f8fafc;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.cooking {
+  border-color: #f0d3bd;
+  background: #fffaf7;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.ready {
+  border-color: #bfe5dd;
+  background: #f6fcfa;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column > header {
+  border-bottom-color: #e3e9ef;
+  background: #fff;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column h3,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.pending h3 {
+  color: #263449;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-count {
+  color: #65778d;
+  background: #edf2f7;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-ticket {
+  color: #405069;
+  border-color: #dce5ed;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(24, 49, 72, 0.06);
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.cooking .kitchen-ticket {
+  border-color: #efd5c4;
+  background: #fff;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.ready .kitchen-ticket {
+  border-color: #c4e7df;
+  background: #fff;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .ticket-dish-name,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-order strong,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-item strong {
+  color: #172033;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .ticket-order-meta,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .ticket-time,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-order span,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-item span {
+  color: #748399;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-empty,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .history-order {
+  color: #65778d;
+  border-color: #dfe6ee;
+  background: #fff;
+}
