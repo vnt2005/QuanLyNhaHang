@@ -1,4 +1,4 @@
-/* Ordered style manifest for WebApp. Keep cascade order stable. */
+/* Ordered base/light style manifest for WebApp. Keep cascade order stable. */
 @import './design-system/tokens.css';
 @import './global.css';
 @import './pages/dashboard.css';
@@ -26,40 +26,11 @@
 @import './pages/module-loading.css';
 @import './design-system/admin.css';
 @import './components/notification-center.css';
-@import './pages/dashboard-command-center.css';
-@import './pages/dashboard-calendar-fix.css';
-@import './pages/orders-dark-overrides.css';
-@import './pages/orders-overlay-polish.css';
-@import './pages/orders-modal-overflow-fix.css';
-@import './pages/kitchen-dark-overrides.css';
-@import './pages/payments-dark-overrides.css';
-@import './pages/payments-confirm-fix.css';
-@import './pages/employees-dark.css';
-@import './pages/customers-dark.css';
-@import './pages/shifts-dark.css';
-@import './pages/access-dark.css';
-@import './pages/invoices-dark.css';
-@import './pages/revenue-dark.css';
-@import './pages/activity-logs-dark.css';
-@import './pages/activity-logs-hover-fix.css';
-@import './pages/areas-tables-dark.css';
-@import './pages/reservations-dark.css';
+
+/* Theme-neutral interaction/layout fixes stay available in both modes. */
 @import './design-system/confirm-dialog-polish.css';
-@import './pages/areas-tables-final-fix.css';
-@import './pages/reservations-final-fix.css';
 @import './design-system/pagination-interaction-fix.css';
 @import './design-system/table-placeholder-fix.css';
-@import './pages/activity-logs-final-fix.css';
-@import './pages/table-qr-dark.css';
-@import './pages/table-qr-final-fix.css';
-@import './pages/menu-management-dark.css';
-@import './pages/promotions-dark.css';
-@import './pages/promotions-final-fix.css';
-@import './pages/promotions-border-fix.css';
-@import './pages/account-security-dark.css';
-@import './pages/restaurant-settings-dark.css';
-@import './pages/restaurant-settings-final-fix.css';
-@import './pages/auth-portal-dark.css';
 @import './design-system/action-buttons.css';
 @import './design-system/action-icons.css';
 @import './design-system/action-icons-final-fix.css';
@@ -72,4 +43,5 @@
 @import './pages/table-qr-filter-row-fix.css';
 @import './pages/table-qr-url-inside-panel.css';
 @import './pages/table-qr-controls-same-row.css';
-@import './pages/ai-assistant-final-fix.css';
+@import './components/admin-theme-toggle.css';
+@import './theme-light-overrides.css';
