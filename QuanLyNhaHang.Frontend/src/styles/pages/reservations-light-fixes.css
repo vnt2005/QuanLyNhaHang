@@ -1,0 +1,210 @@
+/* Reservations light-mode regression fixes ------------------------------
+   reservations-dark.css/final-fix.css deliberately own the module geometry
+   with high-specificity dark paint. Preserve layout/sticky behavior while
+   restoring light surfaces when the explicit Admin theme is light. */
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page) {
+  --reservation-bg: #f3f6fa;
+  --reservation-bg-deep: #f3f6fa;
+  --reservation-surface: #ffffff;
+  --reservation-surface-raised: #f8fafc;
+  --reservation-input: #ffffff;
+  --reservation-border: #dfe6ee;
+  --reservation-border-soft: #e8edf3;
+  --reservation-text: #172033;
+  --reservation-text-soft: #52657a;
+  --reservation-muted: #748399;
+  --reservation-orange: #ff9800;
+  --reservation-orange-hover: #f59e0b;
+  --reservation-teal: #10b981;
+  --reservation-blue: #3b82f6;
+  --reservation-purple: #8b5cf6;
+  --reservation-danger: #d13f57;
+  color-scheme: light !important;
+}
+
+/* Row actions ------------------------------------------------------------ */
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .dashboard .reservation-actions button:not(.danger) {
+  color: #425a76 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .dashboard .reservation-actions button:not(.danger):hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #f0b761 !important;
+  background: #fff8ed !important;
+  background-color: #fff8ed !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .dashboard .reservation-actions button.danger {
+  color: #d13f57 !important;
+  border-color: #f3c2cc !important;
+  background: #fff4f6 !important;
+  background-color: #fff4f6 !important;
+}
+
+/* Create/edit/detail modal ---------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal {
+  color: #263449 !important;
+  border-color: #d9e2ec !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  scrollbar-color: #c8d2de transparent !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal > header {
+  color: #263449 !important;
+  border-bottom-color: #e4eaf1 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 0 #e4eaf1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal > header h3 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal > header > button {
+  color: #64748b !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal > header > button:hover {
+  color: #172033 !important;
+  border-color: #d6e0e9 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservation-form-grid label {
+  color: #66778b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservation-form-grid :is(input, select, textarea) {
+  color: #263449 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #263449 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservation-form-grid :is(input, textarea)::placeholder {
+  color: #8b99aa !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #8b99aa !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservation-form-grid select option {
+  color: #263449 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservation-form-grid :is(input, select, textarea):focus {
+  border-color: #7aa7e8 !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal > footer {
+  border-top-color: #e4eaf1 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 -0.8rem 1.5rem rgb(15 23 42 / 6%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal > footer button.secondary {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal > footer button.secondary:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+/* Detail modal surfaces, so opening a reservation never reintroduces navy. */
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservation-detail-grid article,
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservation-timeline span {
+  color: #52657a !important;
+  border-color: #dfe6ee !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  :is(.reservation-detail-grid strong, .reservation-detail-grid span, .reservation-timeline strong) {
+  color: #263449 !important;
+}
+
+/* Shared cancellation dialog ------------------------------------------- */
+html[data-admin-theme='light'] body:has(.reservations-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.reservations-page) .ds-confirm-dialog.danger {
+  color: #263449 !important;
+  border-color: #e8d9de !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body:has(.reservations-page) .ds-confirm-dialog::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.reservations-page) .ds-confirm-copy h2 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] body:has(.reservations-page) .ds-confirm-copy p {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] body:has(.reservations-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
