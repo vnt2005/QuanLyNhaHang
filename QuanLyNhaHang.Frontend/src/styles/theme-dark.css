@@ -1,0 +1,147 @@
+@import './pages/dashboard-command-center.css';
+@import './pages/dashboard-calendar-fix.css';
+@import './pages/orders-dark-overrides.css';
+@import './pages/orders-overlay-polish.css';
+@import './pages/orders-modal-overflow-fix.css';
+@import './pages/kitchen-dark-overrides.css';
+@import './pages/payments-dark-overrides.css';
+@import './pages/payments-confirm-fix.css';
+@import './pages/employees-dark.css';
+@import './pages/customers-dark.css';
+@import './pages/shifts-dark.css';
+@import './pages/access-dark.css';
+@import './pages/invoices-dark.css';
+@import './pages/revenue-dark.css';
+@import './pages/activity-logs-dark.css';
+@import './pages/activity-logs-hover-fix.css';
+@import './pages/areas-tables-dark.css';
+@import './pages/reservations-dark.css';
+@import './pages/areas-tables-final-fix.css';
+@import './pages/reservations-final-fix.css';
+@import './pages/activity-logs-final-fix.css';
+@import './pages/table-qr-dark.css';
+@import './pages/table-qr-final-fix.css';
+@import './pages/menu-management-dark.css';
+@import './pages/promotions-dark.css';
+@import './pages/promotions-final-fix.css';
+@import './pages/promotions-border-fix.css';
+@import './pages/account-security-dark.css';
+@import './pages/restaurant-settings-dark.css';
+@import './pages/restaurant-settings-final-fix.css';
+@import './pages/auth-portal-dark.css';
+@import './pages/ai-assistant-final-fix.css';
+
+/* Re-apply shared interaction polish after the page skins so the cascade
+   matches the current dark UI while keeping the light base independent. */
+@import './design-system/confirm-dialog-polish.css';
+@import './design-system/pagination-interaction-fix.css';
+@import './design-system/table-placeholder-fix.css';
+@import './design-system/action-buttons.css';
+@import './design-system/action-icons.css';
+@import './design-system/action-icons-final-fix.css';
+@import './design-system/action-icons-reference-standard.css';
+@import './design-system/action-icons-center-fix.css';
+@import './design-system/menu-category-stop-icon.css';
+@import './design-system/tab-scrollbar-fix.css';
+@import './design-system/filter-buttons-standard.css';
+@import './pages/table-qr-layout-polish.css';
+@import './pages/table-qr-filter-row-fix.css';
+@import './pages/table-qr-url-inside-panel.css';
+@import './pages/table-qr-controls-same-row.css';
+
+:root {
+  color-scheme: dark;
+  --ds-color-bg: #050b18;
+  --ds-color-surface: #0b1628;
+  --ds-color-surface-subtle: #0f1c31;
+  --ds-color-surface-raised: #102038;
+  --ds-color-text: #dbe6f3;
+  --ds-color-text-strong: #f8fafc;
+  --ds-color-text-secondary: #9fb0c4;
+  --ds-color-text-muted: #7488a1;
+  --ds-color-border: #20314a;
+  --ds-color-border-strong: #31445f;
+  --ds-color-border-subtle: #18283f;
+  --ds-color-icon: #91a4bc;
+}
+
+html,
+body,
+#root {
+  background: var(--ds-color-bg);
+}
+
+/* Inventory did not have a dedicated dark skin yet. Keep its current layout
+   and convert the primary data surfaces so the whole Admin WebApp participates
+   in dark mode. */
+.inventory-page {
+  color: #dbe6f3;
+}
+.inventory-toolbar h2,
+.inventory-summary-grid strong,
+.inventory-table td > strong,
+.inventory-name-button,
+.inventory-panel h3,
+.inventory-modal h2 {
+  color: #eef5fc;
+}
+.inventory-toolbar p,
+.inventory-modal header p,
+.inventory-summary-grid p,
+.inventory-summary-grid small,
+.inventory-filters label,
+.inventory-table td,
+.inventory-pagination,
+.inventory-empty {
+  color: #91a4bc;
+}
+.inventory-summary-grid article,
+.inventory-panel,
+.low-stock-preview button,
+.inventory-secondary,
+.inventory-filters input,
+.inventory-filters select,
+.inventory-form-grid input,
+.inventory-form-grid select,
+.inventory-form-grid textarea,
+.inventory-modal {
+  color: #dbe6f3;
+  border-color: #22334d;
+  background: #0b1628;
+}
+.inventory-tabs,
+.inventory-table th {
+  color: #91a4bc;
+  border-color: #1d2c42;
+  background: #081323;
+}
+.inventory-table td {
+  border-color: #1b2a40;
+}
+.inventory-table tbody tr:not(.inactive-row):hover td {
+  background: #0d1a2d;
+}
+.inventory-secondary {
+  color: #c7d4e4;
+}
+.inventory-transaction-button {
+  color: #7dd3fc;
+  border-color: #25506a;
+  background: #0b2233;
+}
+.inventory-danger {
+  color: #fca5a5;
+  border-color: #59313a;
+  background: #24151c;
+}
+.low-stock-banner {
+  border-color: #5d4528;
+  background: linear-gradient(135deg, #20180d, #0b1628);
+}
+.low-stock-banner-heading strong {
+  color: #f5c77d;
+}
+.low-stock-banner-heading small,
+.low-stock-preview button > small {
+  color: #c49a68;
+}
