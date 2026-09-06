@@ -80,3 +80,4 @@
 @import './theme-light-overrides.css';
 @import './theme-light-regression-fixes.css';
 @import './pages/auth-portal-light.css';
+@import './pages/dashboard-light-fix.css';
