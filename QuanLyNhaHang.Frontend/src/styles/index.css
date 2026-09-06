@@ -105,6 +105,6 @@
 @import './pages/ai-assistant-light-fixes.css';
 @import './pages/restaurant-settings-light-fixes.css';
 
-/* Shared shell cleanup and final list geometry must run last in both themes. */
+/* Shared shell cleanup and final row geometry must run last in both themes. */
 @import './design-system/topbar-frame-removal.css';
-@import './pages/orders-list-continuous.css';
+@import './pages/payments-rows-spaced.css';
