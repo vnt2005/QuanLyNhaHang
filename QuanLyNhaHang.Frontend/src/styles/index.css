@@ -79,3 +79,4 @@
 @import './components/admin-theme-toggle.css';
 @import './theme-light-overrides.css';
 @import './theme-light-regression-fixes.css';
+@import './pages/auth-portal-light.css';
