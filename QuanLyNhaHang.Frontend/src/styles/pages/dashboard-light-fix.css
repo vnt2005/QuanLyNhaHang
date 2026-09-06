@@ -1,0 +1,116 @@
+/* Light-only fixes for DashboardPage.
+   dashboard-calendar-fix.css intentionally forces the date controls and the
+   four operation cards into the dark command-center palette with !important.
+   This file is loaded after all theme layers and only restores those exact
+   surfaces when Admin light mode is active. */
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date'] {
+  color: #263449 !important;
+  border-color: #d7e0e8 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  color-scheme: light !important;
+  -webkit-text-fill-color: #263449 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.72;
+  filter: none;
+  cursor: pointer;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date']:hover {
+  border-color: #c3cfdb !important;
+  background: #f9fbfd !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row
+  input[type='date']:focus {
+  color: #172033 !important;
+  border-color: #ff9800 !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgb(255 152 0 / 12%) !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations > article {
+  color: #405069 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 24px rgb(25 49 72 / 6%) !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations header > span {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations h3 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations article > div:last-child {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations header button {
+  color: #d97706 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations header button:hover {
+  color: #b45309 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operation-icon.tables {
+  color: #0f9f78 !important;
+  border-color: rgb(15 159 120 / 22%) !important;
+  background: #ecfdf5 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operation-icon.reservations {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 20%) !important;
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operation-icon.finance {
+  color: #d97706 !important;
+  border-color: rgb(217 119 6 / 22%) !important;
+  background: #fff7ed !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operation-icon.system {
+  color: #7c3aed !important;
+  border-color: rgb(124 58 237 / 20%) !important;
+  background: #f5f3ff !important;
+}
