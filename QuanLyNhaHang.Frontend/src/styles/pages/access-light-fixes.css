@@ -1,0 +1,140 @@
+/* Light-mode regression fixes for Tài khoản & phân quyền.
+   Keep the dark-first access layout intact while preventing high-specificity
+   dark paint from leaking into disabled fields, shared confirmations and
+   success feedback. */
+
+/* Editing a system role disables its immutable system name. The dark access
+   skin has a high-specificity disabled rule, so override it explicitly. */
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal-form input:disabled {
+  color: #66758a !important;
+  -webkit-text-fill-color: #66758a !important;
+  border-color: #d7e0ea !important;
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  color-scheme: light !important;
+  cursor: not-allowed;
+}
+
+/* The shared confirmation host is rendered outside .admin-layout. Lock every
+   visual layer to an opaque light surface while Access Management is active. */
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-backdrop {
+  background: rgb(15 23 42 / 46%) !important;
+  background-image: none !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-dialog.danger {
+  color: #263449 !important;
+  border-color: #d9e2ec !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow:
+    0 28px 70px rgb(15 23 42 / 24%),
+    0 0 0 1px rgb(255 255 255 / 82%) inset !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-dialog.danger {
+  border-color: #e8d9de !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-dialog::before,
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-dialog::after {
+  display: none !important;
+  content: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-copy {
+  color: #263449 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-dialog.danger .ds-confirm-icon {
+  color: #c63f61 !important;
+  border-color: #f0c9d3 !important;
+  background: #fff0f4 !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-dialog.danger .ds-confirm-copy > span {
+  color: #d65373 !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-copy h2 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-copy p {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-actions button {
+  color: #334155 !important;
+  border-color: #cfd9e5 !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-actions button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #aebdce !important;
+  background: #f1f5f9 !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-actions button.danger {
+  color: #ffffff !important;
+  border-color: #c93e53 !important;
+  background: #c93e53 !important;
+  box-shadow: 0 8px 20px rgb(201 62 83 / 16%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-actions button.danger:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #b83249 !important;
+  background: #b83249 !important;
+}
+
+/* Access feedback is rendered directly after the tabs. Let it occupy its own
+   row instead of using the global fixed-toast position, which can cover the
+   Đồng bộ / Thêm vai trò toolbar buttons on desktop. */
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .dashboard .access-page > .inline-alert.success {
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  min-height: 3.25rem;
+  margin: 0 0 1rem !important;
+  color: #147a62 !important;
+  border-color: #a7e3d4 !important;
+  background: #effbf7 !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .dashboard .access-page > .inline-alert.success::before {
+  color: #ffffff !important;
+  background: #15956f !important;
+}
