@@ -1,0 +1,418 @@
+/* Promotions light-mode regression fixes ---------------------------------
+   The promotions dark/final-fix styles intentionally keep their layout rules
+   loaded for both themes. This file is loaded after them and restores only
+   the light palette, borders and shadows so no dark navy paint leaks into
+   cards, action buttons, counters or modal previews. */
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) {
+  --promo-bg: #f8fafb;
+  --promo-bg-deep: #f3f6fa;
+  --promo-surface: #ffffff;
+  --promo-surface-2: #f8fafc;
+  --promo-surface-3: #edf2f7;
+  --promo-input: #ffffff;
+  --promo-border: #dfe6ee;
+  --promo-border-soft: #e9eef4;
+  --promo-border-strong: #c8d2de;
+  --promo-border-mid: #dfe6ee;
+  --promo-border-subtle: #e9eef4;
+  --promo-text: #25384a;
+  --promo-soft: #536b7c;
+  --promo-muted: #7a8997;
+  --promo-orange: #b77725;
+  --promo-orange-hover: #9d631a;
+  --promo-teal: #178258;
+  --promo-blue: #147da6;
+  --promo-purple: #7258a7;
+  --promo-danger: #a44540;
+  color-scheme: light !important;
+}
+
+/* Header/modal actions: fixes dark "Đổi thanh toán", "Hủy" and related
+   secondary controls while retaining the existing button geometry. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-secondary {
+  color: #4d6678 !important;
+  border-color: #d3dde4 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-secondary:hover:not(:disabled) {
+  color: #263449 !important;
+  border-color: #bfcbd6 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-primary {
+  color: #ffffff !important;
+  border-color: #98631d !important;
+  background: linear-gradient(135deg, #c18028, #9d631a) !important;
+  box-shadow: 0 7px 18px rgb(157 99 26 / 20%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-primary:hover:not(:disabled) {
+  border-color: #8a5515 !important;
+  background: linear-gradient(135deg, #ae6d1d, #8a5515) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-apply-button {
+  color: #68499b !important;
+  border-color: #c8b6e7 !important;
+  background: #f7f3fd !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-danger {
+  color: #a44540 !important;
+  border-color: #ecc8c5 !important;
+  background: #fff6f5 !important;
+  box-shadow: none !important;
+}
+
+/* Tabs and count badges. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-tabs {
+  border-bottom-color: #e9eef2 !important;
+  background: #fbfcfd !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-tabs button {
+  color: #718192 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-tabs button.active {
+  color: #9a631b !important;
+  border-color: rgb(183 119 37 / 24%) !important;
+  background: rgb(183 119 37 / 7%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-tabs button > small {
+  color: #758594 !important;
+  background: #edf1f4 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-tabs button.active > small {
+  color: #976018 !important;
+  background: #fbefd9 !important;
+}
+
+/* Promotion cards. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card-grid {
+  background: #f8fafb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card {
+  color: #25384a !important;
+  border-color: #e0e7eb !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 6px 18px rgb(31 52 68 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card:hover {
+  border-color: #d5dfe6 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 11px 26px rgb(31 52 68 / 8%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card > header {
+  border-bottom-color: #edf1f3 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card > footer {
+  border-top-color: #edf1f3 !important;
+  background: #fbfcfd !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-code > span {
+  color: #a46a1c !important;
+  border-color: #f0d8b4 !important;
+  background: #fff1da !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-code strong {
+  color: #2f4354 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-code small {
+  color: #8a97a3 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-status.valid {
+  color: #14734e !important;
+  border-color: #c9e9d8 !important;
+  background: #e7f7ee !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-status.valid i {
+  background: #1b9b68 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-status.upcoming {
+  color: #9a6318 !important;
+  border-color: #f1d6a9 !important;
+  background: #fff3df !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-status.upcoming i {
+  background: #c7872e !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-status:is(.expired, .inactive) {
+  color: #677888 !important;
+  border-color: #dbe2e8 !important;
+  background: #edf1f4 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-status:is(.expired, .inactive) i {
+  background: #8b98a3 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-status.exhausted {
+  color: #9f4540 !important;
+  border-color: #efd1ce !important;
+  background: #fbeae8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-status.exhausted i {
+  background: #be514b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) :is(
+  .promotion-card-content,
+  .promotion-card-copy,
+  .promotion-usage-progress
+) {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-usage-progress {
+  border-top-color: #edf1f3 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card-offer {
+  color: #8e5c1c !important;
+  border-right-color: #dfd6c9 !important;
+  background:
+    radial-gradient(circle at 20% 20%, rgb(221 161 76 / 12%), transparent 45%),
+    #fffbf4 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card-offer > span {
+  color: #8e5c1c !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card-offer > strong {
+  color: #a66718 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card-offer > small {
+  color: #a08157 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card-copy h3 {
+  color: #2b4052 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card-copy > p {
+  color: #7a8997 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-meta-grid > span {
+  border-color: #e9eef4 !important;
+  background: #f5f8f9 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-meta-grid small {
+  color: #8996a2 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-meta-grid strong,
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-usage-progress strong {
+  color: #4c6373 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-progress-track {
+  background: #edf1f3 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card > footer button {
+  color: #536c7d !important;
+  border-color: #d6e0e6 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card > footer button:hover:not(:disabled) {
+  color: #263449 !important;
+  border-color: #bfcbd6 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card > footer button.apply {
+  color: #654694 !important;
+  border-color: #d5c4ee !important;
+  background: #f8f4fd !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card > footer button.activate {
+  color: #16744f !important;
+  border-color: #c5e2d3 !important;
+  background: #f4fbf7 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card > footer button.danger {
+  color: #a24843 !important;
+  border-color: #ebcecb !important;
+  background: #fff8f7 !important;
+}
+
+/* Usage-history icon/action buttons and pagination. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-usage-actions button {
+  color: #536b7c !important;
+  border-color: #d5dfe6 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-usage-actions button:hover:not(:disabled) {
+  color: #263449 !important;
+  border-color: #bfcbd6 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-usage-actions button.danger {
+  color: #a14641 !important;
+  border-color: #ebcecb !important;
+  background: #fff8f7 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-pagination {
+  color: #7a8997 !important;
+  border-top-color: #e9eef2 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-pagination button {
+  color: #506879 !important;
+  border-color: #d5dfe6 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-pagination button:hover:not(:disabled) {
+  color: #263449 !important;
+  border-color: #bfcbd6 !important;
+  background: #f8fafc !important;
+}
+
+/* Create/edit preview column. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-form-preview {
+  border-left-color: #e7ecef !important;
+  background: #f8fafb !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .preview-label {
+  color: #83909d !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-ticket {
+  color: #6b5b45 !important;
+  border-color: #e2cfad !important;
+  background:
+    radial-gradient(circle at 0 50%, #f8fafb 0 8px, transparent 9px),
+    radial-gradient(circle at 100% 50%, #f8fafb 0 8px, transparent 9px),
+    linear-gradient(145deg, #fffdf8, #fff5e3) !important;
+  box-shadow: 0 10px 25px rgb(114 80 29 / 8%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .ticket-brand {
+  color: #9d691e !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .ticket-brand > span {
+  color: #ffffff !important;
+  background: #b57621 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .ticket-value {
+  color: #a66618 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-ticket > p {
+  color: #655a4a !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-ticket > small {
+  color: #9b896e !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .ticket-code {
+  border-color: #d5b983 !important;
+  background: rgb(255 255 255 / 55%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .ticket-code span {
+  color: #a88b62 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .ticket-code strong {
+  color: #8c5c18 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-preview-note {
+  border-color: #dce6eb !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-preview-note > span {
+  color: #9a631b !important;
+  background: #fff0d7 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-preview-note p {
+  color: #758694 !important;
+}
+
+/* Keep modal/detail support surfaces light too, including the payment-link
+   flow used by the first screenshot. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) :is(
+  .apply-calculation,
+  .payment-link-content
+) {
+  border-color: #e1e7eb !important;
+  background: #f8fafb !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .apply-calculation > div {
+  border-color: #e2e8ec !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .apply-calculation .final {
+  border-color: #cce4d8 !important;
+  background: #edf8f3 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .apply-calculation .final strong {
+  color: #177451 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .payment-link-promotion {
+  color: #8f5e1d !important;
+  border-color: #e8d8be !important;
+  background: #fffaf1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .payment-link-promotion span {
+  color: #8f5e1d !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .payment-link-promotion strong {
+  color: #178157 !important;
+}
