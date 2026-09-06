@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export type AdminTheme = 'light' | 'dark'
 
@@ -39,9 +40,6 @@ function applyTheme(theme: AdminTheme) {
   root.classList.toggle('dark', theme === 'dark')
   root.style.colorScheme = theme
 
-  const darkStylesheet = document.getElementById('admin-dark-theme') as HTMLLinkElement | null
-  if (darkStylesheet) darkStylesheet.disabled = theme !== 'dark'
-
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', THEME_COLORS[theme])
@@ -49,7 +47,7 @@ function applyTheme(theme: AdminTheme) {
 
 function SunIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41" />
     </svg>
@@ -58,7 +56,7 @@ function SunIcon() {
 
 function MoonIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M20.5 14.2A8.4 8.4 0 0 1 9.8 3.5 8.6 8.6 0 1 0 20.5 14.2Z" />
     </svg>
   )
@@ -66,6 +64,7 @@ function MoonIcon() {
 
 export default function AdminThemeToggle() {
   const [theme, setTheme] = useState<AdminTheme>(readTheme)
+  const [topbarTarget, setTopbarTarget] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
     applyTheme(theme)
@@ -87,9 +86,19 @@ export default function AdminThemeToggle() {
     return () => window.removeEventListener('storage', syncTheme)
   }, [])
 
-  const nextTheme = theme === 'dark' ? 'light' : 'dark'
+  useEffect(() => {
+    function resolveTarget() {
+      setTopbarTarget(document.querySelector<HTMLElement>('.topbar-actions'))
+    }
 
-  return (
+    resolveTarget()
+    const observer = new MutationObserver(resolveTarget)
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
+
+  const nextTheme = theme === 'dark' ? 'light' : 'dark'
+  const button = (
     <button
       type="button"
       className="admin-theme-toggle"
@@ -97,12 +106,11 @@ export default function AdminThemeToggle() {
       title={`Chuyển sang chế độ ${nextTheme === 'dark' ? 'tối' : 'sáng'}`}
       onClick={() => setTheme(nextTheme)}
     >
-      <span className="admin-theme-toggle-icon">
-        {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-      </span>
-      <span className="admin-theme-toggle-label">
-        {theme === 'dark' ? 'Sáng' : 'Tối'}
-      </span>
+      {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
     </button>
   )
+
+  if (topbarTarget) return createPortal(button, topbarTarget)
+
+  return <div className="admin-theme-toggle-fallback">{button}</div>
 }
