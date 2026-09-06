@@ -73,6 +73,7 @@
 @import './pages/table-qr-url-inside-panel.css';
 @import './pages/table-qr-controls-same-row.css';
 @import './pages/ai-assistant-final-fix.css';
+@import './pages/orders-admin-create-removal.css';
 
 /* Theme controls are intentionally last: the existing dark-first styles keep
    all layout/icon geometry, while light mode only overrides visual colors. */
