@@ -108,3 +108,4 @@
 /* Shared shell cleanup and final row geometry must run last in both themes. */
 @import './design-system/topbar-frame-removal.css';
 @import './pages/payments-rows-spaced.css';
+@import './pages/reservations-rows-spaced.css';
