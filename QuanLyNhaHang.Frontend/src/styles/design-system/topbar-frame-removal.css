@@ -172,6 +172,34 @@ html[data-admin-theme] body .admin-layout .dashboard > .payments-page[class]::af
   box-shadow: none !important;
 }
 
+/* The payment table wrapper is itself styled as a rounded card by both the
+   base stylesheet and the dark override. That remaining card is the frame
+   visible around the whole SePay history table. Keep horizontal scrolling and
+   row separators, but remove only the wrapper frame in both themes. */
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-wrap[class] {
+  border: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-wrap[class]::before,
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-wrap[class]::after {
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
 /* Payments has a page-specific dark topbar skin with !important rules. The
    controls below must use the light palette whenever the explicit theme is
    light; otherwise profile/logout/theme toggle remain navy/black. */
