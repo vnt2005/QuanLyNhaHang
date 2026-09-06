@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Payments;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
-using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Queries.GetWithPaginatedList;
 
@@ -20,15 +20,9 @@ public class GetPaymentsWithPaginatedListQueryHandler
         GetPaymentsWithPaginatedListQuery request,
         CancellationToken cancellationToken)
     {
-        var query = _context.Payments
-            .AsNoTracking()
-            .Where(payment =>
-                payment.Status == "Paid" &&
-                payment.PaymentMethod == "BankTransfer" &&
-                _context.PaymentAttempts.Any(attempt =>
-                    attempt.PaymentId == payment.Id &&
-                    attempt.Provider == "SePay" &&
-                    attempt.Status == PaymentAttempt.PaidStatus));
+        var query = VerifiedSePayPaymentPolicy.Apply(
+            _context.Payments.AsNoTracking(),
+            _context);
 
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
