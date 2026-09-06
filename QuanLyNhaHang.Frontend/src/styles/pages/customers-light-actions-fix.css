@@ -1,0 +1,35 @@
+/* Customer light-mode action fix -----------------------------------------
+   The shared compact-action design system is dark-first and uses !important.
+   Keep its geometry/masks, but restore a light semantic surface for the
+   customer detail (eye) action when Admin WebApp is in light mode. */
+
+html[data-admin-theme='light']
+  .dashboard
+  .customers-page
+  .customer-actions
+  > button:nth-child(1) {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  box-shadow: inset 0 0 0 1px rgb(37 99 235 / 3%) !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard
+  .customers-page
+  .customer-actions
+  > button:nth-child(1):hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #dbeafe !important;
+  box-shadow: inset 0 0 0 1px rgb(37 99 235 / 5%) !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard
+  .customers-page
+  .customer-actions
+  > button:nth-child(1):focus-visible {
+  outline: 3px solid rgb(59 130 246 / 22%) !important;
+  outline-offset: 2px !important;
+}
