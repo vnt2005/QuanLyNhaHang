@@ -1,78 +1,86 @@
 .admin-theme-toggle {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 190;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  gap: 8px;
-  padding: 0 13px 0 10px;
-  color: #405069;
-  border: 1px solid #d7e0e8;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
-  backdrop-filter: blur(14px);
-  font-size: 12px;
-  font-weight: 800;
-  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+  display: inline-grid !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  flex: 0 0 44px !important;
+  padding: 0 !important;
+  place-items: center !important;
+  color: #d7e2ef !important;
+  border: 1px solid #263852 !important;
+  border-radius: 12px !important;
+  background: #0b1628 !important;
+  box-shadow: none !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
-.admin-theme-toggle:hover {
-  color: #1d4ed8;
-  border-color: #a9c8f8;
+.admin-theme-toggle:hover:not(:disabled) {
+  color: #f8fafc !important;
+  border-color: #3b5273 !important;
+  background: #111f34 !important;
   transform: translateY(-1px);
 }
 
-.admin-theme-toggle-icon {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  color: #1d4ed8;
-  background: #eff6ff;
-}
-
 .admin-theme-toggle svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
+  display: block !important;
+  width: 19px !important;
+  height: 19px !important;
+  min-width: 19px !important;
+  min-height: 19px !important;
+  max-width: 19px !important;
+  max-height: 19px !important;
+  flex: none !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-width: 1.8 !important;
+  transform: none !important;
 }
 
 html[data-admin-theme='dark'] .admin-theme-toggle {
-  color: #d7e2ef;
-  border-color: #263852;
-  background: rgba(8, 19, 35, 0.94);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+  color: #fbbf24 !important;
 }
 
-html[data-admin-theme='dark'] .admin-theme-toggle:hover {
-  color: #f8fafc;
-  border-color: #3b5273;
-  background: rgba(13, 29, 51, 0.97);
+html[data-admin-theme='light'] .admin-theme-toggle {
+  color: #405069 !important;
+  border-color: #d7e0e8 !important;
+  background: #ffffff !important;
+  box-shadow: 0 4px 14px rgb(15 23 42 / 6%) !important;
 }
 
-html[data-admin-theme='dark'] .admin-theme-toggle-icon {
-  color: #fbbf24;
-  background: rgba(245, 158, 11, 0.14);
+html[data-admin-theme='light'] .admin-theme-toggle:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #b9ccef !important;
+  background: #f8fbff !important;
+}
+
+.admin-theme-toggle-fallback {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 190;
+  width: 44px;
+  height: 44px;
 }
 
 @media (max-width: 760px) {
   .admin-theme-toggle {
-    right: 14px;
-    bottom: 14px;
-    width: 44px;
-    padding: 0;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    flex-basis: 40px !important;
+    border-radius: 10px !important;
   }
 
-  .admin-theme-toggle-label {
-    display: none;
+  .admin-theme-toggle-fallback {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
   }
 }
