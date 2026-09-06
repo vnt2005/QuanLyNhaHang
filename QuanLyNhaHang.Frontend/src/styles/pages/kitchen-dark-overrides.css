@@ -67,3 +67,229 @@
   background: transparent !important;
   box-shadow: none !important;
 }
+
+/* The notification center lives inside .topbar. Kitchen focus mode has a
+   broad topbar button treatment, so explicitly isolate the notification
+   component here and give all of its surfaces one coherent dark palette. */
+.dashboard:has(.kitchen-page) .notification-center {
+  color-scheme: dark;
+}
+
+.dashboard:has(.kitchen-page) .notification-trigger {
+  color: #cbd5e1;
+  border-color: #20304a;
+  background: #0b1628;
+}
+
+.dashboard:has(.kitchen-page) .notification-trigger:hover,
+.dashboard:has(.kitchen-page) .notification-trigger.active {
+  color: #f8fafc;
+  border-color: #3a5273;
+  background: #111f34;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+}
+
+.dashboard:has(.kitchen-page) .notification-badge {
+  border-color: #081123;
+}
+
+.dashboard:has(.kitchen-page) .notification-panel {
+  color: #dce7f4;
+  border-color: #22334d;
+  background: #081323;
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard:has(.kitchen-page) .notification-panel-header {
+  background: #0b1628;
+}
+
+.dashboard:has(.kitchen-page) .notification-panel-header h2 {
+  color: #f8fafc;
+}
+
+.dashboard:has(.kitchen-page) .notification-panel-header span {
+  color: #8da0ba;
+}
+
+.dashboard:has(.kitchen-page) .notification-panel-header button {
+  padding: 5px 0;
+  color: #7dd3fc;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dashboard:has(.kitchen-page) .notification-panel-header button:hover:not(:disabled) {
+  color: #bae6fd;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dashboard:has(.kitchen-page) .notification-panel-header button:disabled {
+  color: #5f718a;
+  background: transparent;
+}
+
+.dashboard:has(.kitchen-page) .notification-tabs {
+  border-bottom-color: #1d2c42;
+  background: #0b1628;
+}
+
+.dashboard:has(.kitchen-page) .notification-tabs button {
+  color: #8da0ba;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dashboard:has(.kitchen-page) .notification-tabs button:hover:not(:disabled) {
+  color: #dce7f4;
+  border: 0;
+  background: #111f34;
+}
+
+.dashboard:has(.kitchen-page) .notification-tabs button.active,
+.dashboard:has(.kitchen-page) .notification-tabs button.active:hover {
+  color: #7dd3fc;
+  border: 0;
+  background: #11233a;
+}
+
+.dashboard:has(.kitchen-page) .notification-error {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(127, 29, 29, 0.2);
+}
+
+.dashboard:has(.kitchen-page) .notification-error > span {
+  color: #fff;
+  background: #dc4b50;
+}
+
+.dashboard:has(.kitchen-page) .notification-list {
+  background: #081323;
+}
+
+.dashboard:has(.kitchen-page) .notification-item {
+  color: #dce7f4;
+  border: 0;
+  border-bottom: 1px solid #1d2c42;
+  background: #081323;
+  box-shadow: none;
+}
+
+.dashboard:has(.kitchen-page) .notification-item:hover:not(:disabled) {
+  border-color: #1d2c42;
+  background: #0d1a2d;
+}
+
+.dashboard:has(.kitchen-page) .notification-item.unread {
+  background: #0b2034;
+}
+
+.dashboard:has(.kitchen-page) .notification-item.unread:hover:not(:disabled) {
+  background: #102a43;
+}
+
+.dashboard:has(.kitchen-page) .notification-type {
+  color: #7dd3fc;
+  background: rgba(14, 165, 233, 0.13);
+}
+
+.dashboard:has(.kitchen-page) .notification-type.warning {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.14);
+}
+
+.dashboard:has(.kitchen-page) .notification-type.success {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.14);
+}
+
+.dashboard:has(.kitchen-page) .notification-type.error {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.dashboard:has(.kitchen-page) .notification-copy strong {
+  color: #eef5fc;
+}
+
+.dashboard:has(.kitchen-page) .notification-copy > span {
+  color: #a6b6c9;
+}
+
+.dashboard:has(.kitchen-page) .notification-copy small {
+  color: #70839c;
+}
+
+.dashboard:has(.kitchen-page) .notification-loading span {
+  background: linear-gradient(90deg, #0d1a2d, #142238, #0d1a2d);
+  background-size: 200% 100%;
+}
+
+.dashboard:has(.kitchen-page) .notification-empty {
+  color: #8da0ba;
+  background: #081323;
+}
+
+.dashboard:has(.kitchen-page) .notification-empty > span {
+  color: #6ee7b7;
+  background: #0d2a24;
+}
+
+.dashboard:has(.kitchen-page) .notification-empty strong {
+  color: #dce7f4;
+}
+
+.dashboard:has(.kitchen-page) .notification-realtime {
+  color: #7f92aa;
+  border-top-color: #1d2c42;
+  background: #07111f;
+}
+
+.dashboard:has(.kitchen-page) .notification-toast {
+  color: #dce7f4;
+  border-color: #22334d;
+  background: #081323;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard:has(.kitchen-page) .notification-toast-main {
+  color: inherit;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dashboard:has(.kitchen-page) .notification-toast-main:hover:not(:disabled) {
+  border: 0;
+  background: #0d1a2d;
+}
+
+.dashboard:has(.kitchen-page) .notification-toast-main small {
+  color: #7dd3fc;
+}
+
+.dashboard:has(.kitchen-page) .notification-toast-main strong {
+  color: #eef5fc;
+}
+
+.dashboard:has(.kitchen-page) .notification-toast-main > span > span {
+  color: #a6b6c9;
+}
+
+.dashboard:has(.kitchen-page) .notification-toast-close {
+  color: #8da0ba;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dashboard:has(.kitchen-page) .notification-toast-close:hover:not(:disabled) {
+  color: #f8fafc;
+  border: 0;
+  background: #111f34;
+}
