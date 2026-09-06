@@ -16,6 +16,27 @@ html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-live-stats
   color: #172033 !important;
 }
 
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-delay-badge {
+  color: #52657a !important;
+  border-color: #d8e2ec !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-delay-badge > span {
+  color: #d97706 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-delay-badge.urgent {
+  color: #b45309 !important;
+  border-color: #f2cf9b !important;
+  background: #fff7ed !important;
+  background-color: #fff7ed !important;
+  background-image: none !important;
+}
+
 html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls {
   color: #263449 !important;
   border-color: #dfe6ee !important;
