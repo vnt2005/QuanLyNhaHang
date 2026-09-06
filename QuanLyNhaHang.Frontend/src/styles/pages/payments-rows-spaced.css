@@ -1,0 +1,77 @@
+/* SePay history row spacing ------------------------------------------------
+   The payment table should have visually separate rows like the Orders cards,
+   while keeping the outer table container frameless. This is visual only. */
+
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table {
+  border-collapse: separate !important;
+  border-spacing: 0 12px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Keep the column header visually attached to its own header strip, not to the
+   first data row. */
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table thead th {
+  border-bottom: 0 !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr > td {
+  border-top: 1px solid var(--ds-color-border-subtle) !important;
+  border-bottom: 1px solid var(--ds-color-border-subtle) !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr > td:first-child {
+  border-left: 1px solid var(--ds-color-border-subtle) !important;
+  border-radius: 14px 0 0 14px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr > td:last-child {
+  border-right: 1px solid var(--ds-color-border-subtle) !important;
+  border-radius: 0 14px 14px 0 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr > td {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr:hover > td {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr > td {
+  border-top-color: #1d2b49 !important;
+  border-bottom-color: #1d2b49 !important;
+  background: #091226 !important;
+  background-color: #091226 !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr > td:first-child {
+  border-left-color: #1d2b49 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr > td:last-child {
+  border-right-color: #1d2b49 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .payments-page
+  .payment-table-container .payment-table tbody tr:hover > td {
+  background: #0c1730 !important;
+  background-color: #0c1730 !important;
+  background-image: none !important;
+}
