@@ -1,0 +1,104 @@
+/* Light skin for the shared confirmation dialog.
+   Loaded after confirm-dialog-polish.css so the dialog never mixes a light
+   content area with the historical dark footer/buttons. Geometry is untouched. */
+
+html[data-admin-theme='light'] .ds-confirm-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%);
+  -webkit-backdrop-filter: blur(6px) saturate(88%);
+}
+
+html[data-admin-theme='light'] .ds-confirm-dialog {
+  border-color: #d9e2ec !important;
+  color: #263449 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow:
+    0 28px 70px rgb(15 23 42 / 24%),
+    0 0 0 1px rgb(255 255 255 / 80%) inset !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-dialog.danger {
+  border-color: #e8d9de !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-icon {
+  border-color: #d7e2ee !important;
+  color: #38638f !important;
+  background: #eef5fb !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-dialog.danger .ds-confirm-icon {
+  border-color: #f0c9d3 !important;
+  color: #c63f61 !important;
+  background: #fff0f4 !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-copy > span {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-dialog.danger .ds-confirm-copy > span {
+  color: #d65373 !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-copy h2,
+html[data-admin-theme='light'] .dashboard .ds-confirm-copy h2 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-copy p,
+html[data-admin-theme='light'] .dashboard .ds-confirm-copy p {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-actions,
+html[data-admin-theme='light'] body:has(.payments-page) .ds-confirm-actions,
+html[data-admin-theme='light'] body:has(.orders-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-actions button,
+html[data-admin-theme='light'] .dashboard .ds-confirm-actions button {
+  border-color: #cfd9e5 !important;
+  color: #334155 !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-actions button:hover:not(:disabled) {
+  border-color: #aebdce !important;
+  color: #172033 !important;
+  background: #f1f5f9 !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-actions button:focus-visible {
+  outline-color: rgb(59 130 246 / 24%) !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-actions button.primary {
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+  background: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-actions button.primary:hover:not(:disabled) {
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+  background: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-actions button.danger {
+  border-color: #c93e53 !important;
+  color: #ffffff !important;
+  background: #c93e53 !important;
+  box-shadow: 0 8px 20px rgb(201 62 83 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .ds-confirm-actions button.danger:hover:not(:disabled) {
+  border-color: #b83249 !important;
+  color: #ffffff !important;
+  background: #b83249 !important;
+}
