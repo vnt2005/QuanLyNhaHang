@@ -25,6 +25,16 @@ public class CreateInvoiceCommandHandler
         if (payment == null) throw new Exception("Không tìm thấy thanh toán.");
         if (payment.Status != "Paid") throw new Exception("Chỉ thanh toán đã Paid mới được xuất hóa đơn.");
 
+        if (payment.PaymentMethod == "BankTransfer" &&
+            !await VerifiedSePayPaymentPolicy.IsVerifiedAsync(
+                payment,
+                _context,
+                cancellationToken))
+        {
+            throw new InvalidOperationException(
+                "Thanh toán chuyển khoản này không có bằng chứng SePay/webhook hợp lệ. Dữ liệu thanh toán thủ công cũ không được phép dùng để xuất hóa đơn.");
+        }
+
         if (await _context.Invoices.AnyAsync(x => x.PaymentId == request.PaymentId && x.Status != "Cancelled", cancellationToken))
             throw new Exception("Thanh toán này đã có hóa đơn.");
 

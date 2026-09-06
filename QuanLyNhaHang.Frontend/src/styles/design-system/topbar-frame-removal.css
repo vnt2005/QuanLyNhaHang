@@ -1,0 +1,276 @@
+/* Shared Admin shell/header cleanup --------------------------------------
+   This file is imported last on purpose. Several legacy light/dark sheets use
+   high-specificity !important paint for toolbars, so the selectors below are
+   intentionally stronger and only remove the outer heading frame. Feature
+   layout, CTA buttons and business behavior stay untouched. */
+
+html[data-admin-theme] body .admin-layout > .dashboard > .topbar {
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Module title/action rows. The extra [class] raises specificity above the
+   light-theme regression safety net which otherwise paints every *-toolbar
+   as a white card. Apply to both light and dark themes. */
+html[data-admin-theme] body .admin-layout .dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-qr-page
+  )
+  :is(
+    .page-toolbar,
+    .customers-heading,
+    .activity-logs-heading,
+    .scheduling-header,
+    .inventory-toolbar,
+    .promotions-toolbar,
+    .reservations-toolbar,
+    .restaurant-settings-toolbar,
+    .table-qr-toolbar,
+    .account-security-header,
+    .kitchen-toolbar,
+    .space-page-heading,
+    .revenue-command-bar
+  )[class] {
+  border: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-qr-page
+  )
+  :is(
+    .page-toolbar,
+    .customers-heading,
+    .activity-logs-heading,
+    .scheduling-header,
+    .inventory-toolbar,
+    .promotions-toolbar,
+    .reservations-toolbar,
+    .restaurant-settings-toolbar,
+    .table-qr-toolbar,
+    .account-security-header,
+    .kitchen-toolbar,
+    .space-page-heading,
+    .revenue-command-bar
+  )[class]::before,
+html[data-admin-theme] body .admin-layout .dashboard
+  :is(
+    .employees-page,
+    .access-page,
+    .account-security-page,
+    .activity-logs-page,
+    .areas-tables-page,
+    .customers-page,
+    .invoices-page,
+    .inventory-page,
+    .kitchen-page,
+    .menu-page,
+    .orders-page,
+    .payments-page,
+    .promotions-page,
+    .reservations-page,
+    .restaurant-settings-page,
+    .revenue-reports-page,
+    .scheduling-page,
+    .table-qr-page
+  )
+  :is(
+    .page-toolbar,
+    .customers-heading,
+    .activity-logs-heading,
+    .scheduling-header,
+    .inventory-toolbar,
+    .promotions-toolbar,
+    .reservations-toolbar,
+    .restaurant-settings-toolbar,
+    .table-qr-toolbar,
+    .account-security-header,
+    .kitchen-toolbar,
+    .space-page-heading,
+    .revenue-command-bar
+  )[class]::after {
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Orders and Payments were still receiving a white full-page surface from
+   historical page paint. Remove only that outer wrapper so the page background
+   shows through; KPI/filter/table cards keep their own intended surfaces. */
+html[data-admin-theme] body .admin-layout .dashboard > .orders-page[class],
+html[data-admin-theme] body .admin-layout .dashboard > .payments-page[class] {
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard > .orders-page[class]::before,
+html[data-admin-theme] body .admin-layout .dashboard > .orders-page[class]::after,
+html[data-admin-theme] body .admin-layout .dashboard > .payments-page[class]::before,
+html[data-admin-theme] body .admin-layout .dashboard > .payments-page[class]::after {
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* The payment table wrapper is itself styled as a rounded card by both the
+   base stylesheet and the dark override. That remaining card is the frame
+   visible around the whole SePay history table. Keep horizontal scrolling and
+   row separators, but remove only the wrapper frame in both themes. */
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-wrap[class] {
+  border: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-wrap[class]::before,
+html[data-admin-theme] body .admin-layout .dashboard .payments-page
+  .payment-table-wrap[class]::after {
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Payments has a page-specific dark topbar skin with !important rules. The
+   controls below must use the light palette whenever the explicit theme is
+   light; otherwise profile/logout/theme toggle remain navy/black. */
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .eyebrow {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar h1,
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .profile-button strong {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .profile-button small {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .topbar-actions
+  :is(.notification-trigger, .profile-button, .logout, .admin-theme-toggle)[class] {
+  color: #405069 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .topbar-actions
+  :is(.notification-trigger, .profile-button, .logout, .admin-theme-toggle)[class]:hover:not(:disabled),
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) > .dashboard > .topbar .topbar-actions
+  .profile-button.active[class] {
+  color: #172033 !important;
+  border-color: #c8d2de !important;
+  background: #f7f9fc !important;
+  background-color: #f7f9fc !important;
+  background-image: none !important;
+}
+
+/* The payment dark skin also repaints the search field on focus. In light
+   mode hover/focus must stay light instead of flashing navy/black. */
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input[class],
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input:not([class]) {
+  color: #263449 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #263449 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input:hover,
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input:focus,
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input:focus-visible {
+  color: #172033 !important;
+  border-color: #7aa7e8 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #172033 !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%) !important;
+  outline: 0 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout:has(.payments-page) .dashboard
+  .payments-page .payment-filters input::placeholder {
+  color: #8b99aa !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #8b99aa !important;
+}

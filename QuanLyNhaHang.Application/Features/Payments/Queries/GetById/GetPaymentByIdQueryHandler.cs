@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
+using QuanLyNhaHang.Application.Common.Payments;
 using QuanLyNhaHang.Application.Features.Payments.DTOs;
-using QuanLyNhaHang.Domain.Entities;
 
 namespace QuanLyNhaHang.Application.Features.Payments.Queries.GetById;
 
@@ -20,16 +20,10 @@ public class GetPaymentByIdQueryHandler
         GetPaymentByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var payment = await _context.Payments
-            .AsNoTracking()
-            .Where(x =>
-                x.Id == request.Id &&
-                x.Status == "Paid" &&
-                x.PaymentMethod == "BankTransfer" &&
-                _context.PaymentAttempts.Any(attempt =>
-                    attempt.PaymentId == x.Id &&
-                    attempt.Provider == "SePay" &&
-                    attempt.Status == PaymentAttempt.PaidStatus))
+        var payment = await VerifiedSePayPaymentPolicy.Apply(
+                _context.Payments.AsNoTracking(),
+                _context)
+            .Where(x => x.Id == request.Id)
             .Select(x => new PaymentDto
             {
                 Id = x.Id,

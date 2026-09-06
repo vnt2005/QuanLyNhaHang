@@ -1,0 +1,40 @@
+/* Revenue report row-action light-mode fix ------------------------------
+   Keep semantic view/edit/cancel colors, but neutralize the three utility
+   buttons (CSV, Excel and Print) that still inherit the historical navy
+   action-icon skin in light mode. */
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(3),
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(4),
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(5) {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(3):hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(4):hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(5):hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(3):focus-visible,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(4):focus-visible,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-actions > button:nth-child(5):focus-visible {
+  outline: 3px solid rgb(37 99 235 / 14%) !important;
+  outline-offset: 2px !important;
+}

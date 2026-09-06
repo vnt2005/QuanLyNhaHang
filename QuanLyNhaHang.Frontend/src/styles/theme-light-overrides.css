@@ -1,0 +1,753 @@
+/* Admin light theme -------------------------------------------------------
+   IMPORTANT: all existing page styles remain loaded because several of the
+   historical *-dark.css files also own layout and SVG geometry. Light mode is
+   therefore a visual override layer only; it must never remove those rules. */
+
+html[data-admin-theme='light'] {
+  color-scheme: light;
+  --ds-color-bg: #f3f6fa;
+  --ds-color-surface: #ffffff;
+  --ds-color-surface-subtle: #f7f9fc;
+  --ds-color-surface-raised: #ffffff;
+  --ds-color-text: #263449;
+  --ds-color-text-strong: #172033;
+  --ds-color-text-secondary: #596a80;
+  --ds-color-text-muted: #748399;
+  --ds-color-border: #dfe6ee;
+  --ds-color-border-strong: #c8d2de;
+  --ds-color-border-subtle: #e9eef4;
+  --ds-color-icon: #607087;
+}
+
+html[data-admin-theme='light'],
+html[data-admin-theme='light'] body,
+html[data-admin-theme='light'] #root {
+  background: #f3f6fa !important;
+}
+
+/* Re-map every page-level dark token to the shared light palette. This keeps
+   each module's existing spacing/layout while changing the visual surfaces. */
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) {
+  --employee-bg: #f3f6fa;
+  --employee-bg-deep: #eef3f8;
+  --employee-surface: #ffffff;
+  --employee-input: #ffffff;
+  --employee-border: #dfe6ee;
+  --employee-border-soft: #e9eef4;
+  --employee-text: #172033;
+  --employee-muted: #748399;
+  --employee-muted-strong: #596a80;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) {
+  --customer-bg: #f3f6fa;
+  --customer-bg-deep: #eef3f8;
+  --customer-surface: #ffffff;
+  --customer-surface-raised: #f7f9fc;
+  --customer-input: #ffffff;
+  --customer-border: #dfe6ee;
+  --customer-border-soft: #e9eef4;
+  --customer-text: #172033;
+  --customer-muted: #748399;
+  --customer-muted-strong: #596a80;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.scheduling-page) {
+  --shift-bg: #f3f6fa;
+  --shift-bg-deep: #eef3f8;
+  --shift-surface: #ffffff;
+  --shift-surface-raised: #f7f9fc;
+  --shift-input: #ffffff;
+  --shift-border: #dfe6ee;
+  --shift-border-soft: #e9eef4;
+  --shift-text: #172033;
+  --shift-muted: #748399;
+  --shift-muted-strong: #596a80;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) {
+  --access-bg: #f3f6fa;
+  --access-bg-deep: #eef3f8;
+  --access-surface: #ffffff;
+  --access-surface-raised: #f7f9fc;
+  --access-input: #ffffff;
+  --access-border: #dfe6ee;
+  --access-border-soft: #e9eef4;
+  --access-text: #172033;
+  --access-muted: #748399;
+  --access-muted-strong: #596a80;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) {
+  --invoice-bg: #f3f6fa;
+  --invoice-bg-deep: #eef3f8;
+  --invoice-surface: #ffffff;
+  --invoice-surface-raised: #f7f9fc;
+  --invoice-input: #ffffff;
+  --invoice-border: #dfe6ee;
+  --invoice-border-soft: #e9eef4;
+  --invoice-text: #172033;
+  --invoice-muted: #748399;
+  --invoice-muted-strong: #596a80;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) {
+  --revenue-bg: #f3f6fa;
+  --revenue-bg-deep: #eef3f8;
+  --revenue-surface: #ffffff;
+  --revenue-surface-raised: #f7f9fc;
+  --revenue-input: #ffffff;
+  --revenue-border: #dfe6ee;
+  --revenue-border-soft: #e9eef4;
+  --revenue-text: #172033;
+  --revenue-muted: #748399;
+  --revenue-muted-strong: #596a80;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) {
+  --activity-bg: #f3f6fa;
+  --activity-bg-deep: #eef3f8;
+  --activity-surface: #ffffff;
+  --activity-surface-raised: #f7f9fc;
+  --activity-input: #ffffff;
+  --activity-border: #dfe6ee;
+  --activity-border-soft: #e9eef4;
+  --activity-text: #172033;
+  --activity-text-soft: #405069;
+  --activity-muted: #748399;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.areas-tables-page) {
+  --space-bg: #f3f6fa;
+  --space-bg-deep: #eef3f8;
+  --space-surface: #ffffff;
+  --space-surface-2: #f7f9fc;
+  --space-input: #ffffff;
+  --space-border: #dfe6ee;
+  --space-border-soft: #e9eef4;
+  --space-text: #172033;
+  --space-text-soft: #405069;
+  --space-muted: #748399;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page) {
+  --reservation-bg: #f3f6fa;
+  --reservation-bg-deep: #eef3f8;
+  --reservation-surface: #ffffff;
+  --reservation-surface-raised: #f7f9fc;
+  --reservation-input: #ffffff;
+  --reservation-border: #dfe6ee;
+  --reservation-border-soft: #e9eef4;
+  --reservation-text: #172033;
+  --reservation-text-soft: #405069;
+  --reservation-muted: #748399;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) {
+  --qr-bg: #f3f6fa;
+  --qr-bg-deep: #eef3f8;
+  --qr-surface: #ffffff;
+  --qr-surface-2: #f7f9fc;
+  --qr-surface-3: #edf2f7;
+  --qr-input: #ffffff;
+  --qr-border: #dfe6ee;
+  --qr-border-soft: #e9eef4;
+  --qr-text: #172033;
+  --qr-text-soft: #405069;
+  --qr-muted: #748399;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) {
+  --menu-bg: #f3f6fa;
+  --menu-bg-deep: #eef3f8;
+  --menu-surface: #ffffff;
+  --menu-surface-2: #f7f9fc;
+  --menu-surface-3: #edf2f7;
+  --menu-input: #ffffff;
+  --menu-border: #dfe6ee;
+  --menu-border-soft: #e9eef4;
+  --menu-text: #172033;
+  --menu-text-soft: #405069;
+  --menu-muted: #748399;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) {
+  --promo-bg: #f3f6fa;
+  --promo-bg-deep: #eef3f8;
+  --promo-surface: #ffffff;
+  --promo-surface-2: #f7f9fc;
+  --promo-surface-3: #edf2f7;
+  --promo-input: #ffffff;
+  --promo-border: #dfe6ee;
+  --promo-border-soft: #e9eef4;
+  --promo-text: #172033;
+  --promo-soft: #405069;
+  --promo-muted: #748399;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) {
+  --security-bg: #f3f6fa;
+  --security-deep: #eef3f8;
+  --security-surface: #ffffff;
+  --security-surface-2: #f7f9fc;
+  --security-surface-3: #edf2f7;
+  --security-border: #dfe6ee;
+  --security-border-soft: #e9eef4;
+  --security-text: #172033;
+  --security-soft: #405069;
+  --security-muted: #748399;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page) {
+  --rs-bg: #f3f6fa;
+  --rs-deep: #eef3f8;
+  --rs-surface: #ffffff;
+  --rs-surface-2: #f7f9fc;
+  --rs-surface-3: #edf2f7;
+  --rs-border: #dfe6ee;
+  --rs-border-soft: #e9eef4;
+  --rs-text: #172033;
+  --rs-soft: #405069;
+  --rs-muted: #748399;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body:has(.orders-page) {
+  --orders-override-bg: #f3f6fa;
+  --orders-override-surface: #ffffff;
+  --orders-override-surface-2: #f7f9fc;
+  --orders-override-border: #dfe6ee;
+  --orders-override-border-strong: #c8d2de;
+  --orders-override-text: #172033;
+  --orders-override-soft: #596a80;
+  --orders-override-muted: #748399;
+}
+
+html[data-admin-theme='light'] body:has(.payments-page) {
+  --payment-bg: #f3f6fa;
+  --payment-surface: #ffffff;
+  --payment-surface-2: #f7f9fc;
+  --payment-border: #dfe6ee;
+  --payment-border-strong: #c8d2de;
+  --payment-text: #172033;
+  --payment-soft: #596a80;
+  --payment-muted: #748399;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.live-dashboard-page) {
+  --dashboard-bg: #f3f6fa;
+  --dashboard-surface: #ffffff;
+  --dashboard-surface-soft: #f7f9fc;
+  --dashboard-surface-strong: #edf2f7;
+  --dashboard-border: #dfe6ee;
+  --dashboard-border-soft: #e9eef4;
+  --dashboard-text: #172033;
+  --dashboard-text-soft: #596a80;
+  --dashboard-text-muted: #748399;
+}
+
+html[data-admin-theme='light'] .ai-admin-page {
+  --ai-navy: #ffffff;
+  --ai-navy-2: #f7f9fc;
+  --ai-field: #ffffff;
+  --ai-field-hover: #f7f9fc;
+  --ai-border: #dfe6ee;
+  --ai-text: #172033;
+  --ai-muted: #748399;
+  --ai-accent-soft: #fff2e8;
+}
+
+/* Shared shell ----------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout,
+html[data-admin-theme='light'] .dashboard,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page),
+html[data-admin-theme='light'] .dashboard:has(.payments-page),
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) {
+  color: #263449 !important;
+  background: #f3f6fa !important;
+}
+
+html[data-admin-theme='light'] .sidebar {
+  color: #405069 !important;
+  border-right-color: #dfe6ee !important;
+  background: #ffffff !important;
+  box-shadow: 8px 0 28px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .sidebar .logo,
+html[data-admin-theme='light'] .sidebar-footer {
+  border-color: #e6ecf2 !important;
+}
+
+html[data-admin-theme='light'] .sidebar .logo strong,
+html[data-admin-theme='light'] .sidebar .system-status strong {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .sidebar .logo small,
+html[data-admin-theme='light'] .sidebar .system-status small,
+html[data-admin-theme='light'] .nav-section-label {
+  color: #8290a2 !important;
+}
+
+html[data-admin-theme='light'] .sidebar nav button {
+  color: #596a80 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .sidebar nav button:hover {
+  color: #1f3b5d !important;
+  background: #f3f6fa !important;
+}
+
+html[data-admin-theme='light'] .sidebar nav button.active,
+html[data-admin-theme='light'] .sidebar nav button.active:hover {
+  color: #1d4ed8 !important;
+  border-color: #d6e4fb !important;
+  background: #eff6ff !important;
+  box-shadow: inset 3px 0 0 #3b82f6 !important;
+}
+
+html[data-admin-theme='light'] .sidebar nav button > span {
+  color: #607087 !important;
+  background: #f1f5f9 !important;
+}
+
+html[data-admin-theme='light'] .sidebar nav button.active > span {
+  color: #1d4ed8 !important;
+  background: #dbeafe !important;
+}
+
+html[data-admin-theme='light'] .topbar,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .topbar {
+  color: #172033 !important;
+  border-bottom-color: #dfe6ee !important;
+  background: rgb(255 255 255 / 96%) !important;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .topbar .eyebrow {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .topbar h1,
+html[data-admin-theme='light'] .profile-button strong {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .profile-button small {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .profile-button,
+html[data-admin-theme='light'] .logout,
+html[data-admin-theme='light'] .notification-trigger {
+  color: #405069 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .profile-button:hover,
+html[data-admin-theme='light'] .profile-button.active,
+html[data-admin-theme='light'] .logout:hover:not(:disabled),
+html[data-admin-theme='light'] .notification-trigger:hover,
+html[data-admin-theme='light'] .notification-trigger.active {
+  color: #172033 !important;
+  border-color: #c8d2de !important;
+  background: #f7f9fc !important;
+}
+
+/* Common content surfaces. These selectors intentionally target container
+   roles only; icon/button geometry is left untouched. */
+html[data-admin-theme='light'] .dashboard :is(
+  [class$='-card'],
+  [class*='-card '],
+  [class$='-panel'],
+  [class*='-panel '],
+  [class$='-toolbar'],
+  [class*='-toolbar '],
+  [class$='-filters'],
+  [class*='-filters '],
+  [class$='-filter-bar'],
+  [class*='-filter-bar '],
+  [class$='-summary-card'],
+  [class*='-summary-card ']
+) {
+  border-color: #dfe6ee !important;
+}
+
+html[data-admin-theme='light'] .dashboard :is(
+  input,
+  select,
+  textarea
+) {
+  color: #263449 !important;
+  border-color: #d7e0e8 !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
+  color-scheme: light !important;
+  -webkit-text-fill-color: #263449 !important;
+}
+
+html[data-admin-theme='light'] .dashboard :is(input, textarea)::placeholder {
+  color: #8a98a9 !important;
+  -webkit-text-fill-color: #8a98a9 !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .dashboard select option {
+  color: #263449 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .dashboard table th {
+  color: #66778b !important;
+  border-color: #e3e9ef !important;
+  background: #f7f9fc !important;
+}
+
+html[data-admin-theme='light'] .dashboard table td {
+  color: #52657a !important;
+  border-color: #e8edf2 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .dashboard table tbody tr:hover td {
+  background: #f8fbfe !important;
+}
+
+html[data-admin-theme='light'] .modal-backdrop,
+html[data-admin-theme='light'] .confirm-dialog-backdrop,
+html[data-admin-theme='light'] .areas-tables-backdrop {
+  background: rgb(15 23 42 / 42%) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+html[data-admin-theme='light'] :is(
+  .employee-modal,
+  .inventory-modal,
+  .confirm-dialog,
+  .notification-panel,
+  .notification-toast
+) {
+  color: #263449 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 18%) !important;
+}
+
+html[data-admin-theme='light'] :is(.modal-heading, .notification-panel-header, .notification-tabs) {
+  border-color: #e5ebf1 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] :is(.modal-heading h2, .notification-panel-header h2) {
+  color: #172033 !important;
+}
+
+/* Notification center ---------------------------------------------------- */
+html[data-admin-theme='light'] .notification-panel,
+html[data-admin-theme='light'] .notification-list,
+html[data-admin-theme='light'] .notification-item,
+html[data-admin-theme='light'] .notification-empty,
+html[data-admin-theme='light'] .notification-toast {
+  color: #405069 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .notification-item {
+  border-bottom-color: #edf1f5 !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .notification-item:hover:not(:disabled) {
+  background: #f7f9fc !important;
+}
+
+html[data-admin-theme='light'] .notification-item.unread {
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .notification-copy strong,
+html[data-admin-theme='light'] .notification-empty strong,
+html[data-admin-theme='light'] .notification-toast-main strong {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .notification-copy > span,
+html[data-admin-theme='light'] .notification-panel-header span,
+html[data-admin-theme='light'] .notification-empty,
+html[data-admin-theme='light'] .notification-toast-main > span > span {
+  color: #596a80 !important;
+}
+
+html[data-admin-theme='light'] .notification-copy small,
+html[data-admin-theme='light'] .notification-realtime {
+  color: #8290a2 !important;
+}
+
+html[data-admin-theme='light'] .notification-realtime {
+  border-top-color: #e5ebf1 !important;
+  background: #f8fafc !important;
+}
+
+/* Dashboard -------------------------------------------------------------- */
+html[data-admin-theme='light'] .live-dashboard-page {
+  color: #263449 !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-welcome {
+  color: #ffffff !important;
+  border-color: #cfe1ea !important;
+  background: radial-gradient(circle at 82% 15%, rgb(97 214 223 / 30%), transparent 25%), linear-gradient(115deg, #0c4c72, #0d86aa) !important;
+  box-shadow: 0 16px 34px rgb(12 90 130 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-welcome h2 {
+  color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-welcome p {
+  color: #d8f3ff !important;
+}
+
+html[data-admin-theme='light'] :is(
+  .live-dashboard-control-row,
+  .live-dashboard-kpis article,
+  .live-dashboard-card,
+  .live-dashboard-loading
+) {
+  color: #405069 !important;
+  border-color: #e2e8ee !important;
+  background: #ffffff !important;
+  box-shadow: 0 7px 21px rgb(25 45 72 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-card > header {
+  border-bottom-color: #edf1f4 !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-kpis h3,
+html[data-admin-theme='light'] .live-dashboard-card > header h3,
+html[data-admin-theme='light'] .live-dashboard-status-list b {
+  color: #2a4355 !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-kpis p,
+html[data-admin-theme='light'] .live-dashboard-kpis small,
+html[data-admin-theme='light'] .live-dashboard-card > header p,
+html[data-admin-theme='light'] .live-dashboard-y-axis {
+  color: #81919d !important;
+}
+
+/* Orders ----------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) :is(
+  .orders-page,
+  .order-summary article,
+  .order-filters,
+  .order-card,
+  .empty-order-state,
+  .pagination
+) {
+  color: #263449 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 22px rgb(25 49 72 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .order-card:hover {
+  border-color: #c8d2de !important;
+  background: #f8fbfe !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .page-toolbar h2,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .order-summary strong,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .order-card-body > div strong {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) :is(
+  .page-toolbar p,
+  .order-summary span,
+  .order-card-body p,
+  .order-card-body > div span,
+  .pagination > span
+) {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .pagination button {
+  color: #405069 !important;
+  border-color: #d7e0e8 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .employee-modal.order-modal,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .employee-modal.order-modal .modal-heading,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .employee-modal.order-modal .order-form,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .employee-modal.order-modal .order-line {
+  color: #263449 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .employee-modal.order-modal .modal-heading h2,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .employee-modal.order-modal .line-heading strong {
+  color: #172033 !important;
+}
+
+/* Kitchen ---------------------------------------------------------------- */
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-page {
+  color: #263449 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) :is(
+  .kitchen-controls,
+  .kitchen-tabs,
+  .kitchen-column,
+  .kitchen-column > header,
+  .kitchen-ticket,
+  .kitchen-empty,
+  .history-order
+) {
+  color: #405069 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  box-shadow: 0 7px 20px rgb(25 49 72 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column {
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.cooking {
+  border-color: #efd5c4 !important;
+  background: #fffaf7 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-column.ready {
+  border-color: #c4e7df !important;
+  background: #f6fcfa !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) :is(
+  .kitchen-title-row h2,
+  .kitchen-column h3,
+  .ticket-dish-name,
+  .history-order strong,
+  .history-item strong
+) {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) :is(
+  .kitchen-breadcrumb,
+  .kitchen-title-row p,
+  .kitchen-updated,
+  .ticket-order-meta,
+  .ticket-time,
+  .history-order span,
+  .history-item span
+) {
+  color: #748399 !important;
+}
+
+/* Payments --------------------------------------------------------------- */
+html[data-admin-theme='light'] .dashboard:has(.payments-page) :is(
+  .payments-page,
+  .payment-summary article,
+  .payment-filters,
+  .payment-card,
+  .payment-panel,
+  .payment-detail,
+  .pagination
+) {
+  color: #263449 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 22px rgb(25 49 72 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.payments-page) :is(h2, h3, strong) {
+  color: #172033;
+}
+
+/* Inventory -------------------------------------------------------------- */
+html[data-admin-theme='light'] .inventory-page {
+  color: #25384a !important;
+}
+
+html[data-admin-theme='light'] :is(
+  .inventory-summary-grid article,
+  .inventory-panel,
+  .low-stock-preview button,
+  .inventory-secondary,
+  .inventory-modal
+) {
+  color: #405069 !important;
+  border-color: #e0e8ee !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .inventory-tabs,
+html[data-admin-theme='light'] .inventory-table th {
+  border-color: #e5ebf0 !important;
+  background: #fbfcfd !important;
+}
+
+html[data-admin-theme='light'] .inventory-summary-grid strong,
+html[data-admin-theme='light'] .inventory-table td > strong,
+html[data-admin-theme='light'] .inventory-name-button {
+  color: #24394c !important;
+}
+
+/* AI management ---------------------------------------------------------- */
+html[data-admin-theme='light'] .ai-admin-page :is(
+  .ai-admin-hero,
+  .ai-admin-card,
+  .ai-admin-live-card,
+  .ai-admin-chat-card
+) {
+  color: #263449 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 22px rgb(25 49 72 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-page :is(h2, h3, label > span) {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-page :is(p, small, .ai-admin-help) {
+  color: #748399 !important;
+}
+
+/* Authentication screen: keep the form readable when light is selected. */
+html[data-admin-theme='light'] :is(.auth-page, .auth-shell, .auth-card, .auth-panel) {
+  color: #263449 !important;
+}
+
+html[data-admin-theme='light'] :is(.auth-card, .auth-panel) {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+}
+
+@media (max-width: 760px) {
+  html[data-admin-theme='light'] .topbar {
+    background: #ffffff !important;
+  }
+}

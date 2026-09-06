@@ -1,0 +1,297 @@
+/* Revenue report light-mode regression fixes -----------------------------
+   revenue-dark.css owns modal geometry as well as its dark palette. Keep the
+   geometry, but neutralize the dark paint when the explicit admin theme is
+   light. This file is imported after every revenue/dark stylesheet. */
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) {
+  --revenue-light-surface: #ffffff;
+  --revenue-light-surface-soft: #f8fafc;
+  --revenue-light-surface-muted: #f3f6fa;
+  --revenue-light-border: #dfe6ee;
+  --revenue-light-border-soft: #e8edf3;
+  --revenue-light-text: #263449;
+  --revenue-light-text-strong: #172033;
+  --revenue-light-muted: #748399;
+  --revenue-light-orange: #ff9800;
+  --revenue-light-danger: #c93e53;
+  color-scheme: light !important;
+}
+
+/* Modal shell / backdrop ------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-modal-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) :is(
+  .revenue-dark-modal,
+  .employee-modal.revenue-dark-modal,
+  .revenue-detail-modal,
+  .employee-modal.revenue-form-modal
+) {
+  color: var(--revenue-light-text) !important;
+  border-color: var(--revenue-light-border) !important;
+  background: var(--revenue-light-surface) !important;
+  background-color: var(--revenue-light-surface) !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-dark-modal .modal-heading {
+  color: var(--revenue-light-text) !important;
+  border-bottom-color: var(--revenue-light-border) !important;
+  background: var(--revenue-light-surface) !important;
+  background-color: var(--revenue-light-surface) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-dark-modal .modal-heading h2 {
+  color: var(--revenue-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-dark-modal .modal-heading p {
+  color: var(--revenue-light-muted) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-modal-kicker {
+  color: #d97706 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-dark-modal .modal-heading > button {
+  color: #64748b !important;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-dark-modal .modal-heading > button:hover:not(:disabled) {
+  color: var(--revenue-light-text-strong) !important;
+  border-color: var(--revenue-light-border) !important;
+  background: var(--revenue-light-surface-soft) !important;
+}
+
+/* Create / edit report form --------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form {
+  color: var(--revenue-light-text) !important;
+  background: var(--revenue-light-surface) !important;
+  background-color: var(--revenue-light-surface) !important;
+  background-image: none !important;
+  scrollbar-color: #c8d2de transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form label {
+  color: #66778b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form label em {
+  color: #df4561 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form :is(input, textarea) {
+  color: var(--revenue-light-text) !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-text-fill-color: var(--revenue-light-text) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form textarea::placeholder {
+  color: #8b99aa !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #8b99aa !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form :is(input, textarea):focus {
+  border-color: #7aa7e8 !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form .modal-actions {
+  border-top-color: var(--revenue-light-border) !important;
+  background: var(--revenue-light-surface) !important;
+  background-color: var(--revenue-light-surface) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form .modal-actions > button:not(.revenue-primary-button) {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form .modal-actions > button:not(.revenue-primary-button):hover:not(:disabled) {
+  color: var(--revenue-light-text-strong) !important;
+  border-color: #b9c6d4 !important;
+  background: var(--revenue-light-surface-soft) !important;
+}
+
+/* Revenue report detail ------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-content {
+  color: var(--revenue-light-text) !important;
+  background: var(--revenue-light-surface) !important;
+  background-color: var(--revenue-light-surface) !important;
+  background-image: none !important;
+  scrollbar-color: #c8d2de transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-meta span {
+  color: #748399 !important;
+  border-color: var(--revenue-light-border-soft) !important;
+  background: var(--revenue-light-surface-soft) !important;
+  background-color: var(--revenue-light-surface-soft) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-meta strong {
+  color: var(--revenue-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-totals span {
+  color: #748399 !important;
+  border-color: var(--revenue-light-border-soft) !important;
+  background: var(--revenue-light-surface-soft) !important;
+  background-color: var(--revenue-light-surface-soft) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-totals strong {
+  color: var(--revenue-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-totals .final {
+  color: #d97706 !important;
+  border-color: #f1d09a !important;
+  background: #fff8ed !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-totals .final strong {
+  color: #d97706 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-table-wrap {
+  border-color: var(--revenue-light-border) !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-table-wrap table,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-table-wrap tbody {
+  color: var(--revenue-light-text) !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-table-wrap th {
+  color: #66778b !important;
+  border-bottom-color: var(--revenue-light-border-soft) !important;
+  background: var(--revenue-light-surface-soft) !important;
+  background-color: var(--revenue-light-surface-soft) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-table-wrap td {
+  color: #52657a !important;
+  border-bottom-color: var(--revenue-light-border-soft) !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-note {
+  color: #52657a !important;
+  border-color: var(--revenue-light-border-soft) !important;
+  background: var(--revenue-light-surface-soft) !important;
+  background-color: var(--revenue-light-surface-soft) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-actions {
+  border-top-color: var(--revenue-light-border) !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-actions > button:not(.revenue-primary-button) {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-actions > button:not(.revenue-primary-button):hover:not(:disabled) {
+  color: var(--revenue-light-text-strong) !important;
+  border-color: #b9c6d4 !important;
+  background: var(--revenue-light-surface-soft) !important;
+}
+
+/* Shared cancellation dialog on the revenue page -----------------------
+   ConfirmDialog is rendered at app level, outside the revenue modal. Use
+   body:has(...) so legacy dark confirmation styles cannot leak through. */
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-dialog.danger {
+  color: var(--revenue-light-text) !important;
+  border-color: #e3d8dd !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-dialog::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-dialog.danger .ds-confirm-icon {
+  color: var(--revenue-light-danger) !important;
+  border-color: #f0c9d3 !important;
+  background: #fff0f4 !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-copy > span {
+  color: #d65373 !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-copy h2 {
+  color: var(--revenue-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-copy p {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-actions button:not(.danger) {
+  color: #334155 !important;
+  border-color: #cfd9e5 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-actions button.danger {
+  color: #ffffff !important;
+  border-color: var(--revenue-light-danger) !important;
+  background: var(--revenue-light-danger) !important;
+  background-color: var(--revenue-light-danger) !important;
+  box-shadow: 0 8px 20px rgb(201 62 83 / 16%) !important;
+}

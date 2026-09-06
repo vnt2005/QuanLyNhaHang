@@ -1,0 +1,85 @@
+/* Promotions follow-up regression fixes.
+   Keeps all existing data/filter behavior and only corrects light-mode paint
+   plus the desktop usage-filter layout requested during PR #145 review. */
+
+/* The shared confirm dialog is rendered outside .admin-layout. Some legacy
+   promotion/danger rules can still tint the dialog body while the footer is
+   already light. Reassert an opaque light surface at the very end of cascade. */
+html[data-admin-theme='light'] body:has(.promotions-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.promotions-page) .ds-confirm-dialog.danger {
+  color: #263449 !important;
+  border-color: #e8d9de !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.promotions-page) .ds-confirm-dialog::before,
+html[data-admin-theme='light'] body:has(.promotions-page) .ds-confirm-dialog::after {
+  display: none !important;
+  content: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.promotions-page) .ds-confirm-copy {
+  color: #263449 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.promotions-page) .ds-confirm-copy h2 {
+  color: #172033 !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.promotions-page) .ds-confirm-copy p {
+  color: #708198 !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.promotions-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+/* Lịch sử sử dụng: keep the complete filter bar on one desktop row in this
+   order: search, promotion, status, from date, to date, filter, clear. */
+@media (min-width: 900px) {
+  .admin-layout:has(.promotions-page) .promotion-usage-filters {
+    display: grid !important;
+    grid-template-columns:
+      minmax(220px, 1.65fr)
+      minmax(165px, 1fr)
+      minmax(145px, 0.9fr)
+      minmax(132px, 0.72fr)
+      minmax(132px, 0.72fr)
+      max-content
+      max-content !important;
+    align-items: center !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+  }
+
+  .admin-layout:has(.promotions-page) .promotion-usage-filters > :is(input, select) {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .admin-layout:has(.promotions-page) .promotion-usage-filters > button {
+    width: auto !important;
+    min-width: 70px !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 899px) {
+  .admin-layout:has(.promotions-page) .promotion-usage-filters {
+    grid-template-columns: 1fr !important;
+  }
+}

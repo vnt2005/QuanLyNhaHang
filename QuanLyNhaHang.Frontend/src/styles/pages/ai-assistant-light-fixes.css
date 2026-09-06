@@ -1,0 +1,229 @@
+/* AI assistant light-mode regression fixes.
+   ai-assistant-final-fix.css intentionally owns the dark visual language. Keep
+   its geometry, but replace the remaining navy/brown surfaces in light mode. */
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-page {
+  --ai-navy: #ffffff;
+  --ai-navy-2: #f8fafc;
+  --ai-field: #ffffff;
+  --ai-field-hover: #fffaf5;
+  --ai-border: #d7e1eb;
+  --ai-text: #172033;
+  --ai-muted: #708198;
+  --ai-accent: #e98532;
+  --ai-accent-soft: #fff2e7;
+  --ai-success: #0d9f76;
+  --ai-danger: #c93e53;
+  color: #334155 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-page :is(
+  .ai-admin-hero,
+  .ai-admin-card,
+  .ai-admin-live-card,
+  .ai-admin-chat-card
+) {
+  color: #334155 !important;
+  border-color: #d7e1eb !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 6%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-page :is(
+  .ai-admin-hero h2,
+  .ai-admin-card h3,
+  .ai-admin-live-card h3,
+  .ai-admin-chat-card h3,
+  .ai-admin-card label > span
+) {
+  color: #172033 !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-page :is(
+  .ai-admin-hero p,
+  .ai-admin-card p,
+  .ai-admin-live-card p,
+  .ai-admin-chat-card p,
+  .ai-admin-help,
+  .ai-admin-footer small,
+  .ai-admin-card label small,
+  .ai-admin-provider small
+) {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-provider {
+  color: #334155 !important;
+  border-color: #d7e1eb !important;
+  background: #f8fafc !important;
+  background-image: none !important;
+}
+
+/* Module/data-source chips from screenshot 1. */
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-module-list span,
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-sources span {
+  color: #43566d !important;
+  border-color: #cdd9e5 !important;
+  background: #f5f8fb !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-readonly {
+  color: #a85b19 !important;
+  border-color: #efc69f !important;
+  background: #fff4e8 !important;
+  background-image: none !important;
+}
+
+/* Suggested questions and conversation surface from screenshot 2. */
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-suggestions button {
+  color: #334155 !important;
+  border-color: #cdd9e5 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-suggestions button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-suggestions button:focus-visible {
+  color: #a65313 !important;
+  border-color: #e6a46c !important;
+  background: #fff7ef !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-messages {
+  color: #52657a !important;
+  border-color: #d7e1eb !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-empty {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-empty strong {
+  color: #334155 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-bubble {
+  color: #334155 !important;
+  border-color: #d7e1eb !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-row.user .ai-admin-chat-bubble {
+  color: #7d4315 !important;
+  border-color: #efc69f !important;
+  background: #fff4e8 !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-bubble.thinking,
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-sources small {
+  color: #708198 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) :is(
+  .ai-admin-card input:not([type='checkbox']),
+  .ai-admin-card textarea,
+  .ai-admin-chat-form textarea
+) {
+  color: #172033 !important;
+  border-color: #cfdbe7 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) :is(
+  .ai-admin-card input:not([type='checkbox']),
+  .ai-admin-card textarea,
+  .ai-admin-chat-form textarea
+)::placeholder {
+  color: #91a0b2 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) :is(
+  .ai-admin-card input:not([type='checkbox']),
+  .ai-admin-card textarea,
+  .ai-admin-chat-form textarea
+):focus {
+  color: #172033 !important;
+  border-color: #e98532 !important;
+  background: #fffdfb !important;
+  box-shadow: 0 0 0 3px rgb(233 133 50 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-switch > span {
+  border-color: #c9d5e1 !important;
+  background: #e9eef4 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-switch > span::after {
+  background: #8a99aa !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-switch input:checked + span {
+  border-color: #e7a36a !important;
+  background: #fff0e2 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-switch input:checked + span::after {
+  background: #e98532 !important;
+}
+
+/* Security/API-key note from screenshot 3. */
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-security-note {
+  color: #6f4728 !important;
+  border-color: #efc69f !important;
+  background: #fff7ed !important;
+  background-color: #fff7ed !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-security-note strong {
+  color: #6f4728 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-security-note p {
+  color: #7d6654 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-security-note code {
+  color: #a65313 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-alert.error {
+  color: #a63a4d !important;
+  border-color: #f0b8c2 !important;
+  background: #fff1f4 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-alert.success {
+  color: #0d805f !important;
+  border-color: #b9e2d5 !important;
+  background: #effaf6 !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-toast.success {
+  color: #166b52 !important;
+  border-color: #b9e2d5 !important;
+  background: #effaf6 !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-toast.error {
+  color: #a63a4d !important;
+  border-color: #f0b8c2 !important;
+  background: #fff1f4 !important;
+}

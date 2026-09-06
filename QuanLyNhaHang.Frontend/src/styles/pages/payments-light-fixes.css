@@ -1,0 +1,67 @@
+/* Payments light-mode regression fixes ----------------------------------
+   payments-dark-overrides.css uses high-specificity !important rules. Keep
+   its layout, but restore readable light surfaces for summary and pagination. */
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payment-summary article {
+  color: #263449 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 6%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payment-summary article:nth-child(1),
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payment-summary article:nth-child(3),
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payment-summary article:nth-child(4) {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payment-summary article:nth-child(2) {
+  border-color: #f4d6aa !important;
+  background: #fffaf2 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payment-summary span {
+  color: #718198 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payment-summary strong {
+  color: #172033 !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payment-summary article:nth-child(2) strong {
+  color: #f59e0b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payments-page .pagination {
+  color: #52657a !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payments-page .pagination button {
+  color: #42556c !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payments-page .pagination button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .payments-page .pagination button:disabled {
+  color: #96a2b2 !important;
+  border-color: #e2e8f0 !important;
+  background: #f1f5f9 !important;
+  opacity: 1 !important;
+}

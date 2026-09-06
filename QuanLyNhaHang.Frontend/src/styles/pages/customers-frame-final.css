@@ -1,0 +1,64 @@
+/* Final frame cleanup for Customer Management.
+   Keep individual customer rows and controls, but remove the large wrapper
+   surfaces around the filters/list so the page matches the SePay treatment. */
+
+html[data-admin-theme] body .admin-layout .dashboard .customers-page,
+html[data-admin-theme] body .admin-layout .dashboard .customers-page .customer-table-card,
+html[data-admin-theme] body .admin-layout .dashboard .customers-page .customer-toolbar,
+html[data-admin-theme] body .admin-layout .dashboard .customers-page .customer-table-scroll {
+  border: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* The toolbar itself was still rendered as the large rounded white/navy card.
+   Lay the controls directly on the page instead. */
+html[data-admin-theme] body .admin-layout .dashboard .customers-page .customer-toolbar {
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+
+/* Do not let legacy table/card selectors repaint a white canvas behind the
+   separated rows. */
+html[data-admin-theme] body .admin-layout .dashboard .customers-page .customer-table-card :is(table, thead, tbody),
+html[data-admin-theme] body .admin-layout .dashboard .customers-page .customer-table-scroll :is(table, thead, tbody) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep the header readable without turning it back into an outer card. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .customers-page .customer-table-card thead th {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .customers-page .customer-table-card thead th {
+  background: #0b1427 !important;
+  background-color: #0b1427 !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .customers-page .customer-pagination {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}

@@ -1,0 +1,171 @@
+/* Reservations list spacing ----------------------------------------------
+   Match the separated-row treatment used by SePay payments. Keep filters,
+   pagination and sticky actions functional, but remove the outer white/navy
+   panel that creates square corner artifacts behind the rounded children. */
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-panel {
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-panel::before,
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-panel::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* The table wrapper is only a scroll container now, not a framed card. */
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table-wrap {
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table-wrap::before,
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table-wrap::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Separate each reservation vertically like an individual row-card. */
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table-wrap .reservations-table {
+  border-collapse: separate !important;
+  border-spacing: 0 12px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  isolation: auto !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table-wrap .reservations-table tbody {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  isolation: auto !important;
+}
+
+/* Keep the heading as its own clean strip with rounded ends. */
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table thead th {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table thead th:first-child {
+  border-radius: 14px 0 0 14px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table thead th:last-child {
+  border-radius: 0 14px 14px 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr > td {
+  border-top: 1px solid var(--ds-color-border-subtle) !important;
+  border-bottom: 1px solid var(--ds-color-border-subtle) !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr > td:first-child {
+  border-left: 1px solid var(--ds-color-border-subtle) !important;
+  border-radius: 14px 0 0 14px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr > td:last-child:not([colspan]) {
+  border-right: 1px solid var(--ds-color-border-subtle) !important;
+  border-radius: 0 14px 14px 0 !important;
+  box-shadow: none !important;
+}
+
+/* Light rows. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr > td {
+  color: #52657a !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr:hover > td {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+/* Dark rows. */
+html[data-admin-theme='dark'] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr > td {
+  color: #aeb9c9 !important;
+  border-top-color: #1d2b49 !important;
+  border-bottom-color: #1d2b49 !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr > td:first-child {
+  border-left-color: #1d2b49 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr > td:last-child:not([colspan]) {
+  border-right-color: #1d2b49 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .reservations-page
+  .reservations-table tbody tr:hover > td {
+  background: #111d32 !important;
+  background-color: #111d32 !important;
+  background-image: none !important;
+}
+
+/* The sticky action column remains usable, but its old side shadow produced a
+   hard rectangular edge at the right corner. Remove that artifact. */
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table th:last-child,
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-table td:last-child:not([colspan]) {
+  box-shadow: none !important;
+}
+
+/* Pagination is an independent control card, no negative overlap with table. */
+html[data-admin-theme] body .admin-layout .dashboard .reservations-page
+  .reservations-pagination {
+  margin: 0 !important;
+  border-top: 1px solid var(--ds-color-border) !important;
+  border-radius: 14px !important;
+}

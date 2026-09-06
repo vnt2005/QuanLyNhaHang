@@ -1,0 +1,5 @@
+/* Admin orders are operational/read-management only. New customer orders are
+   created from CustomerWeb, so do not expose the legacy quick-create CTA. */
+.live-dashboard-page .live-dashboard-welcome > button {
+  display: none !important;
+}

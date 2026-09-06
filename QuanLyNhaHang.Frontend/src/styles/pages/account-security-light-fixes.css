@@ -1,0 +1,286 @@
+/* Account security light-mode regression fixes ---------------------------
+   account-security-dark.css carries the page geometry as well as its palette.
+   Keep the layout, but fully restore light surfaces, readable revoked rows and
+   the shared confirmation dialog when this page is active. */
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) {
+  --security-bg: #f3f6fa;
+  --security-deep: #eef2f7;
+  --security-surface: #ffffff;
+  --security-surface-2: #f8fafc;
+  --security-surface-3: #edf2f7;
+  --security-border: #dfe6ee;
+  --security-border-soft: #e9eef4;
+  --security-text: #172033;
+  --security-soft: #52657a;
+  --security-muted: #748399;
+  --security-orange: #f59e0b;
+  --security-orange-hover: #d97706;
+  --security-teal: #0d9f76;
+  --security-blue: #2563eb;
+  --security-danger: #c93e53;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-security-page {
+  color: #52657a !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-security-overview > article,
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-sessions-card {
+  color: #52657a !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 6%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) :is(
+  .account-profile-card h3,
+  .account-security-score h3,
+  .account-session-summary h3,
+  .account-sessions-card h3,
+  .account-device-info > strong
+) {
+  color: #172033 !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) :is(
+  .account-profile-card p,
+  .account-security-score p,
+  .account-session-summary p,
+  .account-sessions-card header p,
+  .account-device-info > span,
+  .account-device-info > small
+) {
+  color: #748399 !important;
+}
+
+/* Profile summary cells were still inheriting the navy dark card. */
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-profile-card dl {
+  border-color: #e4eaf1 !important;
+  background: #e4eaf1 !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-profile-card dl > div {
+  color: #52657a !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-profile-card dt {
+  color: #718198 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-profile-card dd {
+  color: #334155 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-profile-card dd.safe,
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-security-score > strong.safe {
+  color: #0d9f76 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-profile-card dd.warning,
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-security-score > strong.warning {
+  color: #b7791f !important;
+}
+
+/* Session card header and badge. */
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-sessions-card > header {
+  border-bottom-color: #e9eef4 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-sessions-card > header > div > span {
+  color: #a86612 !important;
+  border-color: #f0d5aa !important;
+  background: #fff7e8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-sessions-card > header > strong {
+  color: #718198 !important;
+  border-color: #d7e0e8 !important;
+  background: #f8fafc !important;
+}
+
+/* Session rows: normal, hover and revoked rows must all remain light. */
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-list {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-list > div {
+  color: #52657a !important;
+  border-bottom-color: #e9eef4 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-list > div:hover,
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-list > div:focus-within {
+  color: #334155 !important;
+  background: #f6f9fc !important;
+  background-color: #f6f9fc !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-list > div.revoked {
+  color: #64748b !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-list > div.revoked:hover,
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-list > div.revoked:focus-within {
+  color: #475569 !important;
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-device-icon {
+  color: #3b82f6 !important;
+  border-color: #c9dcfb !important;
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-device-info em {
+  color: #0d8b69 !important;
+  border-color: #bfe6d9 !important;
+  background: #ecf9f4 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-state.active {
+  color: #0d8b69 !important;
+  border-color: #bfe6d9 !important;
+  background: #ecf9f4 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-state.revoked {
+  color: #64748b !important;
+  border-color: #d8e0e8 !important;
+  background: #eef2f6 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-list button:not(.danger) {
+  color: #52657a !important;
+  border-color: #d7e0e8 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-security-page button.danger {
+  color: #c2415b !important;
+  border-color: #f1b8c3 !important;
+  background: #fff1f4 !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-security-page button.danger:hover:not(:disabled) {
+  color: #a92f49 !important;
+  border-color: #e99baa !important;
+  background: #ffe7ec !important;
+  background-color: #ffe7ec !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-empty {
+  color: #748399 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .account-session-empty .account-security-spinner {
+  border-color: #d8e3ed !important;
+  border-top-color: #0d9f76 !important;
+}
+
+/* Confirm dialogs are portalled outside .admin-layout. Scope through body so
+   revoke-session and logout-all confirmations cannot keep the mauve/dark body. */
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-dialog,
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-dialog.danger {
+  color: #263449 !important;
+  border-color: #e8d9de !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow:
+    0 28px 70px rgb(15 23 42 / 24%),
+    0 0 0 1px rgb(255 255 255 / 80%) inset !important;
+  opacity: 1 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-dialog::before,
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-dialog::after {
+  display: none !important;
+  content: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-copy {
+  color: #263449 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-copy > span {
+  color: #d65373 !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-copy h2 {
+  color: #172033 !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-copy p {
+  color: #708198 !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-actions {
+  border-top-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-actions button:not(.danger):not(.primary) {
+  color: #334155 !important;
+  border-color: #cfd9e5 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-actions button:not(.danger):not(.primary):hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #aebdce !important;
+  background: #f1f5f9 !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-actions button.danger {
+  color: #ffffff !important;
+  border-color: #c93e53 !important;
+  background: #c93e53 !important;
+  box-shadow: 0 8px 20px rgb(201 62 83 / 16%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.account-security-page) .ds-confirm-actions button.danger:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #b83249 !important;
+  background: #b83249 !important;
+}

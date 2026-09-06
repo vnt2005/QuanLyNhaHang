@@ -104,7 +104,7 @@ export default function PaymentsPage() {
       <button type="submit">Tìm</button>
     </form>
 
-    <div className="payment-table-wrap">
+    <div className="payment-table-container">
       <table className="payment-table">
         <thead>
           <tr>

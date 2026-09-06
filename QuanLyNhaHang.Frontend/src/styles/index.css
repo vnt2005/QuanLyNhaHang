@@ -73,3 +73,45 @@
 @import './pages/table-qr-url-inside-panel.css';
 @import './pages/table-qr-controls-same-row.css';
 @import './pages/ai-assistant-final-fix.css';
+@import './pages/orders-admin-create-removal.css';
+
+/* Theme controls are intentionally last: the existing dark-first styles keep
+   all layout/icon geometry, while light mode only overrides visual colors. */
+@import './components/admin-theme-toggle.css';
+@import './theme-light-overrides.css';
+@import './theme-light-regression-fixes.css';
+@import './pages/auth-portal-light.css';
+@import './pages/dashboard-light-fix.css';
+@import './design-system/confirm-dialog-light.css';
+@import './pages/customers-light-actions-fix.css';
+@import './pages/shifts-light-modal-fix.css';
+@import './pages/access-light-fixes.css';
+@import './pages/invoices-light-fixes.css';
+@import './pages/revenue-light-fixes.css';
+@import './pages/revenue-light-actions-fix.css';
+@import './pages/activity-logs-light-fixes.css';
+@import './pages/areas-tables-light-fixes.css';
+@import './pages/reservations-light-fixes.css';
+@import './pages/table-qr-light-fixes.css';
+@import './pages/orders-light-fixes.css';
+@import './pages/orders-light-actions-fix.css';
+@import './pages/kitchen-light-fixes.css';
+@import './pages/payments-light-fixes.css';
+@import './components/notification-center-light-fixes.css';
+@import './pages/menu-management-light-fixes.css';
+@import './pages/promotions-light-fixes.css';
+@import './pages/promotions-light-regression-2.css';
+@import './pages/account-security-light-fixes.css';
+@import './pages/ai-assistant-light-fixes.css';
+@import './pages/restaurant-settings-light-fixes.css';
+
+/* Shared shell cleanup and final row geometry must run last in both themes. */
+@import './design-system/topbar-frame-removal.css';
+@import './pages/payments-rows-spaced.css';
+@import './pages/reservations-rows-spaced.css';
+@import './pages/activity-logs-rows-spaced.css';
+@import './pages/activity-logs-frame-final.css';
+@import './pages/invoices-rows-spaced.css';
+@import './pages/access-users-rows-spaced.css';
+@import './pages/people-scheduling-rows-spaced.css';
+@import './pages/customers-frame-final.css';

@@ -1,0 +1,229 @@
+/* Activity log row spacing ------------------------------------------------
+   Match the separated-row treatment used by SePay and Reservations while
+   keeping the audit table semantics, sticky action column and horizontal
+   scrolling intact. Visual-only: no data/permission/business changes. */
+
+/* Remove the old outer table card so only the individual audit rows read as
+   cards. This also removes the square/shadow remnant at the right edge. */
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-table-wrap {
+  min-width: 0 !important;
+  overflow: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* The filter controls should sit directly on the page instead of inside one
+   large white/navy card. Keep only the individual input/select controls. */
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-filters {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-table {
+  border-collapse: separate !important;
+  border-spacing: 0 12px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* The header remains one strip; the body rows below it are separated. */
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-table thead th {
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td,
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:last-child > td {
+  border-top: 1px solid var(--activity-border-soft) !important;
+  border-bottom: 1px solid var(--activity-border-soft) !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td:first-child {
+  border-left: 1px solid var(--activity-border-soft) !important;
+  border-radius: 14px 0 0 14px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td:last-child:not([colspan]) {
+  border-right: 1px solid var(--activity-border-soft) !important;
+  border-radius: 0 14px 14px 0 !important;
+  box-shadow: none !important;
+}
+
+/* Light theme row cards. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td {
+  color: #52657a !important;
+  border-top-color: #dfe6ee !important;
+  border-bottom-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #52657a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td:first-child {
+  border-left-color: #dfe6ee !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td:last-child:not([colspan]) {
+  border-right-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* activity-logs-hover-fix.css is intentionally dark-first and used
+   -webkit-text-fill-color with !important. Reassert every normal light-mode
+   foreground here so rows are readable without requiring hover. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr td strong,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:not(:hover) td strong,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover td strong {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr td small,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:not(:hover) td small,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover td small {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td.activity-description,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:not(:hover) > td.activity-description,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover > td.activity-description {
+  color: #52657a !important;
+  -webkit-text-fill-color: #52657a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr .activity-action,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover .activity-action {
+  color: #7c5ce0 !important;
+  -webkit-text-fill-color: #7c5ce0 !important;
+  border-color: #ddd2ff !important;
+  background: #f7f3ff !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr .activity-status.success,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover .activity-status.success {
+  color: #10b981 !important;
+  -webkit-text-fill-color: #10b981 !important;
+  border-color: #a7ead4 !important;
+  background: #ecfdf7 !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr .activity-status.failed,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover .activity-status.failed {
+  color: #d13f57 !important;
+  -webkit-text-fill-color: #d13f57 !important;
+  border-color: #f3c2cc !important;
+  background: #fff4f6 !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover > td,
+html[data-admin-theme='light'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover > td:last-child:not([colspan]) {
+  color: #40536a !important;
+  -webkit-text-fill-color: #40536a !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Dark theme row cards. */
+html[data-admin-theme='dark'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td {
+  border-top-color: #253149 !important;
+  border-bottom-color: #253149 !important;
+  background: #0e172a !important;
+  background-color: #0e172a !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td:first-child {
+  border-left-color: #253149 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr > td:last-child:not([colspan]) {
+  border-right-color: #253149 !important;
+  background: #0e172a !important;
+  background-color: #0e172a !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover > td,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .activity-logs-page
+  .activity-table tbody tr:hover > td:last-child:not([colspan]) {
+  background: #121d33 !important;
+  background-color: #121d33 !important;
+  background-image: none !important;
+}
+
+/* Keep the sticky action column reachable without the old side shadow that
+   looked like a sharp extra corner. */
+html[data-admin-theme] body .admin-layout .activity-logs-page
+  .activity-table th:last-child,
+html[data-admin-theme] body .admin-layout .activity-logs-page
+  .activity-table td:last-child:not([colspan]) {
+  box-shadow: none !important;
+}
+
+/* The footer should no longer be pulled upward into the old table frame. */
+html[data-admin-theme] body .admin-layout .dashboard .activity-logs-page
+  .activity-pagination {
+  margin-top: 0 !important;
+}

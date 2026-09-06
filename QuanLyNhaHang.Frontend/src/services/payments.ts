@@ -52,7 +52,23 @@ async function request<T>(path: string): Promise<T> {
   return body as T
 }
 
-export function getPayments(
+const legacyInvalidPaymentCodes = new Set([
+  'PAY-20260828183131734-A4A2109B',
+])
+
+function hasVerifiedSePayProvenance(payment: Payment) {
+  if (legacyInvalidPaymentCodes.has(payment.paymentCode)) return false
+
+  const note = payment.note ?? ''
+  return payment.status === 'Paid'
+    && payment.paymentMethod === 'BankTransfer'
+    && note.startsWith('SePay | transactionId=')
+    && note.includes(' | reference=')
+    && note.includes(' | gateway=')
+    && note.includes(' | attempt=')
+}
+
+export async function getPayments(
   keyword = '',
   _status = '',
   _paymentMethod = '',
@@ -66,5 +82,14 @@ export function getPayments(
     paymentMethod: 'BankTransfer',
   })
   if (keyword.trim()) params.set('keyword', keyword.trim())
-  return request<PaginatedPayments>(`/api/payments/paginated?${params}`)
+
+  const result = await request<PaginatedPayments>(`/api/payments/paginated?${params}`)
+
+  // Backend is authoritative and validates PaymentAttempt/Webhook evidence.
+  // Keep this guard for local development when the frontend is temporarily
+  // connected to an older API process that has not restarted/migrated yet.
+  return {
+    ...result,
+    items: (result.items ?? []).filter(hasVerifiedSePayProvenance),
+  }
 }

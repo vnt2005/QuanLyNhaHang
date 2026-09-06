@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using QuanLyNhaHang.Application.Common.Payments;
 using QuanLyNhaHang.Application.Features.Payments.Queries.GetWithPaginatedList;
 using QuanLyNhaHang.Domain.Entities;
 using QuanLyNhaHang.Infrastructure.Persistence;
@@ -24,15 +25,6 @@ public sealed class PaymentPaginationSummaryTests
         {
             var amount = index * 10_000m;
             var orderId = Guid.NewGuid();
-            var payment = new Payment(
-                orderId,
-                amount,
-                0,
-                0,
-                amount,
-                "BankTransfer",
-                $"SePay | transactionId=verified-{index}");
-
             var attempt = new PaymentAttempt(
                 orderId,
                 "SePay",
@@ -43,10 +35,21 @@ public sealed class PaymentPaginationSummaryTests
                 $"payment-link-{index}",
                 $"https://pay.sepay.vn/test/{index}",
                 "PENDING");
+
+            var transactionId = $"transaction-{index}";
+            var payment = new Payment(
+                orderId,
+                amount,
+                0,
+                0,
+                amount,
+                "BankTransfer",
+                $"SePay | transactionId={transactionId} | reference=bank-ref-{index} | gateway=SePay | attempt={attempt.Id}");
+
             attempt.MarkPaid(
                 payment.Id,
                 amount,
-                $"transaction-{index}");
+                transactionId);
 
             verifiedPayments.Add(payment);
             attempts.Add(attempt);
@@ -95,5 +98,63 @@ public sealed class PaymentPaginationSummaryTests
         Assert.True(result.HasNextPage);
         Assert.All(result.Items, payment =>
             Assert.Equal("BankTransfer", payment.PaymentMethod));
+    }
+
+    [Fact]
+    public async Task Handle_ExcludesLegacyManualTransfer_WhenPaidAttemptHasNoWebhookReference()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase($"payment-legacy-manual-{Guid.NewGuid()}")
+            .Options;
+
+        await using var context = new ApplicationDbContext(options);
+
+        const decimal amount = 10_000m;
+        var orderId = Guid.NewGuid();
+        var legacyAttempt = new PaymentAttempt(
+            orderId,
+            "SePay",
+            88_888L,
+            amount,
+            DateTime.UtcNow.AddMinutes(10));
+        legacyAttempt.AttachPaymentRequest(
+            "legacy-payment-link",
+            "https://pay.sepay.vn/legacy",
+            "PENDING");
+
+        var payment = new Payment(
+            orderId,
+            amount,
+            0,
+            0,
+            amount,
+            "BankTransfer",
+            $"SePay | transactionId=legacy-manual-webapp | reference=legacy | gateway=SePay | attempt={legacyAttempt.Id}");
+
+        // Mô phỏng dữ liệu cũ từng bị Web App tự ghi Paid: note trông giống SePay,
+        // có attempt và PaymentId nhưng không có transaction id do webhook cung cấp.
+        legacyAttempt.MarkPaid(payment.Id, amount, null, "PAID");
+
+        context.Payments.Add(payment);
+        context.PaymentAttempts.Add(legacyAttempt);
+        await context.SaveChangesAsync();
+
+        Assert.False(await VerifiedSePayPaymentPolicy.IsVerifiedAsync(
+            payment,
+            context,
+            CancellationToken.None));
+
+        var handler = new GetPaymentsWithPaginatedListQueryHandler(context);
+        var result = await handler.Handle(
+            new GetPaymentsWithPaginatedListQuery
+            {
+                PageNumber = 1,
+                PageSize = 10
+            },
+            CancellationToken.None);
+
+        Assert.Empty(result.Items);
+        Assert.Equal(0, result.TotalCount);
+        Assert.Equal(0m, result.Revenue);
     }
 }

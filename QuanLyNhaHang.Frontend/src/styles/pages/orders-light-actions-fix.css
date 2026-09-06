@@ -1,0 +1,25 @@
+/* Final light-mode action fix for Orders.
+   The shared reference icon stylesheet is dark-first and uses navy defaults.
+   Repaint the read-only "Chi tiết" eye button after that cascade. */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .dashboard .order-card-actions > button:first-child {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .dashboard .order-card-actions > button:first-child:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #dbeafe !important;
+  background-color: #dbeafe !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .dashboard .order-card-actions > button:first-child::before {
+  background: currentColor !important;
+}

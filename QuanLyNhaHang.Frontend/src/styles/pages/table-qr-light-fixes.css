@@ -1,0 +1,198 @@
+/* Table QR light-mode regression fixes ----------------------------------
+   Dark QR styles intentionally keep the module geometry. This file is loaded
+   after them and only neutralizes the dark paint when Admin is in light mode. */
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) {
+  --qr-bg: #f3f6fa;
+  --qr-bg-deep: #f3f6fa;
+  --qr-surface: #ffffff;
+  --qr-surface-2: #f8fafc;
+  --qr-surface-3: #f3f6fa;
+  --qr-input: #ffffff;
+  --qr-border: #dfe6ee;
+  --qr-border-soft: #e8edf3;
+  --qr-text: #172033;
+  --qr-text-soft: #52657a;
+  --qr-muted: #748399;
+  --qr-orange: #ff9800;
+  --qr-orange-hover: #f59e0b;
+  --qr-teal: #10b981;
+  --qr-blue: #3b82f6;
+  --qr-danger: #d13f57;
+  color-scheme: light !important;
+}
+
+/* Success/error notice should hug its copy instead of spanning the page. */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-alert {
+  width: fit-content !important;
+  max-width: min(100%, 42rem) !important;
+  grid-template-columns: auto minmax(0, max-content) auto !important;
+  justify-self: start !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-alert p {
+  max-width: 32rem !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere;
+}
+
+/* Card token: keep metadata readable without a dark navy strip. */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-card .table-qr-card-info code {
+  color: #426076 !important;
+  border-color: #dfe7ed !important;
+  background: #f3f7fa !important;
+  background-color: #f3f7fa !important;
+  background-image: none !important;
+}
+
+/* Modal shell / close buttons ------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-modal-backdrop {
+  background: rgb(15 23 42 / 48%) !important;
+  backdrop-filter: blur(6px) saturate(88%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(88%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-modal {
+  color: #263449 !important;
+  border-color: #d9e2ec !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 28px 70px rgb(15 23 42 / 24%) !important;
+  scrollbar-color: #c8d2de transparent !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-modal > header {
+  color: #263449 !important;
+  border-bottom-color: #e4eaf1 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-modal > header h3 {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-modal > header p {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-modal > header > button {
+  color: #64748b !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-modal > header > button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #b9c6d4 !important;
+  background: #f8fafc !important;
+}
+
+/* Create/edit form surfaces --------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-form-modal form,
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-form-modal form label {
+  color: #52657a !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-form-modal :is(select, textarea) {
+  color: #263449 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #263449 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-form-modal select option {
+  color: #263449 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-url-preview {
+  color: #52657a !important;
+  border-color: #dce9ef !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-modal-actions > button:not(.table-qr-primary) {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+/* Detail modal: remove the remaining navy panels. */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-detail-preview {
+  border-color: #dfe8ee !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  :is(.table-qr-detail-row, .table-qr-detail-note) {
+  color: #52657a !important;
+  border-color: #e1e8ed !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-detail-meta > span {
+  color: #748399 !important;
+  border-color: #e1e8ed !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  :is(.table-qr-detail-row > span, .table-qr-detail-note > span, .table-qr-detail-meta > span) {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  :is(.table-qr-detail-row strong, .table-qr-detail-row code, .table-qr-detail-meta strong, .table-qr-detail-note p) {
+  color: #31475b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-detail-tools :is(a, button),
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-detail-actions > button {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-detail-actions .table-qr-warning-button {
+  color: #a46408 !important;
+  border-color: #f1cf91 !important;
+  background: #fff8ed !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-detail-actions .table-qr-danger-button {
+  color: #d13f57 !important;
+  border-color: #f3c2cc !important;
+  background: #fff4f6 !important;
+}

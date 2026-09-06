@@ -1,0 +1,1022 @@
+/* Light-theme regression safety net --------------------------------------
+   The refreshed Admin WebApp has several historical *-dark.css / final-fix
+   files that own both layout and palette. They must remain loaded because
+   some also define SVG geometry, table sizing and modal structure. This file
+   is deliberately imported LAST and only neutralizes dark visual paint when
+   the explicit admin theme is light. It must never change feature geometry. */
+
+html[data-admin-theme='light'] {
+  --admin-light-bg: #f3f6fa;
+  --admin-light-bg-soft: #f7f9fc;
+  --admin-light-surface: #ffffff;
+  --admin-light-surface-hover: #f8fbfe;
+  --admin-light-surface-selected: #eff6ff;
+  --admin-light-border: #dfe6ee;
+  --admin-light-border-soft: #e9eef4;
+  --admin-light-border-strong: #c8d2de;
+  --admin-light-text: #263449;
+  --admin-light-text-strong: #172033;
+  --admin-light-text-soft: #596a80;
+  --admin-light-muted: #748399;
+  --admin-light-muted-soft: #8b99aa;
+  --admin-light-blue: #2563eb;
+  --admin-light-blue-soft: #eff6ff;
+  --admin-light-orange: #ff9800;
+  --admin-light-green: #0d9f76;
+  --admin-light-danger: #c2413b;
+}
+
+/* -----------------------------------------------------------------------
+   1. Global page/surface normalization
+   ----------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout,
+html[data-admin-theme='light'] .admin-layout .dashboard {
+  color: var(--admin-light-text) !important;
+  background-color: var(--admin-light-bg) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .live-dashboard-page,
+  .employees-page,
+  .customers-page,
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .account-security-page,
+  .restaurant-settings-page,
+  .ai-admin-page,
+  .inventory-page
+) {
+  color: var(--admin-light-text) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color-scheme: light !important;
+}
+
+/* Container names are consistent enough across modules to normalize the
+   visual surface without touching their display/grid/flex/size rules. */
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .live-dashboard-page,
+  .employees-page,
+  .customers-page,
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .account-security-page,
+  .restaurant-settings-page,
+  .ai-admin-page,
+  .inventory-page
+) :is(
+  div[class$='-panel'],
+  section[class$='-panel'],
+  article[class$='-panel'],
+  div[class*='-panel '],
+  section[class*='-panel '],
+  article[class*='-panel '],
+  div[class$='-card'],
+  section[class$='-card'],
+  article[class$='-card'],
+  div[class*='-card '],
+  section[class*='-card '],
+  article[class*='-card '],
+  div[class$='-toolbar'],
+  form[class$='-toolbar'],
+  div[class*='-toolbar '],
+  form[class*='-toolbar '],
+  div[class$='-filters'],
+  form[class$='-filters'],
+  div[class*='-filters '],
+  form[class*='-filters '],
+  div[class$='-filter-bar'],
+  form[class$='-filter-bar'],
+  div[class$='-table-wrap'],
+  div[class$='-table-scroll'],
+  div[class$='-pagination']
+) {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background-color: var(--admin-light-surface) !important;
+  background-image: none !important;
+  box-shadow: 0 8px 24px rgb(25 49 72 / 5%) !important;
+}
+
+/* -----------------------------------------------------------------------
+   2. Tables, loading rows, hover/focus states
+   Overrides table-placeholder-fix.css, which intentionally paints dark
+   tables with !important in the original dark-only app.
+   ----------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .employees-page,
+  .customers-page,
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .inventory-page
+) :is(table, tbody) {
+  background: var(--admin-light-surface) !important;
+  background-color: var(--admin-light-surface) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .employees-page,
+  .customers-page,
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .inventory-page
+) table thead :is(tr, th) {
+  color: #66778b !important;
+  border-color: var(--admin-light-border-soft) !important;
+  background: var(--admin-light-bg-soft) !important;
+  background-color: var(--admin-light-bg-soft) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .employees-page,
+  .customers-page,
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .inventory-page
+) table tbody :is(tr, td) {
+  color: #52657a !important;
+  border-color: #e8edf2 !important;
+  background-color: var(--admin-light-surface) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .employees-page,
+  .customers-page,
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .inventory-page
+) table tbody tr:is(:hover, :focus-within) > td {
+  color: var(--admin-light-text) !important;
+  background: var(--admin-light-surface-hover) !important;
+  background-color: var(--admin-light-surface-hover) !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]),
+html[data-admin-theme='light'] .admin-layout .dashboard table tbody > tr:only-child > td[colspan],
+html[data-admin-theme='light'] .admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within),
+html[data-admin-theme='light'] .admin-layout .dashboard table tbody > tr:only-child:has(> td[colspan]):is(:hover, :focus-within) > td[colspan] {
+  color: var(--admin-light-muted) !important;
+  background: var(--admin-light-surface) !important;
+  background-color: var(--admin-light-surface) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* -----------------------------------------------------------------------
+   3. Forms and controls
+   ----------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout .dashboard :is(input, select, textarea) {
+  color: var(--admin-light-text) !important;
+  border-color: #d6e0e9 !important;
+  background-color: var(--admin-light-surface) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color-scheme: light !important;
+  -webkit-text-fill-color: var(--admin-light-text) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard :is(input, textarea)::placeholder {
+  color: #8b99aa !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #8b99aa !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard :is(input, select, textarea):focus {
+  border-color: #7aa7e8 !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard select option {
+  color: var(--admin-light-text) !important;
+  background: #fff !important;
+}
+
+/* -----------------------------------------------------------------------
+   4. Dashboard / Tổng quan
+   ----------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.live-dashboard-page) .dashboard,
+html[data-admin-theme='light'] .admin-layout:has(.live-dashboard-page) .live-dashboard-page {
+  color: var(--admin-light-text) !important;
+  background: var(--admin-light-bg) !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-control-row {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  box-shadow: 0 8px 24px rgb(25 49 72 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-control-row label {
+  color: #687b8d !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-control-row :is(input, select) {
+  color: #344b5d !important;
+  border-color: #d6e0e9 !important;
+  background: #fff !important;
+  background-color: #fff !important;
+  color-scheme: light !important;
+  -webkit-text-fill-color: #344b5d !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-sync {
+  color: #66798b !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-sync strong {
+  color: #425b6b !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-sync small {
+  color: #8796a2 !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-sync > button {
+  color: #a86612 !important;
+  border-color: #dce5ea !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-sync > button:hover:not(:disabled) {
+  color: #7f4d0e !important;
+  border-color: #e2bc7a !important;
+  background: #fff8e9 !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-kpis article,
+html[data-admin-theme='light'] .live-dashboard-card,
+html[data-admin-theme='light'] .live-dashboard-loading {
+  color: var(--admin-light-text) !important;
+  border-color: #e2e8ee !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 24px rgb(25 49 72 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-kpis article::after {
+  background: rgb(24 148 177 / 4.5%) !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-kpis h3,
+html[data-admin-theme='light'] .live-dashboard-card > header h3,
+html[data-admin-theme='light'] .live-dashboard-status-list b,
+html[data-admin-theme='light'] .live-dashboard-ranking strong,
+html[data-admin-theme='light'] .live-dashboard-stock-list strong,
+html[data-admin-theme='light'] .live-dashboard-ranking > div > b {
+  color: #2a4355 !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-kpis p,
+html[data-admin-theme='light'] .live-dashboard-kpis small,
+html[data-admin-theme='light'] .live-dashboard-card > header p,
+html[data-admin-theme='light'] .live-dashboard-status-list strong,
+html[data-admin-theme='light'] .live-dashboard-ranking small,
+html[data-admin-theme='light'] .live-dashboard-stock-list small,
+html[data-admin-theme='light'] .live-dashboard-ranking em,
+html[data-admin-theme='light'] .live-dashboard-stock-list em,
+html[data-admin-theme='light'] .live-dashboard-bar-column > strong,
+html[data-admin-theme='light'] .live-dashboard-bar-column > small,
+html[data-admin-theme='light'] .live-dashboard-y-axis {
+  color: #758795 !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-card > header,
+html[data-admin-theme='light'] .live-dashboard-status-list > div,
+html[data-admin-theme='light'] .live-dashboard-ranking > div,
+html[data-admin-theme='light'] .live-dashboard-stock-list > div {
+  border-color: #edf1f4 !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-bars {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 82px,
+    #e7edf2 83px
+  ) !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-bar-track > span.empty {
+  background: #dfe7eb !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-status-list .status-dot {
+  box-shadow: 0 0 0 4px rgb(15 23 42 / 3%) !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-today-summary {
+  color: #9a6217 !important;
+  border-color: #f3d4a6 !important;
+  background: #fff8ea !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-today-summary strong {
+  color: #7f4d0e !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-ranking > div > span {
+  color: #a86612 !important;
+  border-color: #efd5ae !important;
+  background: #fff8ed !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-empty {
+  color: #7a8997 !important;
+  border-color: #dfe6ee !important;
+  background: #fff !important;
+}
+
+html[data-admin-theme='light'] .live-dashboard-empty > span {
+  color: #167a66 !important;
+  border-color: #bee2d8 !important;
+  background: #eef8f4 !important;
+}
+
+/* -----------------------------------------------------------------------
+   5. Employees / Nhân viên
+   ----------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employees-page {
+  color: var(--admin-light-text) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-command-bar {
+  border-color: var(--admin-light-border) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-breadcrumb {
+  color: var(--admin-light-muted) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-breadcrumb h2 {
+  color: var(--admin-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-summary > article {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 22px rgb(25 49 72 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-summary > article.total {
+  border-color: #ead7bf !important;
+  background: linear-gradient(135deg, #fff8ed, #ffffff 72%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-summary > article > span {
+  color: #6f86a8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-stat small {
+  color: #748399 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) :is(
+  .employee-filter-panel,
+  .employee-table-panel
+) {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 22px rgb(25 49 72 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-filter-panel label,
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-result-count {
+  color: #6f8297 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-result-count strong {
+  color: #3f5c80 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-search-submit {
+  color: #9a6217 !important;
+  background: #fff4df !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-clear-search:hover {
+  color: #263449 !important;
+  background: #edf2f7 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-table-panel :is(.table-scroll, table, tbody, tr) {
+  background: #fff !important;
+  background-color: #fff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-table-panel th {
+  color: #687b91 !important;
+  border-color: #e5ebf1 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-table-panel td {
+  color: #65778c !important;
+  border-color: #edf1f5 !important;
+  background: #fff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-table-panel tbody tr:hover td {
+  color: #405069 !important;
+  background: #f7faff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-code,
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) :is(
+  .employee-identity small,
+  .employee-contact small,
+  .employee-contact > span,
+  .employee-payroll small
+) {
+  color: #71859d !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-identity strong {
+  color: var(--admin-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .pagination {
+  color: #718399 !important;
+  border-color: #e5ebf1 !important;
+  background: #fff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .pagination button {
+  color: #52657a !important;
+  border-color: #dce4ec !important;
+  background: #fff !important;
+}
+
+/* Employee modal */
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-modal-backdrop {
+  background: rgb(15 23 42 / 42%) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-modal,
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-modal .modal-heading,
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-modal .modal-actions {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-modal .modal-heading h2 {
+  color: var(--admin-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-modal :is(
+  .modal-heading p,
+  .employee-form-fields label,
+  .employee-status-field legend,
+  .employee-status-field small
+) {
+  color: var(--admin-light-muted) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-modal .modal-heading > button,
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-cancel-button {
+  color: #596a80 !important;
+  background: transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-modal .modal-heading > button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-cancel-button:hover:not(:disabled) {
+  color: #172033 !important;
+  background: #f1f5f9 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .employee-form-fields :is(input, select) {
+  color: #263449 !important;
+  border-color: #d7e0e8 !important;
+  background: #fff !important;
+  color-scheme: light !important;
+}
+
+/* Employee confirm dialog is rendered beside .admin-layout. */
+html[data-admin-theme='light'] body:has(.employees-page) .ds-confirm-backdrop {
+  background: rgb(15 23 42 / 42%) !important;
+  background-image: none !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+html[data-admin-theme='light'] body:has(.employees-page) .ds-confirm-dialog {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 18%) !important;
+}
+
+html[data-admin-theme='light'] body:has(.employees-page) .ds-confirm-copy :is(h2, strong) {
+  color: var(--admin-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] body:has(.employees-page) .ds-confirm-copy :is(p, small) {
+  color: var(--admin-light-muted) !important;
+}
+
+/* -----------------------------------------------------------------------
+   6. Customers / Khách hàng + detail/edit modals
+   ----------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customers-page,
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customers-heading {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customers-heading h2 {
+  color: var(--admin-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) :is(
+  .customers-heading p,
+  .customer-breadcrumb,
+  .customer-kpis p,
+  .customer-kpis small
+) {
+  color: var(--admin-light-muted) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-kpis article {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 22px rgb(25 49 72 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-kpis article.total {
+  border-color: #ead7bf !important;
+  background: linear-gradient(135deg, #fff8ed, #fff 72%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-toolbar,
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-table-scroll,
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-pagination {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 22px rgb(25 49 72 / 4%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-search {
+  color: #748399 !important;
+  border-color: #d7e0e8 !important;
+  background: #fff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-filter-field {
+  color: #6f8297 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-toolbar > button.secondary {
+  color: #52657a !important;
+  border-color: #d7e0e8 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-table-card :is(table, tbody, tr) {
+  background: #fff !important;
+  background-color: #fff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-table-card th {
+  color: #687b91 !important;
+  border-color: #e5ebf1 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-table-card td {
+  color: #61758b !important;
+  border-color: #edf1f5 !important;
+  background: #fff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-table-card tbody tr:hover td {
+  background: #f7faff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-identity strong,
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-contact strong {
+  color: var(--admin-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) :is(
+  .customer-identity small,
+  .customer-contact small
+) {
+  color: var(--admin-light-muted) !important;
+}
+
+/* Customer modal shell */
+html[data-admin-theme='light'] .customer-modal-backdrop {
+  background: rgb(15 23 42 / 42%) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) :is(
+  .customer-detail-modal,
+  .customer-edit-modal
+),
+html[data-admin-theme='light'] :is(.customer-detail-modal, .customer-edit-modal) {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 18%) !important;
+  scrollbar-color: #b8c4d0 transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) :is(
+  .customer-detail-modal > header,
+  .customer-edit-modal > header,
+  .customer-detail-modal > footer,
+  .customer-edit-modal > footer
+),
+html[data-admin-theme='light'] :is(
+  .customer-detail-modal > header,
+  .customer-edit-modal > header,
+  .customer-detail-modal > footer,
+  .customer-edit-modal > footer
+) {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] :is(
+  .customer-detail-profile h2,
+  .customer-edit-modal h2,
+  .customer-reservations h3,
+  .customer-detail-grid strong,
+  .customer-reservation-list strong
+) {
+  color: var(--admin-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] :is(
+  .customer-detail-profile p,
+  .customer-edit-modal header p,
+  .customer-detail-grid small,
+  .customer-reservation-summary small,
+  .customer-reservations p,
+  .customer-reservation-list small,
+  .customer-reservation-empty
+) {
+  color: var(--admin-light-muted) !important;
+}
+
+html[data-admin-theme='light'] .customer-detail-modal header > button,
+html[data-admin-theme='light'] .customer-edit-modal header > button {
+  color: #596a80 !important;
+  border-color: #d7e0e8 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .customer-detail-modal header > button:hover:not(:disabled),
+html[data-admin-theme='light'] .customer-edit-modal header > button:hover:not(:disabled) {
+  color: #172033 !important;
+  border-color: #c8d2de !important;
+  background: #edf2f7 !important;
+}
+
+html[data-admin-theme='light'] .customer-detail-grid {
+  border-color: #dfe6ee !important;
+  background: #dfe6ee !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) .customer-detail-grid article,
+html[data-admin-theme='light'] .customer-detail-grid article {
+  color: var(--admin-light-text) !important;
+  border-color: #e8edf2 !important;
+  background: #fff !important;
+}
+
+html[data-admin-theme='light'] .customer-reservation-summary article {
+  color: var(--admin-light-text) !important;
+  border-color: #dfe6ee !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .customer-reservations,
+html[data-admin-theme='light'] .customer-reservation-list {
+  color: var(--admin-light-text) !important;
+  border-color: #dfe6ee !important;
+  background: #fff !important;
+}
+
+html[data-admin-theme='light'] .customer-reservation-list article {
+  border-color: #edf1f5 !important;
+  background: #fff !important;
+}
+
+html[data-admin-theme='light'] .customer-reservation-empty {
+  border-color: #cbd7e2 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .customer-detail-modal footer button,
+html[data-admin-theme='light'] .customer-edit-modal footer button {
+  color: #405069 !important;
+  border-color: #d7e0e8 !important;
+  background: #fff !important;
+}
+
+/* -----------------------------------------------------------------------
+   7. Other modules: force only structural surfaces to light.
+   Existing accent/status colors remain intact.
+   ----------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .account-security-page,
+  .restaurant-settings-page,
+  .inventory-page,
+  .ai-admin-page
+) :is(
+  .pagination,
+  [class$='-pagination'],
+  [class*='-pagination '],
+  [class$='-table-wrap'],
+  [class$='-table-scroll'],
+  [class$='-panel'],
+  [class*='-panel '],
+  [class$='-card'],
+  [class*='-card '],
+  [class$='-toolbar'],
+  [class*='-toolbar '],
+  [class$='-filters'],
+  [class*='-filters ']
+) {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background-color: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 8px 22px rgb(25 49 72 / 4%) !important;
+}
+
+/* Known page-specific dark containers that do not follow the shared suffixes. */
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .account-security-page,
+  .restaurant-settings-page
+) :is(
+  .management-tabs,
+  .page-tabs,
+  .tabs,
+  .filter-tabs,
+  .table-tabs,
+  .modal-heading,
+  .modal-actions
+) {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+}
+
+/* Generic modal shells used by the operational modules. We target only
+   elements whose class itself ends in -modal so modal headings/buttons keep
+   their own component styles. */
+html[data-admin-theme='light'] body :is(
+  div[class$='-modal'],
+  section[class$='-modal'],
+  article[class$='-modal'],
+  div[class*='-modal '][role='dialog'],
+  section[class*='-modal '][role='dialog'],
+  [role='dialog'].employee-modal,
+  [role='dialog'].confirm-dialog
+) {
+  color: var(--admin-light-text) !important;
+  border-color: var(--admin-light-border) !important;
+  background-color: #fff !important;
+  background-image: none !important;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 18%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body :is(
+  .modal-backdrop,
+  [class$='-modal-backdrop'],
+  [class*='-modal-backdrop '],
+  .confirm-dialog-backdrop,
+  .ds-confirm-backdrop
+) {
+  background: rgb(15 23 42 / 42%) !important;
+  background-image: none !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+html[data-admin-theme='light'] body :is(
+  div[class$='-modal'],
+  section[class$='-modal'],
+  article[class$='-modal']
+) :is(.modal-heading, .modal-actions, header, footer) {
+  border-color: var(--admin-light-border) !important;
+  background-color: #fff !important;
+  background-image: none !important;
+}
+
+/* Common muted/strong text in operational pages. Keep status badges and
+   accent buttons out of these selectors so semantic colors remain visible. */
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .account-security-page,
+  .restaurant-settings-page,
+  .inventory-page,
+  .ai-admin-page
+) :is(h1, h2, h3, h4) {
+  color: var(--admin-light-text-strong) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .account-security-page,
+  .restaurant-settings-page,
+  .inventory-page,
+  .ai-admin-page
+) :is(p, small, label) {
+  color: var(--admin-light-muted) !important;
+}
+
+/* Keep the light theme stable while scrolling/hovering. Several old dark
+   rules use broad hover selectors with !important. */
+html[data-admin-theme='light'] .admin-layout .dashboard :is(
+  .scheduling-page,
+  .access-page,
+  .areas-tables-page,
+  .reservations-page,
+  .table-qr-page,
+  .menu-page,
+  .orders-page,
+  .kitchen-page,
+  .payments-page,
+  .invoices-page,
+  .revenue-reports-page,
+  .promotions-page,
+  .activity-logs-page,
+  .account-security-page,
+  .restaurant-settings-page,
+  .inventory-page
+) :is(
+  tr:hover td,
+  tr:focus-within td
+) {
+  background-color: var(--admin-light-surface-hover) !important;
+  background-image: none !important;
+}
+
+/* Do not let page-specific dark skins repaint the shared shell. */
+html[data-admin-theme='light'] .admin-layout .sidebar {
+  color: #405069 !important;
+  border-color: var(--admin-light-border) !important;
+  background: #fff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout .topbar {
+  color: var(--admin-light-text-strong) !important;
+  border-color: var(--admin-light-border) !important;
+  background: rgb(255 255 255 / 97%) !important;
+  background-image: none !important;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 4%) !important;
+}
+
+/* Responsive theme button stays an icon-only topbar control; no floating
+   light/dark pill is allowed to reappear on small screens. */
+@media (max-width: 760px) {
+  html[data-admin-theme='light'] .admin-theme-toggle {
+    background: #fff !important;
+  }
+}
