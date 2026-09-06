@@ -52,7 +52,13 @@ async function request<T>(path: string): Promise<T> {
   return body as T
 }
 
-export function getPayments(
+function hasVerifiedSePayProvenance(payment: Payment) {
+  return payment.status === 'Paid'
+    && payment.paymentMethod === 'BankTransfer'
+    && payment.note?.startsWith('SePay | transactionId=') === true
+}
+
+export async function getPayments(
   keyword = '',
   _status = '',
   _paymentMethod = '',
@@ -66,5 +72,14 @@ export function getPayments(
     paymentMethod: 'BankTransfer',
   })
   if (keyword.trim()) params.set('keyword', keyword.trim())
-  return request<PaginatedPayments>(`/api/payments/paginated?${params}`)
+
+  const result = await request<PaginatedPayments>(`/api/payments/paginated?${params}`)
+
+  // Backend is authoritative and validates the PaymentAttempt/Webhook evidence.
+  // Keep this client-side guard as defense-in-depth for an Admin WebApp that is
+  // temporarily talking to an older/stale API process during local development.
+  return {
+    ...result,
+    items: (result.items ?? []).filter(hasVerifiedSePayProvenance),
+  }
 }
