@@ -82,6 +82,7 @@
 @import './theme-light-regression-fixes.css';
 @import './pages/auth-portal-light.css';
 @import './pages/dashboard-light-fix.css';
+@import './pages/dashboard-light-accent-fixes.css';
 @import './pages/employees-light-fixes.css';
 @import './design-system/confirm-dialog-light.css';
 @import './pages/customers-light-actions-fix.css';
