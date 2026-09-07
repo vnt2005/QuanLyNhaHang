@@ -1,0 +1,231 @@
+/* Promotion usage-history separated-row layout ---------------------------
+   Match the row-card treatment used by Payments and the promotion-program
+   list. Visual only: filters, data, pagination and business actions remain
+   unchanged. */
+
+/* Remove the monolithic outer panel while the usage-history tab is active. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) {
+  display: grid !important;
+  gap: 12px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Tabs become a standalone compact control instead of the top edge of one
+   large frame. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotions-tabs {
+  width: max-content !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+/* Usage filters are their own toolbar. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-filters {
+  margin: 0 !important;
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+/* The wrapper should provide scrolling only, never a visible frame around all
+   history records. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table-wrap {
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Use table geometry only for column alignment. Vertical border-spacing creates
+   a real gap between records so they no longer read as one continuous table. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table {
+  width: 100% !important;
+  min-width: 1110px !important;
+  border-collapse: separate !important;
+  border-spacing: 0 12px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table thead,
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody,
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tr {
+  border: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Header remains a clean column guide and is not part of any data row-card. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table th {
+  border: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Each history record is one independent row-card. Borders are distributed
+   across cells so the row still preserves true table column alignment. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody tr > td {
+  border-top: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-bottom: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transition: background-color 150ms ease, border-color 150ms ease !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody tr > td:first-child {
+  border-left: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 15px 0 0 15px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody tr > td:last-child {
+  border-right: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 0 15px 15px 0 !important;
+}
+
+/* Loading / empty state spans the complete row and must still look like one
+   standalone card. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody td[colspan] {
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 15px !important;
+}
+
+/* Pagination is detached from the old outer frame too. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotions-pagination {
+  margin: 0 !important;
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+/* Light mode ------------------------------------------------------------- */
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) :is(
+    .promotions-tabs,
+    .promotion-usage-filters,
+    .promotions-pagination
+  ) {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody tr > td {
+  color: #506476 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody tr:hover > td {
+  border-color: #cfd9e5 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody td[colspan] {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+/* Dark mode -------------------------------------------------------------- */
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) :is(
+    .promotions-tabs,
+    .promotion-usage-filters,
+    .promotions-pagination
+  ) {
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody tr > td {
+  color: var(--promo-soft) !important;
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody tr:hover > td {
+  border-color: #334766 !important;
+  background: #101c32 !important;
+  background-color: #101c32 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table tbody td[colspan] {
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+}
+
+@media (max-width: 899px) {
+  html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+    .promotions-panel:has(.promotion-usage-filters) {
+    gap: 10px !important;
+  }
+
+  html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+    .promotions-panel:has(.promotion-usage-filters) :is(
+      .promotions-tabs,
+      .promotion-usage-filters,
+      .promotions-pagination
+    ) {
+    border-radius: 12px !important;
+  }
+
+  html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+    .promotions-panel:has(.promotion-usage-filters) .promotion-usage-table {
+    border-spacing: 0 10px !important;
+  }
+}

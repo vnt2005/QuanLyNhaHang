@@ -82,6 +82,8 @@
 @import './theme-light-regression-fixes.css';
 @import './pages/auth-portal-light.css';
 @import './pages/dashboard-light-fix.css';
+@import './pages/dashboard-light-accent-fixes.css';
+@import './pages/employees-light-fixes.css';
 @import './design-system/confirm-dialog-light.css';
 @import './pages/customers-light-actions-fix.css';
 @import './pages/shifts-light-modal-fix.css';
@@ -107,11 +109,19 @@
 
 /* Shared shell cleanup and final row geometry must run last in both themes. */
 @import './design-system/topbar-frame-removal.css';
+@import './pages/ai-assistant-dark-shell-fix.css';
+@import './components/notification-center-dark-fixes.css';
 @import './pages/payments-rows-spaced.css';
 @import './pages/reservations-rows-spaced.css';
 @import './pages/activity-logs-rows-spaced.css';
 @import './pages/activity-logs-frame-final.css';
 @import './pages/invoices-rows-spaced.css';
+@import './pages/revenue-rows-spaced.css';
+@import './pages/menu-rows-spaced.css';
+@import './pages/promotions-rows-spaced.css';
+@import './pages/promotions-usage-rows-spaced.css';
+@import './pages/account-security-rows-spaced.css';
+@import './pages/restaurant-settings-rows-spaced.css';
 @import './pages/access-users-rows-spaced.css';
 @import './pages/people-scheduling-rows-spaced.css';
 @import './pages/customers-frame-final.css';

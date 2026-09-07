@@ -1,0 +1,178 @@
+/* Promotion program separated-row layout ----------------------------------
+   Remove the single outer frame around the Promotions tab and let every
+   promotion program read as its own independent row-card, matching the
+   separated-row treatment used by Payments, Revenue, Menu Items and Categories.
+   Visual only: no data, permission or business-logic changes. */
+
+/* Only affect the promotion-program tab. The usage-history tab keeps its own
+   table treatment and filter layout. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) {
+  display: grid !important;
+  gap: 12px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Tabs become their own compact control instead of the top edge of one large
+   card that also contains filters and every promotion row. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-tabs {
+  width: max-content !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+/* Filter controls are a separate toolbar, not another section inside the old
+   monolithic promotions frame. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-filters {
+  margin: 0 !important;
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+/* Remove the padded/background canvas around the cards. The page itself now
+   provides the gutters between rows. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotion-card-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Every promotion is one independent row-card. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotion-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 15px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotion-card:hover {
+  transform: none !important;
+}
+
+/* Loading and empty states should also stand alone instead of recreating the
+   removed outer frame. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) :is(.promotions-loading, .promotions-empty) {
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 15px !important;
+  box-shadow: none !important;
+}
+
+/* Pagination is detached from the old panel as well. */
+html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-pagination {
+  margin: 0 !important;
+  border: 1px solid var(--promo-border-mid, var(--promo-border)) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+/* Light mode ------------------------------------------------------------- */
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-tabs,
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-filters,
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-pagination,
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) :is(.promotions-loading, .promotions-empty) {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotion-card {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotion-card:hover {
+  border-color: #cfd9e5 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+/* Dark mode -------------------------------------------------------------- */
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-tabs,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-filters,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotions-pagination,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) :is(.promotions-loading, .promotions-empty) {
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotion-card {
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .promotions-page
+  .promotions-panel:has(.promotions-filters) .promotion-card:hover {
+  border-color: #334766 !important;
+  background: #101c32 !important;
+  background-color: #101c32 !important;
+}
+
+@media (max-width: 700px) {
+  html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+    .promotions-panel:has(.promotions-filters) {
+    gap: 10px !important;
+  }
+
+  html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+    .promotions-panel:has(.promotions-filters) .promotion-card-grid {
+    gap: 10px !important;
+    padding: 0 !important;
+  }
+
+  html[data-admin-theme] body .admin-layout .dashboard .promotions-page
+    .promotions-panel:has(.promotions-filters) :is(
+      .promotions-tabs,
+      .promotions-filters,
+      .promotions-pagination,
+      .promotion-card
+    ) {
+    border-radius: 12px !important;
+  }
+}
