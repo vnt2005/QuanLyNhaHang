@@ -1,0 +1,171 @@
+/* Account security session separated-row layout ---------------------------
+   Detach the session history from the single large card so each login session
+   reads as an independent row-card, matching the separated-row treatment used
+   across Payments, Revenue, Menu and Promotions.
+   Visual only: no auth/session data or revoke logic changes. */
+
+html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+  .account-sessions-card {
+  display: grid !important;
+  gap: 12px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* The section title/count becomes its own compact card instead of the top edge
+   of one large frame containing every session. */
+html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+  .account-sessions-card > header {
+  margin: 0 !important;
+  border: 1px solid var(--security-border, #dfe6ee) !important;
+  border-radius: 15px !important;
+  box-shadow: none !important;
+}
+
+/* Remove the shared list canvas and create real gaps between session rows. */
+html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+  .account-session-list {
+  display: grid !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 72px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--security-border, #dfe6ee) !important;
+  border-radius: 15px !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div:last-child {
+  border-bottom: 1px solid var(--security-border, #dfe6ee) !important;
+}
+
+/* Loading/empty state should stand on its own too. */
+html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+  .account-sessions-card > .account-session-empty {
+  min-height: 120px !important;
+  margin: 0 !important;
+  border: 1px solid var(--security-border, #dfe6ee) !important;
+  border-radius: 15px !important;
+  box-shadow: none !important;
+}
+
+/* Light mode ------------------------------------------------------------- */
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-sessions-card > header,
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div,
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-sessions-card > .account-session-empty {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div:hover,
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div:focus-within {
+  border-color: #cfd9e5 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div.revoked {
+  border-color: #dfe6ee !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div.revoked:hover,
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div.revoked:focus-within {
+  border-color: #cfd9e5 !important;
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  opacity: 1 !important;
+}
+
+/* Dark mode -------------------------------------------------------------- */
+html[data-admin-theme='dark'] body .admin-layout .dashboard .account-security-page
+  .account-sessions-card > header,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .account-security-page
+  .account-sessions-card > .account-session-empty {
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div:hover,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div:focus-within {
+  border-color: #334766 !important;
+  background: #111e35 !important;
+  background-color: #111e35 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div.revoked {
+  border-color: #24324b !important;
+  background: #091326 !important;
+  background-color: #091326 !important;
+  opacity: .72 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div.revoked:hover,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .account-security-page
+  .account-session-list > div.revoked:focus-within {
+  border-color: #334766 !important;
+  background: #0d182b !important;
+  background-color: #0d182b !important;
+  opacity: .82 !important;
+}
+
+@media (max-width: 760px) {
+  html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+    .account-sessions-card {
+    gap: 10px !important;
+  }
+
+  html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+    .account-session-list {
+    gap: 10px !important;
+  }
+
+  html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+    .account-sessions-card > header,
+  html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+    .account-session-list > div,
+  html[data-admin-theme] body .admin-layout .dashboard .account-security-page
+    .account-sessions-card > .account-session-empty {
+    border-radius: 12px !important;
+  }
+}
