@@ -1,0 +1,87 @@
+/* Employee light-mode accent cleanup -------------------------------------
+   The employee module is dark-first and carries orange/yellow accents into
+   explicit Light Mode. Keep the dark palette untouched while mapping Light
+   Mode actions, focus states and payroll emphasis to the shared blue accent. */
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) {
+  --employee-orange: #2563eb;
+  --employee-orange-hover: #1d4ed8;
+  --employee-yellow: #2563eb;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page) .topbar .eyebrow {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page)
+  :is(.profile-button > span, .topbar .profile > span, .logo > span) {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #2563eb, #0891b2) !important;
+  box-shadow: 0 8px 24px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page)
+  .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.employees-page)
+  .sidebar nav button.active:hover {
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  box-shadow: inset 3px 0 0 #3b82f6 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.employees-page)
+  .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: #dbeafe !important;
+}
+
+html[data-admin-theme='light'] .dashboard .employees-page
+  :is(.employee-add-button, .employee-save-button) {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 10px 24px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .employees-page
+  :is(.employee-add-button, .employee-save-button):hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+  box-shadow: 0 12px 28px rgb(37 99 235 / 22%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .employees-page
+  :is(input, select):focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .employees-page .employee-search-submit {
+  color: #1d4ed8 !important;
+  border-color: #dbeafe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .dashboard .employees-page .employee-search-submit:hover:not(:disabled) {
+  color: #1e40af !important;
+  border-color: #bfdbfe !important;
+  background: #dbeafe !important;
+  background-color: #dbeafe !important;
+}
+
+html[data-admin-theme='light'] .dashboard .employees-page
+  :is(.employee-stat.total strong, .employee-payroll strong) {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .dashboard .employees-page .employee-stat.inactive strong {
+  color: #dc2626 !important;
+}
