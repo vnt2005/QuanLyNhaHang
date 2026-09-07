@@ -108,6 +108,7 @@
 /* Shared shell cleanup and final row geometry must run last in both themes. */
 @import './design-system/topbar-frame-removal.css';
 @import './pages/ai-assistant-dark-shell-fix.css';
+@import './components/notification-center-dark-fixes.css';
 @import './pages/payments-rows-spaced.css';
 @import './pages/reservations-rows-spaced.css';
 @import './pages/activity-logs-rows-spaced.css';
