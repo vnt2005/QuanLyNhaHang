@@ -120,3 +120,17 @@ html[data-admin-theme='light'] .dashboard .topbar .notification-center .notifica
 html[data-admin-theme='light'] .dashboard .topbar .notification-center .notification-realtime {
   color: #78889b !important;
 }
+
+/* Kitchen's legacy dark stylesheet paints notification skeleton rows navy even
+   while the explicit Admin theme is light. Keep the initial-load fallback in
+   the same light palette as the panel. Tab switches normally use the cached
+   feed now, so this is only a defensive first-load state. */
+html[data-admin-theme='light'] .dashboard .topbar .notification-center .notification-loading {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .dashboard .topbar .notification-center .notification-loading span {
+  background: linear-gradient(90deg, #f0f3f6, #f8fafb, #f0f3f6) !important;
+  background-size: 200% 100% !important;
+}
