@@ -1,0 +1,150 @@
+/* Dashboard light-mode accent cleanup -----------------------------------
+   The dashboard command-center skin is dark-first and still carries its
+   orange/yellow accent into explicit Light Mode. Keep status colors semantic,
+   but repaint non-semantic CTAs, section labels, links and chart emphasis to
+   the same blue family used by the rest of the light Admin shell. */
+
+html[data-admin-theme='light'] .admin-layout:has(.live-dashboard-page) {
+  --dashboard-accent: #2563eb;
+  --dashboard-accent-strong: #1d4ed8;
+}
+
+/* Welcome/date accent stays readable on the dark teal hero without using the
+   dark-mode orange brand accent. */
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-welcome > div > span {
+  color: #bfdbfe !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-welcome > div > span::before {
+  background: #60a5fa !important;
+  box-shadow: 0 0 0 5px rgb(96 165 250 / 18%) !important;
+}
+
+/* Functional filter action. */
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row form > button {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 8px 20px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row form > button:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  box-shadow: 0 10px 24px rgb(37 99 235 / 22%) !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-control-row :is(input, select):focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+/* Section eyebrows and navigation links such as HIỆU SUẤT KINH DOANH,
+   LUỒNG ĐƠN HÀNG, THỰC ĐƠN, Xem thực đơn and Mở đơn hàng. */
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-card > header span {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-card > header button {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-card > header button:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+}
+
+/* Operation-card "Chi tiết" links use their own light fix selector. */
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations header button {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-operations header button:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+}
+
+/* Revenue chart emphasis. Empty/zero bars remain neutral. */
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-bar-track > span:not(.empty) {
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%) !important;
+  box-shadow: 0 9px 20px rgb(37 99 235 / 15%) !important;
+}
+
+/* Small utility accents that were still orange in the dark-first stylesheet. */
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-sync > button {
+  color: #2563eb !important;
+  border-color: #d7e4f5 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-sync > button:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93b4e6 !important;
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-spinner {
+  border-top-color: #2563eb !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-today-summary {
+  color: #1e40af !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-ranking > div > span {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
+/* Non-semantic orange KPI icon accents become blue/teal in Light Mode.
+   Warning/order-status dots are deliberately not touched. */
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-kpis article.orders .live-dashboard-kpi-icon {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 20%) !important;
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.live-dashboard-page)
+  .live-dashboard-kpis article.tables .live-dashboard-kpi-icon {
+  color: #0f9f78 !important;
+  border-color: rgb(15 159 120 / 20%) !important;
+  background: #ecfdf5 !important;
+}
