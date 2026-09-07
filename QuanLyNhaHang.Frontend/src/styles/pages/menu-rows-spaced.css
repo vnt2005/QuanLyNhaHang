@@ -1,0 +1,110 @@
+/* Menu and category row spacing ------------------------------------------
+   Match the separated-row treatment already used by SePay and revenue reports.
+   Visual-only: keep the existing data, filters, actions and responsive layout. */
+
+/* Remove the old outer list frames so each item/category reads as its own row. */
+html[data-admin-theme] body .admin-layout .dashboard .menu-page .menu-item-grid,
+html[data-admin-theme] body .admin-layout .dashboard .menu-page .category-grid {
+  gap: 12px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Each menu item becomes a standalone row card. */
+html[data-admin-theme] body .admin-layout .dashboard .menu-page .menu-item-card,
+html[data-admin-theme] body .admin-layout .dashboard .menu-page .menu-item-card:last-child {
+  border: 1px solid var(--menu-border-soft) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+/* Each category becomes a standalone row card. */
+html[data-admin-theme] body .admin-layout .dashboard .menu-page .category-card,
+html[data-admin-theme] body .admin-layout .dashboard .menu-page .category-card:last-child {
+  border: 1px solid var(--menu-border-soft) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+/* Loading/empty states should also remain readable without the old frame. */
+html[data-admin-theme] body .admin-layout .dashboard .menu-page :is(.menu-item-grid, .category-grid) > .menu-empty {
+  min-height: 7rem;
+  border: 1px solid var(--menu-border-soft) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+/* Light theme ------------------------------------------------------------ */
+html[data-admin-theme='light'] body .admin-layout .dashboard .menu-page .menu-item-card,
+html[data-admin-theme='light'] body .admin-layout .dashboard .menu-page .category-card {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .menu-page .menu-item-card:hover,
+html[data-admin-theme='light'] body .admin-layout .dashboard .menu-page .category-card:hover {
+  border-color: #d5dee8 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .menu-page .menu-item-card:hover .menu-item-body,
+html[data-admin-theme='light'] body .admin-layout .dashboard .menu-page .category-card:hover > * {
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .menu-page :is(.menu-item-grid, .category-grid) > .menu-empty {
+  color: #748399 !important;
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Dark theme ------------------------------------------------------------- */
+html[data-admin-theme='dark'] body .admin-layout .dashboard .menu-page .menu-item-card,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .menu-page .category-card {
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .menu-page .menu-item-card:hover,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .menu-page .category-card:hover {
+  border-color: #30405d !important;
+  background: #111d33 !important;
+  background-color: #111d33 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .menu-page :is(.menu-item-grid, .category-grid) > .menu-empty {
+  color: var(--menu-muted) !important;
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+}
+
+/* Keep compact responsive layouts intact while preserving the row gap. */
+@media (max-width: 760px) {
+  html[data-admin-theme] body .admin-layout .dashboard .menu-page .menu-item-grid,
+  html[data-admin-theme] body .admin-layout .dashboard .menu-page .category-grid {
+    gap: 10px !important;
+  }
+}
