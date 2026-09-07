@@ -121,6 +121,31 @@ html[data-admin-theme='light'] .dashboard .topbar .notification-center .notifica
   color: #78889b !important;
 }
 
+/* Empty state must also win over Kitchen's legacy dark notification skin.
+   Only repaint the palette; keep the existing icon size and layout. */
+html[data-admin-theme='light'] .dashboard .topbar .notification-center .notification-empty {
+  color: #7b899a !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .dashboard .topbar .notification-center .notification-empty > span {
+  color: #15945d !important;
+  background: #e7f8ef !important;
+  background-color: #e7f8ef !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .dashboard .topbar .notification-center .notification-empty strong {
+  color: #233044 !important;
+}
+
+html[data-admin-theme='light'] .dashboard .topbar .notification-center .notification-empty small {
+  color: #78889b !important;
+}
+
 /* Kitchen's legacy dark stylesheet paints notification skeleton rows navy even
    while the explicit Admin theme is light. Keep the initial-load fallback in
    the same light palette as the panel. Tab switches normally use the cached
