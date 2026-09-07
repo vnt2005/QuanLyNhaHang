@@ -1,8 +1,127 @@
-/* Customer light-mode action fix -----------------------------------------
-   The shared compact-action design system is dark-first and uses !important.
-   Keep its geometry/masks, but restore a light semantic surface for the
-   customer detail (eye) action when Admin WebApp is in light mode. */
+/* Customer light-mode regression fixes ----------------------------------
+   customers-dark.css owns the Customer module layout and several hard-coded
+   orange accents. Keep that geometry, but repaint decorative accents for the
+   explicit light theme. Semantic warning states intentionally stay amber. */
 
+html[data-admin-theme='light'] .admin-layout:has(.customers-page) {
+  --customer-orange: #2563eb;
+  --customer-orange-hover: #1d4ed8;
+}
+
+/* Shell branding: the QL mark and account avatar must follow the light-theme
+   blue accent instead of retaining the dark skin's orange gradient. */
+html[data-admin-theme='light']
+  .admin-layout:has(.customers-page)
+  .logo > span,
+html[data-admin-theme='light']
+  .admin-layout:has(.customers-page)
+  .profile-button > span,
+html[data-admin-theme='light']
+  .admin-layout:has(.customers-page)
+  .topbar .profile > span {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.customers-page)
+  .topbar .eyebrow {
+  color: #2563eb !important;
+}
+
+/* Navigation/breadcrumb accents. */
+html[data-admin-theme='light']
+  .admin-layout:has(.customers-page)
+  .sidebar nav button.active,
+html[data-admin-theme='light']
+  .admin-layout:has(.customers-page)
+  .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 11%), rgb(14 165 233 / 3%)) !important;
+  box-shadow: inset 3px 0 0 #3b82f6 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.customers-page)
+  .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: #dbeafe !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-breadcrumb strong {
+  color: #2563eb !important;
+}
+
+/* The total-customer KPI is informational, not a warning. */
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-kpis article.total {
+  border-color: #bfdbfe !important;
+  background: linear-gradient(135deg, #eff6ff, #ffffff 72%) !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-kpis article.total strong {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-kpi-icon.total {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
+/* Keep "Chờ xác minh" amber because it is a real warning state, even though
+   decorative Customer accents are blue in light mode. */
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-kpis article.warning strong {
+  color: #f59e0b !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-kpi-icon.warning {
+  color: #f59e0b !important;
+  border-color: #fed7aa !important;
+  background: #fff7ed !important;
+}
+
+/* Refresh/search/filter interactions. */
+html[data-admin-theme='light']
+  .dashboard .customers-page .customers-heading > button:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-toolbar > button:not(.secondary) {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  box-shadow: 0 10px 22px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-toolbar > button:not(.secondary):hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard .customers-page :is(.customer-search, .customer-filter-field select):focus-within,
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-filter-field select:focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 13%) !important;
+}
+
+/* Compact row action: retain shared geometry while using the light semantic
+   surface for the customer detail (eye) action. */
 html[data-admin-theme='light']
   .dashboard
   .customers-page
@@ -32,4 +151,19 @@ html[data-admin-theme='light']
   > button:nth-child(1):focus-visible {
   outline: 3px solid rgb(59 130 246 / 22%) !important;
   outline-offset: 2px !important;
+}
+
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-actions button:hover:not(:disabled),
+html[data-admin-theme='light']
+  .dashboard .customers-page .customer-pagination button:hover:not(:disabled) {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
+/* Customer detail/edit decorative eyebrow text also follows the light accent. */
+html[data-admin-theme='light']
+  :is(.customer-detail-modal, .customer-edit-modal) header small {
+  color: #2563eb !important;
 }
