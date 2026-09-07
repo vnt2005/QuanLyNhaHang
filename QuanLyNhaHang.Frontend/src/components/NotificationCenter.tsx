@@ -26,6 +26,11 @@ type NotificationCenterProps = {
 
 type RealtimeState = 'connected' | 'reconnecting' | 'offline'
 
+type NotificationFeed = {
+  items: AdminNotification[]
+  unreadCount: number
+}
+
 const MAX_VISIBLE_NOTIFICATIONS = 20
 
 function BellIcon() {
@@ -82,27 +87,37 @@ export default function NotificationCenter({
   const rootRef = useRef<HTMLDivElement>(null)
   const knownIdsRef = useRef(new Set<string>())
   const unreadOnlyRef = useRef(unreadOnly)
+  const feedCacheRef = useRef<{
+    all: AdminNotification[] | null
+    unread: AdminNotification[] | null
+  }>({ all: null, unread: null })
 
   useEffect(() => {
     unreadOnlyRef.current = unreadOnly
   }, [unreadOnly])
 
-  const applyFeed = useCallback((feed: {
-    items: AdminNotification[]
-    unreadCount: number
-  }) => {
-    knownIdsRef.current = new Set(feed.items.map(item => item.id))
+  const applyFeed = useCallback((
+    feed: NotificationFeed,
+    mode = unreadOnlyRef.current,
+  ) => {
+    feed.items.forEach(item => knownIdsRef.current.add(item.id))
+    if (mode) {
+      feedCacheRef.current.unread = feed.items
+    } else {
+      feedCacheRef.current.all = feed.items
+    }
     setItems(feed.items)
     setUnreadCount(feed.unreadCount)
   }, [])
 
   const reconcile = useCallback(async () => {
+    const mode = unreadOnlyRef.current
     try {
       const feed = await getNotificationFeed({
         limit: MAX_VISIBLE_NOTIFICATIONS,
-        unreadOnly: unreadOnlyRef.current,
+        unreadOnly: mode,
       })
-      applyFeed(feed)
+      applyFeed(feed, mode)
     } catch {
       // SignalR keeps delivering when available; retry on the next visible tick.
     }
@@ -110,15 +125,28 @@ export default function NotificationCenter({
 
   useEffect(() => {
     const controller = new AbortController()
-    setLoading(true)
+    const cached = unreadOnly
+      ? feedCacheRef.current.unread
+      : feedCacheRef.current.all
+    const derivedUnread = unreadOnly && cached === null
+      ? feedCacheRef.current.all?.filter(item => !item.isRead) ?? null
+      : null
+    const immediateItems = cached ?? derivedUnread
+
     setError('')
+    if (immediateItems !== null) {
+      setItems(immediateItems)
+      setLoading(false)
+    } else {
+      setLoading(true)
+    }
 
     getNotificationFeed({
       limit: MAX_VISIBLE_NOTIFICATIONS,
       unreadOnly,
       signal: controller.signal,
     })
-      .then(applyFeed)
+      .then(feed => applyFeed(feed, unreadOnly))
       .catch(exception => {
         if (exception instanceof DOMException && exception.name === 'AbortError') {
           return
@@ -151,12 +179,13 @@ export default function NotificationCenter({
       .build()
 
     const refreshFeed = async () => {
+      const mode = unreadOnlyRef.current
       try {
         const feed = await getNotificationFeed({
           limit: MAX_VISIBLE_NOTIFICATIONS,
-          unreadOnly: unreadOnlyRef.current,
+          unreadOnly: mode,
         })
-        if (!disposed) applyFeed(feed)
+        if (!disposed) applyFeed(feed, mode)
       } catch {
         // The next successful API load reconciles persisted notifications.
       }
@@ -192,10 +221,30 @@ export default function NotificationCenter({
       const isNew = !knownIdsRef.current.has(notification.id)
       knownIdsRef.current.add(notification.id)
 
-      setItems(current => [
-        notification,
-        ...current.filter(item => item.id !== notification.id),
-      ].slice(0, MAX_VISIBLE_NOTIFICATIONS))
+      if (feedCacheRef.current.all !== null) {
+        feedCacheRef.current.all = [
+          notification,
+          ...feedCacheRef.current.all.filter(item => item.id !== notification.id),
+        ].slice(0, MAX_VISIBLE_NOTIFICATIONS)
+      }
+      if (feedCacheRef.current.unread !== null) {
+        feedCacheRef.current.unread = notification.isRead
+          ? feedCacheRef.current.unread.filter(item => item.id !== notification.id)
+          : [
+              notification,
+              ...feedCacheRef.current.unread.filter(item => item.id !== notification.id),
+            ].slice(0, MAX_VISIBLE_NOTIFICATIONS)
+      }
+
+      setItems(current => {
+        if (unreadOnlyRef.current && notification.isRead) {
+          return current.filter(item => item.id !== notification.id)
+        }
+        return [
+          notification,
+          ...current.filter(item => item.id !== notification.id),
+        ].slice(0, MAX_VISIBLE_NOTIFICATIONS)
+      })
 
       if (isNew && !notification.isRead) {
         setUnreadCount(current => current + 1)
@@ -262,6 +311,14 @@ export default function NotificationCenter({
     if (!notification.isRead) {
       try {
         const updated = await markNotificationRead(notification.id)
+        feedCacheRef.current.all = feedCacheRef.current.all?.map(item =>
+          item.id === notification.id
+            ? (updated ?? { ...item, isRead: true })
+            : item,
+        ) ?? null
+        feedCacheRef.current.unread = feedCacheRef.current.unread?.filter(
+          item => item.id !== notification.id,
+        ) ?? null
         setItems(current => current
           .map(item => item.id === notification.id
             ? (updated ?? { ...item, isRead: true })
@@ -287,6 +344,11 @@ export default function NotificationCenter({
     try {
       await markAllNotificationsRead()
       setUnreadCount(0)
+      feedCacheRef.current.all = feedCacheRef.current.all?.map(item => ({
+        ...item,
+        isRead: true,
+      })) ?? null
+      feedCacheRef.current.unread = []
       setItems(current => unreadOnlyRef.current
         ? []
         : current.map(item => ({ ...item, isRead: true })))
@@ -297,6 +359,23 @@ export default function NotificationCenter({
     } finally {
       setMarkingAll(false)
     }
+  }
+
+  function selectNotificationFilter(nextUnreadOnly: boolean) {
+    if (nextUnreadOnly === unreadOnly) return
+
+    const cached = nextUnreadOnly
+      ? feedCacheRef.current.unread
+        ?? feedCacheRef.current.all?.filter(item => !item.isRead)
+        ?? null
+      : feedCacheRef.current.all
+
+    setError('')
+    if (cached !== null) {
+      setItems(cached)
+      setLoading(false)
+    }
+    setUnreadOnly(nextUnreadOnly)
   }
 
   const badge = unreadCount > 99 ? '99+' : String(unreadCount)
@@ -347,7 +426,7 @@ export default function NotificationCenter({
               className={!unreadOnly ? 'active' : ''}
               role="tab"
               aria-selected={!unreadOnly}
-              onClick={() => setUnreadOnly(false)}
+              onClick={() => selectNotificationFilter(false)}
             >
               Tất cả
             </button>
@@ -356,7 +435,7 @@ export default function NotificationCenter({
               className={unreadOnly ? 'active' : ''}
               role="tab"
               aria-selected={unreadOnly}
-              onClick={() => setUnreadOnly(true)}
+              onClick={() => selectNotificationFilter(true)}
             >
               Chưa đọc {unreadCount ? `(${unreadCount})` : ''}
             </button>
