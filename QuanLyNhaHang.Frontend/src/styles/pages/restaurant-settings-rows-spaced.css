@@ -1,0 +1,221 @@
+/* Restaurant settings history separated-row layout -----------------------
+   Remove the monolithic history frame and present each saved configuration
+   as its own independent row-card, matching Payments and the other converted
+   admin lists. Visual only: no API, data, permissions or business logic. */
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-panel {
+  display: grid !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Heading/count and filters are independent cards instead of pieces of the
+   old outer frame. */
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-panel-heading,
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-filters,
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-pagination {
+  margin: 0 !important;
+  border: 1px solid var(--rs-border, #dfe6ee) !important;
+  border-radius: 15px !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-panel-heading {
+  border-bottom-width: 1px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-filters {
+  border-bottom-width: 1px !important;
+}
+
+/* The table wrapper is only the horizontal-scroll viewport now. */
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table-wrap {
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Separate both the column header and each data record. */
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table {
+  border-collapse: separate !important;
+  border-spacing: 0 12px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table :is(th, td) {
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table thead th {
+  border-top: 1px solid var(--rs-border, #dfe6ee) !important;
+  border-bottom: 1px solid var(--rs-border, #dfe6ee) !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table thead th:first-child {
+  border-left: 1px solid var(--rs-border, #dfe6ee) !important;
+  border-radius: 14px 0 0 14px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table thead th:last-child {
+  border-right: 1px solid var(--rs-border, #dfe6ee) !important;
+  border-radius: 0 14px 14px 0 !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody td {
+  border-top: 1px solid var(--rs-border, #dfe6ee) !important;
+  border-bottom: 1px solid var(--rs-border, #dfe6ee) !important;
+  background-clip: padding-box !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody td:first-child {
+  border-left: 1px solid var(--rs-border, #dfe6ee) !important;
+  border-radius: 15px 0 0 15px !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody td:last-child {
+  border-right: 1px solid var(--rs-border, #dfe6ee) !important;
+  border-radius: 0 15px 15px 0 !important;
+}
+
+/* Hover the row-card as one unit instead of painting a shared table strip. */
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody tr:hover {
+  background: transparent !important;
+}
+
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody tr:hover > td {
+  background-color: var(--rs-surface-hover, #f8fafc) !important;
+}
+
+/* Loading/empty rows use one complete standalone card. */
+html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody td[colspan] {
+  border: 1px solid var(--rs-border, #dfe6ee) !important;
+  border-radius: 15px !important;
+}
+
+/* Light mode ------------------------------------------------------------- */
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-panel-heading,
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-filters,
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-pagination {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table thead th {
+  border-color: #dfe6ee !important;
+  background: #f6f8fb !important;
+  background-color: #f6f8fb !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody td {
+  border-color: #dfe6ee !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody tr:hover > td {
+  border-color: #cfd9e5 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+/* Dark mode -------------------------------------------------------------- */
+html[data-admin-theme='dark'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-panel-heading,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-filters,
+html[data-admin-theme='dark'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-pagination {
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table thead th {
+  border-color: #24324b !important;
+  background: #111d33 !important;
+  background-color: #111d33 !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody td {
+  border-color: #24324b !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-table tbody tr:hover > td {
+  border-color: #334766 !important;
+  background: #111e35 !important;
+  background-color: #111e35 !important;
+}
+
+@media (max-width: 760px) {
+  html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+    .restaurant-settings-panel {
+    gap: 10px !important;
+  }
+
+  html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+    :is(
+      .restaurant-settings-panel-heading,
+      .restaurant-settings-filters,
+      .restaurant-settings-pagination
+    ) {
+    border-radius: 12px !important;
+  }
+
+  html[data-admin-theme] body .admin-layout .dashboard .restaurant-settings-page
+    .restaurant-settings-table {
+    border-spacing: 0 10px !important;
+  }
+}
