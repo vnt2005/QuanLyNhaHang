@@ -1,0 +1,79 @@
+/* AI assistant dark-shell regression fix ----------------------------------
+   The AI cards already have a dark palette, but the shared Admin dashboard and
+   topbar controls can remain on the light palette after switching from light
+   to dark mode. Scope the fix to the explicit dark theme so light mode keeps
+   the existing dedicated light overrides. Visual only. */
+
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) {
+  --ai-shell-bg: #050a1b;
+  --ai-shell-surface: #0d172a;
+  --ai-shell-surface-hover: #111d33;
+  --ai-shell-border: #24324b;
+  --ai-shell-text: #f6f8fc;
+  --ai-shell-soft: #c6d0de;
+  --ai-shell-muted: #8293ad;
+  color-scheme: dark !important;
+  background: var(--ai-shell-bg) !important;
+  background-color: var(--ai-shell-bg) !important;
+}
+
+/* The light rectangle visible around the AI cards comes from the shared
+   dashboard surface, not from the cards themselves. */
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard {
+  color: var(--ai-shell-soft) !important;
+  background:
+    radial-gradient(circle at 82% -8%, rgb(43 69 116 / 18%), transparent 34rem),
+    radial-gradient(circle at 8% 92%, rgb(23 215 174 / 4%), transparent 28rem),
+    var(--ai-shell-bg) !important;
+  background-color: var(--ai-shell-bg) !important;
+}
+
+/* topbar-frame-removal.css intentionally leaves the topbar transparent. Keep
+   that geometry and only restore dark text/actions so it blends into the dark
+   dashboard instead of looking like a light-mode header. */
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard > .topbar {
+  color: var(--ai-shell-text) !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard > .topbar .eyebrow {
+  color: #4d8dff !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard > .topbar h1,
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard > .topbar .profile-button strong {
+  color: var(--ai-shell-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard > .topbar .profile-button small {
+  color: var(--ai-shell-muted) !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard > .topbar .topbar-actions
+  :is(.notification-trigger, .profile-button, .logout, .admin-theme-toggle)[class] {
+  color: var(--ai-shell-soft) !important;
+  border-color: var(--ai-shell-border) !important;
+  background: var(--ai-shell-surface) !important;
+  background-color: var(--ai-shell-surface) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard > .topbar .topbar-actions
+  :is(.notification-trigger, .profile-button, .logout, .admin-theme-toggle)[class]:hover:not(:disabled),
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) > .dashboard > .topbar .topbar-actions
+  .profile-button.active[class] {
+  color: var(--ai-shell-text) !important;
+  border-color: #40516e !important;
+  background: var(--ai-shell-surface-hover) !important;
+  background-color: var(--ai-shell-surface-hover) !important;
+  background-image: none !important;
+}
+
+/* Avoid a light page flash/strip while the theme class is changing and keep
+   native form/scrollbar rendering consistent with the dark AI surface. */
+html[data-admin-theme='dark'] body .admin-layout:has(.ai-admin-page) .ai-admin-page {
+  color-scheme: dark !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
