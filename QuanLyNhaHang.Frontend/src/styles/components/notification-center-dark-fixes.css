@@ -1,0 +1,264 @@
+/* Notification Center dark-mode regression fixes ------------------------
+   The base Notification Center stylesheet is intentionally light-first. When
+   the explicit Admin theme switches to dark, repaint both the bell trigger and
+   the entire popup/toast surface without changing notification behavior. */
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-trigger {
+  color: #c5d1df !important;
+  border-color: #2b3a52 !important;
+  background: #0d172a !important;
+  background-color: #0d172a !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color-scheme: dark !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-trigger svg {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-trigger:hover,
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-trigger.active {
+  color: #79b7ff !important;
+  border-color: #45688f !important;
+  background: #15233a !important;
+  background-color: #15233a !important;
+  background-image: none !important;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 18%) !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-trigger:focus-visible {
+  outline-color: rgb(77 141 255 / 34%) !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-badge {
+  color: #ffffff !important;
+  border-color: #07111f !important;
+  background: #ff5f73 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-panel {
+  color: #d7e0ec !important;
+  border-color: #263750 !important;
+  background: #0b1628 !important;
+  background-color: #0b1628 !important;
+  background-image: none !important;
+  box-shadow: 0 28px 72px rgb(0 0 0 / 42%) !important;
+  color-scheme: dark !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center :is(
+  .notification-panel-header,
+  .notification-tabs,
+  .notification-list,
+  .notification-realtime
+) {
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-panel-header {
+  background: #0b1628 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-panel-header h2 {
+  color: #f3f6fb !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-panel-header span {
+  color: #8fa0b7 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-panel-header button {
+  color: #78b6ff !important;
+  border: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-panel-header button:hover:not(:disabled) {
+  color: #a9d0ff !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-panel-header button:disabled {
+  color: #59697d !important;
+  background: transparent !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-tabs {
+  border-bottom-color: #1f2e44 !important;
+  background: #0b1628 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-tabs button {
+  color: #91a1b6 !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-tabs button:hover:not(:disabled) {
+  color: #d9e4f1 !important;
+  border-color: #30445e !important;
+  background: #111f34 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-tabs button.active {
+  color: #83bdff !important;
+  border-color: #31577e !important;
+  background: #17304b !important;
+  background-color: #17304b !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-error {
+  color: #ffb7c1 !important;
+  border-color: rgb(255 97 120 / 34%) !important;
+  background: rgb(255 97 120 / 9%) !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-error > span {
+  color: #fff !important;
+  background: #ff6178 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-list {
+  background: #0b1628 !important;
+  scrollbar-color: #53647a #111d30;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-item {
+  color: #d7e0ec !important;
+  border-bottom-color: #1f2e44 !important;
+  background: #0b1628 !important;
+  background-color: #0b1628 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-item:hover {
+  background: #111f34 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-item.unread {
+  background: #10243b !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-item.unread:hover {
+  background: #16304d !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type {
+  color: #79b7ff !important;
+  background: #142c47 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.warning {
+  color: #ffc55e !important;
+  background: #3b2b13 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.success {
+  color: #62d7ae !important;
+  background: #123429 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.error {
+  color: #ff94a4 !important;
+  background: #3d1d29 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-copy strong {
+  color: #f1f5fa !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-copy > span {
+  color: #aab8c9 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-copy small {
+  color: #74869e !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-item > i {
+  background: #5aa7ff !important;
+  box-shadow: 0 0 0 3px rgb(90 167 255 / 15%) !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-loading {
+  background: #0b1628 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-loading span {
+  background: linear-gradient(90deg, #111d30, #1a2940, #111d30) !important;
+  background-size: 200% 100% !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-empty {
+  color: #8fa0b7 !important;
+  background: #0b1628 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-empty > span {
+  color: #62d7ae !important;
+  background: #123429 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-empty strong {
+  color: #e5edf6 !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-realtime {
+  color: #8798af !important;
+  border-top-color: #1f2e44 !important;
+  background: #0e192b !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-realtime i {
+  background: #64748b !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-realtime.connected i {
+  background: #32c990 !important;
+  box-shadow: 0 0 0 3px rgb(50 201 144 / 14%) !important;
+}
+
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-realtime.reconnecting i {
+  background: #f0ad3d !important;
+}
+
+/* Toasts are portalled outside the notification-center element, so scope them
+   directly by the explicit Admin theme. */
+html[data-admin-theme='dark'] .notification-toast {
+  color: #d7e0ec !important;
+  border-color: #263750 !important;
+  background: #0d192b !important;
+  background-color: #0d192b !important;
+  background-image: none !important;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 38%) !important;
+  color-scheme: dark !important;
+}
+
+html[data-admin-theme='dark'] .notification-toast-main small {
+  color: #79b7ff !important;
+}
+
+html[data-admin-theme='dark'] .notification-toast-main strong {
+  color: #f1f5fa !important;
+}
+
+html[data-admin-theme='dark'] .notification-toast-main > span > span {
+  color: #aab8c9 !important;
+}
+
+html[data-admin-theme='dark'] .notification-toast-close {
+  color: #8495aa !important;
+}
+
+html[data-admin-theme='dark'] .notification-toast-close:hover {
+  color: #dbe5f0 !important;
+}
