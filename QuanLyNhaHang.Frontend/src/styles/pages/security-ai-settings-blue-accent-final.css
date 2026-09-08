@@ -1,0 +1,269 @@
+/* Final Light Mode blue-accent cleanup for Account Security, AI Assistant
+   and Restaurant Settings. Keep semantic warning/success/danger states intact;
+   only replace the old amber/orange presentation accent. */
+
+/* -------------------------------------------------------------------------
+   Shared shell
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span),
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span),
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  background-color: #2563eb !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .sidebar nav button.active:hover,
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .sidebar nav button.active:hover,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page) .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 13%), rgb(14 165 233 / 5%)) !important;
+  box-shadow: inset 3px 0 0 #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .sidebar nav button.active > span,
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .sidebar nav button.active > span,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page) .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) .topbar .eyebrow,
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .topbar .eyebrow,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page) .topbar .eyebrow {
+  color: #2563eb !important;
+}
+
+/* -------------------------------------------------------------------------
+   Bảo mật tài khoản
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page) {
+  --security-orange: #2563eb;
+  --security-orange-hover: #1d4ed8;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page)
+  :is(
+    .account-security-header > div > span,
+    .account-profile-card > div:nth-child(2) > span,
+    .account-security-score > div > span,
+    .account-session-summary > div > span
+  ) {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page)
+  .account-sessions-card > header > div > span {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page)
+  .account-session-list button:not(.danger):hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.account-security-page)
+  .account-security-header > button:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+/* Safe/warning/revoked/danger session and security states remain semantic. */
+
+/* -------------------------------------------------------------------------
+   Trợ lý AI
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-page {
+  --ai-accent: #2563eb;
+  --ai-accent-soft: #eff6ff;
+  --ai-field-hover: #f8fbff;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  :is(.ai-admin-label, .ai-admin-readonly) {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-readonly {
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-chat-suggestions button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-chat-suggestions button:focus-visible {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-chat-row.user .ai-admin-chat-bubble {
+  color: #1e3a8a !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  :is(
+    .ai-admin-card input:not([type='checkbox']),
+    .ai-admin-card textarea,
+    .ai-admin-chat-form textarea
+  ):focus {
+  color: #172033 !important;
+  border-color: #2563eb !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-switch input:checked + span {
+  border-color: #93c5fd !important;
+  background: #dbeafe !important;
+  background-color: #dbeafe !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-switch input:checked + span::after {
+  background: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-chat-form button,
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-page .ai-admin-footer button {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 9px 22px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-chat-form button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-page .ai-admin-footer button:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+/* A missing provider and the API-key security note are real warnings, so keep
+   their amber warning meaning even though the generic AI accent is blue. */
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page)
+  .ai-admin-provider.missing > span {
+  background: #d97706 !important;
+}
+
+/* -------------------------------------------------------------------------
+   Cấu hình nhà hàng
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page) {
+  --rs-orange: #2563eb;
+  --rs-orange-hover: #1d4ed8;
+}
+
+html[data-admin-theme='light'] .restaurant-settings-modal {
+  --rs-orange: #2563eb;
+  --rs-orange-hover: #1d4ed8;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  :is(.restaurant-settings-kicker, .active-setting-contact a) {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .restaurant-settings-primary,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .active-setting-actions button.primary,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .active-setting-empty button,
+html[data-admin-theme='light'] .restaurant-settings-modal .restaurant-settings-primary,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .restaurant-settings-filters > button {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 9px 22px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .restaurant-settings-primary:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .active-setting-actions button.primary:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .active-setting-empty button:hover:not(:disabled),
+html[data-admin-theme='light'] .restaurant-settings-modal .restaurant-settings-primary:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .restaurant-settings-filters > button:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .active-setting-card {
+  background:
+    radial-gradient(circle at 92% 5%, rgb(37 99 235 / 7%), transparent 24%),
+    #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .active-setting-card::before {
+  background: linear-gradient(#2563eb, #0ea5e9) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page) .restaurant-logo,
+html[data-admin-theme='light'] .restaurant-settings-modal .restaurant-logo {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .active-setting-empty > span,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .restaurant-settings-panel-heading > span,
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .summary-icon.amber {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.restaurant-settings-page)
+  .restaurant-settings-filters :is(input, select):focus,
+html[data-admin-theme='light'] .restaurant-settings-modal
+  .restaurant-settings-form-fields :is(input, textarea, select):focus,
+html[data-admin-theme='light'] .restaurant-settings-modal.form-modal
+  .restaurant-settings-form-grid :is(input, textarea, select):focus {
+  border-color: #2563eb !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+/* Keep active/success green and destructive actions red. */
