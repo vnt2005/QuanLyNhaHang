@@ -135,3 +135,6 @@
 
 /* Final feature-scoped Light Mode accent pass. */
 @import './pages/security-ai-settings-blue-accent-final.css';
+
+/* Absolute-final Light Mode interaction reset after all dark/row geometry. */
+@import './pages/light-transition-controls-final.css';
