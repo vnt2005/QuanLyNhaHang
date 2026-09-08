@@ -94,22 +94,38 @@ html[data-admin-theme='light'] .auth-card .auth-code-input {
 /* -------------------------------------------------------------------------
    Single-surface auth layout in Light Mode
    -------------------------------------------------------------------------
-   The right side previously had a light form-panel surface and then another
-   white auth-card painted on top of it. Keep the existing grid/spacing, but
-   make the form side one continuous white surface and turn the inner card into
-   a transparent content wrapper. */
-html[data-admin-theme='light'] .auth-shell,
-html[data-admin-theme='light'] .auth-form-panel {
+   The right side must be exactly one surface. Historical auth-security/light
+   rules paint .auth-card as a second rounded white card inside .auth-form-panel.
+   This absolute-final selector removes the inner box itself, not just its tint,
+   so the form can no longer appear as a smaller background over a larger one. */
+html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel {
+  color: #172033 !important;
   background: #ffffff !important;
   background-color: #ffffff !important;
   background-image: none !important;
+  box-shadow: none !important;
 }
 
-html[data-admin-theme='light'] .auth-card {
+html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card {
+  width: min(100%, 660px) !important;
+  max-width: 660px !important;
   color: #172033 !important;
+  border: 0 !important;
   border-color: transparent !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card::before,
+html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card::after {
+  display: none !important;
+  content: none !important;
+  border: 0 !important;
+  background: none !important;
   box-shadow: none !important;
 }
