@@ -1,0 +1,126 @@
+/* Activity Logs Light Mode blue accent -----------------------------------
+   Replace the historical orange presentation accent while keeping semantic
+   success/failure colors and all existing layout/business behavior intact. */
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) {
+  --activity-orange: #2563eb;
+  --activity-orange-hover: #1d4ed8;
+}
+
+/* Shared shell ----------------------------------------------------------- */
+html[data-admin-theme='light']
+  .admin-layout:has(.activity-logs-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 13%), rgb(14 165 233 / 5%)) !important;
+  box-shadow: inset 3px 0 0 #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: rgb(37 99 235 / 10%) !important;
+}
+
+/* Header actions --------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .dashboard .activity-refresh {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 55%) !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .dashboard .activity-refresh:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  box-shadow: 0 9px 20px rgb(37 99 235 / 18%) !important;
+}
+
+/* Filters --------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .dashboard .activity-clear {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  box-shadow: 0 8px 18px rgb(37 99 235 / 14%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .dashboard .activity-clear:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+  box-shadow: 0 9px 20px rgb(37 99 235 / 20%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .dashboard .activity-filters :is(input, select):focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+/* Non-semantic summary accent ------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-summary-grid > article:not(.success):not(.failed):not(.today)::after {
+  background: rgb(37 99 235 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-summary-grid article:not(.success):not(.failed):not(.today) > span {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 28%) !important;
+  background: linear-gradient(145deg, rgb(37 99 235 / 13%), rgb(14 165 233 / 5%)) !important;
+  box-shadow: inset 0 0 1.25rem rgb(37 99 235 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-summary-grid article:not(.success):not(.failed):not(.today) strong {
+  color: #2563eb !important;
+}
+
+/* Table interaction/focus ----------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-table tbody tr:hover {
+  box-shadow: inset 3px 0 0 rgb(37 99 235 / 28%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .dashboard .activity-pagination button:hover:not(:disabled) {
+  color: #2563eb !important;
+  border-color: #93b4e8 !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-logs-page :is(button, input, select):focus-visible {
+  outline-color: #2563eb !important;
+}
+
+/* Detail modal presentation accent -------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .activity-modal header::before {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 24%) !important;
+  background: rgb(37 99 235 / 9%) !important;
+  box-shadow: inset 0 0 1.2rem rgb(37 99 235 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page) .activity-modal header span {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.activity-logs-page)
+  .activity-detail-grid > div:nth-child(1)::before {
+  color: #2563eb !important;
+  background: rgb(37 99 235 / 10%) !important;
+}
