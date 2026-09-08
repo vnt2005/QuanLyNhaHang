@@ -1,0 +1,25 @@
+/* Promotions light-mode clear-filter accent fix.
+   Keep both filter actions visually consistent with the blue Light Mode accent. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  :is(.promotions-filters > button.clear, .promotion-usage-filters > button.clear) {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 9px 22px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  :is(.promotions-filters > button.clear, .promotion-usage-filters > button.clear):hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  :is(.promotions-filters > button.clear, .promotion-usage-filters > button.clear):focus-visible {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
