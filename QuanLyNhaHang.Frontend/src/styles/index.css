@@ -138,3 +138,6 @@
 
 /* Absolute-final Light Mode interaction reset after all dark/row geometry. */
 @import './pages/light-transition-controls-final.css';
+
+/* Auth portal also needs a final blue pass after its historical dark rules. */
+@import './pages/auth-portal-blue-accent-final.css';
