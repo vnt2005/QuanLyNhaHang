@@ -132,3 +132,6 @@
 @import './pages/access-users-rows-spaced.css';
 @import './pages/people-scheduling-rows-spaced.css';
 @import './pages/customers-frame-final.css';
+
+/* Final feature-scoped Light Mode accent pass. */
+@import './pages/security-ai-settings-blue-accent-final.css';
