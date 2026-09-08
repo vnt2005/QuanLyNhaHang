@@ -90,3 +90,26 @@ html[data-admin-theme='light'] .auth-card .auth-code-input {
   color: #2563eb !important;
   -webkit-text-fill-color: #2563eb !important;
 }
+
+/* -------------------------------------------------------------------------
+   Single-surface auth layout in Light Mode
+   -------------------------------------------------------------------------
+   The right side previously had a light form-panel surface and then another
+   white auth-card painted on top of it. Keep the existing grid/spacing, but
+   make the form side one continuous white surface and turn the inner card into
+   a transparent content wrapper. */
+html[data-admin-theme='light'] .auth-shell,
+html[data-admin-theme='light'] .auth-form-panel {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+html[data-admin-theme='light'] .auth-card {
+  color: #172033 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
