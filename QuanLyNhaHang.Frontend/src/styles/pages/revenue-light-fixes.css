@@ -295,3 +295,139 @@ html[data-admin-theme='light'] body:has(.revenue-reports-page) .ds-confirm-actio
   background-color: var(--revenue-light-danger) !important;
   box-shadow: 0 8px 20px rgb(201 62 83 / 16%) !important;
 }
+
+/* Light-mode blue accent unification ------------------------------------
+   Keep semantic success/error tones unchanged, but replace the historical
+   orange presentation accent with the same blue used by the other corrected
+   Light Mode admin modules. */
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) {
+  --revenue-orange: #2563eb;
+  --revenue-orange-hover: #1d4ed8;
+  --revenue-light-orange: #2563eb;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.revenue-reports-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 13%), rgb(14 165 233 / 5%)) !important;
+  box-shadow: inset 3px 0 0 #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) :is(
+  .revenue-primary-button,
+  .revenue-view-button,
+  .revenue-filter-button,
+  .revenue-report-filters .clear-filter
+) {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  box-shadow: 0 10px 24px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) :is(
+  .revenue-primary-button,
+  .revenue-view-button,
+  .revenue-filter-button,
+  .revenue-report-filters .clear-filter
+):hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  box-shadow: 0 12px 28px rgb(37 99 235 / 22%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-period-presets button {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  box-shadow: 0 8px 18px rgb(37 99 235 / 14%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-period-presets button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-period-presets button.active {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  box-shadow: 0 9px 20px rgb(37 99 235 / 20%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-period-fields input:focus,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-report-filters :is(input, select):focus,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-form :is(input, textarea):focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-reports-page button:focus-visible,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-reports-page :is(input, select, textarea):focus-visible,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-dark-modal button:focus-visible,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-dark-modal :is(input, textarea):focus-visible {
+  outline-color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-summary-grid > article.revenue-tone-amber > .revenue-metric-icon {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 22%) !important;
+  background: rgb(37 99 235 / 9%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-report-panel-heading > span {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 22%) !important;
+  background: rgb(37 99 235 / 8%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .top-item-rank {
+  color: #ffffff !important;
+  background: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .top-item-track > span {
+  background: linear-gradient(90deg, #2563eb, #38bdf8) !important;
+  box-shadow: 0 0 1rem rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-breakdown .revenue-net {
+  border-color: rgb(37 99 235 / 20%) !important;
+  background: rgb(37 99 235 / 7%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-breakdown .revenue-net span,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-breakdown .revenue-net strong {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-report-table td:first-child > strong,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-report-table td:nth-child(4) > strong {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-modal-kicker {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-totals .final {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 22%) !important;
+  background: rgb(37 99 235 / 7%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-totals .final strong {
+  color: #2563eb !important;
+}
