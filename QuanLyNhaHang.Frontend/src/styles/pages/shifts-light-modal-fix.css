@@ -2,6 +2,18 @@
    Loaded after the dark scheduling skin so modal geometry stays intact while
    all visual surfaces switch consistently to the light palette. */
 
+/* Scheduling still inherits the orange shell branding from shifts-dark.css.
+   In Light Mode, keep the shared admin shell on the blue accent used by the
+   other corrected light-theme modules. Dark Mode remains untouched. */
+html[data-admin-theme='light']
+  .admin-layout:has(.scheduling-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
 html[data-admin-theme='light'] .dashboard .scheduling-modal {
   color: #263449 !important;
   border-color: #cfd9e5 !important;
