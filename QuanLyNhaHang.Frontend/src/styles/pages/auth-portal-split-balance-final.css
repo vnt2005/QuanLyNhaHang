@@ -1,0 +1,19 @@
+/* Absolute-final AuthPage split balance -----------------------------------
+   Keep the desktop divider exactly centered in both themes. The auth portal
+   previously used a 44/56 split, which made the left and right panes visibly
+   uneven. Mobile keeps the existing single-column flow. */
+
+@media (min-width: 901px) {
+  html[data-admin-theme='light'] body #root .auth-shell,
+  html[data-admin-theme='dark'] body #root .auth-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell > .auth-brand-panel,
+  html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel,
+  html[data-admin-theme='dark'] body #root .auth-shell > .auth-brand-panel,
+  html[data-admin-theme='dark'] body #root .auth-shell > .auth-form-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
