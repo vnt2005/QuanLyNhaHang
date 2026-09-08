@@ -1,0 +1,140 @@
+/* Table QR light-mode blue accent cleanup -------------------------------
+   Replace the historical orange presentation accent with the Admin Light
+   Mode blue palette. Keep semantic status colors unchanged. The download
+   action is intentionally neutral black/white per the UI reference. */
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) {
+  --qr-orange: #2563eb;
+  --qr-orange-hover: #1d4ed8;
+}
+
+/* Shared shell accents. */
+html[data-admin-theme='light']
+  .admin-layout:has(.table-qr-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 13%), rgb(14 165 233 / 5%)) !important;
+  box-shadow: inset 3px 0 0 #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  :is(.topbar .eyebrow, .dashboard .table-qr-kicker) {
+  color: #2563eb !important;
+}
+
+/* Main/create actions. */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-primary,
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-modal .table-qr-primary {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 10px 24px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-primary:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .table-qr-modal .table-qr-primary:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+  box-shadow: 0 12px 28px rgb(37 99 235 / 22%) !important;
+}
+
+/* Filters: blue action, with a lighter clear button for hierarchy. */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-filter-submit {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-filter-submit:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-filter-clear {
+  color: #2563eb !important;
+  border-color: #93b4e8 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-filter-clear:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #60a5fa !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+/* Decorative QR accents. */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-url-icon,
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-empty-icon {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 24%) !important;
+  background: rgb(37 99 235 / 8%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-summary-card.total {
+  --summary-color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  :is(.table-qr-url-settings input, .table-qr-filters input, .table-qr-filters select, .table-qr-form-modal select, .table-qr-form-modal textarea):focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  :is(.table-qr-primary, .table-qr-filter-submit, .table-qr-filter-clear):focus-visible {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+/* Image 4: download action is neutral black/white, not blue/orange. */
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-card > footer .table-qr-card-primary {
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
+  .dashboard .table-qr-card > footer .table-qr-card-primary:hover:not(:disabled) {
+  color: #000000 !important;
+  border-color: #111827 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
