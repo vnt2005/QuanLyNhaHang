@@ -128,6 +128,11 @@ html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-receip
   box-shadow: none !important;
 }
 
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-receipt-heading small,
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-totals .final strong {
+  color: #2563eb !important;
+}
+
 html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-modal-actions {
   border-top-color: #e4eaf1 !important;
   background: #ffffff !important;
