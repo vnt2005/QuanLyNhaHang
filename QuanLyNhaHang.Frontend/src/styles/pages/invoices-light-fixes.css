@@ -3,6 +3,83 @@
    dark paint in form hints, receipt scrolling/actions, confirmations and the
    search icon. */
 
+/* Decorative invoice accents follow the shared Light Mode blue palette.
+   Semantic success/error states intentionally keep their existing colors. */
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) {
+  --invoice-orange: #2563eb;
+  --invoice-orange-hover: #1d4ed8;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.invoices-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.invoices-page)
+  .sidebar nav button.active,
+html[data-admin-theme='light']
+  .admin-layout:has(.invoices-page)
+  .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 11%), rgb(14 165 233 / 3%)) !important;
+  box-shadow: inset 3px 0 0 #3b82f6 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.invoices-page)
+  .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: #dbeafe !important;
+}
+
+html[data-admin-theme='light'] .dashboard .invoice-primary-button,
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-primary-button {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  box-shadow: 0 10px 22px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .invoice-primary-button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-primary-button:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  box-shadow: 0 12px 26px rgb(37 99 235 / 22%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .invoice-metric-icon {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .dashboard .invoice-search-field input:focus,
+html[data-admin-theme='light'] .dashboard .invoice-filter-field select:focus,
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-form select:focus,
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-form textarea:focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 13%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .invoice-filter-button:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-receipt-heading > span:first-child {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
 /* Create/edit invoice form ------------------------------------------------ */
 html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-form-note {
   color: #596a80 !important;
@@ -44,9 +121,9 @@ html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-receip
 
 html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-receipt {
   color: #263449 !important;
-  border-color: #f0d8b2 !important;
+  border-color: #bfdbfe !important;
   background:
-    linear-gradient(180deg, rgb(255 159 10 / 4%), transparent 9rem),
+    linear-gradient(180deg, rgb(37 99 235 / 4%), transparent 9rem),
     #ffffff !important;
   box-shadow: none !important;
 }
