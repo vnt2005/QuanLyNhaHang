@@ -38,3 +38,34 @@ html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
   outline: 3px solid rgb(37 99 235 / 14%) !important;
   outline-offset: 2px !important;
 }
+
+/* Revenue period presets: only the currently selected range is solid blue.
+   Inactive options stay neutral in Light Mode so the selected range is clear. */
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-period-presets button:not(.active) {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-period-presets button:not(.active):hover:not(:disabled) {
+  color: #2563eb !important;
+  border-color: #93b4e8 !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-period-presets button.active,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page)
+  .revenue-period-presets button.active:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  box-shadow: 0 9px 20px rgb(37 99 235 / 20%) !important;
+}

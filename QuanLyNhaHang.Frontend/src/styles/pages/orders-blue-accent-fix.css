@@ -1,0 +1,102 @@
+/* Orders light-mode blue accent cleanup ---------------------------------
+   Replace historical orange presentation accents with the shared Admin Light
+   Mode blue palette. Semantic order/item status colors and destructive actions
+   remain unchanged. */
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) {
+  --orders-override-accent: #2563eb;
+  --orders-accent: #2563eb;
+  --orders-accent-strong: #1d4ed8;
+}
+
+/* Shared shell accents. */
+html[data-admin-theme='light']
+  .admin-layout:has(.orders-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 13%), rgb(14 165 233 / 5%)) !important;
+  box-shadow: inset 3px 0 0 #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page) .topbar .eyebrow {
+  color: #2563eb !important;
+}
+
+/* Main filter action. */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .dashboard .order-filters > button[type='submit'] {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 8px 18px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .dashboard .order-filters > button[type='submit']:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+/* Order codes are navigational identifiers, not semantic statuses. */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .dashboard .order-card-head strong {
+  color: #2563eb !important;
+}
+
+/* Detail modal presentation labels. */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .modal-kicker,
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .employee-modal.order-detail-modal .order-detail-section-heading span {
+  color: #2563eb !important;
+}
+
+/* Generic focus accent across filters/detail inputs. */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  :is(
+    .order-filters input,
+    .order-filters select,
+    .detail-note textarea,
+    .add-order-item input,
+    .add-order-item select,
+    .detail-item-actions input
+  ):focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  :is(.order-filters > button[type='submit'], .order-card-actions > button:first-child):focus-visible {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+/* First summary card is a generic total, so its decorative accent follows blue. */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .dashboard .order-summary article:first-child {
+  border-color: rgb(37 99 235 / 24%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  .dashboard .order-summary article:first-child::after {
+  border-color: rgb(37 99 235 / 10%) !important;
+  background: rgb(37 99 235 / 3%) !important;
+}

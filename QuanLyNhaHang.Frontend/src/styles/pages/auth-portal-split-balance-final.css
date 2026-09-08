@@ -1,0 +1,144 @@
+/* Absolute-final AuthPage split balance -----------------------------------
+   Keep the desktop divider exactly centered in both themes. The auth portal
+   previously used a 44/56 split, which made the left and right panes visibly
+   uneven. Mobile keeps the existing single-column flow. */
+
+@media (min-width: 901px) {
+  html[data-admin-theme='light'] body #root .auth-shell,
+  html[data-admin-theme='dark'] body #root .auth-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell > .auth-brand-panel,
+  html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel,
+  html[data-admin-theme='dark'] body #root .auth-shell > .auth-brand-panel,
+  html[data-admin-theme='dark'] body #root .auth-shell > .auth-form-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Admin Portal brand mark
+   -------------------------------------------------------------------------
+   Replace the temporary QL tile with a larger, code-drawn admin portal mark:
+   shield + account + settings symbol on the left, ADMIN / PORTAL on the right.
+   No raster logo/image asset is used, so the mark stays crisp at every size. */
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header {
+  display: grid !important;
+  grid-template-columns: 138px auto !important;
+  align-items: center !important;
+  justify-items: start !important;
+  justify-content: center !important;
+  width: fit-content !important;
+  max-width: min(100%, 520px) !important;
+  gap: 22px !important;
+  text-align: left !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-mark,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-mark {
+  display: block !important;
+  width: 138px !important;
+  height: 138px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='black' stroke-width='4.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M43 7 73 18v23c0 20-12 36-30 45C25 77 13 61 13 41V18L43 7Z'/%3E%3Ccircle cx='43' cy='33' r='8'/%3E%3Cpath d='M27 56c2-10 9-16 16-16s14 6 16 16'/%3E%3Ccircle cx='69' cy='68' r='14'/%3E%3Ccircle cx='69' cy='68' r='5'/%3E%3Cpath d='M69 49v7M69 80v7M50 68h7M81 68h7M56 55l5 5M77 77l5 5M82 55l-5 5M61 77l-5 5'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat !important;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='black' stroke-width='4.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M43 7 73 18v23c0 20-12 36-30 45C25 77 13 61 13 41V18L43 7Z'/%3E%3Ccircle cx='43' cy='33' r='8'/%3E%3Cpath d='M27 56c2-10 9-16 16-16s14 6 16 16'/%3E%3Ccircle cx='69' cy='68' r='14'/%3E%3Ccircle cx='69' cy='68' r='5'/%3E%3Cpath d='M69 49v7M69 80v7M50 68h7M81 68h7M56 55l5 5M77 77l5 5M82 55l-5 5M61 77l-5 5'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-mark {
+  background: #2563eb !important;
+}
+
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-mark {
+  background: #60a5fa !important;
+}
+
+/* Remove the old QL pseudo-letter from the temporary tile. */
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-mark::before,
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-mark::after,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-mark::before,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-mark::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* The existing DOM copy is replaced visually by the reference-style label. */
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div {
+  display: grid !important;
+  justify-items: start !important;
+  align-content: center !important;
+  gap: 0 !important;
+  min-width: 0 !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div > span,
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div > strong,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div > span,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div > strong {
+  display: none !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div::before,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div::before,
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div::after,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div::after {
+  font-size: clamp(34px, 3vw, 46px) !important;
+  font-weight: 950 !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.045em !important;
+  text-transform: uppercase !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div::before,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div::before {
+  content: 'ADMIN' !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div::after,
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div::after {
+  content: 'PORTAL' !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div::before {
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div::after {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div::before {
+  color: #e8f0fb !important;
+}
+
+html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div::after {
+  color: #60a5fa !important;
+}
+
+@media (max-width: 900px) {
+  html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header,
+  html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header {
+    grid-template-columns: 72px auto !important;
+    gap: 14px !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell .auth-brand-mark,
+  html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-mark {
+    width: 72px !important;
+    height: 72px !important;
+    border-radius: 0 !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div::before,
+  html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div::after,
+  html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div::before,
+  html[data-admin-theme='dark'] body #root .auth-shell .auth-brand-header > div::after {
+    font-size: 25px !important;
+  }
+}

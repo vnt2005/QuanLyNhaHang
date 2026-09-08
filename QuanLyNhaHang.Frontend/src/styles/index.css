@@ -92,17 +92,24 @@
 @import './pages/revenue-light-fixes.css';
 @import './pages/revenue-light-actions-fix.css';
 @import './pages/activity-logs-light-fixes.css';
+@import './pages/activity-logs-blue-accent-fix.css';
 @import './pages/areas-tables-light-fixes.css';
+@import './pages/areas-tables-blue-accent-fix.css';
 @import './pages/reservations-light-fixes.css';
+@import './pages/reservations-blue-accent-fix.css';
 @import './pages/table-qr-light-fixes.css';
+@import './pages/table-qr-blue-accent-fix.css';
 @import './pages/orders-light-fixes.css';
 @import './pages/orders-light-actions-fix.css';
+@import './pages/orders-blue-accent-fix.css';
 @import './pages/kitchen-light-fixes.css';
 @import './pages/payments-light-fixes.css';
 @import './components/notification-center-light-fixes.css';
 @import './pages/menu-management-light-fixes.css';
 @import './pages/promotions-light-fixes.css';
 @import './pages/promotions-light-regression-2.css';
+@import './pages/operations-modules-blue-accent-fix.css';
+@import './pages/promotions-clear-filter-blue-fix.css';
 @import './pages/account-security-light-fixes.css';
 @import './pages/ai-assistant-light-fixes.css';
 @import './pages/restaurant-settings-light-fixes.css';
@@ -125,3 +132,15 @@
 @import './pages/access-users-rows-spaced.css';
 @import './pages/people-scheduling-rows-spaced.css';
 @import './pages/customers-frame-final.css';
+
+/* Final feature-scoped Light Mode accent pass. */
+@import './pages/security-ai-settings-blue-accent-final.css';
+
+/* Absolute-final Light Mode interaction reset after all dark/row geometry. */
+@import './pages/light-transition-controls-final.css';
+
+/* Auth portal also needs a final blue pass after its historical dark rules. */
+@import './pages/auth-portal-blue-accent-final.css';
+
+/* Keep the login split exactly balanced in both Light and Dark modes. */
+@import './pages/auth-portal-split-balance-final.css';

@@ -1,0 +1,364 @@
+/* Light-mode blue accent cleanup for Kitchen, Payments, Menu and Promotions.
+   Keep semantic status colors (success/error/warning/state chips) intact while
+   replacing the old amber/orange presentation accent with the Admin blue. */
+
+/* -------------------------------------------------------------------------
+   Shared shell
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.kitchen-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span),
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span),
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span),
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.kitchen-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.kitchen-page) .sidebar nav button.active:hover,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .sidebar nav button.active:hover,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .sidebar nav button.active:hover,
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .sidebar nav button.active,
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 13%), rgb(14 165 233 / 5%)) !important;
+  box-shadow: inset 3px 0 0 #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.kitchen-page) .sidebar nav button.active > span,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .sidebar nav button.active > span,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .sidebar nav button.active > span,
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.kitchen-page) .topbar .eyebrow,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) .topbar .eyebrow,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) .topbar .eyebrow,
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .topbar .eyebrow {
+  color: #2563eb !important;
+}
+
+/* -------------------------------------------------------------------------
+   Bếp
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-refresh,
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-action.primary {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 9px 22px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-refresh:hover:not(:disabled),
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-action.primary:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-tabs button.active {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+  box-shadow: inset 0 0 0 1px #bfdbfe !important;
+}
+
+html[data-admin-theme='light'] .dashboard:has(.kitchen-page)
+  :is(.kitchen-controls > select:focus, .kitchen-search:focus-within) {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+/* Pending/cooking/ready dots, late/urgent badges and state counts keep their
+   semantic warning/orange/green colors intentionally. */
+
+/* -------------------------------------------------------------------------
+   Thanh toán
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] body:has(.payments-page),
+html[data-admin-theme='light'] .admin-layout:has(.payments-page) {
+  --payment-accent: #2563eb;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payments-page .page-toolbar .primary-button,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-filters > button {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 9px 22px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payments-page .page-toolbar .primary-button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-filters > button:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-summary article:nth-child(2) {
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-summary article:nth-child(2) strong,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-summary article:nth-child(3) strong,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-table td > strong,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-table td:first-child,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-modal .modal-kicker,
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-preview .final :is(span, strong) {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  :is(
+    .payment-filters input,
+    .payment-filters select,
+    .payment-form input,
+    .payment-form select,
+    .payment-form textarea
+  ):focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.payments-page)
+  .payment-actions button:not(.danger):hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+/* Paid/cancelled chips remain semantic green/red. */
+
+/* -------------------------------------------------------------------------
+   Thực đơn
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.menu-page) {
+  --menu-orange: #2563eb;
+  --menu-orange-hover: #1d4ed8;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .primary-button,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .employee-modal.menu-modal .primary-button,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .menu-filters button {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 9px 22px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .primary-button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .employee-modal.menu-modal .primary-button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .menu-filters button:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .access-tabs button.active {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+  box-shadow: inset 0 0 0 1px #bfdbfe !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .menu-summary strong,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .menu-price,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .menu-image-placeholder,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .employee-modal.menu-modal .modal-kicker {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .category-order {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .menu-item-card:hover,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .category-card:hover {
+  box-shadow: inset 3px 0 0 rgb(37 99 235 / 38%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .menu-page .menu-filters :is(input, select):focus,
+html[data-admin-theme='light'] .admin-layout:has(.menu-page)
+  .employee-modal.menu-modal .employee-form :is(input, select, textarea):focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+/* Active/inactive availability badges and destructive/reactivate controls
+   keep their semantic green/red colors. */
+
+/* -------------------------------------------------------------------------
+   Khuyến mãi
+   ------------------------------------------------------------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) {
+  --promo-orange: #2563eb;
+  --promo-orange-hover: #1d4ed8;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-kicker,
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotions-tabs button.active,
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-code > span {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  :is(.promotions-primary, .promotions-filters > button:not(.clear), .promotion-usage-filters > button:not(.clear)) {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  box-shadow: 0 9px 22px rgb(37 99 235 / 16%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  :is(.promotions-primary, .promotions-filters > button:not(.clear), .promotion-usage-filters > button:not(.clear)):hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  .promotions-tabs button.active {
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  .promotions-tabs button.active::after {
+  background: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  .promotions-tabs button.active > small {
+  color: #2563eb !important;
+  background: #dbeafe !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  :is(
+    .promotions-filters input,
+    .promotions-filters select,
+    .promotion-usage-filters input,
+    .promotion-usage-filters select,
+    .promotion-form-fields input,
+    .promotion-form-fields select,
+    .promotion-form-fields textarea,
+    .apply-promotion-fields select,
+    .apply-promotion-fields textarea,
+    .payment-link-content select
+  ):focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .valid-now-filter input {
+  accent-color: #2563eb !important;
+}
+
+/* Promotion identity/offer visuals are presentation accents rather than
+   lifecycle states, so move those from amber to blue as well. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-code > span {
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-card-offer {
+  color: #1d4ed8 !important;
+  border-right-color: #dbeafe !important;
+  background: radial-gradient(circle at 20% 20%, rgb(37 99 235 / 10%), transparent 45%), #f8fbff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  .promotion-card-offer :is(span, strong, small) {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .promotion-ticket {
+  color: #40556f !important;
+  border-color: #bfdbfe !important;
+  background:
+    radial-gradient(circle at 0 50%, #f8fafb 0 8px, transparent 9px),
+    radial-gradient(circle at 100% 50%, #f8fafb 0 8px, transparent 9px),
+    linear-gradient(145deg, #ffffff, #eff6ff) !important;
+  box-shadow: 0 10px 25px rgb(37 99 235 / 8%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  :is(.ticket-brand, .ticket-value, .ticket-code strong) {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .ticket-brand > span {
+  color: #ffffff !important;
+  background: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page) .ticket-code {
+  border-color: #93c5fd !important;
+  background: rgb(255 255 255 / 72%) !important;
+}
+
+/* Upcoming is a real lifecycle state, so keep its warning/amber meaning even
+   though the module's generic accent variable is now blue. */
+html[data-admin-theme='light'] .admin-layout:has(.promotions-page)
+  .promotions-summary-grid article.upcoming {
+  --summary-color: #d97706 !important;
+  --summary-soft: #fff7ed !important;
+}

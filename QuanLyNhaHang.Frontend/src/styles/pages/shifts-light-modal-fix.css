@@ -2,6 +2,67 @@
    Loaded after the dark scheduling skin so modal geometry stays intact while
    all visual surfaces switch consistently to the light palette. */
 
+/* Scheduling still inherits the orange shell branding from shifts-dark.css.
+   In Light Mode, keep the shared admin shell on the blue accent used by the
+   other corrected light-theme modules. Dark Mode remains untouched. */
+html[data-admin-theme='light']
+  .admin-layout:has(.scheduling-page)
+  :is(.logo > span, .profile-button > span, .topbar .profile > span) {
+  color: #ffffff !important;
+  border-color: rgb(37 99 235 / 18%) !important;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+  box-shadow: 0 8px 22px rgb(37 99 235 / 18%) !important;
+}
+
+/* Remaining scheduling accents in Light Mode use the same blue language as
+   the corrected shell instead of inheriting the historical orange skin. */
+html[data-admin-theme='light']
+  .admin-layout:has(.scheduling-page)
+  .sidebar nav button.active,
+html[data-admin-theme='light']
+  .admin-layout:has(.scheduling-page)
+  .sidebar nav button.active:hover {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: linear-gradient(90deg, rgb(37 99 235 / 11%), rgb(14 165 233 / 3%)) !important;
+  box-shadow: inset 3px 0 0 #3b82f6 !important;
+}
+
+html[data-admin-theme='light']
+  .admin-layout:has(.scheduling-page)
+  .sidebar nav button.active > span {
+  color: #2563eb !important;
+  background: #dbeafe !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-page .scheduling-primary-button {
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
+  box-shadow: 0 10px 24px rgb(37 99 235 / 18%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-page .scheduling-primary-button:hover:not(:disabled) {
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  box-shadow: 0 12px 28px rgb(37 99 235 / 24%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-page .scheduling-tabs button.active {
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-page .scheduling-tabs button.active::after {
+  background: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-page .scheduling-employee-cell > span {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
 html[data-admin-theme='light'] .dashboard .scheduling-modal {
   color: #263449 !important;
   border-color: #cfd9e5 !important;

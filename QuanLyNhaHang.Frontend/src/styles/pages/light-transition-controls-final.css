@@ -1,0 +1,176 @@
+/* Final Light Mode interaction reset --------------------------------------
+   Several historical dark/final files intentionally own layout geometry but
+   also paint controls. When switching dark -> light, those high-specificity
+   button/pagination rules can remain visually dark. This file is imported at
+   the absolute end of the style manifest and only repaints affected controls.
+   No layout, API, permission or business behavior changes. */
+
+/* Account Security: refresh must never keep the dark navy button. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-security-header > button {
+  color: #2563eb !important;
+  border-color: #93c5fd !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-security-header > button:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #60a5fa !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .account-security-page
+  .account-security-header > button:disabled {
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  opacity: 1 !important;
+}
+
+/* Restaurant Settings: refresh and history row actions were still owned by
+   restaurant-settings-final-fix.css's unscoped dark paint. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-toolbar-actions .restaurant-settings-secondary {
+  color: #2563eb !important;
+  border-color: #93c5fd !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-toolbar-actions .restaurant-settings-secondary:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #60a5fa !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-setting-row-actions button:not(.danger):not(.activate) {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-setting-row-actions button:not(.danger):not(.activate):hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-setting-row-actions button:not(.danger):not(.activate):disabled {
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  opacity: 1 !important;
+}
+
+/* Pagination safety net for the screens reported in the Light Mode review.
+   Keep normal controls white, hover blue and disabled controls visibly light. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-pagination button,
+html[data-admin-theme='light'] body .admin-layout .dashboard .reservations-page
+  .reservations-pagination button,
+html[data-admin-theme='light'] body .admin-layout .dashboard .areas-tables-page
+  .pagination.space-pagination button,
+html[data-admin-theme='light'] body .admin-layout .dashboard .revenue-reports-page
+  .pagination button,
+html[data-admin-theme='light'] body .admin-layout .dashboard .table-qr-page
+  .table-qr-pagination button,
+html[data-admin-theme='light'] body .admin-layout .dashboard .invoices-page
+  .invoice-pagination button {
+  color: #52657a !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-pagination button:hover:not(:disabled),
+html[data-admin-theme='light'] body .admin-layout .dashboard .reservations-page
+  .reservations-pagination button:hover:not(:disabled),
+html[data-admin-theme='light'] body .admin-layout .dashboard .areas-tables-page
+  .pagination.space-pagination button:hover:not(:disabled),
+html[data-admin-theme='light'] body .admin-layout .dashboard .revenue-reports-page
+  .pagination button:hover:not(:disabled),
+html[data-admin-theme='light'] body .admin-layout .dashboard .table-qr-page
+  .table-qr-pagination button:hover:not(:disabled),
+html[data-admin-theme='light'] body .admin-layout .dashboard .invoices-page
+  .invoice-pagination button:hover:not(:disabled) {
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  background: #eff6ff !important;
+  background-color: #eff6ff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-pagination button:disabled,
+html[data-admin-theme='light'] body .admin-layout .dashboard .reservations-page
+  .reservations-pagination button:disabled,
+html[data-admin-theme='light'] body .admin-layout .dashboard .areas-tables-page
+  .pagination.space-pagination button:disabled,
+html[data-admin-theme='light'] body .admin-layout .dashboard .revenue-reports-page
+  .pagination button:disabled,
+html[data-admin-theme='light'] body .admin-layout .dashboard .table-qr-page
+  .table-qr-pagination button:disabled,
+html[data-admin-theme='light'] body .admin-layout .dashboard .invoices-page
+  .invoice-pagination button:disabled {
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] body .admin-layout .dashboard :is(
+  .restaurant-settings-page .restaurant-settings-pagination,
+  .reservations-page .reservations-pagination,
+  .areas-tables-page .pagination.space-pagination,
+  .revenue-reports-page .pagination,
+  .table-qr-page .table-qr-pagination,
+  .invoices-page .invoice-pagination
+) button:focus-visible {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
+/* Pagination container text/surfaces that can inherit dark variables during
+   the same theme transition. Geometry remains owned by each feature. */
+html[data-admin-theme='light'] body .admin-layout .dashboard .restaurant-settings-page
+  .restaurant-settings-pagination,
+html[data-admin-theme='light'] body .admin-layout .dashboard .reservations-page
+  .reservations-pagination,
+html[data-admin-theme='light'] body .admin-layout .dashboard .areas-tables-page
+  .pagination.space-pagination,
+html[data-admin-theme='light'] body .admin-layout .dashboard .table-qr-page
+  .table-qr-pagination,
+html[data-admin-theme='light'] body .admin-layout .dashboard .invoices-page
+  .invoice-pagination {
+  color: #52657a !important;
+  border-color: #dfe6ee !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
