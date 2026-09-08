@@ -36,9 +36,11 @@ html[data-admin-theme='light'] .admin-layout:has(.reservations-page) .dashboard 
   color: #2563eb !important;
 }
 
-/* Primary create/update actions. */
+/* Primary create/update actions. The create form submit button has no `primary`
+   class, so target the non-secondary button in the non-detail modal explicitly. */
 html[data-admin-theme='light'] .admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > button,
-html[data-admin-theme='light'] .admin-layout:has(.reservations-page) .reservations-modal > footer button.primary {
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal:not(.detail) > footer button:not(.secondary) {
   color: #ffffff !important;
   border-color: #2563eb !important;
   background: #2563eb !important;
@@ -48,7 +50,8 @@ html[data-admin-theme='light'] .admin-layout:has(.reservations-page) .reservatio
 }
 
 html[data-admin-theme='light'] .admin-layout:has(.reservations-page) .dashboard .reservations-toolbar > button:hover:not(:disabled),
-html[data-admin-theme='light'] .admin-layout:has(.reservations-page) .reservations-modal > footer button.primary:hover:not(:disabled) {
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal:not(.detail) > footer button:not(.secondary):hover:not(:disabled) {
   color: #ffffff !important;
   border-color: #1d4ed8 !important;
   background: #1d4ed8 !important;
@@ -98,7 +101,9 @@ html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
 }
 
 html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
-  :is(.reservations-toolbar > button, .reservation-actions button, .reservations-pagination button):focus-visible {
+  :is(.reservations-toolbar > button, .reservation-actions button, .reservations-pagination button):focus-visible,
+html[data-admin-theme='light'] .admin-layout:has(.reservations-page)
+  .reservations-modal:not(.detail) > footer button:not(.secondary):focus-visible {
   outline: 2px solid #2563eb !important;
   outline-offset: 2px !important;
 }
