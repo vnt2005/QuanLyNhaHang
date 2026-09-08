@@ -141,3 +141,6 @@
 
 /* Auth portal also needs a final blue pass after its historical dark rules. */
 @import './pages/auth-portal-blue-accent-final.css';
+
+/* Keep the login split exactly balanced in both Light and Dark modes. */
+@import './pages/auth-portal-split-balance-final.css';
