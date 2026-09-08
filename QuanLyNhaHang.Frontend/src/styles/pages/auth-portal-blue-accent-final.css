@@ -1,39 +1,254 @@
 /* Absolute-final auth portal Light Mode blue-accent pass -------------------
-   Keep auth behavior and semantic success/error states unchanged. This only
-   replaces the legacy amber/orange presentation accent on login, change-
-   password and forgot-password flows. */
+   Keep auth behavior and semantic success/error states unchanged. */
 
 html[data-admin-theme='light'] .auth-shell {
   --auth-orange: #2563eb;
   --auth-orange-strong: #1d4ed8;
 }
 
-/* Remove the remaining orange ambient tint from the light auth shell. */
-html[data-admin-theme='light'] #root:has(.auth-shell) {
+html[data-admin-theme='light'] #root:has(.auth-shell),
+html[data-admin-theme='light'] body:has(.auth-shell) {
+  min-height: 100svh !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   Light login layout inspired by a clean admin-portal split screen.
+   There is no nested card/background on the form side: the page consists of
+   one pale-blue brand pane and one continuous white form pane. */
+html[data-admin-theme='light'] body #root .auth-shell {
+  display: grid !important;
+  grid-template-columns: minmax(360px, 44%) minmax(500px, 56%) !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100svh !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Left brand pane --------------------------------------------------------- */
+html[data-admin-theme='light'] body #root .auth-shell > .auth-brand-panel {
+  position: relative !important;
+  display: grid !important;
+  min-height: 100svh !important;
+  padding: clamp(36px, 5vw, 76px) !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  color: #173b70 !important;
   background:
-    radial-gradient(circle at 15% 10%, rgb(59 130 246 / 7%), transparent 31%),
-    radial-gradient(circle at 88% 88%, rgb(14 165 233 / 5%), transparent 28%),
-    #eef3f8 !important;
+    radial-gradient(circle at 16% 14%, rgb(37 99 235 / 8%) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
+    linear-gradient(145deg, #edf6ff 0%, #e5f1ff 48%, #f5f9ff 100%) !important;
+  background-color: #edf6ff !important;
 }
 
-html[data-admin-theme='light'] .auth-brand-panel::after {
-  background: radial-gradient(circle, rgb(37 99 235 / 14%), transparent 67%) !important;
+html[data-admin-theme='light'] body #root .auth-shell > .auth-brand-panel::before {
+  position: absolute !important;
+  top: -120px !important;
+  right: -80px !important;
+  bottom: auto !important;
+  left: auto !important;
+  display: block !important;
+  width: 360px !important;
+  height: 360px !important;
+  border: 1px solid rgb(37 99 235 / 10%) !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  box-shadow:
+    0 0 0 48px rgb(37 99 235 / 3%),
+    0 0 0 96px rgb(37 99 235 / 2%) !important;
+  content: '' !important;
 }
 
-html[data-admin-theme='light'] .auth-standard {
-  color: #dbeafe !important;
-  border-color: rgb(96 165 250 / 58%) !important;
-  background: rgb(4 10 24 / 58%) !important;
+html[data-admin-theme='light'] body #root .auth-shell > .auth-brand-panel::after {
+  position: absolute !important;
+  right: auto !important;
+  bottom: -160px !important;
+  left: -120px !important;
+  display: block !important;
+  width: 420px !important;
+  height: 420px !important;
+  border: 1px solid rgb(14 165 233 / 10%) !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  box-shadow:
+    0 0 0 54px rgb(14 165 233 / 3%),
+    0 0 0 108px rgb(14 165 233 / 2%) !important;
+  content: '' !important;
 }
 
-/* Kicker labels: ADMIN PORTAL / KHỐI PHỤC TÀI KHOẢN / related auth labels. */
+/* The reference is intentionally sparse: keep only the product identity on
+   the illustration side instead of the large restaurant marketing block. */
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-copy,
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-footer {
+  display: none !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header {
+  position: relative !important;
+  z-index: 2 !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 18px !important;
+  text-align: center !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div {
+  display: grid !important;
+  justify-items: center !important;
+  gap: 6px !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-mark {
+  position: relative !important;
+  display: grid !important;
+  width: 72px !important;
+  height: 72px !important;
+  place-items: center !important;
+  border: 1px solid #bfd7f7 !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 12px 30px rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-mark::before {
+  color: #2563eb !important;
+  content: 'QL' !important;
+  font-size: 20px !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.06em !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header span:not(.auth-brand-mark) {
+  color: #5f7591 !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.14em !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header strong {
+  color: #173b70 !important;
+  font-size: clamp(22px, 2vw, 28px) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.035em !important;
+}
+
+/* Right form pane --------------------------------------------------------- */
+html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel {
+  display: grid !important;
+  min-height: 100svh !important;
+  padding: clamp(32px, 6vw, 84px) !important;
+  place-items: center !important;
+  color: #172033 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card {
+  width: min(100%, 430px) !important;
+  max-width: 430px !important;
+  padding: 0 !important;
+  color: #172033 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card::before,
+html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+html[data-admin-theme='light'] .auth-card > header {
+  margin-bottom: 28px !important;
+  text-align: left !important;
+}
+
 html[data-admin-theme='light'] .auth-card > header .auth-eyebrow,
 html[data-admin-theme='light'] .auth-card > .auth-eyebrow,
 html[data-admin-theme='light'] .auth-eyebrow {
   color: #2563eb !important;
+  font-size: 10px !important;
+  letter-spacing: 0.15em !important;
 }
 
-/* Login helpers and registration links must never turn amber on hover. */
+html[data-admin-theme='light'] .auth-card > header h2 {
+  margin: 7px 0 6px !important;
+  color: #172033 !important;
+  font-size: clamp(28px, 2.7vw, 36px) !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.04em !important;
+}
+
+html[data-admin-theme='light'] .auth-card > header p {
+  color: #718096 !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+
+html[data-admin-theme='light'] .auth-card form {
+  gap: 15px !important;
+}
+
+html[data-admin-theme='light'] .auth-card form label {
+  gap: 7px !important;
+  color: #43566d !important;
+  font-size: 10px !important;
+}
+
+html[data-admin-theme='light'] .auth-card form input {
+  height: 46px !important;
+  padding: 0 14px !important;
+  color: #172033 !important;
+  border: 1px solid #d6e0eb !important;
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+  box-shadow: none !important;
+  -webkit-text-fill-color: #172033 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .auth-card form input:hover {
+  border-color: #b8c8da !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .auth-card form input:focus,
+html[data-admin-theme='light'] .auth-card form input:focus-visible {
+  color: #172033 !important;
+  border-color: #2563eb !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%) !important;
+  -webkit-text-fill-color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .auth-card form input::placeholder {
+  color: #a0adbd !important;
+  -webkit-text-fill-color: #a0adbd !important;
+}
+
+html[data-admin-theme='light'] .auth-login-links {
+  margin-top: -2px !important;
+}
+
 html[data-admin-theme='light'] .auth-link,
 html[data-admin-theme='light'] .auth-register-prompt button,
 html[data-admin-theme='light'] .auth-back-button {
@@ -50,40 +265,25 @@ html[data-admin-theme='light'] .auth-back-button:focus-visible {
   text-decoration-color: #1d4ed8 !important;
 }
 
-/* Primary auth actions: Đăng nhập / Đổi mật khẩu / Gửi mã đặt lại mật khẩu. */
 html[data-admin-theme='light'] .auth-submit {
+  min-height: 48px !important;
   color: #ffffff !important;
-  border-color: #2563eb !important;
+  border: 0 !important;
+  border-radius: 8px !important;
   background: linear-gradient(100deg, #2563eb, #0ea5e9) !important;
   background-color: #2563eb !important;
-  box-shadow: 0 12px 26px rgb(37 99 235 / 18%) !important;
+  box-shadow: 0 8px 18px rgb(37 99 235 / 16%) !important;
 }
 
 html[data-admin-theme='light'] .auth-submit:hover:not(:disabled),
 html[data-admin-theme='light'] .auth-submit:focus-visible:not(:disabled) {
   color: #ffffff !important;
-  border-color: #1d4ed8 !important;
   background: linear-gradient(100deg, #1d4ed8, #0284c7) !important;
-  background-color: #1d4ed8 !important;
-  box-shadow: 0 13px 28px rgb(37 99 235 / 22%) !important;
+  box-shadow: 0 9px 20px rgb(37 99 235 / 20%) !important;
 }
 
 html[data-admin-theme='light'] .auth-submit:active:not(:disabled) {
-  color: #ffffff !important;
   background: #1e40af !important;
-  background-color: #1e40af !important;
-}
-
-/* Form focus ring and verification-code accent follow the blue palette too. */
-html[data-admin-theme='light'] .auth-card form input:focus,
-html[data-admin-theme='light'] .auth-card form input:focus-visible {
-  color: #172033 !important;
-  border-color: #2563eb !important;
-  background: #ffffff !important;
-  box-shadow:
-    0 0 0 3px rgb(37 99 235 / 12%),
-    0 7px 20px rgb(15 23 42 / 5%) !important;
-  -webkit-text-fill-color: #172033 !important;
 }
 
 html[data-admin-theme='light'] .auth-card .auth-code-input {
@@ -91,41 +291,81 @@ html[data-admin-theme='light'] .auth-card .auth-code-input {
   -webkit-text-fill-color: #2563eb !important;
 }
 
-/* -------------------------------------------------------------------------
-   Single-surface auth layout in Light Mode
-   -------------------------------------------------------------------------
-   The right side must be exactly one surface. Historical auth-security/light
-   rules paint .auth-card as a second rounded white card inside .auth-form-panel.
-   This absolute-final selector removes the inner box itself, not just its tint,
-   so the form can no longer appear as a smaller background over a larger one. */
-html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel {
-  color: #172033 !important;
+html[data-admin-theme='light'] .auth-register-prompt {
+  margin-top: 2px !important;
+}
+
+/* Keep semantic success/error states intact. */
+html[data-admin-theme='light'] .auth-alert.success {
+  color: #176b55 !important;
+  border-color: #b7dfd1 !important;
+  background: #eaf8f3 !important;
+}
+
+html[data-admin-theme='light'] .auth-alert.error {
+  color: #a43d39 !important;
+  border-color: #efc3bf !important;
+  background: #fff1f0 !important;
+}
+
+/* Compact theme button to match the reference's unobtrusive corner control. */
+html[data-admin-theme='light'] body:has(.auth-shell) .admin-theme-toggle {
+  color: #486078 !important;
+  border-color: #d8e2ec !important;
   background: #ffffff !important;
-  background-color: #ffffff !important;
-  background-image: none !important;
-  box-shadow: none !important;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 8%) !important;
 }
 
-html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card {
-  width: min(100%, 660px) !important;
-  max-width: 660px !important;
-  color: #172033 !important;
-  border: 0 !important;
-  border-color: transparent !important;
-  border-radius: 0 !important;
-  outline: 0 !important;
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  filter: none !important;
+html[data-admin-theme='light'] body:has(.auth-shell) .admin-theme-toggle:hover {
+  color: #2563eb !important;
+  border-color: #bcd0e7 !important;
 }
 
-html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card::before,
-html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel > .auth-card::after {
-  display: none !important;
-  content: none !important;
-  border: 0 !important;
-  background: none !important;
-  box-shadow: none !important;
+@media (max-width: 900px) {
+  html[data-admin-theme='light'] body #root .auth-shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell > .auth-brand-panel {
+    min-height: 210px !important;
+    padding: 28px !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header {
+    grid-template-columns: auto 1fr !important;
+    justify-self: center !important;
+    justify-items: start !important;
+    gap: 14px !important;
+    text-align: left !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell .auth-brand-header > div {
+    justify-items: start !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell .auth-brand-mark {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 16px !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel {
+    min-height: calc(100svh - 210px) !important;
+    padding: 42px 24px 56px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  html[data-admin-theme='light'] body #root .auth-shell > .auth-brand-panel {
+    min-height: 170px !important;
+  }
+
+  html[data-admin-theme='light'] body #root .auth-shell > .auth-form-panel {
+    min-height: calc(100svh - 170px) !important;
+    padding: 34px 18px 48px !important;
+  }
+
+  html[data-admin-theme='light'] .auth-card > header h2 {
+    font-size: 28px !important;
+  }
 }
