@@ -339,9 +339,11 @@
 }
 
 .notification-toast {
+  /* Rendered on body so page/topbar button skins cannot repaint this card.
+     Keep realtime messages below the workspace, away from success alerts. */
   position: fixed;
   z-index: 170;
-  top: 84px;
+  bottom: max(24px, env(safe-area-inset-bottom));
   right: 24px;
   width: min(380px, calc(100vw - 32px));
   display: flex;
@@ -377,6 +379,20 @@
   min-width: 0;
   display: grid;
   gap: 3px;
+  overflow-wrap: anywhere;
+}
+
+.notification-toast .notification-type {
+  flex: 0 0 40px;
+}
+
+.notification-toast-main:hover {
+  background: #f8fbfd;
+}
+
+.notification-toast :is(.notification-toast-main, .notification-toast-close):focus-visible {
+  outline: 2px solid #0878b5;
+  outline-offset: -3px;
 }
 
 .notification-toast-main small {
@@ -407,6 +423,11 @@
   cursor: pointer;
 }
 
+.notification-toast-close:hover {
+  color: #253247;
+  background: #f0f4f8;
+}
+
 @media (max-width: 760px) {
   .notification-panel {
     position: fixed;
@@ -422,7 +443,7 @@
   }
 
   .notification-toast {
-    top: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
     right: 16px;
     left: 16px;
     width: auto;
