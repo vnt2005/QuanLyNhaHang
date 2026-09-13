@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import {
   ADMIN_NOTIFICATION_EVENT,
@@ -501,7 +502,7 @@ export default function NotificationCenter({
         : null}
 
       {toast
-        ? <aside className="notification-toast" role="status">
+        ? createPortal(<aside className="notification-toast" role="status">
           <button
             type="button"
             className="notification-toast-main"
@@ -524,7 +525,7 @@ export default function NotificationCenter({
           >
             ×
           </button>
-        </aside>
+        </aside>, document.body)
         : null}
     </div>
   )

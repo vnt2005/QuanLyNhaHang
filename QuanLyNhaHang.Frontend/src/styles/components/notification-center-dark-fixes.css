@@ -152,22 +152,26 @@ html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notificat
   background: #16304d !important;
 }
 
-html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type {
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type,
+html[data-admin-theme='dark'] .notification-toast .notification-type {
   color: #79b7ff !important;
   background: #142c47 !important;
 }
 
-html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.warning {
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.warning,
+html[data-admin-theme='dark'] .notification-toast .notification-type.warning {
   color: #ffc55e !important;
   background: #3b2b13 !important;
 }
 
-html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.success {
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.success,
+html[data-admin-theme='dark'] .notification-toast .notification-type.success {
   color: #62d7ae !important;
   background: #123429 !important;
 }
 
-html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.error {
+html[data-admin-theme='dark'] .dashboard .topbar .notification-center .notification-type.error,
+html[data-admin-theme='dark'] .notification-toast .notification-type.error {
   color: #ff94a4 !important;
   background: #3d1d29 !important;
 }
@@ -261,4 +265,13 @@ html[data-admin-theme='dark'] .notification-toast-close {
 
 html[data-admin-theme='dark'] .notification-toast-close:hover {
   color: #dbe5f0 !important;
+  background: #15233a;
+}
+
+html[data-admin-theme='dark'] .notification-toast-main:hover {
+  background: #111f34;
+}
+
+html[data-admin-theme='dark'] .notification-toast :is(.notification-toast-main, .notification-toast-close):focus-visible {
+  outline-color: #79b7ff;
 }
