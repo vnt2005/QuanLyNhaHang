@@ -5,9 +5,12 @@
    layout, CTA buttons and business behavior stay untouched. */
 
 html[data-admin-theme] body .admin-layout > .dashboard > .topbar {
-  position: static !important;
+  /* Keep notification menus above page cards, sticky table headers and the
+     sidebar (30), while modal backdrops (50+) remain above the whole topbar.
+     Relative positioning preserves the non-sticky, frameless layout. */
+  position: relative !important;
   top: auto !important;
-  z-index: auto !important;
+  z-index: 40 !important;
   border: 0 !important;
   border-bottom: 0 !important;
   border-radius: 0 !important;
