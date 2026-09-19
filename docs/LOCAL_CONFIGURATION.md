@@ -167,7 +167,7 @@ Luồng thực tế:
 ~~~text
 SePay
   ↓
-https://quanlynhahang-sepay-webhook.<account>.workers.dev
+https://sepay-webhook-gateway.amplifier-mileage-forget-any.workers.dev
   ↓
 Cloudflare Worker
   ↓
@@ -200,7 +200,7 @@ Script sẽ:
 
 1. Kiểm tra API Gateway `http://localhost:8080`.
 2. Tạo Quick Tunnel tới API local.
-3. Deploy Worker `quanlynhahang-sepay-webhook` và truyền Quick Tunnel hiện tại vào biến `UPSTREAM_ORIGIN`.
+3. Deploy Worker `sepay-webhook-gateway` và truyền Quick Tunnel hiện tại vào biến `UPSTREAM_ORIGIN`.
 4. In ra URL `workers.dev` cố định.
 5. Chờ bạn lưu URL đó vào SePay.
 6. Gọi heartbeat qua URL `workers.dev` trước khi mở thanh toán QR.
@@ -209,7 +209,7 @@ Script sẽ:
 URL cần lưu trên SePay có dạng:
 
 ~~~text
-https://quanlynhahang-sepay-webhook.<account>.workers.dev/api/customer-payments/sepay/webhook
+https://sepay-webhook-gateway.amplifier-mileage-forget-any.workers.dev/api/customer-payments/sepay/webhook
 ~~~
 
 Không lưu URL `trycloudflare.com` vào SePay nữa. Quick Tunnel vẫn có thể đổi URL sau mỗi lần chạy, nhưng URL `workers.dev` của Worker không đổi.
