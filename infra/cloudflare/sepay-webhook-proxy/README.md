@@ -8,7 +8,7 @@ This Worker provides a stable public HTTPS endpoint for SePay without requiring 
 SePay
   |
   v
-https://quanlynhahang-sepay-webhook.<account>.workers.dev
+https://sepay-webhook-gateway.<account>.workers.dev
   |
   v
 Cloudflare Worker
@@ -52,7 +52,7 @@ The script creates the Quick Tunnel, deploys this Worker with the current Quick 
 Use the URL printed by the script:
 
 ~~~text
-https://quanlynhahang-sepay-webhook.<account>.workers.dev/api/customer-payments/sepay/webhook
+https://sepay-webhook-gateway.<account>.workers.dev/api/customer-payments/sepay/webhook
 ~~~
 
 Do not put the changing `trycloudflare.com` URL into SePay anymore.
