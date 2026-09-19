@@ -215,12 +215,28 @@ try {
 
     if ($deployExitCode -ne 0) {
         Write-Host $deployText -ForegroundColor Red
+
+        $workersDevWarning = $deployText -match 'register a workers\.dev subdomain|register a workers\.dev'
+        if ($workersDevWarning) {
+            throw @"
+Đăng nhập Cloudflare đã thành công nhưng tài khoản chưa đăng ký workers.dev subdomain.
+
+Hãy mở Cloudflare Dashboard:
+  Workers & Pages -> Your subdomain -> Change
+
+Đăng ký một subdomain workers.dev miễn phí.
+Sau khi đăng ký xong, quay lại PowerShell và chạy lại script này.
+
+Lưu ý: không cần mua domain riêng và không cần chạy lại Wrangler login.
+"@
+        }
+
         throw @"
 Không deploy được Cloudflare Worker.
-Hãy chạy một lần:
+Nếu chưa đăng nhập Wrangler, chạy:
   npx wrangler@latest login
 
-Sau đó chạy lại script. Bạn cũng cần bật workers.dev cho tài khoản Cloudflare.
+Sau đó chạy lại script.
 "@
     }
 
