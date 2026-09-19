@@ -3,7 +3,9 @@ param(
     [string]$ApiBaseUrl = 'http://localhost:8080',
     [string]$WebhookApiKey = $env:SEPAY_WEBHOOK_API_KEY,
     [ValidateRange(5, 60)]
-    [int]$HeartbeatSeconds = 10
+    [int]$HeartbeatSeconds = 10,
+    [string]$WorkerName = 'sepay-webhook',
+    [string]$WorkersDevSubdomain = 'quanlynhahang.workers.dev'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -56,6 +58,7 @@ $healthUrl = "$ApiBaseUrl/health/live"
 $webhookPath = '/api/customer-payments/sepay/webhook'
 $readinessPath = '/api/customer-payments/sepay/readiness'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+$workerConfigPath = Join-Path $repoRoot 'infra/cloudflare/sepay-webhook-proxy/wrangler.jsonc'
 
 if ([string]::IsNullOrWhiteSpace($WebhookApiKey)) {
     $WebhookApiKey = Get-DotEnvValue -Path (Join-Path $repoRoot '.env') -Name 'SEPAY_WEBHOOK_API_KEY'
@@ -65,9 +68,21 @@ if ([string]::IsNullOrWhiteSpace($WebhookApiKey)) {
     throw 'Thiếu SEPAY_WEBHOOK_API_KEY. Hãy đặt khóa trong .env hoặc truyền -WebhookApiKey.'
 }
 
+if (-not (Test-Path -LiteralPath $workerConfigPath)) {
+    throw "Không tìm thấy Cloudflare Worker config: $workerConfigPath"
+}
+
 $cloudflared = Get-Command cloudflared -ErrorAction SilentlyContinue
 if (-not $cloudflared) {
     throw 'Không tìm thấy cloudflared. Hãy cài cloudflared rồi mở PowerShell mới.'
+}
+
+$npx = Get-Command npx.cmd -ErrorAction SilentlyContinue
+if (-not $npx) {
+    $npx = Get-Command npx -ErrorAction SilentlyContinue
+}
+if (-not $npx) {
+    throw 'Không tìm thấy npx. Hãy cài Node.js LTS rồi mở PowerShell mới.'
 }
 
 $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
@@ -94,7 +109,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $logFile = Join-Path ([IO.Path]::GetTempPath()) (
-    "quanlynhahang-cloudflared-$([Guid]::NewGuid().ToString('N')).log")
+    "sepay-cloudflared-$([Guid]::NewGuid().ToString('N')).log")
 $tunnelArguments = @(
     'tunnel',
     '--url',
@@ -145,8 +160,110 @@ try {
         throw 'Không lấy được URL Quick Tunnel sau 35 giây.'
     }
 
-    $webhookUrl = "$tunnelUrl$webhookPath"
-    $readinessUrl = "$tunnelUrl$readinessPath"
+    Write-Host ''
+    Write-Host "Quick Tunnel hiện tại: $tunnelUrl" -ForegroundColor DarkGray
+    Write-Host "Đang cập nhật Worker $WorkerName để trỏ vào Quick Tunnel..." -ForegroundColor Cyan
+
+    $deployArguments = @(
+        '--yes',
+        'wrangler@latest',
+        'deploy',
+        '--config',
+        $workerConfigPath,
+        '--var',
+        "UPSTREAM_ORIGIN:$tunnelUrl"
+    )
+    $deployStdOut = Join-Path ([IO.Path]::GetTempPath()) (
+        "quanlynhahang-wrangler-out-$([Guid]::NewGuid().ToString('N')).log")
+    $deployStdErr = Join-Path ([IO.Path]::GetTempPath()) (
+        "quanlynhahang-wrangler-err-$([Guid]::NewGuid().ToString('N')).log")
+
+    try {
+        $deployProcess = Start-Process -FilePath $npx.Source -ArgumentList $deployArguments -NoNewWindow -Wait -PassThru -RedirectStandardOutput $deployStdOut -RedirectStandardError $deployStdErr
+        $deployExitCode = $deployProcess.ExitCode
+
+        $deployStdOutText = if (Test-Path -LiteralPath $deployStdOut) {
+            Get-Content -LiteralPath $deployStdOut -Raw -ErrorAction SilentlyContinue
+        }
+        else {
+            ''
+        }
+
+        $deployStdErrText = if (Test-Path -LiteralPath $deployStdErr) {
+            Get-Content -LiteralPath $deployStdErr -Raw -ErrorAction SilentlyContinue
+        }
+        else {
+            ''
+        }
+
+        $deployText = @(
+            $deployStdOutText
+            $deployStdErrText
+        ) -join [Environment]::NewLine
+    }
+    catch {
+        throw "Không thể chạy Wrangler qua npx: $($_.Exception.Message)"
+    }
+    finally {
+        if (Test-Path -LiteralPath $deployStdOut) {
+            Remove-Item -LiteralPath $deployStdOut -Force -ErrorAction SilentlyContinue
+        }
+
+        if (Test-Path -LiteralPath $deployStdErr) {
+            Remove-Item -LiteralPath $deployStdErr -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    if ($deployExitCode -ne 0) {
+        Write-Host $deployText -ForegroundColor Red
+
+        $workersDevWarning = $deployText -match 'register a workers\.dev subdomain|register a workers\.dev'
+        if ($workersDevWarning) {
+            throw @"
+Đăng nhập Cloudflare đã thành công nhưng tài khoản chưa đăng ký workers.dev subdomain.
+
+Hãy mở Cloudflare Dashboard:
+  Workers & Pages -> Your subdomain -> Change
+
+Đăng ký một subdomain workers.dev miễn phí.
+Sau khi đăng ký xong, quay lại PowerShell và chạy lại script này.
+
+Lưu ý: không cần mua domain riêng và không cần chạy lại Wrangler login.
+"@
+        }
+
+        throw @"
+Không deploy được Cloudflare Worker.
+Nếu chưa đăng nhập Wrangler, chạy:
+  npx wrangler@latest login
+
+Sau đó chạy lại script.
+"@
+    }
+
+    $escapedWorkerName = [Regex]::Escape($WorkerName)
+    $escapedWorkersDevSubdomain = [Regex]::Escape($WorkersDevSubdomain)
+    $workerMatch = [Regex]::Match(
+        $deployText,
+        "https://$escapedWorkerName\.$escapedWorkersDevSubdomain",
+        [Text.RegularExpressions.RegexOptions]::IgnoreCase)
+
+    if (-not $workerMatch.Success) {
+        Write-Host $deployText -ForegroundColor Yellow
+        throw @"
+Worker đã được deploy nhưng không tìm thấy đúng hostname workers.dev mong đợi:
+  https://$WorkerName.$WorkersDevSubdomain
+
+Hãy kiểm tra **Workers & Pages -> Your subdomain** đang là:
+  $WorkersDevSubdomain
+
+Sau đó chạy lại script.
+"@
+    }
+
+    $workerBaseUrl = $workerMatch.Value.TrimEnd('/')
+    $webhookUrl = "$workerBaseUrl$webhookPath"
+    $readinessUrl = "$workerBaseUrl$readinessPath"
     $headers = @{
         Authorization = "Apikey $WebhookApiKey"
     }
@@ -158,7 +275,7 @@ try {
         }
         catch {
             Write-Warning (
-                'Tunnel chưa xác nhận được heartbeat. ' +
+                'Worker chưa xác nhận được heartbeat. ' +
                 'Thanh toán QR sẽ tự khóa cho tới khi kết nối hoạt động lại. ' +
                 $_.Exception.Message)
             return $false
@@ -166,12 +283,13 @@ try {
     }
 
     Write-Host ''
-    Write-Host 'Tunnel đã tạo; thanh toán QR vẫn đang bị khóa.' -ForegroundColor Yellow
-    Write-Host 'Cập nhật webhook Có tiền vào trên SePay bằng đúng URL:' -ForegroundColor Yellow
+    Write-Host 'Webhook SePay cố định:' -ForegroundColor Yellow
     Write-Host $webhookUrl -ForegroundColor Yellow
     Write-Host ''
+    Write-Host 'Quick Tunnel chỉ là upstream nội bộ của Worker và có thể thay đổi mỗi lần chạy.' -ForegroundColor DarkGray
+    Write-Host ''
     $confirmation = Read-Host (
-        'Sau khi đã LƯU URL trên SePay, nhập OK để kiểm tra và mở thanh toán'
+        'Sau khi đã LƯU URL workers.dev trên SePay, nhập OK để kiểm tra và mở thanh toán'
     )
     if (-not [string]::Equals(
             $confirmation.Trim(),
@@ -181,7 +299,7 @@ try {
     }
 
     if (-not (Send-ReadinessHeartbeat)) {
-        throw 'Tunnel đã tạo nhưng heartbeat công khai chưa tới được API.'
+        throw 'Worker đã deploy nhưng heartbeat chưa tới được API local.'
     }
 
     Write-Host ''
@@ -190,7 +308,7 @@ try {
         "Script sẽ gửi heartbeat mỗi $HeartbeatSeconds giây. " +
         'Nếu đóng cửa sổ này, ứng dụng sẽ tự ẩn và khóa QR sau tối đa khoảng 35 giây.'
     ) -ForegroundColor Cyan
-    Write-Host 'Quick Tunnel đổi URL sau mỗi lần chạy; nhớ cập nhật lại URL trên SePay.' -ForegroundColor Yellow
+    Write-Host 'URL SePay không còn phải đổi khi Quick Tunnel thay đổi.' -ForegroundColor Green
     Write-Host ''
 
     while (-not $process.HasExited) {

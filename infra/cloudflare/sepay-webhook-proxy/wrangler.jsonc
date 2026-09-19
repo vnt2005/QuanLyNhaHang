@@ -1,0 +1,7 @@
+{
+  "$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
+  "name": "sepay-webhook",
+  "main": "src/index.js",
+  "workers_dev": true,
+  "compatibility_date": "2026-09-01"
+}
