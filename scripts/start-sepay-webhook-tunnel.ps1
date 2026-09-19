@@ -172,9 +172,46 @@ try {
         '--var',
         "UPSTREAM_ORIGIN:$tunnelUrl"
     )
-    $deployOutput = @(& $npx.Source @deployArguments 2>&1)
-    $deployExitCode = $LASTEXITCODE
-    $deployText = $deployOutput -join [Environment]::NewLine
+    $deployStdOut = Join-Path ([IO.Path]::GetTempPath()) (
+        "quanlynhahang-wrangler-out-$([Guid]::NewGuid().ToString('N')).log")
+    $deployStdErr = Join-Path ([IO.Path]::GetTempPath()) (
+        "quanlynhahang-wrangler-err-$([Guid]::NewGuid().ToString('N')).log")
+
+    try {
+        $deployProcess = Start-Process -FilePath $npx.Source -ArgumentList $deployArguments -NoNewWindow -Wait -PassThru -RedirectStandardOutput $deployStdOut -RedirectStandardError $deployStdErr
+        $deployExitCode = $deployProcess.ExitCode
+
+        $deployStdOutText = if (Test-Path -LiteralPath $deployStdOut) {
+            Get-Content -LiteralPath $deployStdOut -Raw -ErrorAction SilentlyContinue
+        }
+        else {
+            ''
+        }
+
+        $deployStdErrText = if (Test-Path -LiteralPath $deployStdErr) {
+            Get-Content -LiteralPath $deployStdErr -Raw -ErrorAction SilentlyContinue
+        }
+        else {
+            ''
+        }
+
+        $deployText = @(
+            $deployStdOutText
+            $deployStdErrText
+        ) -join [Environment]::NewLine
+    }
+    catch {
+        throw "Không thể chạy Wrangler qua npx: $($_.Exception.Message)"
+    }
+    finally {
+        if (Test-Path -LiteralPath $deployStdOut) {
+            Remove-Item -LiteralPath $deployStdOut -Force -ErrorAction SilentlyContinue
+        }
+
+        if (Test-Path -LiteralPath $deployStdErr) {
+            Remove-Item -LiteralPath $deployStdErr -Force -ErrorAction SilentlyContinue
+        }
+    }
 
     if ($deployExitCode -ne 0) {
         Write-Host $deployText -ForegroundColor Red
