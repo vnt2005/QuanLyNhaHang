@@ -160,37 +160,81 @@ docker compose up -d --build admin-web customer-web
 
 ## 6. SePay / Cloudflare tunnel
 
-Script webhook dùng API Gateway mặc định:
+SePay hiện kiểm tra DNS của URL webhook và không chấp nhận URL Quick Tunnel `*.trycloudflare.com` trong cấu hình hiện tại. Local workflow dùng một Cloudflare Worker trên hostname miễn phí `workers.dev` làm public endpoint ổn định.
 
-```powershell
+Luồng thực tế:
+
+~~~text
+SePay
+  ↓
+https://quanlynhahang-sepay-webhook.<account>.workers.dev
+  ↓
+Cloudflare Worker
+  ↓
+https://<random>.trycloudflare.com
+  ↓
+http://localhost:8080
+  ↓
+API
+~~~
+
+### Lần đầu
+
+Đăng nhập Wrangler một lần:
+
+~~~powershell
+npx wrangler@latest login
+~~~
+
+Tài khoản Cloudflare phải có `workers.dev` subdomain. Không cần mua domain riêng.
+
+### Chạy webhook
+
+~~~powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\start-sepay-webhook-tunnel.ps1
-```
+~~~
 
-Không cần phân biệt backend đang là Visual Studio hay Docker; tunnel luôn trỏ vào `http://localhost:8080` và Gateway quyết định backend đang phục vụ request.
+Script sẽ:
 
-Giữ cửa sổ tunnel mở trong suốt lúc nhận thanh toán. Quick Tunnel đổi URL sau mỗi lần chạy nên cần cập nhật URL mới trên SePay.
+1. Kiểm tra API Gateway `http://localhost:8080`.
+2. Tạo Quick Tunnel tới API local.
+3. Deploy Worker `quanlynhahang-sepay-webhook` và truyền Quick Tunnel hiện tại vào biến `UPSTREAM_ORIGIN`.
+4. In ra URL `workers.dev` cố định.
+5. Chờ bạn lưu URL đó vào SePay.
+6. Gọi heartbeat qua URL `workers.dev` trước khi mở thanh toán QR.
+7. Duy trì heartbeat cho tới khi bạn đóng cửa sổ tunnel.
+
+URL cần lưu trên SePay có dạng:
+
+~~~text
+https://quanlynhahang-sepay-webhook.<account>.workers.dev/api/customer-payments/sepay/webhook
+~~~
+
+Không lưu URL `trycloudflare.com` vào SePay nữa. Quick Tunnel vẫn có thể đổi URL sau mỗi lần chạy, nhưng URL `workers.dev` của Worker không đổi.
+
+Nếu đóng cửa sổ tunnel, heartbeat sẽ hết hạn và ứng dụng sẽ tự khóa thanh toán QR theo readiness hiện có.
 
 ## 7. Kiểm tra trạng thái
 
-```powershell
+~~~powershell
 docker compose ps
 docker compose logs -f api-gateway
 docker compose logs -f api
-```
+~~~
 
 API health dùng chung:
 
-```text
+~~~text
 http://localhost:8080/health/live
 http://localhost:8080/health/ready
-```
+~~~
 
 ## 8. Giữ dữ liệu local
 
 Dừng container nhưng giữ database:
 
-```powershell
+~~~powershell
 docker compose down
-```
+~~~
 
 Không dùng `docker compose down -v` nếu muốn giữ dữ liệu vì `-v` xóa Docker volume.
