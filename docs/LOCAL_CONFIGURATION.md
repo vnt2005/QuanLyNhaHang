@@ -186,7 +186,9 @@ API
 npx wrangler@latest login
 ~~~
 
-Tài khoản Cloudflare phải có `workers.dev` subdomain. Không cần mua domain riêng.
+Sau khi đăng nhập, cần đăng ký `workers.dev` subdomain cho tài khoản Cloudflare một lần. Trong Cloudflare Dashboard vào **Workers & Pages** và chọn **Your subdomain -> Change**, rồi chọn một subdomain miễn phí. Cloudflare dùng subdomain này làm phần `<YOUR_SUBDOMAIN>.workers.dev` của URL Worker.
+
+Đây là bước riêng với `wrangler login`: đăng nhập thành công không đồng nghĩa `workers.dev` subdomain đã được đăng ký. Không cần mua domain riêng.
 
 ### Chạy webhook
 
