@@ -108,7 +108,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $logFile = Join-Path ([IO.Path]::GetTempPath()) (
-    "quanlynhahang-cloudflared-$([Guid]::NewGuid().ToString('N')).log")
+    "sepay-cloudflared-$([Guid]::NewGuid().ToString('N')).log")
 $tunnelArguments = @(
     'tunnel',
     '--url',
