@@ -4,7 +4,8 @@ param(
     [string]$WebhookApiKey = $env:SEPAY_WEBHOOK_API_KEY,
     [ValidateRange(5, 60)]
     [int]$HeartbeatSeconds = 10,
-    [string]$WorkerName = 'sepay-webhook-gateway'
+    [string]$WorkerName = 'sepay-webhook',
+    [string]$WorkersDevSubdomain = 'quanlynhahang.workers.dev'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -241,19 +242,22 @@ Sau đó chạy lại script.
     }
 
     $escapedWorkerName = [Regex]::Escape($WorkerName)
+    $escapedWorkersDevSubdomain = [Regex]::Escape($WorkersDevSubdomain)
     $workerMatch = [Regex]::Match(
         $deployText,
-        "https://$escapedWorkerName\.[a-z0-9-]+\.workers\.dev",
+        "https://$escapedWorkerName\.$escapedWorkersDevSubdomain",
         [Text.RegularExpressions.RegexOptions]::IgnoreCase)
 
     if (-not $workerMatch.Success) {
         Write-Host $deployText -ForegroundColor Yellow
         throw @"
-Worker đã được deploy nhưng không đọc được URL workers.dev từ output.
-Hãy chạy:
-  npx wrangler@latest deploy --config "$workerConfigPath" --var "UPSTREAM_ORIGIN:$tunnelUrl"
+Worker đã được deploy nhưng không tìm thấy đúng hostname workers.dev mong đợi:
+  https://$WorkerName.$WorkersDevSubdomain
 
-Sau đó lấy URL https://<worker>.<subdomain>.workers.dev và thử lại script.
+Hãy kiểm tra **Workers & Pages -> Your subdomain** đang là:
+  $WorkersDevSubdomain
+
+Sau đó chạy lại script.
 "@
     }
 
