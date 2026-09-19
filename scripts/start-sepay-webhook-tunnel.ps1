@@ -4,7 +4,7 @@ param(
     [string]$WebhookApiKey = $env:SEPAY_WEBHOOK_API_KEY,
     [ValidateRange(5, 60)]
     [int]$HeartbeatSeconds = 10,
-    [string]$WorkerName = 'quanlynhahang-sepay-webhook'
+    [string]$WorkerName = 'sepay-webhook-gateway'
 )
 
 $ErrorActionPreference = 'Stop'
