@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
-  "name": "quanlynhahang-sepay-webhook",
+  "name": "sepay-webhook-gateway",
   "main": "src/index.js",
   "workers_dev": true,
   "compatibility_date": "2026-09-01"
