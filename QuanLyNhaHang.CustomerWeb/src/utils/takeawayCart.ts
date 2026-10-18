@@ -1,9 +1,26 @@
 const CART_KEY = 'customerTakeawayCart:v1'
+const CART_CUSTOMIZATIONS_KEY = 'customerTakeawayCustomizations:v1'
 export const TAKEAWAY_CART_EVENT = 'takeaway-cart-changed'
 export const MAX_TAKEAWAY_ITEM_QUANTITY = 5
 export const MAX_TAKEAWAY_CART_QUANTITY = 50
 
 export type TakeawayCart = Record<string, number>
+
+export type TakeawayItemCustomization = {
+  sizeId: string
+  sizeLabel: string
+  sizePriceDelta: number
+  spiceId: string
+  spiceLabel: string
+  prepLabels: string[]
+  toppingLabels: string[]
+  toppingsPrice: number
+  customNote: string
+  extraUnitPrice: number
+  summaryText: string
+}
+
+export type TakeawayCustomizationMap = Record<string, TakeawayItemCustomization>
 
 function normalizeCart(value: TakeawayCart): TakeawayCart {
   const normalized: TakeawayCart = {}
@@ -31,10 +48,8 @@ function normalizeCart(value: TakeawayCart): TakeawayCart {
 }
 
 function removeLegacyPersistentCart() {
-  // Giỏ mang về trước đây được lưu ở localStorage nên có thể tồn tại sau khi
-  // người dùng đóng tab/trình duyệt rồi mở lại. Giỏ giờ chỉ thuộc phiên tab
-  // hiện tại, giống Customer session, nên xóa dữ liệu cũ ngay khi bản mới chạy.
   localStorage.removeItem(CART_KEY)
+  localStorage.removeItem(CART_CUSTOMIZATIONS_KEY)
 }
 
 export function readTakeawayCart(): TakeawayCart {
@@ -47,6 +62,42 @@ export function readTakeawayCart(): TakeawayCart {
   }
 }
 
+export function readTakeawayCustomizations(): TakeawayCustomizationMap {
+  removeLegacyPersistentCart()
+  try {
+    const raw = sessionStorage.getItem(CART_CUSTOMIZATIONS_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw) as TakeawayCustomizationMap
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+export function getTakeawayItemCustomization(menuItemId: string): TakeawayItemCustomization | null {
+  const map = readTakeawayCustomizations()
+  return map[menuItemId] || null
+}
+
+export function saveTakeawayCustomization(
+  menuItemId: string,
+  customization: TakeawayItemCustomization,
+) {
+  const map = readTakeawayCustomizations()
+  map[menuItemId] = customization
+  sessionStorage.setItem(CART_CUSTOMIZATIONS_KEY, JSON.stringify(map))
+  window.dispatchEvent(new CustomEvent(TAKEAWAY_CART_EVENT))
+  return map
+}
+
+function removeTakeawayCustomization(menuItemId: string) {
+  const map = readTakeawayCustomizations()
+  if (menuItemId in map) {
+    delete map[menuItemId]
+    sessionStorage.setItem(CART_CUSTOMIZATIONS_KEY, JSON.stringify(map))
+  }
+}
+
 function save(cart: TakeawayCart) {
   const normalized = normalizeCart(cart)
   removeLegacyPersistentCart()
@@ -55,7 +106,11 @@ function save(cart: TakeawayCart) {
   return normalized
 }
 
-export function addTakeawayItem(menuItemId: string, quantity = 1) {
+export function addTakeawayItem(
+  menuItemId: string,
+  quantity = 1,
+  customization?: TakeawayItemCustomization,
+) {
   const cart = readTakeawayCart()
   const currentQuantity = cart[menuItemId] || 0
   const quantityWithoutCurrentItem = Object.entries(cart)
@@ -71,6 +126,12 @@ export function addTakeawayItem(menuItemId: string, quantity = 1) {
     remainingForItem,
     currentQuantity + Math.max(1, Math.floor(quantity)),
   )
+
+  if (customization) {
+    const map = readTakeawayCustomizations()
+    map[menuItemId] = customization
+    sessionStorage.setItem(CART_CUSTOMIZATIONS_KEY, JSON.stringify(map))
+  }
 
   return save(cart)
 }
@@ -93,14 +154,19 @@ export function setTakeawayItemQuantity(menuItemId: string, quantity: number) {
     ),
   )
 
-  if (nextQuantity === 0) delete cart[menuItemId]
-  else cart[menuItemId] = nextQuantity
+  if (nextQuantity === 0) {
+    delete cart[menuItemId]
+    removeTakeawayCustomization(menuItemId)
+  } else {
+    cart[menuItemId] = nextQuantity
+  }
 
   return save(cart)
 }
 
 export function clearTakeawayCart() {
   sessionStorage.removeItem(CART_KEY)
+  sessionStorage.removeItem(CART_CUSTOMIZATIONS_KEY)
   removeLegacyPersistentCart()
   window.dispatchEvent(new CustomEvent(TAKEAWAY_CART_EVENT))
 }

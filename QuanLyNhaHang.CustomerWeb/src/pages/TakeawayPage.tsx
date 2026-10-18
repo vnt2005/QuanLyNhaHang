@@ -11,7 +11,7 @@ import heroImage from '../assets/hero-vietnamese-table.webp'
 import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
-import { clearTakeawayCart, MAX_TAKEAWAY_CART_QUANTITY, MAX_TAKEAWAY_ITEM_QUANTITY, readTakeawayCart, setTakeawayItemQuantity, type TakeawayCart } from '../utils/takeawayCart'
+import { clearTakeawayCart, MAX_TAKEAWAY_CART_QUANTITY, MAX_TAKEAWAY_ITEM_QUANTITY, readTakeawayCart, readTakeawayCustomizations, setTakeawayItemQuantity, type TakeawayCart, type TakeawayCustomizationMap } from '../utils/takeawayCart'
 
 const CUSTOMER_NAME_PATTERN = /^[\p{L}][\p{L}'’-]*(?:\s+[\p{L}][\p{L}'’-]*)+$/u
 const VIETNAMESE_MOBILE_PATTERN = /^0[35789]\d{8}$/
@@ -56,6 +56,7 @@ function validateContact(customerName: string, phoneNumber: string) {
 
 export default function TakeawayPage({ data, session }: { data: CustomerSiteBootstrap; session: CustomerSession | null }) {
   const [cart, setCart] = useState<TakeawayCart>(() => readTakeawayCart())
+  const [customizations, setCustomizations] = useState<TakeawayCustomizationMap>(() => readTakeawayCustomizations())
   const [customerName, setCustomerName] = useState(() => session ? [session.ho, session.ten].filter(Boolean).join(' ') : '')
   const [phoneNumber, setPhoneNumber] = useState(() => session?.phoneNumber || '')
   const [pickupTime, setPickupTime] = useState('')
@@ -72,11 +73,27 @@ export default function TakeawayPage({ data, session }: { data: CustomerSiteBoot
     setPhoneNumber(current => current || session.phoneNumber || '')
   }, [session?.ho, session?.phoneNumber, session?.ten, session?.userId])
 
-  const lines = useMemo(() => data.menuItems.map(item => ({ item, quantity: cart[item.id] || 0 })).filter(line => line.quantity > 0), [cart, data.menuItems])
+  const lines = useMemo(
+    () =>
+      data.menuItems
+        .map(item => ({
+          item,
+          quantity: cart[item.id] || 0,
+          customization: customizations[item.id] || null,
+        }))
+        .filter(line => line.quantity > 0),
+    [cart, customizations, data.menuItems],
+  )
   const totalQuantity = lines.reduce((sum, line) => sum + line.quantity, 0)
-  const totalAmount = lines.reduce((sum, line) => sum + line.item.price * line.quantity, 0)
+  const totalAmount = lines.reduce(
+    (sum, line) => sum + (line.item.price + (line.customization?.extraUnitPrice || 0)) * line.quantity,
+    0,
+  )
 
-  function changeQuantity(menuItemId: string, quantity: number) { setCart(setTakeawayItemQuantity(menuItemId, quantity)) }
+  function changeQuantity(menuItemId: string, quantity: number) {
+    setCart(setTakeawayItemQuantity(menuItemId, quantity))
+    setCustomizations(readTakeawayCustomizations())
+  }
   function signIn() { localStorage.removeItem('customerReturnPath'); sessionStorage.setItem('customerReturnPath', '/takeaway'); navigate('/login') }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -102,9 +119,14 @@ export default function TakeawayPage({ data, session }: { data: CustomerSiteBoot
     try {
       const response = await createTakeawayOrder({
         customerName: contact.customerName, phoneNumber: contact.phoneNumber, pickupTime: pickupIso,
-        note: note.trim() || null, items: lines.map(line => ({ menuItemId: line.item.id, quantity: line.quantity })),
+        note: note.trim() || null,
+        items: lines.map(line => ({
+          menuItemId: line.item.id,
+          quantity: line.quantity,
+          note: line.customization?.summaryText || null,
+        })),
       }, session?.token)
-      clearTakeawayCart(); setCart({}); setResult(response.data); window.scrollTo({ top: 0, behavior: 'smooth' })
+      clearTakeawayCart(); setCart({}); setCustomizations({}); setResult(response.data); window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (exception) { setError(exception instanceof Error ? exception.message : 'Không đặt được món mang về.') }
     finally { setSubmitting(false) }
   }
@@ -163,13 +185,48 @@ export default function TakeawayPage({ data, session }: { data: CustomerSiteBoot
           <div>
             <div className="flex items-end justify-between border-b border-border pb-4"><div><p className="sera-kicker">Giỏ hàng</p><h2 className="font-heading text-4xl">Món đã chọn</h2></div><Button variant="outline" size="sm" type="button" onClick={() => navigate('/menu')}>Thêm món</Button></div>
             <div>
-              {lines.map(({ item, quantity }) => (
-                <article className="grid grid-cols-[96px_1fr_auto] items-center gap-5 border-b border-border py-5 max-sm:grid-cols-[76px_1fr]" key={item.id}>
-                  <img src={item.imageUrl || heroImage} className="aspect-square size-24 object-cover max-sm:size-[76px]" alt={item.name} />
-                  <div><small className="sera-kicker">{item.menuCategoryName}</small><h3 className="mt-1 font-heading text-2xl">{item.name}</h3><span className="text-xs text-muted-foreground">{money(item.price, data.restaurant?.currency)} / phần</span></div>
-                  <div className="grid justify-items-end gap-3 max-sm:col-start-2 max-sm:justify-items-start"><div className="sera-qty"><Button variant="outline" size="icon" type="button" onClick={() => changeQuantity(item.id, quantity - 1)}><Minus /></Button><strong>{quantity}</strong><Button variant="outline" size="icon" type="button" disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY || totalQuantity >= MAX_TAKEAWAY_CART_QUANTITY} onClick={() => changeQuantity(item.id, quantity + 1)}><Plus /></Button></div><strong>{money(item.price * quantity, data.restaurant?.currency)}</strong></div>
-                </article>
-              ))}
+              {lines.map(({ item, quantity, customization }) => {
+                const unitPrice = item.price + (customization?.extraUnitPrice || 0)
+                return (
+                  <article className="grid grid-cols-[96px_1fr_auto] items-center gap-5 border-b border-border py-5 max-sm:grid-cols-[76px_1fr]" key={item.id}>
+                    <img src={item.imageUrl || heroImage} className="aspect-square size-24 object-cover max-sm:size-[76px]" alt={item.name} />
+                    <div>
+                      <small className="sera-kicker">{item.menuCategoryName}</small>
+                      <h3 className="mt-1 font-heading text-2xl">{item.name}</h3>
+                      <span className="text-xs text-muted-foreground">
+                        {money(unitPrice, data.restaurant?.currency)} / phần
+                        {customization && customization.extraUnitPrice > 0
+                          ? ` (đã gồm tùy chọn +${money(customization.extraUnitPrice, data.restaurant?.currency)})`
+                          : ''}
+                      </span>
+                      {customization ? (
+                        <p className="mt-1.5 text-xs text-muted-foreground">
+                          <strong className="text-foreground">Tùy chọn:</strong> {customization.summaryText}{' '}
+                          <button
+                            type="button"
+                            className="sera-link ml-1"
+                            onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
+                          >
+                            Sửa tùy chọn
+                          </button>
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Khẩu vị mặc định ·{' '}
+                          <button
+                            type="button"
+                            className="sera-link"
+                            onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
+                          >
+                            Tùy chỉnh cỡ / độ cay / topping
+                          </button>
+                        </p>
+                      )}
+                    </div>
+                    <div className="grid justify-items-end gap-3 max-sm:col-start-2 max-sm:justify-items-start"><div className="sera-qty"><Button variant="outline" size="icon" type="button" onClick={() => changeQuantity(item.id, quantity - 1)}><Minus /></Button><strong>{quantity}</strong><Button variant="outline" size="icon" type="button" disabled={quantity >= MAX_TAKEAWAY_ITEM_QUANTITY || totalQuantity >= MAX_TAKEAWAY_CART_QUANTITY} onClick={() => changeQuantity(item.id, quantity + 1)}><Plus /></Button></div><strong>{money(unitPrice * quantity, data.restaurant?.currency)}</strong></div>
+                  </article>
+                )
+              })}
             </div>
           </div>
 

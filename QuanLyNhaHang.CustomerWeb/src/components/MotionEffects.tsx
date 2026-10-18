@@ -21,7 +21,6 @@ const revealSelector = [
   '.sera-menu-head > *',
   '.sera-filter-group',
   '.sera-menu-results-head',
-  '.sera-menu-item',
   '.sera-detail-grid > *',
   '.sera-page-head > *',
   '.sera-page > section',
