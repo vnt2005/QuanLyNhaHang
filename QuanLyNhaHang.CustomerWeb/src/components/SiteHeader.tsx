@@ -11,7 +11,7 @@ import NotificationCenter from './NotificationCenter'
 const links = [
   { label: 'Trang chủ', path: '/' },
   { label: 'Thực đơn', path: '/menu' },
-  { label: 'Mang về', path: '/takeaway' },
+  { label: 'Giao hàng & Mang về', path: '/takeaway' },
   { label: 'Đặt bàn', path: '/reservation' },
   { label: 'Đơn của tôi', path: '/orders' },
 ]
@@ -68,7 +68,12 @@ export default function SiteHeader({
 
         <nav className={`sera-nav ${open ? 'open' : ''}`} aria-label="Điều hướng chính">
           {links.map(link => {
-            const active = link.path === '/' ? pathname === '/' : pathname.startsWith(link.path)
+            const active =
+              link.path === '/'
+                ? pathname === '/'
+                : link.path === '/takeaway'
+                  ? pathname.startsWith('/takeaway') || pathname.startsWith('/delivery')
+                  : pathname.startsWith(link.path)
             return (
               <a
                 href={link.path}

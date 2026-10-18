@@ -26,7 +26,7 @@ export default function SiteFooter({ restaurant }: { restaurant: PublicRestauran
         <nav className="sera-footer-links" aria-label="Liên kết cuối trang">
           <h3>Khám phá</h3>
           <a href="/menu" onClick={event => follow(event, '/menu')}>Thực đơn</a>
-          <a href="/takeaway" onClick={event => follow(event, '/takeaway')}>Mang về</a>
+          <a href="/takeaway" onClick={event => follow(event, '/takeaway')}>Giao hàng & Mang về</a>
           <a href="/reservation" onClick={event => follow(event, '/reservation')}>Đặt bàn</a>
           <a href="/orders" onClick={event => follow(event, '/orders')}>Đơn của tôi</a>
         </nav>
