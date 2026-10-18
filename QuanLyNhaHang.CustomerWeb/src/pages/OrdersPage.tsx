@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, ClipboardList, CreditCard, MapPin, PackageOpen, RefreshCw, Search, ShoppingBag, UtensilsCrossed, XCircle } from 'lucide-react'
+import { ChevronDown, ChevronUp, ClipboardList, CreditCard, MapPin, PackageOpen, RefreshCw, Search, ShoppingBag, Truck, UtensilsCrossed, XCircle } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,7 @@ import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
 import { getCustomerQrTokenForTable } from '../utils/customerQrAccess'
+import { parseOrderDeliveryMetadata } from '../utils/takeawayCart'
 
 const terminalStatuses = new Set(['Completed', 'Cancelled'])
 const statusLabels: Record<string, string> = { Pending: 'Đang chờ', Confirmed: 'Đã xác nhận', Preparing: 'Đang chuẩn bị', Cooking: 'Đang chế biến', Ready: 'Sẵn sàng phục vụ', Served: 'Đã phục vụ', Completed: 'Đã hoàn thành', Cancelled: 'Đã hủy' }
@@ -33,15 +34,38 @@ function paymentStatusLabel(order: CustomerOrder) { return order.paidAmount != n
 function OrderRow({ order, expanded, accessToken, cancelling, onToggle, onCancel }: { order: CustomerOrder; expanded: boolean; accessToken: string; cancelling: boolean; onToggle: () => void; onCancel: () => void }) {
   const tableQrToken = getCustomerQrTokenForTable(order.restaurantTableId)
   const isTakeaway = order.orderType === 'Takeaway'
+  const deliveryMeta = parseOrderDeliveryMetadata(order.note)
+  const isDelivery = isTakeaway && deliveryMeta.isDelivery
   const canOrderMore = !isTakeaway && !terminalStatuses.has(order.status) && Boolean(tableQrToken)
   const canCancel = order.status === 'Pending'
+
+  const orderChannelLabel = isDelivery
+    ? 'Giao tận nơi'
+    : isTakeaway
+      ? 'Mang về (Tự lấy)'
+      : 'Tại bàn'
+
+  const fulfillmentDestination = isDelivery
+    ? deliveryMeta.address || 'Giao tận nơi tại Nha Trang'
+    : isTakeaway
+      ? 'Nhận tại nhà hàng'
+      : order.restaurantTableName
 
   return (
     <article className="border-b border-border">
       <button type="button" className="grid w-full grid-cols-[42px_minmax(0,1.4fr)_minmax(120px,.6fr)_minmax(120px,.5fr)_auto] items-center gap-5 py-5 text-left max-md:grid-cols-[36px_1fr_auto]" onClick={onToggle} aria-expanded={expanded}>
-        <span className="grid size-10 place-items-center border border-border text-accent max-md:size-9">{isTakeaway ? <ShoppingBag className="size-4" /> : <UtensilsCrossed className="size-4" />}</span>
-        <span><small className="sera-kicker">{isTakeaway ? 'Mang về' : 'Tại bàn'} · {dateTime(order.createdAt)}</small><strong className="mt-1 block font-heading text-2xl font-medium">{order.orderCode}</strong><span className="mt-1 block text-xs text-muted-foreground">{orderItemsPreview(order)}</span></span>
-        <span className="max-md:hidden"><small className="block text-xs text-muted-foreground">Nhận món</small><strong className="text-sm">{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</strong></span>
+        <span className="grid size-10 place-items-center border border-border text-accent max-md:size-9">
+          {isDelivery ? <Truck className="size-4" /> : isTakeaway ? <ShoppingBag className="size-4" /> : <UtensilsCrossed className="size-4" />}
+        </span>
+        <span>
+          <small className="sera-kicker">{orderChannelLabel} · {dateTime(order.createdAt)}</small>
+          <strong className="mt-1 block font-heading text-2xl font-medium">{order.orderCode}</strong>
+          <span className="mt-1 block text-xs text-muted-foreground">{orderItemsPreview(order)}</span>
+        </span>
+        <span className="max-md:hidden">
+          <small className="block text-xs text-muted-foreground">{isDelivery ? 'Giao tới' : 'Nhận món'}</small>
+          <strong className="line-clamp-1 text-sm">{fulfillmentDestination}</strong>
+        </span>
         <span className="max-md:hidden"><small className="block text-xs text-muted-foreground">{paymentAmountLabel(order)}</small><strong className="text-sm">{money(paymentAmount(order))}</strong></span>
         <span className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col max-md:items-end"><Badge variant={order.status === 'Cancelled' ? 'destructive' : 'secondary'}>{statusLabels[order.status] || order.status}</Badge><Badge variant={order.paidAmount != null ? 'default' : 'outline'}>{paymentStatusLabel(order)}</Badge>{expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}</span>
       </button>
@@ -52,11 +76,21 @@ function OrderRow({ order, expanded, accessToken, cancelling, onToggle, onCancel
             <div className="border-t border-border">
               {order.items.map(item => <div className="grid grid-cols-[1fr_60px_120px] gap-3 border-b border-border py-3 text-sm" key={item.id}><span><strong>{item.menuItemName}</strong>{item.note ? <small className="block text-muted-foreground">{item.note}</small> : null}</span><span>x{item.quantity}</span><strong className="text-right">{money(item.totalPrice)}</strong></div>)}
             </div>
-            <div className="mt-5"><small className="sera-kicker">Ghi chú</small><p className="mt-2 text-sm text-muted-foreground">{order.note || 'Không có ghi chú cho đơn hàng này.'}</p></div>
+            {isDelivery ? (
+              <div className="mt-5 grid gap-2 border border-border bg-background/60 p-4 text-sm">
+                <small className="sera-kicker">Thông tin giao hàng tận nơi</small>
+                {deliveryMeta.headerBadge ? <strong className="text-xs text-accent">{deliveryMeta.headerBadge}</strong> : null}
+                <p className="text-foreground"><strong>Địa chỉ nhận:</strong> {deliveryMeta.address}</p>
+                {deliveryMeta.dropoff ? <p className="text-muted-foreground"><strong>Hướng dẫn giao:</strong> {deliveryMeta.dropoff}</p> : null}
+                {deliveryMeta.extraNote ? <p className="text-muted-foreground"><strong>Ghi chú thêm:</strong> {deliveryMeta.extraNote}</p> : null}
+              </div>
+            ) : (
+              <div className="mt-5"><small className="sera-kicker">Ghi chú</small><p className="mt-2 text-sm text-muted-foreground">{order.note || 'Không có ghi chú cho đơn hàng này.'}</p></div>
+            )}
           </div>
           <aside className="border-l border-border pl-6 max-lg:border-l-0 max-lg:border-t max-lg:pl-0 max-lg:pt-5">
             <div className="flex items-start gap-3"><CreditCard className="size-5 text-accent" /><div><small className="block text-muted-foreground">{paymentAmountLabel(order)}</small><strong className="text-xl">{money(paymentAmount(order))}</strong>{order.paidAmount != null && order.paymentMethod ? <span className="mt-1 block text-xs text-muted-foreground">{order.paymentMethod}</span> : null}</div></div>
-            <div className="mt-4 flex items-start gap-3"><MapPin className="size-5 text-accent" /><div><small className="block text-muted-foreground">Nhận món</small><strong className="text-sm">{isTakeaway ? 'Tại nhà hàng' : order.restaurantTableName}</strong></div></div>
+            <div className="mt-4 flex items-start gap-3">{isDelivery ? <Truck className="size-5 shrink-0 text-accent" /> : <MapPin className="size-5 shrink-0 text-accent" />}<div><small className="block text-muted-foreground">{isDelivery ? 'Địa chỉ giao hàng' : 'Nhận món'}</small><strong className="text-sm">{fulfillmentDestination}</strong></div></div>
             {!terminalStatuses.has(order.status) || canOrderMore ? <div className="mt-6 grid gap-2">{!terminalStatuses.has(order.status) ? <PayOnlineButton orderId={order.id} accessToken={accessToken} /> : null}{canCancel ? <Button variant="destructive" disabled={cancelling} onClick={event => { event.stopPropagation(); onCancel() }}><XCircle />{cancelling ? 'Đang hủy…' : 'Hủy đơn'}</Button> : null}{canOrderMore && tableQrToken ? <Button variant="outline" onClick={() => navigate(`/qr-order/${encodeURIComponent(tableQrToken)}`)}>Gọi thêm món</Button> : null}</div> : null}
             {canCancel ? <p className="mt-3 text-xs leading-5 text-muted-foreground">Bạn chỉ có thể tự hủy khi đơn còn ở trạng thái Đang chờ và chưa phát sinh thanh toán cần đối soát.</p> : null}
           </aside>
