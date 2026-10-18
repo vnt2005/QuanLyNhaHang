@@ -103,26 +103,168 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-home-hero-copy .sera-display { max-width: 760px; }
 .sera-home-hero-copy > p { max-width: 620px; margin: 28px 0 34px; }
 .sera-home-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.sera-home-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 54px; padding-top: 22px; border-top: 1px solid var(--sera-line); gap: 24px; }
+.sera-home-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--sera-line); gap: 24px; }
 .sera-home-fact { display: flex; gap: 12px; color: var(--sera-muted); font-size: 12px; line-height: 1.5; }
 .sera-home-fact svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--sera-accent); }
+.sera-home-hero-rail { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--sera-line); }
+.sera-home-hero-rail-label { display: block; margin-bottom: 10px; color: var(--sera-muted); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.sera-home-hero-rail-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.sera-home-hero-pill { padding: 7px 13px; border: 1px solid var(--sera-line); background: transparent; color: var(--sera-muted); font-size: 11px; font-weight: 700; cursor: pointer; }
+.sera-home-hero-pill.active, .sera-home-hero-pill:hover { border-color: var(--sera-accent); background: var(--sera-wash); color: var(--sera-ink); }
 .sera-home-visual { position: relative; min-height: 650px; overflow: hidden; background: var(--sera-wash); }
 .sera-home-visual img { width: 100%; height: 100%; object-fit: cover; }
-.sera-home-visual-caption { position: absolute; right: 0; bottom: 0; left: 0; display: flex; align-items: end; justify-content: space-between; padding: 22px 26px; background: linear-gradient(transparent, rgba(26,20,16,.72)); color: white; gap: 20px; }
-.sera-home-visual-caption small { display: block; margin-bottom: 5px; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; opacity: .8; }
-.sera-home-visual-caption strong { font-family: 'Playfair Display Variable', Georgia, serif; font-size: 28px; font-weight: 500; }
-.sera-home-visual-caption b { font-size: 17px; }
+.sera-home-visual-caption { position: absolute; right: 0; bottom: 0; left: 0; display: flex; align-items: end; justify-content: space-between; padding: 24px 28px; background: linear-gradient(transparent, rgba(20,15,12,.84)); color: white; gap: 20px; }
+.sera-home-visual-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+.sera-home-visual-caption small { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; opacity: .9; }
+.sera-home-visual-caption strong { display: block; font-family: 'Playfair Display Variable', Georgia, serif; font-size: 28px; font-weight: 500; }
+.sera-home-visual-caption b { font-size: 17px; white-space: nowrap; }
+
+/* Culinary Badges */
+.sera-badge-row { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sera-culinary-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border: 1px solid var(--sera-line); background: var(--sera-wash); color: var(--sera-ink); font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; line-height: 1.3; }
+.sera-culinary-badge svg { width: 11px; height: 11px; flex: 0 0 auto; }
+.sera-culinary-badge.is-bestseller { border-color: color-mix(in srgb, var(--sera-accent) 55%, var(--sera-line)); background: color-mix(in srgb, var(--sera-accent) 14%, var(--sera-paper)); color: var(--sera-accent-dark); }
+.sera-culinary-badge.is-chef { border-color: color-mix(in srgb, #8a6421 50%, var(--sera-line)); background: color-mix(in srgb, #8a6421 13%, var(--sera-paper)); color: #6e4f16; }
+.sera-culinary-badge.is-new { border-color: color-mix(in srgb, #2e6b56 50%, var(--sera-line)); background: color-mix(in srgb, #2e6b56 12%, var(--sera-paper)); color: #215240; }
+.sera-culinary-badge.is-spicy { border-color: color-mix(in srgb, var(--sera-danger) 55%, var(--sera-line)); background: color-mix(in srgb, var(--sera-danger) 12%, var(--sera-paper)); color: var(--sera-danger); }
+.sera-culinary-badge.is-vegetarian { border-color: color-mix(in srgb, #3a6b33 50%, var(--sera-line)); background: color-mix(in srgb, #3a6b33 12%, var(--sera-paper)); color: #2b5425; }
+:root.dark .sera-culinary-badge.is-bestseller { color: var(--sera-accent-dark); }
+:root.dark .sera-culinary-badge.is-chef { color: #f0ca86; }
+:root.dark .sera-culinary-badge.is-new { color: #8fd6bc; }
+:root.dark .sera-culinary-badge.is-vegetarian { color: #9ad891; }
+.sera-home-visual-caption .sera-culinary-badge { border-color: rgba(255,255,255,.32); background: rgba(24,18,14,.72); color: #fff8f2; }
+
+/* 1. Promotions & Banners Section */
+.sera-home-promos { padding: 84px 0 88px; border-bottom: 1px solid var(--sera-line); }
+.sera-promo-controls { display: inline-flex; align-items: center; gap: 8px; }
+.sera-promo-spotlight { display: grid; grid-template-columns: .96fr 1.04fr; border: 1px solid var(--sera-line); background: var(--sera-wash); overflow: hidden; }
+.sera-promo-spotlight-media { position: relative; min-height: 460px; overflow: hidden; background: var(--sera-inverse); }
+.sera-promo-spotlight-media img { width: 100%; height: 100%; object-fit: cover; }
+.sera-promo-discount-stamp { position: absolute; top: 22px; left: 22px; padding: 12px 16px; border: 1px solid rgba(255,255,255,.28); background: rgba(24,18,15,.84); backdrop-filter: blur(8px); color: #fffdf8; }
+.sera-promo-discount-stamp span { display: block; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; opacity: .82; }
+.sera-promo-discount-stamp strong { display: block; margin-top: 3px; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.sera-promo-spotlight-body { display: flex; flex-direction: column; justify-content: center; padding: clamp(32px, 4.5vw, 56px); border-left: 1px solid var(--sera-line); background: var(--sera-paper); }
+.sera-promo-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+.sera-promo-schedule { display: inline-flex; align-items: center; gap: 6px; color: var(--sera-muted); font-size: 12px; font-weight: 600; }
+.sera-promo-schedule svg { width: 14px; height: 14px; color: var(--sera-accent); }
+.sera-promo-spotlight-body h3 { margin: 0 0 14px; font-size: clamp(28px, 3vw, 40px); font-weight: 600; line-height: 1.1; letter-spacing: -.03em; }
+.sera-promo-perks { list-style: none; margin: 20px 0 24px; padding: 18px 0; border-top: 1px solid var(--sera-line); border-bottom: 1px solid var(--sera-line); display: grid; gap: 10px; }
+.sera-promo-perks li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; color: var(--sera-ink); }
+.sera-promo-perks svg { width: 15px; height: 15px; margin-top: 2px; flex: 0 0 auto; color: var(--sera-accent); }
+.sera-promo-code-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 18px; margin-bottom: 22px; border: 1px dashed var(--sera-line); background: var(--sera-wash); }
+.sera-promo-code-bar small { display: block; color: var(--sera-muted); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.sera-promo-code-bar strong { display: block; margin-top: 2px; color: var(--sera-accent-dark); font-size: 18px; font-weight: 800; letter-spacing: .12em; }
+.sera-promo-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.sera-promo-footnote { margin: 14px 0 0; color: var(--sera-muted); font-size: 12px; }
+.sera-promo-rail { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; gap: 16px; }
+.sera-promo-card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px 22px; border: 1px solid var(--sera-line); background: var(--sera-paper); text-align: left; cursor: pointer; }
+.sera-promo-card.active { border-color: var(--sera-accent); background: var(--sera-wash); }
+.sera-promo-card-top { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; }
+.sera-promo-card-tag { color: var(--sera-accent-dark); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.sera-promo-card-top small { padding: 2px 7px; border: 1px solid var(--sera-line); color: var(--sera-muted); font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.sera-promo-card strong { font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--sera-ink); }
+.sera-promo-card p { margin: 0; color: var(--sera-muted); font-size: 12px; }
+
+/* 2. Signature & Best Sellers Showcase */
+.sera-home-signatures { padding: 84px 0 88px; border-bottom: 1px solid var(--sera-line); }
+.sera-home-cart-notice { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; margin-bottom: 24px; border: 1px solid var(--sera-accent); background: var(--sera-wash); font-size: 13px; font-weight: 600; }
+.sera-signature-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.sera-signature-card { display: grid; grid-template-columns: 220px minmax(0, 1fr); border: 1px solid var(--sera-line); background: var(--sera-paper); overflow: hidden; }
+.sera-signature-card.is-spotlight { border-color: color-mix(in srgb, var(--sera-accent) 48%, var(--sera-line)); background: color-mix(in srgb, var(--sera-wash) 45%, var(--sera-paper)); }
+.sera-signature-media { position: relative; min-height: 240px; border: 0; padding: 0; background: var(--sera-wash); overflow: hidden; cursor: pointer; }
+.sera-signature-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease; }
+.sera-signature-card:hover .sera-signature-media img { transform: scale(1.045); }
+.sera-signature-rank { position: absolute; top: 12px; left: 12px; padding: 4px 10px; background: rgba(24,18,15,.82); color: #fffdf8; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.sera-signature-body { display: flex; flex-direction: column; justify-content: space-between; padding: 24px 26px; gap: 14px; }
+.sera-signature-category { color: var(--sera-muted); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; margin-right: 4px; }
+.sera-signature-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.sera-signature-title-row h3 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.sera-signature-title-row h3 button { border: 0; padding: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.sera-signature-title-row h3 button:hover { color: var(--sera-accent-dark); }
+.sera-signature-price { font-size: 16px; font-weight: 800; color: var(--sera-accent-dark); white-space: nowrap; }
+.sera-signature-desc { margin: 0; color: var(--sera-muted); font-size: 13px; line-height: 1.65; }
+.sera-signature-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 8px; border-top: 1px solid var(--sera-line); }
+
+/* Featured Menu List & Tag Filters */
 .sera-home-featured { padding: 84px 0 96px; border-bottom: 1px solid var(--sera-line); }
 .sera-section-head { display: flex; align-items: end; justify-content: space-between; gap: 34px; margin-bottom: 34px; }
 .sera-section-head h2 { max-width: 760px; margin: 7px 0 0; font-family: 'Playfair Display Variable', Georgia, serif; font-size: clamp(38px, 4vw, 62px); font-weight: 500; line-height: .98; letter-spacing: -.04em; }
+.sera-home-badge-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.sera-badge-filter-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 1px solid var(--sera-line); background: transparent; color: var(--sera-muted); font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; }
+.sera-badge-filter-btn svg { width: 13px; height: 13px; color: var(--sera-accent); }
+.sera-badge-filter-btn small { opacity: .75; font-size: 10px; }
+.sera-badge-filter-btn.active, .sera-badge-filter-btn:hover { border-color: var(--sera-ink); background: var(--sera-wash); color: var(--sera-ink); }
 .sera-dish-list { border-top: 1px solid var(--sera-line); }
-.sera-dish-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(180px, .4fr) auto; align-items: center; min-height: 128px; border-bottom: 1px solid var(--sera-line); gap: 24px; }
+.sera-dish-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(160px, .35fr) auto; align-items: center; min-height: 128px; border-bottom: 1px solid var(--sera-line); gap: 24px; }
 .sera-dish-row-media { width: 92px; height: 92px; overflow: hidden; background: var(--sera-wash); }
 .sera-dish-row-media img { width: 100%; height: 100%; object-fit: cover; }
+.sera-dish-row-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .sera-dish-row h3 { margin: 0; font-family: 'Playfair Display Variable', Georgia, serif; font-size: 30px; font-weight: 500; }
 .sera-dish-row p { margin: 6px 0 0; color: var(--sera-muted); font-size: 13px; line-height: 1.55; }
 .sera-dish-row-meta { color: var(--sera-muted); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .sera-dish-row-price { min-width: 120px; text-align: right; font-size: 15px; font-weight: 800; }
+
+/* 3. Dining Space & Ambiance Gallery */
+.sera-home-gallery { padding: 84px 0 92px; border-bottom: 1px solid var(--sera-line); }
+.sera-gallery-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.sera-gallery-tab { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; padding: 18px 20px; border: 1px solid var(--sera-line); background: var(--sera-paper); text-align: left; cursor: pointer; }
+.sera-gallery-tab.active { border-color: var(--sera-accent); background: var(--sera-wash); }
+.sera-gallery-tab-kicker { color: var(--sera-accent-dark); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.sera-gallery-tab strong { font-size: 15px; font-weight: 600; color: var(--sera-ink); line-height: 1.3; }
+.sera-gallery-tab small { color: var(--sera-muted); font-size: 12px; }
+.sera-gallery-showcase { display: grid; grid-template-columns: 1.08fr .92fr; border: 1px solid var(--sera-line); background: var(--sera-paper); overflow: hidden; }
+.sera-gallery-main-visual { position: relative; min-height: 480px; overflow: hidden; background: var(--sera-wash); }
+.sera-gallery-main-visual img { width: 100%; height: 100%; object-fit: cover; }
+.sera-gallery-visual-overlay { position: absolute; right: 0; bottom: 0; left: 0; padding: 22px 26px; background: linear-gradient(transparent, rgba(20,15,12,.82)); color: #fffdf8; }
+.sera-gallery-visual-overlay span { display: block; font-size: 10px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; opacity: .85; }
+.sera-gallery-visual-overlay strong { display: block; margin-top: 4px; font-size: 15px; font-weight: 600; }
+.sera-gallery-detail { display: flex; flex-direction: column; justify-content: center; padding: clamp(30px, 4vw, 52px); border-left: 1px solid var(--sera-line); }
+.sera-gallery-detail-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 14px; }
+.sera-gallery-area-tag { display: inline-flex; align-items: center; gap: 6px; color: var(--sera-muted); font-size: 12px; font-weight: 600; }
+.sera-gallery-area-tag svg { width: 14px; height: 14px; color: var(--sera-accent); }
+.sera-gallery-detail h3 { margin: 0 0 12px; font-size: clamp(26px, 2.8vw, 36px); font-weight: 600; line-height: 1.15; }
+.sera-gallery-highlights { list-style: none; margin: 18px 0 22px; padding: 16px 0; border-top: 1px solid var(--sera-line); border-bottom: 1px solid var(--sera-line); display: grid; gap: 10px; }
+.sera-gallery-highlights li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; }
+.sera-gallery-highlights svg { width: 15px; height: 15px; margin-top: 2px; flex: 0 0 auto; color: var(--sera-accent); }
+.sera-gallery-live-areas { margin-bottom: 22px; }
+.sera-gallery-live-label { display: block; margin-bottom: 8px; color: var(--sera-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.sera-gallery-live-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.sera-gallery-area-chip { padding: 5px 10px; border: 1px solid var(--sera-line); background: var(--sera-wash); font-size: 12px; color: var(--sera-ink); }
+.sera-gallery-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.sera-gallery-mosaic { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.sera-gallery-mosaic-item { position: relative; height: 168px; border: 1px solid var(--sera-line); padding: 0; overflow: hidden; background: var(--sera-wash); cursor: pointer; text-align: left; }
+.sera-gallery-mosaic-item.active { border-color: var(--sera-accent); box-shadow: 0 0 0 2px var(--sera-accent); }
+.sera-gallery-mosaic-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+.sera-gallery-mosaic-item:hover img { transform: scale(1.05); }
+.sera-gallery-mosaic-caption { position: absolute; inset: auto 0 0 0; padding: 12px 14px; background: linear-gradient(transparent, rgba(18,14,11,.85)); color: #fffdf8; }
+.sera-gallery-mosaic-caption small { display: block; font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.sera-gallery-mosaic-caption strong { display: block; margin-top: 2px; font-size: 13px; font-weight: 600; }
+
+/* 4. Brand Story, Ingredients & Chef Philosophy */
+.sera-home-story { display: grid; grid-template-columns: .94fr 1.06fr; gap: clamp(36px, 5vw, 72px); padding: 88px 0 40px; align-items: start; }
+.sera-story-visual-column { display: grid; gap: 20px; }
+.sera-story-primary-photo { height: 460px; border: 1px solid var(--sera-line); overflow: hidden; background: var(--sera-wash); }
+.sera-story-primary-photo img { width: 100%; height: 100%; object-fit: cover; }
+.sera-story-chef-card { padding: 26px 28px; border: 1px solid var(--sera-line); background: var(--sera-wash); }
+.sera-story-chef-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.sera-story-chef-icon { display: grid; width: 46px; height: 46px; place-items: center; border: 1px solid var(--sera-accent); background: var(--sera-paper); color: var(--sera-accent-dark); flex: 0 0 auto; }
+.sera-story-chef-icon svg { width: 22px; height: 22px; }
+.sera-story-chef-header small { display: block; color: var(--sera-accent-dark); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.sera-story-chef-header strong { display: block; font-size: 19px; font-weight: 600; margin-top: 2px; }
+.sera-story-chef-header span { display: block; color: var(--sera-muted); font-size: 12px; }
+.sera-story-chef-card blockquote { margin: 0; padding-top: 14px; border-top: 1px solid var(--sera-line); color: var(--sera-ink); font-size: 14px; font-style: italic; line-height: 1.75; }
+.sera-story-copy-column h2 { margin: 8px 0 18px; font-size: clamp(34px, 3.8vw, 54px); font-weight: 600; line-height: 1.05; letter-spacing: -.035em; }
+.sera-story-pillars { display: grid; gap: 16px; margin: 28px 0; }
+.sera-story-pillar { padding: 20px 24px; border: 1px solid var(--sera-line); background: var(--sera-paper); }
+.sera-story-pillar-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.sera-story-pillar-head h3 { margin: 0; font-size: 17px; font-weight: 600; }
+.sera-story-pillar-metric { padding: 3px 9px; border: 1px solid var(--sera-line); background: var(--sera-wash); color: var(--sera-accent-dark); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.sera-story-pillar p { margin: 0; color: var(--sera-muted); font-size: 13px; line-height: 1.65; }
+.sera-story-footer-cta { padding-top: 22px; border-top: 1px solid var(--sera-line); display: grid; gap: 18px; }
+.sera-story-promise { display: flex; align-items: center; gap: 10px; color: var(--sera-muted); font-size: 13px; line-height: 1.6; }
+.sera-story-promise svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--sera-accent); }
+.sera-story-promise strong { color: var(--sera-ink); }
+
 .sera-home-reservation { display: grid; grid-template-columns: .9fr 1.1fr; min-height: 560px; margin: 96px 0 0; }
 .sera-home-reservation-media { overflow: hidden; }
 .sera-home-reservation-media img { width: 100%; height: 100%; object-fit: cover; }
@@ -213,6 +355,17 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   .sera-home-hero { grid-template-columns: 1fr; min-height: 0; }
   .sera-home-hero-copy { min-height: 600px; padding-right: 0; border-right: 0; }
   .sera-home-visual { min-height: 620px; border-top: 1px solid var(--sera-line); }
+  .sera-promo-spotlight { grid-template-columns: 1fr; }
+  .sera-promo-spotlight-media { min-height: 360px; }
+  .sera-promo-spotlight-body { border-top: 1px solid var(--sera-line); border-left: 0; }
+  .sera-promo-rail { grid-template-columns: 1fr; }
+  .sera-signature-grid { grid-template-columns: 1fr; }
+  .sera-gallery-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sera-gallery-showcase { grid-template-columns: 1fr; }
+  .sera-gallery-main-visual { min-height: 380px; }
+  .sera-gallery-detail { border-top: 1px solid var(--sera-line); border-left: 0; }
+  .sera-gallery-mosaic { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sera-home-story { grid-template-columns: 1fr; }
   .sera-home-reservation { grid-template-columns: 1fr; }
   .sera-home-reservation-media { min-height: 420px; }
   .sera-menu-head, .sera-page-head { grid-template-columns: 1fr; }
@@ -238,6 +391,11 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   .sera-home-visual { min-height: 460px; }
   .sera-home-facts { grid-template-columns: 1fr; }
   .sera-section-head { align-items: flex-start; flex-direction: column; }
+  .sera-signature-card { grid-template-columns: 1fr; }
+  .sera-signature-media { min-height: 220px; }
+  .sera-gallery-tabs { grid-template-columns: 1fr; }
+  .sera-gallery-mosaic { grid-template-columns: 1fr 1fr; }
+  .sera-story-primary-photo { height: 320px; }
   .sera-dish-row { grid-template-columns: 76px minmax(0, 1fr); min-height: 112px; gap: 16px; }
   .sera-dish-row-media { width: 76px; height: 76px; }
   .sera-dish-row h3 { font-size: 24px; }
