@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   SlidersHorizontal,
   Sparkles,
+  Star,
   Users,
 } from 'lucide-react'
 import { useDeferredValue, useMemo, useState } from 'react'
@@ -27,6 +28,7 @@ import {
   getCuratedDescription,
   getDishBadges,
   getDishNutritionalProfile,
+  getDishRatingSummary,
   getFallbackDishImage,
   getFallbackImagePosition,
 } from '../utils/menuCatalog'
@@ -36,7 +38,7 @@ import { addTakeawayItem } from '../utils/takeawayCart'
 const pageSize = 10
 
 type AvailabilityFilter = 'all' | 'available' | 'unavailable'
-type SortOption = 'default' | 'name' | 'price-asc' | 'price-desc'
+type SortOption = 'default' | 'rating-desc' | 'name' | 'price-asc' | 'price-desc'
 type SpecialTagFilter = 'all' | DishBadgeId | 'high-protein' | 'gluten-free'
 
 const menuFontStyle = { fontFamily: "'Noto Sans Variable', system-ui, sans-serif" }
@@ -85,6 +87,7 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
         badges: getDishBadges(item, index),
         profile: getDishNutritionalProfile(item),
         description: getCuratedDescription(item),
+        ratingSummary: getDishRatingSummary(item, index),
       })),
     [data.menuItems],
   )
@@ -123,6 +126,13 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
       )
     })
 
+    if (sort === 'rating-desc') {
+      return [...filtered].sort(
+        (left, right) =>
+          right.ratingSummary.rating - left.ratingSummary.rating ||
+          right.ratingSummary.orderCount - left.ratingSummary.orderCount,
+      )
+    }
     if (sort === 'name') {
       return [...filtered].sort((left, right) =>
         left.item.name.localeCompare(right.item.name, 'vi'),
@@ -330,6 +340,7 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
               }}
             >
               <option value="default">Đề xuất của nhà hàng</option>
+              <option value="rating-desc">Đánh giá cao & Gọi nhiều nhất</option>
               <option value="name">Tên món A – Z</option>
               <option value="price-asc">Giá thấp → cao</option>
               <option value="price-desc">Giá cao → thấp</option>
@@ -361,7 +372,7 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
 
           {visibleItems.length ? (
             <div className="sera-menu-list">
-              {visibleItems.map(({ item, index, badges, profile, description }) => (
+              {visibleItems.map(({ item, index, badges, profile, description, ratingSummary }) => (
                 <article className="sera-menu-item" key={item.id}>
                   <button
                     className="sera-menu-item-media"
@@ -400,6 +411,17 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
                         {item.name}
                       </button>
                     </h2>
+
+                    <div className="sera-dish-rating-row">
+                      <span className="sera-dish-rating-stars">
+                        <Star aria-hidden="true" />
+                        <strong>{ratingSummary.rating.toFixed(1)}</strong>/5
+                      </span>
+                      <span className="sera-dish-rating-sep">·</span>
+                      <span>{ratingSummary.reviewCount} đánh giá</span>
+                      <span className="sera-dish-rating-sep">·</span>
+                      <span className="sera-dish-order-count">{ratingSummary.orderCountLabel}</span>
+                    </div>
 
                     <p>{description}</p>
 

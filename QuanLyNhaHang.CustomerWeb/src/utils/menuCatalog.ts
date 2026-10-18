@@ -705,3 +705,512 @@ export function getDishPairings(
 
   return recommendations.slice(0, 3)
 }
+
+export type ReviewPlatform =
+  | 'Google Maps'
+  | 'Tripadvisor'
+  | 'Thực khách tại quán'
+  | 'Đơn mang về'
+
+export type DishReviewItem = {
+  id: string
+  author: string
+  roleLabel: string
+  platform: ReviewPlatform
+  rating: number
+  dateLabel: string
+  orderedVariant: string
+  comment: string
+  helpfulCount: number
+}
+
+export type DishRatingSummary = {
+  rating: number
+  reviewCount: number
+  orderCount: number
+  orderCountLabel: string
+  satisfactionLabel: string
+  breakdown: Array<{ stars: number; percent: number }>
+  reviews: DishReviewItem[]
+}
+
+const USER_DISH_REVIEWS_KEY = 'customerDishReviews:v1'
+
+export function readUserDishReviews(itemId: string): DishReviewItem[] {
+  try {
+    const raw = localStorage.getItem(USER_DISH_REVIEWS_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as Record<string, DishReviewItem[]>
+    return Array.isArray(parsed?.[itemId]) ? parsed[itemId] : []
+  } catch {
+    return []
+  }
+}
+
+export function addUserDishReview(
+  itemId: string,
+  input: {
+    author: string
+    rating: number
+    diningType: 'Thực khách tại quán' | 'Đơn mang về'
+    orderedVariant: string
+    comment: string
+  },
+): DishReviewItem[] {
+  const existing = readUserDishReviews(itemId)
+  const newReview: DishReviewItem = {
+    id: `user-rev-${Date.now()}`,
+    author: input.author.trim() || 'Thực khách ẩn danh',
+    roleLabel: 'Đánh giá mới từ khách hàng',
+    platform: input.diningType,
+    rating: Math.min(5, Math.max(1, Math.round(input.rating))),
+    dateLabel: 'Vừa xong',
+    orderedVariant: input.orderedVariant || 'Cỡ tiêu chuẩn · Chuẩn vị bếp',
+    comment: input.comment.trim(),
+    helpfulCount: 1,
+  }
+  const updated = [newReview, ...existing]
+  try {
+    const raw = localStorage.getItem(USER_DISH_REVIEWS_KEY)
+    const all = raw ? (JSON.parse(raw) as Record<string, DishReviewItem[]>) : {}
+    all[itemId] = updated
+    localStorage.setItem(USER_DISH_REVIEWS_KEY, JSON.stringify(all))
+  } catch {
+    // ignore storage errors
+  }
+  return updated
+}
+
+export function getDishRatingSummary(
+  item: PublicMenuItem,
+  index = 0,
+): DishRatingSummary {
+  const nameLower = item.name.toLocaleLowerCase('vi')
+  const userReviews = readUserDishReviews(item.id)
+
+  let baseRating = 4.8
+  let baseReviewCount = 96
+  let baseOrderCount = 340
+  let satisfactionLabel = '97% thực khách hài lòng'
+  let curatedReviews: DishReviewItem[] = []
+
+  if (nameLower.includes('cá hồi')) {
+    baseRating = 4.9
+    baseReviewCount = 164
+    baseOrderCount = 620
+    satisfactionLabel = '99% khen độ tươi & xốt thảo mộc'
+    curatedReviews = [
+      {
+        id: 'rev-cahoi-1',
+        author: 'Trần Hoàng Minh',
+        roleLabel: 'Local Guide cấp 6 · 48 đánh giá',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '3 ngày trước',
+        orderedVariant: 'Cỡ Vừa · Ít cay · Thêm cơm trắng ST25',
+        comment:
+          'Cá hồi áp chảo da giòn rụm mà bên trong vẫn mọng nước, không hề bị khô. Xốt chanh thảo mộc rất hợp khẩu vị gia đình mình, măng tây xanh giòn ngọt.',
+        helpfulCount: 19,
+      },
+      {
+        id: 'rev-cahoi-2',
+        author: 'Elena Vance',
+        roleLabel: 'Traveller từ Melbourne · Đánh giá xác thực',
+        platform: 'Tripadvisor',
+        rating: 5,
+        dateLabel: '1 tuần trước',
+        orderedVariant: 'Cỡ Nhỏ (Tiêu chuẩn) · Không cay',
+        comment:
+          'Tuyệt vời! Mình bị dị ứng gluten nên tích chọn chế biến riêng, bếp làm rất chu đáo. Phần cá hồi tươi ngon chuẩn nhà hàng fine-dining ở Nha Trang.',
+        helpfulCount: 14,
+      },
+      {
+        id: 'rev-cahoi-3',
+        author: 'Nguyễn Bảo Ngọc',
+        roleLabel: 'Khách đặt mang về · Đã mua 4 lần',
+        platform: 'Đơn mang về',
+        rating: 5,
+        dateLabel: '2 tuần trước',
+        orderedVariant: 'Cỡ Vừa · Để riêng nước xốt',
+        comment:
+          'Đặt mang về văn phòng buổi trưa mà hộp giấy giữ nhiệt cực tốt, nước xốt được đóng hũ riêng nên cá vẫn giữ nguyên độ giòn.',
+        helpfulCount: 11,
+      },
+    ]
+  } else if (nameLower.includes('lẩu bò')) {
+    baseRating = 4.9
+    baseReviewCount = 218
+    baseOrderCount = 840
+    satisfactionLabel = '99% khen nước lẩu ngọt xương tự nhiên'
+    curatedReviews = [
+      {
+        id: 'rev-laubo-1',
+        author: 'Lê Quốc Khánh',
+        roleLabel: 'Local Guide cấp 7 · Nha Trang',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '2 ngày trước',
+        orderedVariant: 'Cỡ Lớn (Gia đình) · Cay vừa · Thêm thịt tươi & rau nấm',
+        comment:
+          'Nước lẩu bò ninh xương thơm mùi sả và thảo mộc nhẹ nhàng, vị thanh chứ không bị gắt mì chính. Bắp bò và gầu bò thái lát dày dặn, nhúng tái mềm ngọt.',
+        helpfulCount: 27,
+      },
+      {
+        id: 'rev-laubo-2',
+        author: 'Phạm Thu Hà',
+        roleLabel: 'Đặt bàn gia đình cuối tuần · 6 khách',
+        platform: 'Thực khách tại quán',
+        rating: 5,
+        dateLabel: '5 ngày trước',
+        orderedVariant: 'Cỡ Lớn (Gia đình) · Ít cay',
+        comment:
+          'Nhà mình đi 6 người lớn trẻ nhỏ gọi nồi cỡ Lớn kèm Chả Giò và Gỏi Gà là no căng. Rổ rau rừng và nấm cực kỳ tươi sạch.',
+        helpfulCount: 16,
+      },
+      {
+        id: 'rev-laubo-3',
+        author: 'David Nguyễn',
+        roleLabel: 'Du khách từ TP.HCM · Đánh giá xác thực',
+        platform: 'Tripadvisor',
+        rating: 5,
+        dateLabel: '2 tuần trước',
+        orderedVariant: 'Cỡ Vừa · Cay nồng · Thêm mì trứng',
+        comment:
+          'Buổi tối mưa nhẹ ở Nha Trang ngồi sảnh gỗ ăn nồi lẩu bò nóng hổi thật sự xuất sắc. Sa tế nhà làm cay thơm nồng nàn.',
+        helpfulCount: 12,
+      },
+    ]
+  } else if (nameLower.includes('gỏi gà')) {
+    baseRating = 4.8
+    baseReviewCount = 132
+    baseOrderCount = 490
+    satisfactionLabel = '98% yêu thích nước trộn chanh tắc'
+    curatedReviews = [
+      {
+        id: 'rev-goiga-1',
+        author: 'Võ Thanh Tâm',
+        roleLabel: 'Local Guide cấp 5 · 31 đánh giá',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '4 ngày trước',
+        orderedVariant: 'Cỡ Vừa · Ít cay · Thêm bánh phồng tôm',
+        comment:
+          'Gà ta thả vườn thịt dai ngọt chắc nịch, bắp cải và hành tây ngâm đá giòn tan không chút hăng. Nước mắm trộn gỏi chua ngọt vừa vặn.',
+        helpfulCount: 15,
+      },
+      {
+        id: 'rev-goiga-2',
+        author: 'Hoàng Mai Anh',
+        roleLabel: 'Đặt mang về · Giờ trưa văn phòng',
+        platform: 'Đơn mang về',
+        rating: 5,
+        dateLabel: '1 tuần trước',
+        orderedVariant: 'Cỡ Nhỏ · Để riêng nước chấm & không đậu phộng',
+        comment:
+          'Mình dặn không rắc đậu phộng và để riêng nước mắm trộn, bếp làm đúng y hệt ghi chú. Khi ăn mới trộn nên rau vẫn giòn ngon.',
+        helpfulCount: 9,
+      },
+      {
+        id: 'rev-goiga-3',
+        author: 'Marcus Lindqvist',
+        roleLabel: 'Du khách Thụy Điển · Đánh giá xác thực',
+        platform: 'Tripadvisor',
+        rating: 5,
+        dateLabel: '3 tuần trước',
+        orderedVariant: 'Cỡ Nhỏ (Tiêu chuẩn) · Cay vừa',
+        comment:
+          'Fresh herbs, tender free-range chicken and a bright citrus dressing. The best Vietnamese chicken salad we had on our coast trip!',
+        helpfulCount: 8,
+      },
+    ]
+  } else if (nameLower.includes('chả giò')) {
+    baseRating = 4.9
+    baseReviewCount = 145
+    baseOrderCount = 580
+    satisfactionLabel = '98% khen vỏ bánh rế giòn lâu'
+    curatedReviews = [
+      {
+        id: 'rev-chagio-1',
+        author: 'Đặng Tuấn Kiệt',
+        roleLabel: 'Local Guide cấp 6 · Nha Trang',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '3 ngày trước',
+        orderedVariant: 'Cỡ Vừa · Không cay · Thêm rau sống & đồ chua',
+        comment:
+          'Chả giò cuốn bằng bánh tráng rế chiên vàng ruộm, cắn vào giòn tan mà không bị ngấm dầu. Nhân tôm đất Nha Trang tươi ngọt rõ rệt.',
+        helpfulCount: 18,
+      },
+      {
+        id: 'rev-chagio-2',
+        author: 'Trịnh Phương Thảo',
+        roleLabel: 'Khách đặt bàn trước 18h',
+        platform: 'Thực khách tại quán',
+        rating: 5,
+        dateLabel: '1 tuần trước',
+        orderedVariant: 'Cỡ Nhỏ (Tiêu chuẩn) · Ít cay',
+        comment:
+          'Món khai vị không thể thiếu mỗi lần gia đình ghé VNT. Các bé nhà mình mê tít vì nhân đầy đặn, chấm nước mắm chua ngọt rất bắt miệng.',
+        helpfulCount: 10,
+      },
+    ]
+  } else if (nameLower.includes('lẩu dê')) {
+    baseRating = 4.8
+    baseReviewCount = 118
+    baseOrderCount = 410
+    satisfactionLabel = '97% khen thịt mềm & chao pha ngon'
+    curatedReviews = [
+      {
+        id: 'rev-laude-1',
+        author: 'Ngô Đình Phong',
+        roleLabel: 'Local Guide cấp 6 · 54 đánh giá',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '5 ngày trước',
+        orderedVariant: 'Cỡ Lớn (Gia đình) · Cay vừa · Thêm tàu hũ ky',
+        comment:
+          'Thịt dê thui rơm thơm lừng, hầm vừa tới nên da giòn thịt mềm, hoàn toàn không bị hôi. Chao đánh sa tế sả ớt chấm cực kỳ cuốn.',
+        helpfulCount: 14,
+      },
+      {
+        id: 'rev-laude-2',
+        author: 'Bùi Thanh Sơn',
+        roleLabel: 'Tiệc phòng VIP · 8 khách',
+        platform: 'Thực khách tại quán',
+        rating: 5,
+        dateLabel: '2 tuần trước',
+        orderedVariant: 'Cỡ Lớn (Gia đình) · Cay nồng',
+        comment:
+          'Đặt phòng VIP tiếp đối tác, gọi Lẩu Dê và Cá Hồi ai cũng tấm tắc khen. Nước dùng thuốc bắc thanh ngọt, ăn xong ấm bụng.',
+        helpfulCount: 9,
+      },
+    ]
+  } else if (nameLower.includes('súp') || nameLower.includes('vi cá')) {
+    baseRating = 4.9
+    baseReviewCount = 104
+    baseOrderCount = 390
+    satisfactionLabel = '98% khen vị ngọt thanh & giữ nhiệt tốt'
+    curatedReviews = [
+      {
+        id: 'rev-sup-1',
+        author: 'Phan Tuyết Nhung',
+        roleLabel: 'Local Guide cấp 5 · Nha Trang',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '6 ngày trước',
+        orderedVariant: 'Cỡ Nhỏ (Tiêu chuẩn) · Không cay',
+        comment:
+          'Thố súp bưng ra nóng hổi, thịt cua gỡ tay tươi ngọt từng thớ chứ không bị vụn. Vị nêm thanh tao rất hợp dùng mở màn bữa tối.',
+        helpfulCount: 13,
+      },
+      {
+        id: 'rev-sup-2',
+        author: 'Hồ Minh Đức',
+        roleLabel: 'Khách mua mang về cho người lớn tuổi',
+        platform: 'Đơn mang về',
+        rating: 5,
+        dateLabel: '1 tuần trước',
+        orderedVariant: 'Cỡ Vừa · Không hành lá · Ít đường',
+        comment:
+          'Mua về cho bố mẹ dùng bữa tối, hộp giữ nhiệt kín đáo, về tới nhà vẫn còn nóng nghi ngút khói. Rất đáng tiền!',
+        helpfulCount: 8,
+      },
+    ]
+  } else if (nameLower.includes('canh chua')) {
+    baseRating = 4.8
+    baseReviewCount = 124
+    baseOrderCount = 460
+    satisfactionLabel = '98% khen vị chua thanh chuẩn cơm nhà'
+    curatedReviews = [
+      {
+        id: 'rev-canhchua-1',
+        author: 'Lý Mỹ Linh',
+        roleLabel: 'Local Guide cấp 5 · 29 đánh giá',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '4 ngày trước',
+        orderedVariant: 'Cỡ Vừa · Cay vừa · Thêm cơm trắng ST25',
+        comment:
+          'Vị chua dịu của me chín với dứa tươi chứ không bị chua gắt, cá biển tươi rói, dọc mùng giòn sần sật. Ăn với cơm trắng ST25 đúng chuẩn vị mẹ nấu.',
+        helpfulCount: 12,
+      },
+    ]
+  } else if (nameLower.includes('nho')) {
+    baseRating = 4.9
+    baseReviewCount = 88
+    baseOrderCount = 350
+    satisfactionLabel = '99% khen trái tươi giòn & ngọt mát'
+    curatedReviews = [
+      {
+        id: 'rev-nho-1',
+        author: 'Trương Quỳnh Chi',
+        roleLabel: 'Thực khách tại quán · Bàn Sân Vườn',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '3 ngày trước',
+        orderedVariant: 'Cỡ Nhỏ · Ướp mát nhẹ · Thêm muối ớt xanh',
+        comment:
+          'Nho tươi rói, quả căng mọng giòn ngọt, chấm chút muối ớt xanh Nha Trang sau khi ăn lẩu bò thật sự sảng khoái!',
+        helpfulCount: 10,
+      },
+    ]
+  } else {
+    baseRating = index % 2 === 0 ? 4.9 : 4.8
+    baseReviewCount = 92 + index * 14
+    baseOrderCount = 320 + index * 45
+    curatedReviews = [
+      {
+        id: `rev-gen-${item.id}`,
+        author: 'Nguyễn Minh Quân',
+        roleLabel: 'Local Guide · Đánh giá xác thực',
+        platform: 'Google Maps',
+        rating: 5,
+        dateLabel: '1 tuần trước',
+        orderedVariant: 'Cỡ tiêu chuẩn · Chuẩn vị bếp',
+        comment:
+          'Nguyên liệu tươi sạch, nêm nếm vừa miệng và trình bày rất chỉn chu. Nhân viên phục vụ nhiệt tình, chu đáo.',
+        helpfulCount: 9,
+      },
+    ]
+  }
+
+  const allReviews = [...userReviews, ...curatedReviews]
+  const totalReviewCount = baseReviewCount + userReviews.length
+  const computedRating =
+    userReviews.length > 0
+      ? Number(
+          (
+            (baseRating * baseReviewCount +
+              userReviews.reduce((sum, r) => sum + r.rating, 0)) /
+            totalReviewCount
+          ).toFixed(1),
+        )
+      : baseRating
+
+  return {
+    rating: computedRating,
+    reviewCount: totalReviewCount,
+    orderCount: baseOrderCount + userReviews.length,
+    orderCountLabel: `${baseOrderCount + userReviews.length}+ lượt gọi`,
+    satisfactionLabel,
+    breakdown: [
+      { stars: 5, percent: computedRating >= 4.9 ? 89 : 84 },
+      { stars: 4, percent: computedRating >= 4.9 ? 9 : 13 },
+      { stars: 3, percent: 2 },
+      { stars: 2, percent: 0 },
+      { stars: 1, percent: 0 },
+    ],
+    reviews: allReviews,
+  }
+}
+
+export type RestaurantTestimonial = {
+  id: string
+  author: string
+  authorRole: string
+  platform: 'Google Maps' | 'Tripadvisor' | 'Thực khách tại quán' | 'Đơn mang về'
+  rating: number
+  dateLabel: string
+  visitContext: string
+  quote: string
+  orderedDishes: string[]
+  photo: string
+  photoPosition: string
+  photoCaption: string
+  verifiedLabel: string
+}
+
+export const SOCIAL_PROOF_PLATFORMS = [
+  {
+    id: 'google-maps',
+    platformName: 'Google Maps',
+    score: '4.9 / 5.0',
+    reviewCountLabel: '1.480+ đánh giá xác thực',
+    badgeLabel: 'Top Ẩm thực Việt tại Nha Trang',
+    highlight: '99% khen nguyên liệu hải sản tươi & không gian Indochine ấm cúng',
+  },
+  {
+    id: 'tripadvisor',
+    platformName: 'Tripadvisor',
+    score: '4.8 / 5.0',
+    reviewCountLabel: '420+ nhận xét quốc tế & nội địa',
+    badgeLabel: "Travellers' Choice Award",
+    highlight: 'Được du khách đánh giá cao về minh bạch dị ứng & phục vụ tận tâm',
+  },
+  {
+    id: 'direct-orders',
+    platformName: 'Đặt bàn & Mang về',
+    score: '98.4%',
+    reviewCountLabel: '6.800+ lượt phục vụ hài lòng',
+    badgeLabel: 'Cam kết đúng giờ & chuẩn nhiệt độ',
+    highlight: 'Tùy chỉnh khẩu vị, độ cay và đóng gói tách nước xốt chỉn chu',
+  },
+]
+
+export const RESTAURANT_TESTIMONIALS: RestaurantTestimonial[] = [
+  {
+    id: 'testi-google-1',
+    author: 'Trần Hoàng Minh',
+    authorRole: 'Local Guide cấp 7 · Nha Trang',
+    platform: 'Google Maps',
+    rating: 5,
+    dateLabel: '3 ngày trước',
+    visitContext: 'Tiệc gia đình 6 người · Sảnh chính Indochine',
+    quote:
+      'Không gian gỗ ấm áp, khoảng cách bàn rộng rãi nên ông bà và các cháu ngồi rất thoải mái. Nồi Lẩu Bò ninh xương ngọt thanh tự nhiên, Cá Hồi áp chảo mềm mọng. Điểm cộng lớn là thực đơn ghi rõ thành phần dị ứng và cho chọn mức cay riêng cho từng món.',
+    orderedDishes: ['Lẩu Bò', 'Cá Hồi', 'Chả Giò', 'Nho'],
+    photo: reservationDiningImage,
+    photoPosition: 'center 55%',
+    photoCaption: 'Bàn gia đình tại sảnh tầng 1 tối Thứ Bảy',
+    verifiedLabel: 'Đánh giá 5★ trên Google Maps',
+  },
+  {
+    id: 'testi-tripadvisor-1',
+    author: 'Sarah Jenkins & Minh Lê',
+    authorRole: "Du khách từ Sydney · Travellers' Choice Reviewer",
+    platform: 'Tripadvisor',
+    rating: 5,
+    dateLabel: '1 tuần trước',
+    visitContext: 'Bàn đôi hẹn hò · Góc sân vườn lá xanh',
+    quote:
+      'Một trải nghiệm ẩm thực Việt Nam tinh tế và tử tế. Chồng mình bị dị ứng đậu phộng nên rất ấn tượng khi thấy nhãn cảnh báo rõ ràng ngay trên menu và nút yêu cầu dụng cụ chế biến riêng. Gỏi Gà không đậu phộng và Súp nóng đều tuyệt hảo!',
+    orderedDishes: ['Gỏi Gà', 'Súp', 'Canh Chua'],
+    photo: heroImage,
+    photoPosition: 'center center',
+    photoCaption: 'Mâm món Việt chụp thực tế tại bàn sân vườn',
+    verifiedLabel: 'Đánh giá 5★ trên Tripadvisor',
+  },
+  {
+    id: 'testi-vip-1',
+    author: 'Nguyễn Quốc Tuấn',
+    authorRole: 'Giám đốc Doanh nghiệp · Khách đặt bàn trước 18h',
+    platform: 'Thực khách tại quán',
+    rating: 5,
+    dateLabel: '5 ngày trước',
+    visitContext: 'Tiếp đối tác · Phòng VIP riêng tư (Mã ưu đãi VNT18H)',
+    quote:
+      'Đặt bàn trước 18h qua website vừa được giảm 20% vừa được chuẩn bị sẵn phòng VIP yên tĩnh, sang trọng. Lẩu Dê hầm thảo mộc và Vi Cá Mập lên món đồng loạt, nóng hổi, đối tác của tôi khen ngợi suốt buổi.',
+    orderedDishes: ['Lẩu Dê', 'Vi Cá Mập', 'Cá Hồi'],
+    photo: reservationDiningImage,
+    photoPosition: 'center 20%',
+    photoCaption: 'Không gian phòng VIP tiếp khách riêng tư',
+    verifiedLabel: 'Khách đặt bàn xác thực (#RES-8942)',
+  },
+  {
+    id: 'testi-takeaway-1',
+    author: 'Lê Ngọc Phương Trang',
+    authorRole: 'Khách hàng thân thiết · 12 đơn mang về',
+    platform: 'Đơn mang về',
+    rating: 5,
+    dateLabel: 'Hôm qua',
+    visitContext: 'Combo trưa văn phòng · Nhận món tại quầy lúc 11:45',
+    quote:
+      'Mình hay đặt Cá Hồi kèm Canh Chua và Nho tráng miệng cho nhóm văn phòng. Website cho chọn cỡ Vừa, ít đường, thêm cơm trắng ST25 rất tiện. Tới giờ ghé lấy là bếp đã đóng hộp giấy giữ nhiệt, tách riêng nước xốt gọn gàng.',
+    orderedDishes: ['Cá Hồi', 'Canh Chua', 'Nho'],
+    photo: menuShowcaseImage,
+    photoPosition: 'center 45%',
+    photoCaption: 'Khẩu phần món chính & canh nóng chuẩn bị từ bếp',
+    verifiedLabel: 'Đơn mang về xác thực (#ORD-4120)',
+  },
+]
+

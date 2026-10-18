@@ -539,6 +539,698 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   .sera-detail-media { height: 420px; }
   .sera-detail-copy { border-top: 1px solid var(--sera-line); border-left: 0; }
   .sera-pairing-grid { grid-template-columns: 1fr; }
+  .sera-reviews-scorecard { grid-template-columns: 1fr; }
+  .sera-testimonials-grid { grid-template-columns: 1fr; }
+  .sera-detail-reviews-layout { grid-template-columns: 1fr; }
+}
+
+/* =========================================================================
+   PART 3: BẰNG CHỨNG XÃ HỘI & XẾP HẠNG SAO (SOCIAL PROOF & DISH RATINGS)
+   ========================================================================= */
+
+/* 1. Per-dish Star Rating & Order Count Row (HomePage & MenuPage) */
+.sera-dish-rating-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  padding: 4px 10px;
+  background: rgba(182, 134, 66, 0.09);
+  border: 1px solid rgba(182, 134, 66, 0.24);
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--sera-ink-soft);
+}
+.sera-dish-rating-row svg {
+  width: 14px;
+  height: 14px;
+  color: #c88719;
+  fill: #c88719;
+  flex-shrink: 0;
+}
+.sera-dish-rating-row--compact {
+  margin-top: 4px;
+  margin-bottom: 2px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.sera-dish-rating-row--menu {
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+.sera-dish-rating-stars,
+.sera-rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #c88719;
+  font-size: 13px;
+  line-height: 1;
+}
+.sera-dish-rating-stars strong,
+.sera-dish-rating-row strong,
+.sera-rating-score {
+  color: var(--sera-ink);
+  font-weight: 700;
+}
+.sera-rating-count {
+  color: var(--sera-muted);
+}
+.sera-dish-rating-sep,
+.sera-rating-divider,
+.sera-rating-dot {
+  color: var(--sera-line-strong);
+  font-weight: 700;
+}
+.sera-dish-order-count,
+.sera-rating-orders {
+  color: var(--sera-copper);
+  font-weight: 600;
+}
+
+/* 2. Homepage Customer Reviews & Social Proof Section (.sera-home-reviews) */
+.sera-home-reviews {
+  width: min(var(--sera-max), calc(100% - var(--sera-gutter) * 2));
+  margin: 0 auto;
+  padding: 96px 0;
+  border-bottom: 1px solid var(--sera-line);
+}
+.sera-reviews-scorecard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.sera-scorecard-item {
+  background: var(--sera-surface);
+  border: 1px solid var(--sera-line);
+  padding: 24px 26px;
+  display: grid;
+  gap: 12px;
+  position: relative;
+}
+.sera-scorecard-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sera-copper), var(--sera-gold));
+}
+.sera-scorecard-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sera-scorecard-platform {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sera-ink);
+}
+.sera-scorecard-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: rgba(46, 74, 59, 0.1);
+  color: var(--sera-forest);
+  border: 1px solid rgba(46, 74, 59, 0.22);
+}
+.sera-scorecard-badge svg {
+  width: 12px;
+  height: 12px;
+}
+.sera-scorecard-rating,
+.sera-scorecard-score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.sera-scorecard-rating strong,
+.sera-scorecard-score strong {
+  font-family: var(--sera-display);
+  font-size: 42px;
+  line-height: 1;
+  font-weight: 600;
+  color: var(--sera-ink);
+}
+.sera-scorecard-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #c88719;
+}
+.sera-scorecard-stars svg {
+  width: 15px;
+  height: 15px;
+  fill: #c88719;
+  color: #c88719;
+}
+.sera-scorecard-rating small {
+  width: 100%;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sera-copper);
+}
+.sera-scorecard-item p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--sera-ink-soft);
+}
+
+.sera-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+.sera-testimonial-card {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  background: var(--sera-surface);
+  border: 1px solid var(--sera-line);
+  overflow: hidden;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+.sera-testimonial-card:hover {
+  border-color: var(--sera-line-strong);
+  transform: translateY(-2px);
+}
+.sera-testimonial-media {
+  position: relative;
+  min-height: 260px;
+  background: var(--sera-surface-strong);
+}
+.sera-testimonial-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sera-testimonial-platform-pill {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(25, 20, 16, 0.88);
+  color: #fff8ef;
+  backdrop-filter: blur(4px);
+}
+.sera-testimonial-platform-pill svg {
+  width: 13px;
+  height: 13px;
+  color: #eab308;
+  flex-shrink: 0;
+}
+.sera-testimonial-photo-caption {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: rgba(20, 16, 13, 0.88);
+  color: #fff8ef;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(4px);
+}
+.sera-testimonial-body {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sera-testimonial-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sera-testimonial-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #c88719;
+}
+.sera-testimonial-stars svg {
+  width: 14px;
+  height: 14px;
+  fill: #c88719;
+  color: #c88719;
+}
+.sera-testimonial-stars strong {
+  margin-left: 6px;
+  font-size: 13px;
+  color: var(--sera-ink);
+}
+.sera-testimonial-meta small {
+  font-size: 12px;
+  color: var(--sera-muted);
+}
+.sera-testimonial-context {
+  display: inline-block;
+  width: fit-content;
+  padding: 3px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sera-forest);
+  background: rgba(46, 74, 59, 0.09);
+  border: 1px solid rgba(46, 74, 59, 0.2);
+}
+.sera-testimonial-quote {
+  margin: 0;
+  position: relative;
+}
+.sera-quote-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--sera-copper);
+  opacity: 0.45;
+  margin-bottom: 4px;
+}
+.sera-testimonial-quote p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--sera-ink);
+}
+.sera-testimonial-dishes {
+  display: grid;
+  gap: 6px;
+  padding-top: 4px;
+}
+.sera-testimonial-dishes small {
+  font-size: 11.5px;
+  color: var(--sera-muted);
+  font-weight: 600;
+}
+.sera-testimonial-dish-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sera-testimonial-dish-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sera-copper);
+  background: rgba(154, 77, 46, 0.08);
+  border: 1px solid rgba(154, 77, 46, 0.24);
+  transition: all 0.2s ease;
+}
+.sera-testimonial-dish-chip svg {
+  width: 12px;
+  height: 12px;
+}
+.sera-testimonial-dish-chip.is-clickable {
+  cursor: pointer;
+}
+.sera-testimonial-dish-chip.is-clickable:hover {
+  background: var(--sera-copper);
+  color: #fff;
+}
+.sera-testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--sera-line);
+}
+.sera-testimonial-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sera-copper);
+  color: #fff8ef;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.sera-testimonial-author strong {
+  display: block;
+  font-size: 13.5px;
+  color: var(--sera-ink);
+}
+.sera-testimonial-author small {
+  display: block;
+  font-size: 12px;
+  color: var(--sera-muted);
+}
+
+/* 3. Dish Detail Page Rating Bar & Full Reviews Section */
+.sera-detail-rating-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 18px;
+  padding: 10px 14px;
+  background: var(--sera-surface);
+  border: 1px solid var(--sera-line);
+}
+.sera-detail-rating-score {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.sera-detail-stars {
+  color: #c88719;
+  font-size: 15px;
+  letter-spacing: 1px;
+  margin-right: 4px;
+}
+.sera-detail-rating-score strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sera-ink);
+}
+.sera-detail-rating-max {
+  font-size: 12.5px;
+  color: var(--sera-muted);
+}
+.sera-detail-rating-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sera-copper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.sera-detail-rating-link:hover {
+  color: var(--sera-ink);
+}
+.sera-detail-order-stat {
+  font-size: 13px;
+  color: var(--sera-ink-soft);
+}
+.sera-detail-satisfaction-pill {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sera-forest);
+  background: rgba(46, 74, 59, 0.1);
+  border: 1px solid rgba(46, 74, 59, 0.22);
+  padding: 3px 9px;
+}
+
+.sera-detail-reviews {
+  margin-top: 64px;
+  padding-top: 56px;
+  border-top: 1px solid var(--sera-line);
+}
+.sera-detail-reviews-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.sera-detail-reviews-head h2 {
+  margin: 6px 0 0;
+  font-family: var(--sera-display);
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.12;
+  color: var(--sera-ink);
+}
+.sera-detail-reviews-verified-badge {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sera-forest);
+  background: rgba(46, 74, 59, 0.09);
+  border: 1px solid rgba(46, 74, 59, 0.24);
+  padding: 6px 12px;
+}
+.sera-detail-reviews-layout {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.sera-detail-reviews-sidebar {
+  display: grid;
+  gap: 22px;
+}
+.sera-rating-overview-box {
+  background: var(--sera-surface);
+  border: 1px solid var(--sera-line);
+  padding: 22px 24px;
+  display: grid;
+  gap: 18px;
+}
+.sera-rating-big-score {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--sera-line);
+}
+.sera-rating-big-score > strong {
+  font-family: var(--sera-display);
+  font-size: 54px;
+  line-height: 1;
+  color: var(--sera-ink);
+}
+.sera-rating-big-score span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--sera-muted);
+}
+.sera-rating-bars {
+  display: grid;
+  gap: 8px;
+}
+.sera-rating-bar-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+.sera-rating-bar-label {
+  font-weight: 600;
+  color: var(--sera-ink-soft);
+}
+.sera-rating-bar-track {
+  height: 8px;
+  background: rgba(182, 134, 66, 0.14);
+  border: 1px solid var(--sera-line);
+  overflow: hidden;
+}
+.sera-rating-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sera-copper), #d4962a);
+}
+.sera-rating-bar-pct {
+  text-align: right;
+  color: var(--sera-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.sera-review-form {
+  background: var(--sera-surface);
+  border: 1px solid var(--sera-line);
+  padding: 22px 24px;
+  display: grid;
+  gap: 14px;
+}
+.sera-review-form-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sera-copper);
+}
+.sera-review-form-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sera-ink);
+}
+.sera-review-form-row {
+  display: grid;
+  gap: 6px;
+}
+.sera-review-form-row label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sera-ink-soft);
+}
+.sera-review-form-split {
+  display: grid;
+  gap: 12px;
+}
+.sera-star-picker {
+  display: flex;
+  gap: 6px;
+}
+.sera-star-pick-btn {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1px solid var(--sera-line);
+  background: var(--sera-bg);
+  color: var(--sera-ink-soft);
+  cursor: pointer;
+}
+.sera-star-pick-btn.is-active {
+  background: var(--sera-copper);
+  color: #fff;
+  border-color: var(--sera-copper);
+}
+.sera-review-select {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--sera-line);
+  background: var(--sera-bg);
+  font-size: 13px;
+  color: var(--sera-ink);
+}
+.sera-review-submitted-msg {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sera-forest);
+  background: rgba(46, 74, 59, 0.1);
+  border: 1px solid rgba(46, 74, 59, 0.25);
+}
+
+.sera-detail-reviews-list {
+  display: grid;
+  gap: 16px;
+}
+.sera-dish-review-card {
+  background: var(--sera-surface);
+  border: 1px solid var(--sera-line);
+  padding: 20px 24px;
+  display: grid;
+  gap: 12px;
+}
+.sera-dish-review-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sera-dish-reviewer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sera-dish-reviewer-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--sera-copper);
+  color: #fff8ef;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+.sera-dish-reviewer strong {
+  display: block;
+  font-size: 14.5px;
+  color: var(--sera-ink);
+}
+.sera-dish-reviewer small {
+  display: block;
+  font-size: 12px;
+  color: var(--sera-muted);
+}
+.sera-dish-review-meta {
+  text-align: right;
+}
+.sera-dish-review-stars {
+  display: block;
+  color: #c88719;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.sera-dish-review-meta time {
+  font-size: 11.5px;
+  color: var(--sera-muted);
+}
+.sera-dish-review-ordered {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(154, 77, 46, 0.07);
+  border-left: 2px solid var(--sera-copper);
+  font-size: 12px;
+  color: var(--sera-ink-soft);
+}
+.sera-dish-review-comment {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--sera-ink);
+}
+.sera-dish-review-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--sera-line);
+}
+.sera-verified-order-pill {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sera-forest);
+}
+.sera-helpful-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--sera-line);
+  background: var(--sera-bg);
+  color: var(--sera-ink-soft);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.sera-helpful-btn:hover,
+.sera-helpful-btn.is-liked {
+  border-color: var(--sera-copper);
+  color: var(--sera-copper);
+  background: rgba(154, 77, 46, 0.08);
 }
 
 @media (max-width: 720px) {
@@ -559,6 +1251,8 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   .sera-gallery-tabs { grid-template-columns: 1fr; }
   .sera-gallery-mosaic { grid-template-columns: 1fr 1fr; }
   .sera-story-primary-photo { height: 320px; }
+  .sera-testimonial-card { grid-template-columns: 1fr; }
+  .sera-testimonial-media { min-height: 200px; }
   .sera-dish-row { grid-template-columns: 76px minmax(0, 1fr); min-height: 112px; gap: 16px; }
   .sera-dish-row-media { width: 76px; height: 76px; }
   .sera-dish-row h3 { font-size: 24px; }

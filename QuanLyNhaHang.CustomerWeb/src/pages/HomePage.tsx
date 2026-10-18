@@ -14,8 +14,11 @@ import {
   MapPin,
   Pause,
   Play,
+  Quote,
+  ShieldCheck,
   ShoppingBag,
   Sparkles,
+  Star,
   Tag,
   Users,
   UtensilsCrossed,
@@ -27,6 +30,11 @@ import type { CustomerSiteBootstrap, PublicMenuItem } from '../services/customer
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import menuShowcaseImage from '../assets/menu-showcase-vietnamese.webp'
 import reservationDiningImage from '../assets/reservation-dining-room.webp'
+import {
+  getDishRatingSummary,
+  RESTAURANT_TESTIMONIALS,
+  SOCIAL_PROOF_PLATFORMS,
+} from '../utils/menuCatalog'
 import { navigate } from '../utils/navigation'
 import { addTakeawayItem } from '../utils/takeawayCart'
 
@@ -394,6 +402,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [activeBadgeFilter, setActiveBadgeFilter] = useState<'all' | DishBadgeId>('all')
   const [activeSpaceId, setActiveSpaceId] = useState<string>(DINING_SPACES[0].id)
+  const [reviewPlatformFilter, setReviewPlatformFilter] = useState<string>('all')
   const [addedItemMessage, setAddedItemMessage] = useState<string>('')
 
   const active = featured[activeIndex] ?? featured[0]
@@ -430,6 +439,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         description: getCuratedDescription(item),
         image: getFallbackDishImage(item, index),
         imagePosition: getFallbackImagePosition(item, index),
+        ratingSummary: getDishRatingSummary(item, index),
       })),
     [availableItems],
   )
@@ -447,6 +457,11 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
       entry.badges.some(badge => badge.id === activeBadgeFilter),
     )
   }, [activeBadgeFilter, enrichedItems])
+
+  const filteredTestimonials = useMemo(() => {
+    if (reviewPlatformFilter === 'all') return RESTAURANT_TESTIMONIALS
+    return RESTAURANT_TESTIMONIALS.filter(t => t.platform === reviewPlatformFilter)
+  }, [reviewPlatformFilter])
 
   const areaStats = useMemo(() => {
     const map = new Map<string, { count: number; maxCapacity: number }>()
@@ -762,7 +777,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
 
         {signatureShowcase.length ? (
           <div className="sera-signature-grid">
-            {signatureShowcase.map(({ item, badges, description, image, imagePosition }, idx) => (
+            {signatureShowcase.map(({ item, badges, description, image, imagePosition, ratingSummary }, idx) => (
               <article
                 key={item.id}
                 className={`sera-signature-card ${idx === 0 ? 'is-spotlight' : ''}`}
@@ -809,6 +824,17 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                     <strong className="sera-signature-price">
                       {currency(item.price, restaurant?.currency)}
                     </strong>
+                  </div>
+
+                  <div className="sera-dish-rating-row">
+                    <span className="sera-dish-rating-stars">
+                      <Star aria-hidden="true" />
+                      <strong>{ratingSummary.rating.toFixed(1)}</strong>/5
+                    </span>
+                    <span className="sera-dish-rating-sep">·</span>
+                    <span>{ratingSummary.reviewCount} đánh giá</span>
+                    <span className="sera-dish-rating-sep">·</span>
+                    <span className="sera-dish-order-count">{ratingSummary.orderCountLabel}</span>
                   </div>
 
                   <p className="sera-signature-desc">{description}</p>
@@ -885,7 +911,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
 
         {filteredMenuItems.length ? (
           <div className="sera-dish-list">
-            {filteredMenuItems.map(({ item, badges, description, image, imagePosition }) => (
+            {filteredMenuItems.map(({ item, badges, description, image, imagePosition, ratingSummary }) => (
               <button
                 key={item.id}
                 type="button"
@@ -923,6 +949,16 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                         </span>
                       ))}
                     </span>
+                  </span>
+                  <span className="sera-dish-rating-row sera-dish-rating-row--compact">
+                    <span className="sera-dish-rating-stars">
+                      <Star aria-hidden="true" />
+                      <strong>{ratingSummary.rating.toFixed(1)}</strong>/5
+                    </span>
+                    <span className="sera-dish-rating-sep">·</span>
+                    <span>{ratingSummary.reviewCount} đánh giá</span>
+                    <span className="sera-dish-rating-sep">·</span>
+                    <span className="sera-dish-order-count">{ratingSummary.orderCountLabel}</span>
                   </span>
                   <p>{description}</p>
                 </span>
@@ -1134,6 +1170,146 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
               </Button>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* 5. SOCIAL PROOF, GOOGLE MAPS / TRIPADVISOR RATINGS & CUSTOMER TESTIMONIALS */}
+      <section className="sera-home-reviews" aria-labelledby="home-reviews-heading">
+        <div className="sera-section-head">
+          <div>
+            <p className="sera-kicker">Bằng chứng xã hội & Đánh giá thực tế</p>
+            <h2 id="home-reviews-heading" style={homeFontStyle}>
+              Được yêu mến bởi thực khách địa phương & du khách tại Nha Trang.
+            </h2>
+          </div>
+          <Button variant="outline" onClick={() => navigate('/reservation')}>
+            <CalendarDays aria-hidden="true" /> Đặt bàn trải nghiệm ngay
+          </Button>
+        </div>
+
+        {/* Scorecard 3 nền tảng uy tín */}
+        <div className="sera-reviews-scorecard" aria-label="Điểm đánh giá trên các nền tảng">
+          {SOCIAL_PROOF_PLATFORMS.map(platform => (
+            <article key={platform.id} className="sera-scorecard-item">
+              <div className="sera-scorecard-top">
+                <span className="sera-scorecard-platform">{platform.platformName}</span>
+                <span className="sera-scorecard-badge">
+                  <ShieldCheck aria-hidden="true" /> {platform.badgeLabel}
+                </span>
+              </div>
+              <div className="sera-scorecard-rating">
+                <strong style={homeFontStyle}>{platform.score}</strong>
+                <div className="sera-scorecard-stars" aria-hidden="true">
+                  <Star />
+                  <Star />
+                  <Star />
+                  <Star />
+                  <Star />
+                </div>
+                <small>{platform.reviewCountLabel}</small>
+              </div>
+              <p>{platform.highlight}</p>
+            </article>
+          ))}
+        </div>
+
+        {/* Bộ lọc nguồn đánh giá */}
+        <div className="sera-home-badge-filters" role="group" aria-label="Lọc đánh giá theo nguồn">
+          {(
+            [
+              ['all', 'Tất cả đánh giá nổi bật'],
+              ['Google Maps', 'Google Maps (4.9★)'],
+              ['Tripadvisor', 'Tripadvisor (4.8★)'],
+              ['Thực khách tại quán', 'Đặt bàn & Phòng VIP'],
+              ['Đơn mang về', 'Khách đặt mang về'],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={`sera-badge-filter-btn ${reviewPlatformFilter === value ? 'active' : ''}`}
+              onClick={() => setReviewPlatformFilter(value)}
+              aria-pressed={reviewPlatformFilter === value}
+            >
+              <Star aria-hidden="true" />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Lưới bình luận & hình ảnh trải nghiệm thực tế */}
+        <div className="sera-testimonials-grid">
+          {filteredTestimonials.map(testi => (
+            <article key={testi.id} className="sera-testimonial-card">
+              <div className="sera-testimonial-media">
+                <img
+                  src={testi.photo}
+                  alt={testi.photoCaption}
+                  style={{ objectPosition: testi.photoPosition }}
+                />
+                <span className="sera-testimonial-platform-pill">
+                  <ShieldCheck aria-hidden="true" /> {testi.verifiedLabel}
+                </span>
+                <div className="sera-testimonial-photo-caption">
+                  <span>{testi.photoCaption}</span>
+                </div>
+              </div>
+
+              <div className="sera-testimonial-body">
+                <div className="sera-testimonial-meta">
+                  <div className="sera-testimonial-stars" aria-label={`Đánh giá ${testi.rating} trên 5 sao`}>
+                    {Array.from({ length: testi.rating }).map((_, i) => (
+                      <Star key={i} aria-hidden="true" />
+                    ))}
+                    <strong>{testi.rating}.0 / 5</strong>
+                  </div>
+                  <small>{testi.dateLabel}</small>
+                </div>
+
+                <span className="sera-testimonial-context">{testi.visitContext}</span>
+
+                <blockquote className="sera-testimonial-quote">
+                  <Quote className="sera-quote-icon" aria-hidden="true" />
+                  <p>“{testi.quote}”</p>
+                </blockquote>
+
+                <div className="sera-testimonial-dishes">
+                  <small>Món thực khách đã gọi:</small>
+                  <div className="sera-testimonial-dish-chips">
+                    {testi.orderedDishes.map(dishName => {
+                      const matched = data.menuItems.find(
+                        m => m.name.toLocaleLowerCase('vi') === dishName.toLocaleLowerCase('vi'),
+                      )
+                      return matched ? (
+                        <button
+                          key={dishName}
+                          type="button"
+                          className="sera-testimonial-dish-chip is-clickable"
+                          onClick={() => navigate(`/menu/${encodeURIComponent(matched.id)}`)}
+                        >
+                          <UtensilsCrossed aria-hidden="true" /> {dishName}
+                        </button>
+                      ) : (
+                        <span key={dishName} className="sera-testimonial-dish-chip">
+                          <UtensilsCrossed aria-hidden="true" /> {dishName}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="sera-testimonial-author">
+                  <div className="sera-testimonial-avatar" aria-hidden="true">
+                    {testi.author.charAt(0)}
+                  </div>
+                  <div>
+                    <strong>{testi.author}</strong>
+                    <small>{testi.authorRole}</small>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
     </main>

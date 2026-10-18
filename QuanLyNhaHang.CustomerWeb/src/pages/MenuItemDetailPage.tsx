@@ -10,21 +10,26 @@ import {
   Flame,
   Info,
   Leaf,
+  MessageSquarePlus,
   Minus,
   Plus,
   QrCode,
   ShieldCheck,
   ShoppingBag,
   Sparkles,
+  Star,
+  ThumbsUp,
   Users,
   UtensilsCrossed,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import type { CustomerSiteBootstrap, PublicMenuItem } from '../services/customerSite'
 import {
+  addUserDishReview,
   type DishSizeOption,
   type DishSpiceOption,
   getCuratedDescription,
@@ -32,6 +37,7 @@ import {
   getDishModifierSchema,
   getDishNutritionalProfile,
   getDishPairings,
+  getDishRatingSummary,
   getFallbackDishImage,
   getFallbackImagePosition,
 } from '../utils/menuCatalog'
@@ -93,6 +99,20 @@ export default function MenuItemDetailPage({
   const [message, setMessage] = useState('')
   const [addedPairingId, setAddedPairingId] = useState<string | null>(null)
   const [comboAdded, setComboAdded] = useState(false)
+  const [reviewRefreshTick, setReviewRefreshTick] = useState(0)
+  const [reviewerName, setReviewerName] = useState('')
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewDiningType, setReviewDiningType] = useState<'Thực khách tại quán' | 'Đơn mang về'>(
+    'Thực khách tại quán',
+  )
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewSubmittedNotice, setReviewSubmittedNotice] = useState('')
+  const [likedReviewIds, setLikedReviewIds] = useState<string[]>([])
+
+  const ratingSummary = useMemo(
+    () => (item ? getDishRatingSummary(item, Math.max(0, itemIndex)) : null),
+    [item, itemIndex, reviewRefreshTick],
+  )
 
   useEffect(() => {
     if (!item || !modifierSchema) return
@@ -127,9 +147,10 @@ export default function MenuItemDetailPage({
     setQuantity(1)
     setMessage('')
     setComboAdded(false)
+    setReviewSubmittedNotice('')
   }, [item, modifierSchema])
 
-  if (!item || !modifierSchema || !nutritionalProfile) {
+  if (!item || !modifierSchema || !nutritionalProfile || !ratingSummary) {
     return (
       <main className="sera-detail" style={detailFontStyle}>
         <Button className="sera-detail-back" variant="ghost" onClick={() => navigate('/menu')}>
@@ -185,6 +206,29 @@ export default function MenuItemDetailPage({
   function toggleToppingOption(id: string) {
     setSelectedToppingIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id],
+    )
+  }
+
+  function handleSubmitReview(e: React.FormEvent) {
+    e.preventDefault()
+    if (!item || !reviewComment.trim()) return
+
+    addUserDishReview(item.id, {
+      author: reviewerName.trim() || 'Thực khách Sera',
+      rating: reviewRating,
+      diningType: reviewDiningType,
+      orderedVariant: `${activeSize.label} · ${activeSpice.label}`,
+      comment: reviewComment.trim(),
+    })
+    setReviewComment('')
+    setReviewSubmittedNotice(
+      'Cảm ơn bạn! Đánh giá của bạn đã được ghi nhận và hiển thị ngay bên dưới.',
+    )
+  }
+
+  function toggleHelpfulReview(reviewId: string) {
+    setLikedReviewIds(prev =>
+      prev.includes(reviewId) ? prev.filter(id => id !== reviewId) : [...prev, reviewId],
     )
   }
 
@@ -405,6 +449,36 @@ export default function MenuItemDetailPage({
           </div>
 
           <h1>{item.name}</h1>
+
+          <div className="sera-detail-rating-bar" aria-label="Xếp hạng và lượt gọi món ăn">
+            <div className="sera-detail-rating-score">
+              <span className="sera-detail-stars" aria-hidden="true">
+                ★★★★★
+              </span>
+              <strong>{ratingSummary.rating.toFixed(1)}</strong>
+              <span className="sera-detail-rating-max">/5</span>
+            </div>
+            <span className="sera-rating-dot">·</span>
+            <button
+              type="button"
+              className="sera-detail-rating-link"
+              onClick={() =>
+                document
+                  .getElementById('dish-reviews-section')
+                  ?.scrollIntoView({ behavior: 'smooth' })
+              }
+            >
+              {ratingSummary.reviewCount} đánh giá thực tế
+            </button>
+            <span className="sera-rating-dot">·</span>
+            <span className="sera-detail-order-stat">
+              🔥 <strong>{ratingSummary.orderCountLabel}</strong>
+            </span>
+            <span className="sera-detail-satisfaction-pill">
+              👍 {ratingSummary.satisfactionLabel}
+            </span>
+          </div>
+
           <p>{getCuratedDescription(item)}</p>
 
           <div className="sera-detail-price-row">
@@ -748,6 +822,180 @@ export default function MenuItemDetailPage({
           ) : null}
         </section>
       ) : null}
+
+      {/* Khối Đánh giá & Nhận xét thực tế cho từng món (Dish Social Proof & Reviews) */}
+      <section
+        id="dish-reviews-section"
+        className="sera-detail-reviews"
+        aria-label="Đánh giá và nhận xét từ thực khách"
+      >
+        <div className="sera-detail-reviews-head">
+          <div>
+            <p className="sera-kicker">Bằng chứng xã hội · Đánh giá xác thực</p>
+            <h2>Nhận xét thực tế về món {item.name}</h2>
+          </div>
+          <span className="sera-detail-reviews-verified-badge">
+            ✓ 100% Đánh giá từ khách đã gọi món tại bàn & đặt mang về
+          </span>
+        </div>
+
+        <div className="sera-detail-reviews-layout">
+          {/* Cột trái: Tổng quan điểm sao + Biểu đồ phân bổ + Form gửi đánh giá */}
+          <aside className="sera-detail-reviews-sidebar">
+            <div className="sera-rating-overview-box">
+              <div className="sera-rating-big-score">
+                <strong>{ratingSummary.rating.toFixed(1)}</strong>
+                <div>
+                  <div className="sera-detail-stars" aria-hidden="true">
+                    ★★★★★
+                  </div>
+                  <span>
+                    Dựa trên <strong>{ratingSummary.reviewCount}</strong> đánh giá &{' '}
+                    <strong>{ratingSummary.orderCountLabel}</strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="sera-rating-bars">
+                {ratingSummary.breakdown.map(row => (
+                  <div key={row.stars} className="sera-rating-bar-row">
+                    <span className="sera-rating-bar-label">{row.stars} ★</span>
+                    <div className="sera-rating-bar-track">
+                      <div
+                        className="sera-rating-bar-fill"
+                        style={{ width: `${row.percent}%` }}
+                      />
+                    </div>
+                    <span className="sera-rating-bar-pct">{row.percent}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <form className="sera-review-form" onSubmit={handleSubmitReview}>
+              <div className="sera-review-form-head">
+                <MessageSquarePlus className="size-4" />
+                <h3>Chia sẻ trải nghiệm của bạn về món này</h3>
+              </div>
+
+              <div className="sera-review-form-row">
+                <label htmlFor="reviewer-name-input">Tên hiển thị</label>
+                <Input
+                  id="reviewer-name-input"
+                  value={reviewerName}
+                  onChange={e => setReviewerName(e.target.value)}
+                  placeholder="Nhập tên của bạn (VD: Minh Anh)"
+                />
+              </div>
+
+              <div className="sera-review-form-split">
+                <div className="sera-review-form-row">
+                  <label>Mức xếp hạng</label>
+                  <div className="sera-star-picker" role="radiogroup" aria-label="Chọn số sao">
+                    {[5, 4, 3, 2, 1].map(star => (
+                      <button
+                        key={star}
+                        type="button"
+                        className={`sera-star-pick-btn ${reviewRating === star ? 'is-active' : ''}`}
+                        onClick={() => setReviewRating(star)}
+                      >
+                        {star} ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="sera-review-form-row">
+                  <label htmlFor="review-dining-type">Hình thức dùng bữa</label>
+                  <select
+                    id="review-dining-type"
+                    className="sera-review-select"
+                    value={reviewDiningType}
+                    onChange={e =>
+                      setReviewDiningType(
+                        e.target.value as 'Thực khách tại quán' | 'Đơn mang về',
+                      )
+                    }
+                  >
+                    <option value="Thực khách tại quán">Dùng tại bàn (Thực khách tại quán)</option>
+                    <option value="Đơn mang về">Đặt mang về (Đơn mang về)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="sera-review-form-row">
+                <label htmlFor="review-comment-input">Cảm nhận về hương vị & phục vụ</label>
+                <Textarea
+                  id="review-comment-input"
+                  rows={3}
+                  value={reviewComment}
+                  onChange={e => setReviewComment(e.target.value)}
+                  placeholder={`Món ${item.name} có hợp khẩu vị của bạn không? Hãy chia sẻ cảm nhận...`}
+                  required
+                />
+              </div>
+
+              <Button type="submit" className="w-full">
+                <Star className="size-4" /> Gửi đánh giá món ăn
+              </Button>
+
+              {reviewSubmittedNotice ? (
+                <p className="sera-review-submitted-msg">{reviewSubmittedNotice}</p>
+              ) : null}
+            </form>
+          </aside>
+
+          {/* Cột phải: Danh sách bình luận thực tế của khách hàng */}
+          <div className="sera-detail-reviews-list">
+            {ratingSummary.reviews.map(rev => {
+              const isLiked = likedReviewIds.includes(rev.id)
+              return (
+                <article key={rev.id} className="sera-dish-review-card">
+                  <div className="sera-dish-review-top">
+                    <div className="sera-dish-reviewer">
+                      <span className="sera-dish-reviewer-avatar">
+                        {rev.author.charAt(0).toUpperCase()}
+                      </span>
+                      <div>
+                        <strong>{rev.author}</strong>
+                        <small>
+                          {rev.roleLabel} · {rev.platform}
+                        </small>
+                      </div>
+                    </div>
+                    <div className="sera-dish-review-meta">
+                      <span className="sera-dish-review-stars" aria-label={`${rev.rating} trên 5 sao`}>
+                        {'★'.repeat(rev.rating)}
+                        {'☆'.repeat(Math.max(0, 5 - rev.rating))}
+                      </span>
+                      <time>{rev.dateLabel}</time>
+                    </div>
+                  </div>
+
+                  {rev.orderedVariant ? (
+                    <div className="sera-dish-review-ordered">
+                      <span>Tùy chọn đã gọi:</span> <strong>{rev.orderedVariant}</strong>
+                    </div>
+                  ) : null}
+
+                  <p className="sera-dish-review-comment">{rev.comment}</p>
+
+                  <div className="sera-dish-review-footer">
+                    <span className="sera-verified-order-pill">✓ Đã xác thực đơn hàng</span>
+                    <button
+                      type="button"
+                      className={`sera-helpful-btn ${isLiked ? 'is-liked' : ''}`}
+                      onClick={() => toggleHelpfulReview(rev.id)}
+                    >
+                      <ThumbsUp className="size-3.5" /> Hữu ích ({rev.helpfulCount + (isLiked ? 1 : 0)})
+                    </button>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        </div>
+      </section>
     </main>
   )
 }
