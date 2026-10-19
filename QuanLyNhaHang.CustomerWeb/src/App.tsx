@@ -79,8 +79,8 @@ function CustomerApplication({ pathname, routeKey }: { pathname: string; routeKe
         ? menuItemName || 'Chi tiết món'
         : pathname === '/menu'
           ? 'Thực đơn'
-          : pathname === '/takeaway' || pathname === '/delivery'
-            ? 'Giao hàng & Đặt món mang về'
+          : pathname === '/takeaway'
+            ? 'Đặt món mang về'
             : pathname === '/reservation'
               ? 'Đặt bàn'
               : pathname === '/payment-result'
@@ -98,7 +98,7 @@ function CustomerApplication({ pathname, routeKey }: { pathname: string; routeKe
   }, [data.menuItems, data.restaurant?.restaurantName, menuItemId, pathname])
 
   const qrToken = getQrToken(pathname)
-  const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/delivery' || pathname === '/reservation' || Boolean(menuItemId)
+  const isPublicDataRoute = pathname === '/' || pathname === '/menu' || pathname === '/takeaway' || pathname === '/reservation' || Boolean(menuItemId)
 
   function content() {
     if (pathname === '/payment-result') return <PaymentResultPage session={session} />
@@ -114,7 +114,7 @@ function CustomerApplication({ pathname, routeKey }: { pathname: string; routeKe
     if (pathname === '/') return <HomePage data={data} />
     if (pathname === '/menu') return <MenuPage data={data} />
     if (menuItemId) return <MenuItemDetailPage data={data} itemId={menuItemId} />
-    if (pathname === '/takeaway' || pathname === '/delivery') return <TakeawayPage data={data} session={session} />
+    if (pathname === '/takeaway') return <TakeawayPage data={data} session={session} />
     if (pathname === '/reservation') return <ReservationPage data={data} session={session} />
     if (pathname === '/orders') return <OrdersPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />
     if (pathname === '/account' || pathname === '/login') return <AccountPage session={session} initialMessage={sessionMessage} onSessionChanged={handleSessionChanged} />

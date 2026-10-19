@@ -29,7 +29,6 @@ import {
 } from '../services/qrOrders'
 import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
-import heroImage from '../assets/hero-vietnamese-table.webp'
 import { navigate } from '../utils/navigation'
 
 type Cart = Record<string, number>
@@ -298,13 +297,24 @@ export default function QrOrderPage({ token, session }: { token: string; session
               <div className="border-b border-border">
                 {filteredItems.map(item => {
                   const quantity = cart[item.id] || 0
+                  const imageUrl = item.imageUrl?.trim() || null
+                  const description = item.description?.trim() || null
                   return (
                     <article className="grid min-h-36 grid-cols-[112px_minmax(0,1fr)_auto] items-center gap-5 border-t border-border py-5 max-sm:grid-cols-[84px_minmax(0,1fr)]" key={item.id}>
-                      <img src={item.imageUrl || heroImage} className="size-28 object-cover max-sm:size-[84px]" alt={item.name} />
+                      {imageUrl ? (
+                        <img src={imageUrl} className="size-28 object-cover max-sm:size-[84px]" alt={item.name} />
+                      ) : (
+                        <div className="sera-dish-media-placeholder is-thumb size-28 max-sm:size-[84px]" aria-label="Chưa có ảnh món ăn">
+                          <Utensils aria-hidden="true" />
+                          <small>Chưa có ảnh</small>
+                        </div>
+                      )}
                       <div>
                         <small className="sera-kicker">{item.menuCategoryName}</small>
                         <h2 className="mt-1 font-heading text-3xl font-medium leading-none max-sm:text-2xl">{item.name}</h2>
-                        <p className="mt-2 max-w-xl text-xs leading-5 text-muted-foreground max-sm:hidden">{item.description || 'Món ăn được chuẩn bị tươi mới trong ngày.'}</p>
+                        {description ? (
+                          <p className="mt-2 max-w-xl text-xs leading-5 text-muted-foreground max-sm:hidden">{description}</p>
+                        ) : null}
                         <strong className="mt-3 block text-sm">{formatMoney(item.price)}</strong>
                       </div>
                       <div className="sera-qty max-sm:col-start-2">
