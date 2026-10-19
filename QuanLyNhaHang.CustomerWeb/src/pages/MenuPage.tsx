@@ -209,8 +209,7 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
                 setPage(1)
               }}
             >
-              <option value="default">Đề xuất của nhà hàng</option>
-              <option value="rating-desc">Đánh giá cao & Gọi nhiều nhất</option>
+              <option value="default">Thứ tự mặc định</option>
               <option value="name">Tên món A – Z</option>
               <option value="price-asc">Giá thấp → cao</option>
               <option value="price-desc">Giá cao → thấp</option>

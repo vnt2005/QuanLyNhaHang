@@ -238,38 +238,7 @@ function currency(value: number, code = 'VND') {
 }
 
 function getCuratedDescription(item: PublicMenuItem) {
-  if (item.description && item.description.trim().length > 0) {
-    return item.description
-  }
-  const nameLower = item.name.toLocaleLowerCase('vi')
-  if (nameLower.includes('cá hồi')) {
-    return 'Phi lê cá hồi tươi áp chảo lửa vừa, giữ trọn vị béo mềm tự nhiên, dùng kèm xốt thảo mộc và rau mùa theo ngày.'
-  }
-  if (nameLower.includes('chả giò')) {
-    return 'Cuốn thủ công giòn rụm với nhân tôm thịt, nấm mèo và miến dong, chấm cùng nước mắm chua ngọt pha tỏi ớt tươi.'
-  }
-  if (nameLower.includes('gỏi gà')) {
-    return 'Thịt gà thả vườn xé phay trộn cùng bắp cải giòn, rau răm, hành tím phi thơm và nước xốt chanh tắc thanh dịu.'
-  }
-  if (nameLower.includes('lẩu bò')) {
-    return 'Nước dùng xương bò ninh chậm 8 giờ dậy hương sả, quế hồi, phục vụ kèm thịt bò tươi thái lát và rổ rau xanh tại bàn.'
-  }
-  if (nameLower.includes('lẩu dê')) {
-    return 'Thịt dê tươi hầm mềm cùng thảo mộc ôn ấm, vị ngọt hậu đậm đà, thích hợp cho bữa tối quây quần bên gia đình.'
-  }
-  if (nameLower.includes('súp')) {
-    return 'Súp nóng nấu sánh mịn từ nước dùng gà và nguyên liệu tươi trong ngày, mở đầu bữa ăn nhẹ nhàng và ấm bụng.'
-  }
-  if (nameLower.includes('canh chua')) {
-    return 'Vị chua thanh tự nhiên từ me chín kết hợp bạc hà, đậu bắp, cà chua và thơm, điểm thêm ngò gai thơm nồng.'
-  }
-  if (nameLower.includes('vi cá')) {
-    return 'Món phụ bổ dưỡng chế biến công phu với nước dùng trong vắt, ngọt thanh, giữ trọn kết cấu mềm mượt đặc trưng.'
-  }
-  if (nameLower.includes('nho')) {
-    return 'Trái cây tươi tuyển chọn trong ngày, ướp lạnh vừa đủ để khép lại bữa ăn bằng vị ngọt mát tự nhiên.'
-  }
-  return 'Món ăn được bếp chuẩn bị tươi mới trong ngày từ nguyên liệu tuyển chọn tại Nha Trang.'
+  return item.description || ''
 }
 
 export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {

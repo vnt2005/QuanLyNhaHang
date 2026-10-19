@@ -100,26 +100,26 @@ const POLICY_DOCUMENTS: Record<PolicyDocId, PolicyDocument> = {
   },
   'delivery-terms': {
     id: 'delivery-terms',
-    badge: 'Vận chuyển & Giữ nhiệt Chuẩn nhà hàng',
-    title: 'Chính sách Giao hàng tận nơi & Đặt bàn',
+    badge: 'Đóng gói & Giữ nhiệt Chuẩn nhà hàng',
+    title: 'Chính sách Đặt món mang về & Đặt bàn',
     subtitle:
-      'Đảm bảo món ăn giữ nguyên độ nóng và hương vị khi tới cửa nhà, khách sạn hoặc văn phòng của bạn tại Nha Trang.',
-    codeLabel: 'Phạm vi: Toàn TP. Nha Trang (Bán kính 10 km)',
-    issuedBy: 'Đội ngũ giao nhận chuyên trách & Đối tác vận chuyển',
+      'Đảm bảo món ăn giữ nguyên độ nóng và hương vị khi quý khách đến nhận món tại quầy.',
+    codeLabel: 'Hình thức: Nhận món tại quầy (Takeaway) & Tại bàn',
+    issuedBy: 'Bộ phận Bếp & Điều phối dịch vụ nhà hàng',
     sections: [
       {
-        heading: '1. Biểu phí vận chuyển & Ưu đãi Freeship',
+        heading: '1. Quy định chuẩn bị & Nhận món mang về',
         items: [
-          'Khoảng cách được tính minh bạch từ Bếp trung tâm (Lộc Thọ, Nha Trang): ≤ 2 km (15.000 ₫), 2 – 3.5 km (22.000 ₫), 3.5 – 5.5 km (30.000 ₫), > 5.5 km (38.000 ₫).',
-          'Miễn phí giao hàng tiêu chuẩn (hỗ trợ tối đa 30.000 ₫ phí ship) cho mọi đơn hàng có giá trị món ăn từ 300.000 ₫ trở lên.',
-          'Tùy chọn "Giao nhanh ưu tiên (+10.000 ₫)": Tài xế nhận món và đi thẳng 1 điểm duy nhất, không ghép đơn, sử dụng túi giữ nhiệt 2 lớp chuyên dụng.',
+          'Quý khách chọn giờ nhận món mong muốn khi đặt đơn trên website. Bếp sẽ canh thời gian chuẩn bị để món vừa chín tới khi khách đến.',
+          'Món ăn được đóng gói kỹ lưỡng bằng bao bì giấy và hộp giữ nhiệt, nước canh / xốt được tách riêng.',
+          'Vui lòng cung cấp đúng số điện thoại và mã đơn hàng khi đến quầy lễ tân nhận món.',
         ],
       },
       {
-        heading: '2. Quy định Đặt bàn trước & Phòng VIP',
+        heading: '2. Quy định Đặt bàn trước & Giữ chỗ',
         items: [
-          'Đặt bàn trực tuyến hoàn toàn miễn phí đặt cọc đối với bàn tiêu chuẩn từ 1 – 8 khách.',
-          'Nhà hàng giữ bàn tối đa 15 phút so với giờ hẹn. Nếu quý khách đến trễ hơn, vui lòng nhắn qua Zalo hoặc gọi Hotline để nhà hàng tiếp tục giữ vị trí bàn đẹp.',
+          'Đặt bàn trực tuyến thuận tiện, hỗ trợ chọn khu vực và số lượng khách.',
+          'Nhà hàng giữ bàn tối đa 15 phút so với giờ hẹn. Nếu quý khách đến trễ hơn, vui lòng gọi Hotline để nhà hàng hỗ trợ giữ vị trí bàn tốt nhất.',
         ],
       },
     ],
@@ -392,9 +392,6 @@ export default function SiteFooter({
           <a href="/menu" onClick={event => follow(event, '/menu')}>
             Thực đơn nhà hàng
           </a>
-          <a href="/delivery" onClick={event => follow(event, '/delivery')}>
-            Giao hàng tận nơi (Delivery)
-          </a>
           <a href="/takeaway" onClick={event => follow(event, '/takeaway')}>
             Đặt mang về (Takeaway)
           </a>
@@ -437,7 +434,7 @@ export default function SiteFooter({
             onClick={() => setActivePolicyId('delivery-terms')}
           >
             <Truck aria-hidden="true" />
-            <span>Chính sách Giao hàng & Giữ chỗ</span>
+            <span>Chính sách Mang về & Giữ chỗ</span>
           </button>
           <button
             type="button"
