@@ -15,6 +15,7 @@ import {
   type CustomerSession,
 } from '../services/customerAuth'
 import { navigate } from '../utils/navigation'
+import { dispatchTakeawayCartChanged } from '../utils/takeawayCart'
 
 type CustomerSessionContextValue = {
   handleSessionChanged: (session: CustomerSession | null) => void
@@ -119,6 +120,7 @@ export function CustomerSessionProvider({
   const handleSessionChanged = useCallback((nextSession: CustomerSession | null) => {
     setSession(nextSession)
     setSessionMessage('')
+    dispatchTakeawayCartChanged()
     if (!nextSession) return
 
     localStorage.removeItem('customerReturnPath')

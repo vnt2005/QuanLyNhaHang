@@ -1,13 +1,19 @@
 import {
   CheckCircle2,
   Clock3,
+  Flame,
+  Info,
   MapPin,
   Minus,
+  PackageCheck,
   PackageOpen,
   Plus,
   ShoppingBag,
+  Sparkles,
   Store,
+  Trash2,
   UserRound,
+  UtensilsCrossed,
   XCircle,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
@@ -20,6 +26,7 @@ import { cancelCustomerOrder } from '../services/customerOrders'
 import {
   createTakeawayOrder,
   type CustomerSiteBootstrap,
+  type PublicMenuItem,
   type TakeawayOrderResult,
 } from '../services/customerSite'
 import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
@@ -27,6 +34,7 @@ import PayOnlineButton from '../components/PayOnlineButton'
 import { getFallbackDishImage, getFallbackImagePosition } from '../utils/menuCatalog'
 import { navigate } from '../utils/navigation'
 import {
+  addTakeawayItem,
   clearTakeawayCart,
   MAX_TAKEAWAY_CART_QUANTITY,
   MAX_TAKEAWAY_ITEM_QUANTITY,
@@ -34,6 +42,7 @@ import {
   readTakeawayNotes,
   setTakeawayItemNote,
   setTakeawayItemQuantity,
+  TAKEAWAY_CART_EVENT,
   type TakeawayCart,
   type TakeawayNotesMap,
 } from '../utils/takeawayCart'
@@ -113,6 +122,20 @@ export default function TakeawayPage({
   const [result, setResult] = useState<TakeawayOrderResult | null>(null)
 
   useEffect(() => {
+    const updateCartFromStorage = () => {
+      setCart(readTakeawayCart())
+      setItemNotes(readTakeawayNotes())
+    }
+    updateCartFromStorage()
+    window.addEventListener(TAKEAWAY_CART_EVENT, updateCartFromStorage)
+    window.addEventListener('storage', updateCartFromStorage)
+    return () => {
+      window.removeEventListener(TAKEAWAY_CART_EVENT, updateCartFromStorage)
+      window.removeEventListener('storage', updateCartFromStorage)
+    }
+  }, [session?.userId])
+
+  useEffect(() => {
     if (!session) return
     const sessionName = [session.ho, session.ten].filter(Boolean).join(' ')
     setCustomerName(current => current || sessionName)
@@ -137,6 +160,26 @@ export default function TakeawayPage({
     (sum, line) => sum + line.item.price * line.quantity,
     0,
   )
+
+  const recommendedDishes = useMemo<PublicMenuItem[]>(() => {
+    const cartIds = new Set(lines.map(l => l.item.id))
+    return data.menuItems
+      .filter(item => item.isAvailable && !cartIds.has(item.id))
+      .slice(0, 4)
+  }, [data.menuItems, lines])
+
+  const quickAddSides = useMemo<PublicMenuItem[]>(() => {
+    const cartIds = new Set(lines.map(l => l.item.id))
+    return data.menuItems
+      .filter(item => item.isAvailable && !cartIds.has(item.id))
+      .slice(0, 6)
+  }, [data.menuItems, lines])
+
+  function handleQuickAdd(item: PublicMenuItem) {
+    addTakeawayItem(item.id, 1)
+    setCart(readTakeawayCart())
+    setItemNotes(readTakeawayNotes())
+  }
 
   function changeQuantity(menuItemId: string, quantity: number) {
     setCart(setTakeawayItemQuantity(menuItemId, quantity))
@@ -403,8 +446,32 @@ export default function TakeawayPage({
           onSubmit={submit}
           className="mt-10 grid gap-12 lg:grid-cols-[1.2fr_.8fr]"
         >
-          {/* CỘT TRÁI: DANH SÁCH MÓN ĐÃ CHỌN */}
+          {/* CỘT TRÁI: DANH SÁCH MÓN ĐÃ CHỌN + CAM KẾT ĐÓNG GÓI + GỢI Ý THÊM NHANH */}
           <div className="grid gap-10 content-start">
+            {/* Banner ưu đãi & cam kết mang về */}
+            <div className="sera-freeship-banner">
+              <div className="sera-freeship-top">
+                <div className="sera-freeship-title">
+                  <PackageCheck className="size-5 text-accent" />
+                  <div>
+                    <strong className="block text-sm text-foreground">
+                      Chuẩn bị đóng gói chuyên dụng · Miễn phí hộp giữ nhiệt
+                    </strong>
+                    <span className="text-xs text-muted-foreground">
+                      Bếp đóng gói hộp 2 lớp cao cấp, tách riêng xốt chấm và rau tươi để món luôn nóng sốt chuẩn vị khi bạn ghé nhận.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="sera-link text-xs shrink-0"
+                  onClick={() => navigate('/menu')}
+                >
+                  + Mở thực đơn
+                </button>
+              </div>
+            </div>
+
             <div>
               <div className="flex items-end justify-between border-b border-border pb-4">
                 <div>
@@ -465,7 +532,7 @@ export default function TakeawayPage({
                             changeQuantity(item.id, quantity - 1)
                           }
                         >
-                          <Minus />
+                          {quantity === 1 ? <Trash2 className="size-3.5 text-muted-foreground" /> : <Minus />}
                         </Button>
                         <strong>{quantity}</strong>
                         <Button
@@ -491,6 +558,72 @@ export default function TakeawayPage({
                 ))}
               </div>
             </div>
+
+            {/* Khối gợi ý thêm món nhẹ / nước uống kèm trong cột trái */}
+            {quickAddSides.length > 0 ? (
+              <section className="sera-panel" aria-label="Gợi ý thêm món vào giỏ mang về">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="sera-kicker">Gợi ý thêm món</p>
+                    <h3 className="mt-1 font-heading text-xl">Thêm món ăn kèm hoặc giải khát</h3>
+                  </div>
+                  <Sparkles className="size-5 text-accent" />
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {quickAddSides.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-3 border border-border p-3 transition hover:border-accent"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={item.imageUrl || getFallbackDishImage(item, idx)}
+                          alt={item.name}
+                          className="size-12 shrink-0 object-cover"
+                        />
+                        <div className="min-w-0 truncate">
+                          <strong className="block text-sm truncate">{item.name}</strong>
+                          <span className="text-xs text-muted-foreground">
+                            {money(item.price, currencyCode)}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        className="shrink-0 text-xs"
+                        onClick={() => handleQuickAdd(item)}
+                      >
+                        <Plus className="size-3.5 mr-1" /> Thêm
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {/* Thông tin quy trình chuẩn bị tại quầy */}
+            <section className="border border-border p-5 text-sm">
+              <div className="flex items-center gap-2 font-medium text-foreground">
+                <Store className="size-4 text-accent" />
+                <span>Quy trình nhận món mang về chu đáo</span>
+              </div>
+              <ul className="mt-3 grid gap-2 text-xs text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-accent">1.</span>
+                  <span>Bếp tiếp nhận đơn hàng, chuẩn bị nguyên liệu tươi và chế biến đúng thời gian bạn đã chọn.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-accent">2.</span>
+                  <span>Món được đóng gói kín trong hộp giữ nhiệt thân thiện môi trường, kèm theo gia vị, đồ dùng dùng bữa tiện lợi.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-accent">3.</span>
+                  <span>Bạn đến quầy thu ngân của nhà hàng, đọc mã đơn hàng hoặc số điện thoại để nhận món nóng sốt mang đi ngay mà không cần chờ đợi.</span>
+                </li>
+              </ul>
+            </section>
           </div>
 
           {/* CỘT PHẢI: THÔNG TIN NHẬN MÓN & LIÊN HỆ */}
@@ -606,6 +739,71 @@ export default function TakeawayPage({
           </aside>
         </form>
       )}
+
+      {/* GỢI Ý MÓN NGON GẦN FOOTER */}
+      {recommendedDishes.length > 0 ? (
+        <section className="sera-detail-pairings mt-20" aria-label="Gợi ý món ngon từ Bếp">
+          <div className="sera-detail-pairings-head">
+            <div>
+              <p className="sera-kicker">Gợi ý từ Bếp trưởng · Đậm đà phong vị</p>
+              <h2 className="font-heading text-3xl md:text-4xl">Có thể bạn sẽ thích</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Các món ngon đặc sắc được thực khách yêu thích và lựa chọn nhiều nhất khi dùng bữa hoặc mang về thưởng thức.
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {recommendedDishes.map((item, idx) => (
+              <article
+                key={item.id}
+                className="group flex flex-col border border-border bg-card transition hover:border-accent"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                  <img
+                    src={item.imageUrl || getFallbackDishImage(item, idx)}
+                    alt={item.name}
+                    style={{
+                      objectPosition: getFallbackImagePosition(item, idx),
+                    }}
+                    className="size-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                  <span className="absolute top-2 left-2 bg-background/90 px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm">
+                    {item.menuCategoryName}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-4">
+                  <div>
+                    <h3 className="font-heading text-lg font-medium">
+                      <button
+                        type="button"
+                        className="text-left hover:text-accent transition"
+                        onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
+                      >
+                        {item.name}
+                      </button>
+                    </h3>
+                    <p className="mt-1 font-semibold text-accent">
+                      {money(item.price, currencyCode)}
+                    </p>
+                  </div>
+                  <div className="mt-4 flex items-center gap-2 pt-3 border-t border-border">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs"
+                      type="button"
+                      onClick={() => handleQuickAdd(item)}
+                    >
+                      <Plus className="size-3.5 mr-1" /> Thêm vào đơn
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   )
 }
