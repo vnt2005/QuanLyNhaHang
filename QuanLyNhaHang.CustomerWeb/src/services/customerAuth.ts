@@ -1,5 +1,5 @@
 import { clearCustomerQrAccess } from '../utils/customerQrAccess'
-import { clearTakeawayCart } from '../utils/takeawayCart'
+import { clearGuestTakeawayCart, clearTakeawayCart, dispatchTakeawayCartChanged } from '../utils/takeawayCart'
 import { ApiError, apiRequest } from './client'
 
 const ACCESS_TOKEN_KEY = 'customerAccessToken'
@@ -86,6 +86,7 @@ async function rejectEmployeeSession(result: CustomerAuthResult) {
 }
 
 function saveSession(session: CustomerSession) {
+  clearGuestTakeawayCart()
   sessionStorage.setItem(ACCESS_TOKEN_KEY, session.token)
   sessionStorage.setItem(REFRESH_TOKEN_KEY, session.refreshToken)
   removeLegacyPersistentSession()
@@ -127,6 +128,7 @@ function toSession(result: CustomerAuthResult) {
     refreshTokenExpiresAt: result.refreshTokenExpiresAt,
   }
   saveSession(session)
+  dispatchTakeawayCartChanged()
   return session
 }
 
@@ -164,7 +166,8 @@ export function clearCustomerSession() {
 }
 
 function clearCustomerLogoutState() {
-  clearTakeawayCart()
+  clearGuestTakeawayCart()
+  dispatchTakeawayCartChanged()
   clearCustomerQrAccess()
   sessionStorage.removeItem('customerReturnPath')
   sessionStorage.removeItem('customerPaymentAttemptAccess')

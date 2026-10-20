@@ -34,6 +34,7 @@ import {
   readTakeawayNotes,
   setTakeawayItemNote,
   setTakeawayItemQuantity,
+  TAKEAWAY_CART_EVENT,
   type TakeawayCart,
   type TakeawayNotesMap,
 } from '../utils/takeawayCart'
@@ -111,6 +112,20 @@ export default function TakeawayPage({
   const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<TakeawayOrderResult | null>(null)
+
+  useEffect(() => {
+    const updateCartFromStorage = () => {
+      setCart(readTakeawayCart())
+      setItemNotes(readTakeawayNotes())
+    }
+    updateCartFromStorage()
+    window.addEventListener(TAKEAWAY_CART_EVENT, updateCartFromStorage)
+    window.addEventListener('storage', updateCartFromStorage)
+    return () => {
+      window.removeEventListener(TAKEAWAY_CART_EVENT, updateCartFromStorage)
+      window.removeEventListener('storage', updateCartFromStorage)
+    }
+  }, [session?.userId])
 
   useEffect(() => {
     if (!session) return
