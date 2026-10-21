@@ -166,10 +166,43 @@ export default function AuthPanel({
           ) : null}
 
           {mode === 'login' || mode === 'register' || mode === 'reset' ? (
-            <label className="grid gap-2 text-[10px] font-semibold tracking-[0.14em] uppercase">
-              <span className="flex items-center justify-between gap-4"><span>{mode === 'reset' ? 'Mật khẩu mới *' : 'Mật khẩu *'}</span>{mode === 'login' ? <button className="text-[10px] normal-case tracking-normal text-muted-foreground underline underline-offset-4" type="button" onClick={() => move('forgot')}>Quên mật khẩu?</button> : null}</span>
-              <div className="relative"><KeyRound className="absolute left-0 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input type={showPassword ? 'text' : 'password'} value={password} onChange={event => setPassword(event.target.value)} required minLength={8} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder={mode === 'login' ? 'Nhập mật khẩu' : 'Tối thiểu 8 ký tự'} className="border-x-0 border-t-0 px-7 normal-case tracking-normal shadow-none" /><button className="absolute right-0 top-1/2 grid size-8 -translate-y-1/2 place-items-center text-muted-foreground" type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}>{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></div>
-            </label>
+            <div className="grid gap-2">
+              <label className="grid gap-2 text-[10px] font-semibold tracking-[0.14em] uppercase">
+                <span>{mode === 'reset' ? 'Mật khẩu mới *' : 'Mật khẩu *'}</span>
+                <div className="relative">
+                  <KeyRound className="absolute left-0 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={event => setPassword(event.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    placeholder={mode === 'login' ? 'Nhập mật khẩu' : 'Tối thiểu 8 ký tự'}
+                    className="border-x-0 border-t-0 px-7 normal-case tracking-normal shadow-none"
+                  />
+                  <button
+                    className="absolute right-0 top-1/2 grid size-8 -translate-y-1/2 place-items-center text-muted-foreground"
+                    type="button"
+                    onClick={() => setShowPassword(value => !value)}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </label>
+              {mode === 'login' ? (
+                <div className="flex justify-end">
+                  <button
+                    className="text-xs normal-case tracking-normal text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+                    type="button"
+                    onClick={() => move('forgot')}
+                  >
+                    Quên mật khẩu?
+                  </button>
+                </div>
+              ) : null}
+            </div>
           ) : null}
 
           <Button className="mt-1 w-full" disabled={busy}>{busy ? 'Đang xử lý…' : submitLabel}</Button>
