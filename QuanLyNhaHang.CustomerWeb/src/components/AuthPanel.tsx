@@ -104,9 +104,9 @@ export default function AuthPanel({
     }
   }
 
-  const titles: Record<Mode, { eyebrow: string; title: string; description: string }> = {
-    login: { eyebrow: 'Chào mừng trở lại', title: 'Đăng nhập', description: 'Theo dõi đơn hàng và quản lý tài khoản khách hàng thuận tiện hơn.' },
-    register: { eyebrow: 'Thành viên mới', title: 'Tạo tài khoản', description: 'Lưu đơn và theo dõi những lần ghé nhà hàng trên cùng một tài khoản.' },
+  const titles: Record<Mode, { eyebrow: string; title: string; description?: string }> = {
+    login: { eyebrow: 'Chào mừng trở lại', title: 'Đăng nhập' },
+    register: { eyebrow: 'Thành viên mới', title: 'Tạo tài khoản' },
     verify: { eyebrow: 'Xác minh', title: 'Kiểm tra email', description: `Nhập mã đã gửi đến ${email || 'email của bạn'}.` },
     twoFactor: { eyebrow: 'Bảo mật', title: 'Xác thực đăng nhập', description: `Nhập mã bảo mật đã gửi đến ${email || 'email của bạn'}.` },
     forgot: { eyebrow: 'Khôi phục', title: 'Quên mật khẩu', description: 'Nhập email để nhận mã đặt lại mật khẩu.' },
@@ -131,7 +131,9 @@ export default function AuthPanel({
       <header className="border-b border-border pb-7 pr-10">
         <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">{content.eyebrow}</p>
         <h1 className="mt-2 font-heading text-5xl leading-none tracking-[-0.045em]">{content.title}</h1>
-        <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">{content.description}</p>
+        {content.description ? (
+          <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">{content.description}</p>
+        ) : null}
 
         {showAuthTabs ? (
           <div className="mt-7 flex gap-7 border-b border-border" role="tablist" aria-label="Chọn đăng nhập hoặc đăng ký">
