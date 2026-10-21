@@ -434,7 +434,7 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
                         <Clock3 /> {profile.prepTime}
                       </span>
                       <span className="sera-menu-meta-pill">
-                        <SlidersHorizontal /> Tùy chọn cỡ · Độ cay · Topping
+                        <SlidersHorizontal /> Tùy chọn khẩu vị · Độ cay
                       </span>
                     </div>
 
@@ -463,7 +463,7 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
                   <div className="sera-menu-item-side">
                     <div className="text-right">
                       <strong>{currency(item.price, currencyCode)}</strong>
-                      <small className="sera-menu-price-hint">Giá cỡ tiêu chuẩn</small>
+                      <small className="sera-menu-price-hint">Đơn giá niêm yết</small>
                     </div>
                     <div className="sera-menu-item-actions">
                       <Button
