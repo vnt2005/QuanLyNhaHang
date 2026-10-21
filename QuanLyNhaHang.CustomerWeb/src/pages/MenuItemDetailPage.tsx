@@ -30,7 +30,6 @@ import { Textarea } from '@/components/ui/textarea'
 import type { CustomerSiteBootstrap, PublicMenuItem } from '../services/customerSite'
 import {
   addUserDishReview,
-  type DishSizeOption,
   type DishSpiceOption,
   getCuratedDescription,
   getDishBadges,
@@ -90,7 +89,6 @@ export default function MenuItemDetailPage({
   )
 
   const [quantity, setQuantity] = useState(1)
-  const [selectedSizeId, setSelectedSizeId] = useState<DishSizeOption['id']>('small')
   const [selectedSpiceId, setSelectedSpiceId] = useState<DishSpiceOption['id']>('mild')
   const [selectedPrepIds, setSelectedPrepIds] = useState<string[]>([])
   const [customNote, setCustomNote] = useState('')
@@ -118,7 +116,6 @@ export default function MenuItemDetailPage({
     if (savedNote) {
       setCustomNote(savedNote)
     } else {
-      setSelectedSizeId(modifierSchema.defaultSizeId)
       setSelectedSpiceId(modifierSchema.defaultSpiceId)
       setSelectedPrepIds([])
       setCustomNote('')
@@ -146,8 +143,6 @@ export default function MenuItemDetailPage({
     )
   }
 
-  const activeSize =
-    modifierSchema.sizes.find(s => s.id === selectedSizeId) || modifierSchema.sizes[0]
   const activeSpice =
     modifierSchema.spiceLevels.find(s => s.id === selectedSpiceId) ||
     modifierSchema.spiceLevels[0]
@@ -155,12 +150,10 @@ export default function MenuItemDetailPage({
     selectedPrepIds.includes(opt.id),
   )
 
-  const extraUnitPrice = activeSize.priceDelta
-  const effectiveUnitPrice = item.price + extraUnitPrice
+  const effectiveUnitPrice = item.price
   const totalEstimatedPrice = effectiveUnitPrice * quantity
 
   const customizationSummaryParts = [
-    `Cỡ: ${activeSize.label}`,
     `Độ cay: ${activeSpice.label}`,
     ...(activePreps.length > 0
       ? [`Yêu cầu: ${activePreps.map(p => p.label).join(', ')}`]
@@ -184,7 +177,7 @@ export default function MenuItemDetailPage({
       author: reviewerName.trim() || 'Thực khách Sera',
       rating: reviewRating,
       diningType: reviewDiningType,
-      orderedVariant: `${activeSize.label} · ${activeSpice.label}`,
+      orderedVariant: activeSpice.label,
       comment: reviewComment.trim(),
     })
     setReviewComment('')
@@ -204,7 +197,7 @@ export default function MenuItemDetailPage({
     const cart = addTakeawayItem(item!.id, quantity, customizationSummaryText || undefined)
     const quantityInCart = cart[item!.id] || 0
     setMessage(
-      `Đã lưu tùy chọn (${activeSize.label}, ${activeSpice.label}) · Giỏ mang về hiện có ${quantityInCart} phần ${item!.name}.`,
+      `Đã lưu tùy chọn (${activeSpice.label}) · Giỏ mang về hiện có ${quantityInCart} phần ${item!.name}.`,
     )
     if (goToCart) navigate('/takeaway')
   }
@@ -433,64 +426,20 @@ export default function MenuItemDetailPage({
 
           <div className="sera-detail-price-row">
             <div>
-              <small className="sera-price-caption">Đơn giá theo tùy chọn hiện tại</small>
+              <small className="sera-price-caption">Đơn giá món ăn</small>
               <strong className="sera-detail-price">
                 {currency(effectiveUnitPrice, currencyCode)}
               </strong>
             </div>
-            {extraUnitPrice > 0 ? (
-              <span className="sera-price-delta-badge">
-                Giá gốc {currency(item.price, currencyCode)} + Tùy chọn{' '}
-                {currency(extraUnitPrice, currencyCode)}
-              </span>
-            ) : (
-              <span className="sera-price-delta-badge">Cỡ tiêu chuẩn · Không phụ thu</span>
-            )}
           </div>
 
           {item.isAvailable ? (
             <div className="sera-detail-order">
-              {/* 1. Chọn Size / Khẩu phần */}
+              {/* 1. Chọn Mức độ cay */}
               <div className="sera-modifier-section">
                 <div className="sera-modifier-head">
                   <div>
-                    <span className="sera-modifier-step">01 · Khẩu phần</span>
-                    <h3>Chọn kích cỡ món (Size)</h3>
-                  </div>
-                  <span className="sera-modifier-req">Bắt buộc · Chọn 1</span>
-                </div>
-                <div className="sera-size-grid" role="radiogroup" aria-label="Chọn kích cỡ món">
-                  {modifierSchema.sizes.map(size => {
-                    const active = size.id === selectedSizeId
-                    return (
-                      <button
-                        key={size.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        className={`sera-size-card ${active ? 'active' : ''}`}
-                        onClick={() => setSelectedSizeId(size.id)}
-                      >
-                        <div className="sera-size-card-top">
-                          <strong>{size.label}</strong>
-                          <span className="sera-size-price">
-                            {size.priceDelta === 0
-                              ? 'Tiêu chuẩn'
-                              : `+${currency(size.priceDelta, currencyCode)}`}
-                          </span>
-                        </div>
-                        <small>{size.servingHint}</small>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* 2. Chọn Mức độ cay */}
-              <div className="sera-modifier-section">
-                <div className="sera-modifier-head">
-                  <div>
-                    <span className="sera-modifier-step">02 · Khẩu vị</span>
+                    <span className="sera-modifier-step">01 · Khẩu vị</span>
                     <h3>Mức độ cay</h3>
                   </div>
                   <span className="sera-modifier-req">Bắt buộc · Chọn 1</span>
@@ -516,11 +465,11 @@ export default function MenuItemDetailPage({
                 <p className="sera-modifier-subnote">{activeSpice.description}</p>
               </div>
 
-              {/* 3. Yêu cầu chế biến riêng */}
+              {/* 2. Yêu cầu chế biến riêng */}
               <div className="sera-modifier-section">
                 <div className="sera-modifier-head">
                   <div>
-                    <span className="sera-modifier-step">03 · Yêu cầu chế biến</span>
+                    <span className="sera-modifier-step">02 · Yêu cầu chế biến</span>
                     <h3>Tùy chỉnh gia vị & Dị ứng</h3>
                   </div>
                   <span className="sera-modifier-opt">Miễn phí · Chọn nhiều</span>
@@ -543,10 +492,10 @@ export default function MenuItemDetailPage({
                 </div>
               </div>
 
-              {/* 4. Ghi chú riêng cho bếp */}
+              {/* 3. Ghi chú riêng cho bếp */}
               <div className="sera-modifier-section">
                 <label className="sera-field">
-                  <span>04 · Ghi chú riêng cho bếp (Tùy chọn)</span>
+                  <span>03 · Ghi chú riêng cho bếp (Tùy chọn)</span>
                   <Input
                     maxLength={160}
                     value={customNote}
@@ -715,8 +664,7 @@ export default function MenuItemDetailPage({
                   {item.name} + {comboPairings.map(p => p.item.name).join(' + ')}
                 </h3>
                 <p>
-                  Thêm cùng lúc cả món chính đã lưu tùy chọn ({activeSize.label},{' '}
-                  {activeSpice.label}) và 2 món ăn kèm hợp vị chỉ với 1 chạm.
+                  Thêm cùng lúc cả món chính đã lưu tùy chọn ({activeSpice.label}) và 2 món ăn kèm hợp vị chỉ với 1 chạm.
                 </p>
               </div>
               <div className="sera-pairing-bundle-cta">

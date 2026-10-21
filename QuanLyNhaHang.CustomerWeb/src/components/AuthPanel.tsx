@@ -104,9 +104,9 @@ export default function AuthPanel({
     }
   }
 
-  const titles: Record<Mode, { eyebrow: string; title: string; description: string }> = {
-    login: { eyebrow: 'Chào mừng trở lại', title: 'Đăng nhập', description: 'Theo dõi đơn hàng và quản lý tài khoản khách hàng thuận tiện hơn.' },
-    register: { eyebrow: 'Thành viên mới', title: 'Tạo tài khoản', description: 'Lưu đơn và theo dõi những lần ghé nhà hàng trên cùng một tài khoản.' },
+  const titles: Record<Mode, { eyebrow: string; title: string; description?: string }> = {
+    login: { eyebrow: 'Chào mừng trở lại', title: 'Đăng nhập' },
+    register: { eyebrow: 'Thành viên mới', title: 'Tạo tài khoản' },
     verify: { eyebrow: 'Xác minh', title: 'Kiểm tra email', description: `Nhập mã đã gửi đến ${email || 'email của bạn'}.` },
     twoFactor: { eyebrow: 'Bảo mật', title: 'Xác thực đăng nhập', description: `Nhập mã bảo mật đã gửi đến ${email || 'email của bạn'}.` },
     forgot: { eyebrow: 'Khôi phục', title: 'Quên mật khẩu', description: 'Nhập email để nhận mã đặt lại mật khẩu.' },
@@ -131,7 +131,9 @@ export default function AuthPanel({
       <header className="border-b border-border pb-7 pr-10">
         <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">{content.eyebrow}</p>
         <h1 className="mt-2 font-heading text-5xl leading-none tracking-[-0.045em]">{content.title}</h1>
-        <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">{content.description}</p>
+        {content.description ? (
+          <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">{content.description}</p>
+        ) : null}
 
         {showAuthTabs ? (
           <div className="mt-7 flex gap-7 border-b border-border" role="tablist" aria-label="Chọn đăng nhập hoặc đăng ký">
@@ -166,10 +168,43 @@ export default function AuthPanel({
           ) : null}
 
           {mode === 'login' || mode === 'register' || mode === 'reset' ? (
-            <label className="grid gap-2 text-[10px] font-semibold tracking-[0.14em] uppercase">
-              <span className="flex items-center justify-between gap-4"><span>{mode === 'reset' ? 'Mật khẩu mới *' : 'Mật khẩu *'}</span>{mode === 'login' ? <button className="text-[10px] normal-case tracking-normal text-muted-foreground underline underline-offset-4" type="button" onClick={() => move('forgot')}>Quên mật khẩu?</button> : null}</span>
-              <div className="relative"><KeyRound className="absolute left-0 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input type={showPassword ? 'text' : 'password'} value={password} onChange={event => setPassword(event.target.value)} required minLength={8} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder={mode === 'login' ? 'Nhập mật khẩu' : 'Tối thiểu 8 ký tự'} className="border-x-0 border-t-0 px-7 normal-case tracking-normal shadow-none" /><button className="absolute right-0 top-1/2 grid size-8 -translate-y-1/2 place-items-center text-muted-foreground" type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}>{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></div>
-            </label>
+            <div className="grid gap-2">
+              <label className="grid gap-2 text-[10px] font-semibold tracking-[0.14em] uppercase">
+                <span>{mode === 'reset' ? 'Mật khẩu mới *' : 'Mật khẩu *'}</span>
+                <div className="relative">
+                  <KeyRound className="absolute left-0 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={event => setPassword(event.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    placeholder={mode === 'login' ? 'Nhập mật khẩu' : 'Tối thiểu 8 ký tự'}
+                    className="border-x-0 border-t-0 px-7 normal-case tracking-normal shadow-none"
+                  />
+                  <button
+                    className="absolute right-0 top-1/2 grid size-8 -translate-y-1/2 place-items-center text-muted-foreground"
+                    type="button"
+                    onClick={() => setShowPassword(value => !value)}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </label>
+              {mode === 'login' ? (
+                <div className="flex justify-end">
+                  <button
+                    className="text-xs normal-case tracking-normal text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+                    type="button"
+                    onClick={() => move('forgot')}
+                  >
+                    Quên mật khẩu?
+                  </button>
+                </div>
+              ) : null}
+            </div>
           ) : null}
 
           <Button className="mt-1 w-full" disabled={busy}>{busy ? 'Đang xử lý…' : submitLabel}</Button>
