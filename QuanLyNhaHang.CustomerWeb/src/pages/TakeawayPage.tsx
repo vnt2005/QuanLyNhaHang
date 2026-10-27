@@ -390,6 +390,7 @@ export default function TakeawayPage({
 
   return (
     <main className="sera-page">
+      {lines.length > 0 ? (
       <header className="sera-page-head">
         <div>
           <p className="sera-kicker">Đặt món mang về (Takeaway)</p>
@@ -405,6 +406,7 @@ export default function TakeawayPage({
           </span>
         </div>
       </header>
+      ) : null}
 
       {!session ? (
         <button
