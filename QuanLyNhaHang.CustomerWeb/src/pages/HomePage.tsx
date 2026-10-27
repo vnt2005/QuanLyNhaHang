@@ -479,10 +479,6 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
     }))
   }, [data.reservationTables])
 
-  const welcome =
-    restaurant?.welcomeMessage ||
-    'Món Việt được chuẩn bị mỗi ngày bằng nguyên liệu tươi, hương vị quen thuộc và cách phục vụ gọn gàng, hiện đại.'
-
   function handleCopyPromoCode(code: string) {
     if (navigator.clipboard?.writeText) {
       void navigator.clipboard.writeText(code)
@@ -513,7 +509,6 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
           <h1 className="sera-display" style={homeFontStyle}>
             Chào mừng bạn đến với {restaurant?.restaurantName || 'VNT'}, nơi lưu giữ trọn vẹn tinh hoa phong vị Việt.
           </h1>
-          <p className="sera-copy">{welcome}</p>
           <div className="sera-home-actions">
             <Button size="lg" onClick={() => navigate('/menu')}>
               Xem thực đơn <ArrowRight aria-hidden="true" />
