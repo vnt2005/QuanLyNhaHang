@@ -511,7 +511,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-home-hero-copy">
           <p className="sera-kicker">Ẩm thực Việt tại Nha Trang</p>
           <h1 className="sera-display" style={homeFontStyle}>
-            Món Việt quen thuộc, được phục vụ theo cách nhẹ nhàng hơn.
+            Chào mừng bạn đến với {restaurant?.restaurantName || 'VNT'}, nơi lưu giữ trọn vẹn tinh hoa phong vị Việt.
           </h1>
           <p className="sera-copy">{welcome}</p>
           <div className="sera-home-actions">
