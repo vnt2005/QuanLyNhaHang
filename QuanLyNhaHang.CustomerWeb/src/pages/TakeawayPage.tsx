@@ -667,9 +667,6 @@ export default function TakeawayPage({
                     value={customerName}
                     onChange={event => setCustomerName(event.target.value)}
                   />
-                  <small className="text-muted-foreground">
-                    Tối thiểu 2 từ; dùng khi nhận món.
-                  </small>
                 </label>
                 <label className="sera-field">
                   Số điện thoại *
@@ -682,16 +679,12 @@ export default function TakeawayPage({
                     onChange={event => setPhoneNumber(event.target.value)}
                     inputMode="tel"
                   />
-                  <small className="text-muted-foreground">
-                    Số di động Việt Nam 10 số, đầu 03/05/07/08/09.
-                  </small>
                 </label>
 
                 <label className="sera-field wide">
                   Ghi chú chung cho đơn hàng
                   <Textarea
                     maxLength={350}
-                    placeholder="VD: Chuẩn bị thêm thìa đũa, đóng hộp cẩn thận giúp tôi..."
                     value={note}
                     onChange={event => setNote(event.target.value)}
                   />
