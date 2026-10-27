@@ -1,7 +1,7 @@
 :root {
   --sera-paper: #fdfcf9;
-  --sera-ink: #241f1b;
-  --sera-muted: #746b64;
+  --sera-ink: #110e0c;
+  --sera-muted: #4e4741;
   --sera-line: #d8d1ca;
   --sera-wash: #f4f1ed;
   --sera-accent: #9b4b2f;
@@ -10,7 +10,7 @@
   --sera-selection: #e7d8ce;
   --sera-inverse: #241f1b;
   --sera-inverse-ink: #fffdf8;
-  --sera-inverse-muted: #d8d1ca;
+  --sera-inverse-muted: #e8e3de;
   --sera-inverse-accent: #d7b3a4;
   --sera-shadow-rgb: 36 31 27;
   --sera-max: 1380px;
@@ -19,8 +19,8 @@
 
 :root.dark {
   --sera-paper: #171411;
-  --sera-ink: #f4eee8;
-  --sera-muted: #b9aea5;
+  --sera-ink: #ffffff;
+  --sera-muted: #ded7ce;
   --sera-line: #4a423b;
   --sera-wash: #26211d;
   --sera-accent: #d58a68;
@@ -29,7 +29,7 @@
   --sera-selection: #573426;
   --sera-inverse: #2b1d18;
   --sera-inverse-ink: #fff8f2;
-  --sera-inverse-muted: #d9c9c0;
+  --sera-inverse-muted: #f4eee8;
   --sera-inverse-accent: #efaa89;
   --sera-shadow-rgb: 0 0 0;
 }
@@ -41,8 +41,8 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 
 /* Shared Sera primitives */
 .sera-kicker { margin: 0; color: var(--sera-accent); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
-.sera-display { margin: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(48px, 7vw, 104px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
-.sera-title { margin: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(36px, 4.5vw, 70px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
+.sera-display { margin: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(48px, 7vw, 104px); font-weight: 650; line-height: 1.15; letter-spacing: -.02em; }
+.sera-title { margin: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(36px, 4.5vw, 70px); font-weight: 650; line-height: 1.15; letter-spacing: -.02em; }
 .sera-copy { color: var(--sera-muted); font-size: 15px; line-height: 1.8; }
 .sera-rule { border-top: 1px solid var(--sera-line); }
 .sera-link { display: inline-flex; align-items: center; gap: 8px; border: 0; border-bottom: 1px solid currentColor; padding: 0; background: transparent; color: var(--sera-ink); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }

@@ -12,17 +12,17 @@
 :root {
   color-scheme: light;
   --background: #fdfcf9;
-  --foreground: #241f1b;
+  --foreground: #110e0c;
   --card: #ffffff;
-  --card-foreground: #241f1b;
+  --card-foreground: #110e0c;
   --popover: #ffffff;
-  --popover-foreground: #241f1b;
+  --popover-foreground: #110e0c;
   --primary: #241f1b;
   --primary-foreground: #fffdf8;
   --secondary: #f1ede7;
-  --secondary-foreground: #241f1b;
+  --secondary-foreground: #110e0c;
   --muted: #f4f1ed;
-  --muted-foreground: #746b64;
+  --muted-foreground: #4e4741;
   --accent: #9b4b2f;
   --accent-foreground: #fffdf8;
   --destructive: #a23b32;
@@ -35,17 +35,17 @@
 :root.dark {
   color-scheme: dark;
   --background: #171411;
-  --foreground: #f4eee8;
+  --foreground: #ffffff;
   --card: #211d19;
-  --card-foreground: #f4eee8;
+  --card-foreground: #ffffff;
   --popover: #211d19;
-  --popover-foreground: #f4eee8;
+  --popover-foreground: #ffffff;
   --primary: #ead8cc;
   --primary-foreground: #211711;
   --secondary: #2a2521;
-  --secondary-foreground: #f4eee8;
+  --secondary-foreground: #ffffff;
   --muted: #2b2622;
-  --muted-foreground: #b9aea5;
+  --muted-foreground: #ded7ce;
   --accent: #d58a68;
   --accent-foreground: #21130d;
   --destructive: #ef7d73;
