@@ -133,14 +133,6 @@ export default function AiAssistantWidget() {
                 <div className={`ai-assistant-message ${message.role}`}>
                   {message.content}
                 </div>
-                {message.role === 'assistant' && message.sources?.length ? (
-                  <div className="ai-assistant-sources" aria-label="Nguồn dữ liệu hệ thống">
-                    <span>Dữ liệu:</span>
-                    {message.sources.map((source) => (
-                      <b key={source}>{source}</b>
-                    ))}
-                  </div>
-                ) : null}
               </div>
             ))}
 
