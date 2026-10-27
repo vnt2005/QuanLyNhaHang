@@ -192,18 +192,9 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
 
   return (
     <main className="sera-menu" style={menuFontStyle}>
-      <header className="sera-menu-head">
-        <div>
-          <p className="sera-kicker">Thực đơn nhà hàng & Mang về</p>
-          <h1 className="sera-display">Chọn món theo khẩu vị & chế độ ăn của bạn.</h1>
-          <p className="sera-copy">
-            Mỗi món ăn đều minh bạch thành phần nguyên liệu, nhãn cảnh báo dị ứng (hải sản, đậu
-            phộng, gluten, bơ sữa) và cho phép tùy chỉnh mức độ cay, kích cỡ khẩu phần hoặc gọi
-            thêm món ăn kèm.
-          </p>
-        </div>
-        <div className="sera-menu-tools">
-          <label className="sera-search">
+      <header className="sera-menu-head !grid-cols-1 gap-4 pb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <label className="sera-search flex-1 max-w-xl">
             <Search aria-hidden="true" />
             <Input
               value={keyword}
