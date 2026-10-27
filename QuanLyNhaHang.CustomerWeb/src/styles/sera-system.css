@@ -41,8 +41,8 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 
 /* Shared Sera primitives */
 .sera-kicker { margin: 0; color: var(--sera-accent); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
-.sera-display { margin: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(48px, 7vw, 104px); font-weight: 500; line-height: .92; letter-spacing: -.05em; }
-.sera-title { margin: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(36px, 4.5vw, 70px); font-weight: 500; line-height: .98; letter-spacing: -.04em; }
+.sera-display { margin: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(48px, 7vw, 104px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
+.sera-title { margin: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(36px, 4.5vw, 70px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
 .sera-copy { color: var(--sera-muted); font-size: 15px; line-height: 1.8; }
 .sera-rule { border-top: 1px solid var(--sera-line); }
 .sera-link { display: inline-flex; align-items: center; gap: 8px; border: 0; border-bottom: 1px solid currentColor; padding: 0; background: transparent; color: var(--sera-ink); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
@@ -84,7 +84,7 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 
 .sera-footer { margin-top: 72px; border-top: 1px solid var(--sera-line); }
 .sera-footer-cta { display: grid; grid-template-columns: 1.2fr .8fr; width: min(var(--sera-max), calc(100% - 2 * var(--sera-gutter))); margin: 0 auto; padding: 72px 0; gap: 48px; align-items: end; }
-.sera-footer-cta h2 { max-width: 760px; margin: 8px 0 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(40px, 5vw, 72px); font-weight: 500; line-height: .98; letter-spacing: -.04em; }
+.sera-footer-cta h2 { max-width: 760px; margin: 8px 0 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(40px, 5vw, 72px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
 .sera-footer-cta-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .sera-footer-main { display: grid; grid-template-columns: 1.15fr .55fr .8fr; width: min(var(--sera-max), calc(100% - 2 * var(--sera-gutter))); margin: 0 auto; padding: 44px 0 52px; border-top: 1px solid var(--sera-line); gap: 48px; }
 .sera-footer-main h3 { margin: 0 0 18px; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
@@ -188,7 +188,7 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 /* Featured Menu List & Tag Filters */
 .sera-home-featured { padding: 84px 0 96px; border-bottom: 1px solid var(--sera-line); }
 .sera-section-head { display: flex; align-items: end; justify-content: space-between; gap: 34px; margin-bottom: 34px; }
-.sera-section-head h2 { max-width: 760px; margin: 7px 0 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(38px, 4vw, 62px); font-weight: 500; line-height: .98; letter-spacing: -.04em; }
+.sera-section-head h2 { max-width: 760px; margin: 7px 0 0; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(38px, 4vw, 62px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
 .sera-home-badge-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
 .sera-badge-filter-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 1px solid var(--sera-line); background: transparent; color: var(--sera-muted); font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; }
 .sera-badge-filter-btn svg { width: 13px; height: 13px; color: var(--sera-accent); }
@@ -270,7 +270,7 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-home-reservation-media img { width: 100%; height: 100%; object-fit: cover; }
 .sera-home-reservation-copy { display: flex; flex-direction: column; justify-content: center; padding: clamp(42px, 6vw, 88px); background: var(--sera-inverse); color: var(--sera-inverse-ink); }
 .sera-home-reservation-copy .sera-kicker { color: var(--sera-inverse-accent); }
-.sera-home-reservation-copy h2 { margin: 12px 0 22px; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(40px, 4.7vw, 70px); font-weight: 500; line-height: .98; letter-spacing: -.04em; }
+.sera-home-reservation-copy h2 { margin: 12px 0 22px; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(40px, 4.7vw, 70px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
 .sera-home-reservation-copy p { max-width: 600px; margin: 0 0 28px; color: var(--sera-inverse-muted); line-height: 1.8; }
 
 /* Menu */
@@ -398,7 +398,7 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-origin-note svg { width: 14px; height: 14px; color: var(--sera-accent); flex-shrink: 0; }
 
 .sera-detail-copy { display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(32px, 4.5vw, 60px); border-left: 1px solid var(--sera-line); }
-.sera-detail-copy h1 { margin: 10px 0 16px; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(42px, 5vw, 72px); font-weight: 500; line-height: .96; letter-spacing: -.04em; }
+.sera-detail-copy h1 { margin: 10px 0 16px; font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(42px, 5vw, 72px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
 .sera-detail-copy > p { margin: 0 0 22px; color: var(--sera-muted); line-height: 1.75; }
 .sera-detail-price-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid var(--sera-line); }
 .sera-price-caption { display: block; color: var(--sera-muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 4px; }
