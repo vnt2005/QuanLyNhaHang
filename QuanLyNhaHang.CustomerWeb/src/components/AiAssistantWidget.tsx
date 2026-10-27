@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { useCustomerSession } from '../context/CustomerSessionContext'
 import { Bot } from 'lucide-react'
 import {
   getAiAssistantPublicConfig,
@@ -16,6 +17,18 @@ export default function AiAssistantWidget() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
+  const { session } = useCustomerSession()
+  const previousUserIdRef = useRef<string | null>(session?.userId ?? null)
+
+  useEffect(() => {
+    const currentUserId = session?.userId ?? null
+    if (previousUserIdRef.current !== currentUserId) {
+      previousUserIdRef.current = currentUserId
+      setMessages([])
+      setError('')
+      setInput('')
+    }
+  }, [session?.userId])
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const messagesRef = useRef<HTMLDivElement | null>(null)
 
