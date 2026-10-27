@@ -79,6 +79,17 @@ public static class RateLimitingExtensions
                         TimeSpan.FromMinutes(1),
                         6)));
 
+            options.AddPolicy("AiAssistantChat", context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey:
+                        $"ai-chat:{ResolveRateLimitActor(context)}",
+                    factory: _ => SlidingWindow(
+                        context.User.Identity?.IsAuthenticated == true
+                            ? 30
+                            : 15,
+                        TimeSpan.FromMinutes(1),
+                        6)));
+
             options.AddPolicy("CustomerReservation", context =>
             {
                 var ip = context.Connection.RemoteIpAddress?.ToString()
