@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, ClipboardList, CreditCard, MapPin, PackageOpen, RefreshCw, Search, ShoppingBag, UtensilsCrossed, XCircle } from 'lucide-react'
+﻿import { ChevronDown, ChevronUp, ClipboardList, CreditCard, MapPin, PackageOpen, RefreshCw, Search, ShoppingBag, UtensilsCrossed, XCircle } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -167,7 +167,7 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
   return (
     <main className="sera-page">
       <header className="sera-page-head">
-        <div><p className="sera-kicker">Lịch sử khách hàng</p><h1 className="sera-display mt-3">Đơn của tôi.</h1><p>Theo dõi đơn đang xử lý và xem lại những lần gọi món trước đây.</p></div>
+        <div><h1 className="sera-display">Đơn của tôi.</h1></div>
         <div className="sera-page-summary"><div className="flex items-center gap-3"><ClipboardList className="size-5 text-accent" /><span><small className="block">{hasActiveFilter ? 'Kết quả' : 'Tổng cộng'}</small><strong className="text-foreground">{history?.totalCount ?? '—'} đơn</strong></span></div></div>
       </header>
 
