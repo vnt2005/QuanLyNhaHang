@@ -99,9 +99,10 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 /* Home */
 .sera-home { width: min(var(--sera-max), calc(100% - 2 * var(--sera-gutter))); margin: 0 auto; }
 .sera-home-hero { display: grid; grid-template-columns: 1.02fr .98fr; min-height: calc(100vh - 79px); border-bottom: 1px solid var(--sera-line); }
-.sera-home-hero-copy { display: flex; flex-direction: column; justify-content: center; padding: 84px clamp(36px, 5vw, 78px) 84px 0; border-right: 1px solid var(--sera-line); }
+.sera-home-hero-copy { display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(24px, 3vw, 36px) clamp(36px, 5vw, 78px) 56px 0; border-right: 1px solid var(--sera-line); }
+.sera-home-hero-copy .sera-kicker { margin: 0 0 16px; }
 .sera-home-hero-copy .sera-display { max-width: 760px; }
-.sera-home-hero-copy > p { max-width: 620px; margin: 28px 0 34px; }
+.sera-home-hero-copy > p:not(.sera-kicker) { max-width: 620px; margin: 28px 0 34px; }
 .sera-home-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .sera-home-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--sera-line); gap: 24px; }
 .sera-home-fact { display: flex; gap: 12px; color: var(--sera-muted); font-size: 12px; line-height: 1.5; }
