@@ -63,7 +63,7 @@ public static class DependencyInjection
             options.BaseUrl = configuration[$"{GeminiOptions.SectionName}:BaseUrl"]
                 ?? "https://generativelanguage.googleapis.com/v1beta";
             options.DefaultModel = configuration[$"{GeminiOptions.SectionName}:DefaultModel"]
-                ?? "gemini-3.7-flash";
+                ?? "gemini-3.5-flash";
         });
 
         services.AddTransient<GeminiRequestNormalizationHandler>();
