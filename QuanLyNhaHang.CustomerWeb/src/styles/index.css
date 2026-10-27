@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/noto-sans";
+@import "@fontsource-variable/plus-jakarta-sans";
 @import "./sera-system.css";
 @import "./motion.css";
 @import "./hover-motion.css";
@@ -55,8 +55,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Noto Sans Variable', system-ui, sans-serif;
-  --font-heading: 'Noto Sans Variable', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -92,5 +92,5 @@
 
 .customer-site,
 .customer-site * {
-  font-family: 'Noto Sans Variable', system-ui, sans-serif !important;
+  font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
