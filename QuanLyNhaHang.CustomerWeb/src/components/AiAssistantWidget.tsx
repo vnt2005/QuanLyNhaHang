@@ -182,9 +182,6 @@ export default function AiAssistantWidget() {
             </button>
           </form>
 
-          <small className="ai-assistant-privacy">
-            Khi đăng nhập, AI chỉ được đọc đơn và thông báo của chính tài khoản đó. Không nhập mật khẩu hoặc thông tin thanh toán nhạy cảm.
-          </small>
         </section>
       ) : null}
 
