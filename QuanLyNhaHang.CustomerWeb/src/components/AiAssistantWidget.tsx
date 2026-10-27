@@ -120,8 +120,6 @@ export default function AiAssistantWidget() {
           <header className="ai-assistant-header">
             <div>
               <span className="ai-assistant-kicker">TRỢ LÝ AI</span>
-              <strong>Hỏi dữ liệu nhà hàng</strong>
-              <small>Đọc dữ liệu hệ thống theo thời gian thực</small>
             </div>
             <button
               type="button"
