@@ -65,3 +65,4 @@ public partial class SeedMenuItemImagesAndDescriptions : Migration
     {
     }
 }
+
