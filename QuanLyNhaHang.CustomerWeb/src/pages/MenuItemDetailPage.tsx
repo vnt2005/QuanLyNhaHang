@@ -47,8 +47,6 @@ import {
   MAX_TAKEAWAY_ITEM_QUANTITY,
 } from '../utils/takeawayCart'
 
-const detailFontStyle = { fontFamily: "'Noto Sans Variable', system-ui, sans-serif" }
-
 function currency(value: number, code: string) {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -128,7 +126,7 @@ export default function MenuItemDetailPage({
 
   if (!item || !modifierSchema || !nutritionalProfile || !ratingSummary) {
     return (
-      <main className="sera-detail" style={detailFontStyle}>
+      <main className="sera-detail">
         <Button className="sera-detail-back" variant="ghost" onClick={() => navigate('/menu')}>
           <ChevronLeft /> Quay lại thực đơn
         </Button>
@@ -233,7 +231,7 @@ export default function MenuItemDetailPage({
   const allergySafeModeActive = selectedPrepIds.includes('allergy-clean')
 
   return (
-    <main className="sera-detail" style={detailFontStyle}>
+    <main className="sera-detail">
       <div className="sera-detail-topbar">
         <Button className="sera-detail-back" variant="ghost" onClick={() => navigate('/menu')}>
           <ChevronLeft /> Quay lại thực đơn

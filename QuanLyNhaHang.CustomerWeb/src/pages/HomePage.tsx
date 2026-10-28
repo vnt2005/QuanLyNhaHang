@@ -54,8 +54,6 @@ import {
 import { navigate } from '../utils/navigation'
 import { addTakeawayItem } from '../utils/takeawayCart'
 
-const homeFontStyle = { fontFamily: "'Noto Sans Variable', system-ui, sans-serif" }
-
 export type DishBadgeId = 'bestseller' | 'chef' | 'new' | 'spicy' | 'vegetarian'
 
 type DishBadgeMeta = {
@@ -528,12 +526,12 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
   const activeHeroBadges = active ? getDishBadges(active, activeIndex) : []
 
   return (
-    <main className="sera-home" style={homeFontStyle}>
+    <main className="sera-home">
       {/* HERO SECTION */}
       <section className="sera-home-hero">
         <div className="sera-home-hero-copy">
           <p className="sera-kicker">Ẩm thực Việt tại Nha Trang</p>
-          <h1 className="sera-display" style={homeFontStyle}>
+          <h1 className="sera-display">
             Chào mừng bạn đến với {restaurant?.restaurantName || 'VNT'}, nơi lưu giữ trọn vẹn tinh hoa phong vị Việt.
           </h1>
           <div className="sera-home-actions">
@@ -609,7 +607,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                   </span>
                 ))}
               </div>
-              <strong style={homeFontStyle}>
+              <strong>
                 {active?.name || 'Thực đơn đang phục vụ'}
               </strong>
             </div>
@@ -623,7 +621,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-section-head">
           <div>
             <p className="sera-kicker">Khuyến mãi & Ưu đãi đặc biệt</p>
-            <h2 id="home-promos-heading" style={homeFontStyle}>
+            <h2 id="home-promos-heading">
               Ưu đãi theo khung giờ & Thực đơn nhóm.
             </h2>
           </div>
@@ -688,7 +686,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
               </span>
             </div>
 
-            <h3 style={homeFontStyle}>{activePromo.title}</h3>
+            <h3>{activePromo.title}</h3>
             <p className="sera-copy">{activePromo.subtitle}</p>
 
             <ul className="sera-promo-perks">
@@ -758,7 +756,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                   <span className="sera-promo-card-tag">{campaign.discountHighlight}</span>
                   <small>{campaign.code}</small>
                 </div>
-                <strong style={homeFontStyle}>{campaign.title}</strong>
+                <strong>{campaign.title}</strong>
                 <p>{campaign.schedule}</p>
               </button>
             )
@@ -771,7 +769,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-section-head">
           <div>
             <p className="sera-kicker">Món ăn đặc trưng & Bán chạy nhất</p>
-            <h2 id="home-signatures-heading" style={homeFontStyle}>
+            <h2 id="home-signatures-heading">
               Món ngon đỉnh chóp được thực khách gọi nhiều nhất.
             </h2>
           </div>
@@ -835,7 +833,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                   </div>
 
                   <div className="sera-signature-title-row">
-                    <h3 style={homeFontStyle}>
+                    <h3>
                       <button
                         type="button"
                         onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
@@ -888,7 +886,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-section-head">
           <div>
             <p className="sera-kicker">Thực đơn đang phục vụ</p>
-            <h2 id="home-featured-heading" style={homeFontStyle}>
+            <h2 id="home-featured-heading">
               Tất cả món đang mở bán.
             </h2>
           </div>
@@ -947,7 +945,6 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                   padding: 0,
                   textAlign: 'left',
                   cursor: 'pointer',
-                  ...homeFontStyle,
                 }}
               >
                 <span className="sera-dish-row-media">
@@ -959,7 +956,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                 </span>
                 <span>
                   <span className="sera-dish-row-heading">
-                    <h3 style={homeFontStyle}>{item.name}</h3>
+                    <h3>{item.name}</h3>
                     <span className="sera-badge-row">
                       {badges.map(badge => (
                         <span
@@ -994,7 +991,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         ) : (
           <div className="sera-empty">
             <div>
-              <h2 style={homeFontStyle}>Thực đơn đang được cập nhật.</h2>
+              <h2>Thực đơn đang được cập nhật.</h2>
               <p>Nhà hàng chưa có món đang mở bán thuộc nhóm nhãn này.</p>
               {activeBadgeFilter !== 'all' ? (
                 <Button variant="outline" onClick={() => setActiveBadgeFilter('all')}>
@@ -1011,7 +1008,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-section-head">
           <div>
             <p className="sera-kicker">Không gian & Trải nghiệm thưởng thức</p>
-            <h2 id="home-gallery-heading" style={homeFontStyle}>
+            <h2 id="home-gallery-heading">
               Mỗi cuộc gặp gỡ đều có một góc bàn vừa vặn.
             </h2>
           </div>
@@ -1033,7 +1030,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                 onClick={() => setActiveSpaceId(space.id)}
               >
                 <span className="sera-gallery-tab-kicker">{space.categoryLabel}</span>
-                <strong style={homeFontStyle}>{space.title}</strong>
+                <strong>{space.title}</strong>
                 <small>{space.capacityLabel}</small>
               </button>
             )
@@ -1063,7 +1060,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
               </span>
             </div>
 
-            <h3 style={homeFontStyle}>{activeSpace.title}</h3>
+            <h3>{activeSpace.title}</h3>
             <p className="sera-copy">{activeSpace.description}</p>
 
             <ul className="sera-gallery-highlights">
@@ -1139,7 +1136,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
               </span>
               <div>
                 <small>Bếp trưởng điều hành</small>
-                <strong style={homeFontStyle}>Nguyễn Minh Hòa</strong>
+                <strong>Nguyễn Minh Hòa</strong>
                 <span>16 năm kinh nghiệm ẩm thực Việt truyền thống</span>
               </div>
             </div>
@@ -1151,7 +1148,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
 
         <div className="sera-story-copy-column">
           <p className="sera-kicker">Câu chuyện thương hiệu & Triết lý ẩm thực</p>
-          <h2 id="home-story-heading" style={homeFontStyle}>
+          <h2 id="home-story-heading">
             Giữ trọn hồn vị bếp Việt từ nguồn nguyên liệu tươi bản địa.
           </h2>
           <p className="sera-copy">
@@ -1162,7 +1159,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
             {STORY_PILLARS.map(pillar => (
               <article key={pillar.title} className="sera-story-pillar">
                 <div className="sera-story-pillar-head">
-                  <h3 style={homeFontStyle}>{pillar.title}</h3>
+                  <h3>{pillar.title}</h3>
                   <span className="sera-story-pillar-metric">{pillar.metric}</span>
                 </div>
                 <p>{pillar.description}</p>
@@ -1200,7 +1197,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-section-head">
           <div>
             <p className="sera-kicker">Bằng chứng xã hội & Đánh giá thực tế</p>
-            <h2 id="home-reviews-heading" style={homeFontStyle}>
+            <h2 id="home-reviews-heading">
               Được yêu mến bởi thực khách địa phương & du khách tại Nha Trang.
             </h2>
           </div>
@@ -1220,7 +1217,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                 </span>
               </div>
               <div className="sera-scorecard-rating">
-                <strong style={homeFontStyle}>{platform.score}</strong>
+                <strong>{platform.score}</strong>
                 <div className="sera-scorecard-stars" aria-hidden="true">
                   <Star />
                   <Star />

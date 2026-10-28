@@ -41,8 +41,6 @@ type AvailabilityFilter = 'all' | 'available' | 'unavailable'
 type SortOption = 'default' | 'rating-desc' | 'name' | 'price-asc' | 'price-desc'
 type SpecialTagFilter = 'all' | DishBadgeId | 'high-protein' | 'gluten-free'
 
-const menuFontStyle = { fontFamily: "'Noto Sans Variable', system-ui, sans-serif" }
-
 function currency(value: number, code: string) {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -191,7 +189,7 @@ export default function MenuPage({ data }: { data: CustomerSiteBootstrap }) {
   }
 
   return (
-    <main className="sera-menu" style={menuFontStyle}>
+    <main className="sera-menu">
       <header className="sera-menu-head !grid-cols-1 gap-4 pb-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <label className="sera-search flex-1 max-w-xl">
