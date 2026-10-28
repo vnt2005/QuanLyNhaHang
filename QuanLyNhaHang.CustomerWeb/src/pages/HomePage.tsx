@@ -38,14 +38,6 @@ import spaceCompanyImage from '../assets/space-company.webp'
 import promoEarlyBirdImage from '../assets/promo-early-bird.webp'
 import promoFamilySetImage from '../assets/promo-family-set.webp'
 import promoLunchComboImage from '../assets/promo-lunch-combo.webp'
-import dishSalmon from '../assets/dish-salmon.webp'
-import dishRolls from '../assets/dish-rolls.webp'
-import dishSalad from '../assets/dish-salad.webp'
-import dishHotpot from '../assets/dish-hotpot.webp'
-import dishSoup from '../assets/dish-soup.webp'
-import dishDessert from '../assets/dish-dessert.webp'
-import dishMeat from '../assets/dish-meat.webp'
-import dishPho from '../assets/dish-pho.webp'
 import {
   getDishRatingSummary,
   RESTAURANT_TESTIMONIALS,
@@ -275,38 +267,11 @@ function currency(value: number, code = 'VND') {
   }).format(value)
 }
 
-function getFallbackDishImage(item: PublicMenuItem, index: number) {
-  if (item.imageUrl) return item.imageUrl
-  const nameLower = (item.name || '').toLocaleLowerCase('vi')
-  if (nameLower.includes('cá hồi') || nameLower.includes('vi cá') || nameLower.includes('tôm') || nameLower.includes('hải sản') || nameLower.includes('cá')) {
-    return dishSalmon
-  }
-  if (nameLower.includes('chả giò') || nameLower.includes('chả') || nameLower.includes('cuốn') || nameLower.includes('nem')) {
-    return dishRolls
-  }
-  if (nameLower.includes('gỏi') || nameLower.includes('salad') || nameLower.includes('gà')) {
-    return dishSalad
-  }
-  if (nameLower.includes('lẩu') || nameLower.includes('dê')) {
-    return dishHotpot
-  }
-  if (nameLower.includes('canh') || nameLower.includes('súp')) {
-    return dishSoup
-  }
-  if (nameLower.includes('nho') || nameLower.includes('tráng miệng') || nameLower.includes('chè') || nameLower.includes('trái cây')) {
-    return dishDessert
-  }
-  if (nameLower.includes('bò') || nameLower.includes('thịt') || nameLower.includes('kho') || nameLower.includes('cơm')) {
-    return dishMeat
-  }
-  if (nameLower.includes('phở') || nameLower.includes('bún') || nameLower.includes('mì')) {
-    return dishPho
-  }
-  const pool = [dishSalmon, dishRolls, dishSalad, dishHotpot, dishSoup, dishMeat, dishPho]
-  return pool[index % pool.length]
+function getFallbackDishImage(item: PublicMenuItem, _index?: number) {
+  return item.imageUrl?.trim() || heroImage
 }
 
-function getFallbackImagePosition(item: PublicMenuItem, _index: number) {
+function getFallbackImagePosition(_item?: PublicMenuItem, _index?: number) {
   return 'center center'
 }
 

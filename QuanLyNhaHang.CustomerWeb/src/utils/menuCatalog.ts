@@ -5,14 +5,6 @@ import spaceFamilyImage from '../assets/space-family.webp'
 import spaceRomanceImage from '../assets/space-romance.webp'
 import spaceVipImage from '../assets/space-vip.webp'
 import promoLunchComboImage from '../assets/promo-lunch-combo.webp'
-import dishSalmon from '../assets/dish-salmon.webp'
-import dishRolls from '../assets/dish-rolls.webp'
-import dishSalad from '../assets/dish-salad.webp'
-import dishHotpot from '../assets/dish-hotpot.webp'
-import dishSoup from '../assets/dish-soup.webp'
-import dishDessert from '../assets/dish-dessert.webp'
-import dishMeat from '../assets/dish-meat.webp'
-import dishPho from '../assets/dish-pho.webp'
 import type { PublicMenuItem } from '../services/customerSite'
 
 export type DishBadgeId = 'bestseller' | 'chef' | 'new' | 'spicy' | 'vegetarian'
@@ -171,46 +163,12 @@ export type DishPairingRecommendation = {
   popularityNote: string
 }
 
-export function getFallbackDishImage(item: PublicMenuItem, index = 0) {
-  if (item.imageUrl) return item.imageUrl
-  const nameLower = (item.name || '').toLocaleLowerCase('vi')
-  if (nameLower.includes('cá hồi') || nameLower.includes('vi cá') || nameLower.includes('tôm') || nameLower.includes('hải sản') || nameLower.includes('cá')) {
-    return dishSalmon
-  }
-  if (nameLower.includes('chả giò') || nameLower.includes('chả') || nameLower.includes('cuốn') || nameLower.includes('nem')) {
-    return dishRolls
-  }
-  if (nameLower.includes('gỏi') || nameLower.includes('salad') || nameLower.includes('gà')) {
-    return dishSalad
-  }
-  if (nameLower.includes('lẩu') || nameLower.includes('dê')) {
-    return dishHotpot
-  }
-  if (nameLower.includes('canh') || nameLower.includes('súp')) {
-    return dishSoup
-  }
-  if (nameLower.includes('nho') || nameLower.includes('tráng miệng') || nameLower.includes('chè') || nameLower.includes('trái cây')) {
-    return dishDessert
-  }
-  if (nameLower.includes('bò') || nameLower.includes('thịt') || nameLower.includes('kho') || nameLower.includes('cơm')) {
-    return dishMeat
-  }
-  if (nameLower.includes('phở') || nameLower.includes('bún') || nameLower.includes('mì')) {
-    return dishPho
-  }
-  const pool = [dishSalmon, dishRolls, dishSalad, dishHotpot, dishSoup, dishMeat, dishPho]
-  return pool[index % pool.length]
+export function getFallbackDishImage(item: PublicMenuItem, _index = 0) {
+  return item.imageUrl?.trim() || heroImage
 }
 
-export function getFallbackImagePosition(item: PublicMenuItem, index = 0) {
-  if (item.imageUrl) return 'center center'
-  const nameLower = item.name.toLocaleLowerCase('vi')
-  if (nameLower.includes('cá') || nameLower.includes('kho')) return '22% 78%'
-  if (nameLower.includes('lẩu') || nameLower.includes('súp')) return '55% 22%'
-  if (nameLower.includes('chả') || nameLower.includes('gỏi')) return '72% 40%'
-  if (nameLower.includes('canh') || nameLower.includes('nho')) return '78% 75%'
-  const positions = ['center center', '55% 25%', '25% 75%', '75% 65%']
-  return positions[index % positions.length]
+export function getFallbackImagePosition(_item?: PublicMenuItem, _index = 0) {
+  return 'center center'
 }
 
 export function getDishBadges(item: PublicMenuItem, index = 0): DishBadgeMeta[] {
