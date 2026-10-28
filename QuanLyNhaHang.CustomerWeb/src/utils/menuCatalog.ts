@@ -1,6 +1,18 @@
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import menuShowcaseImage from '../assets/menu-showcase-vietnamese.webp'
 import reservationDiningImage from '../assets/reservation-dining-room.webp'
+import spaceFamilyImage from '../assets/space-family.webp'
+import spaceRomanceImage from '../assets/space-romance.webp'
+import spaceVipImage from '../assets/space-vip.webp'
+import promoLunchComboImage from '../assets/promo-lunch-combo.webp'
+import dishSalmon from '../assets/dish-salmon.webp'
+import dishRolls from '../assets/dish-rolls.webp'
+import dishSalad from '../assets/dish-salad.webp'
+import dishHotpot from '../assets/dish-hotpot.webp'
+import dishSoup from '../assets/dish-soup.webp'
+import dishDessert from '../assets/dish-dessert.webp'
+import dishMeat from '../assets/dish-meat.webp'
+import dishPho from '../assets/dish-pho.webp'
 import type { PublicMenuItem } from '../services/customerSite'
 
 export type DishBadgeId = 'bestseller' | 'chef' | 'new' | 'spicy' | 'vegetarian'
@@ -161,14 +173,32 @@ export type DishPairingRecommendation = {
 
 export function getFallbackDishImage(item: PublicMenuItem, index = 0) {
   if (item.imageUrl) return item.imageUrl
-  const pool = [heroImage, menuShowcaseImage, reservationDiningImage]
-  const nameLower = item.name.toLocaleLowerCase('vi')
-  if (nameLower.includes('cá') || nameLower.includes('canh') || nameLower.includes('lẩu')) {
-    return menuShowcaseImage
+  const nameLower = (item.name || '').toLocaleLowerCase('vi')
+  if (nameLower.includes('cá hồi') || nameLower.includes('vi cá') || nameLower.includes('tôm') || nameLower.includes('hải sản') || nameLower.includes('cá')) {
+    return dishSalmon
   }
-  if (nameLower.includes('gỏi') || nameLower.includes('chả')) {
-    return heroImage
+  if (nameLower.includes('chả giò') || nameLower.includes('chả') || nameLower.includes('cuốn') || nameLower.includes('nem')) {
+    return dishRolls
   }
+  if (nameLower.includes('gỏi') || nameLower.includes('salad') || nameLower.includes('gà')) {
+    return dishSalad
+  }
+  if (nameLower.includes('lẩu') || nameLower.includes('dê')) {
+    return dishHotpot
+  }
+  if (nameLower.includes('canh') || nameLower.includes('súp')) {
+    return dishSoup
+  }
+  if (nameLower.includes('nho') || nameLower.includes('tráng miệng') || nameLower.includes('chè') || nameLower.includes('trái cây')) {
+    return dishDessert
+  }
+  if (nameLower.includes('bò') || nameLower.includes('thịt') || nameLower.includes('kho') || nameLower.includes('cơm')) {
+    return dishMeat
+  }
+  if (nameLower.includes('phở') || nameLower.includes('bún') || nameLower.includes('mì')) {
+    return dishPho
+  }
+  const pool = [dishSalmon, dishRolls, dishSalad, dishHotpot, dishSoup, dishMeat, dishPho]
   return pool[index % pool.length]
 }
 
@@ -1127,8 +1157,8 @@ export const RESTAURANT_TESTIMONIALS: RestaurantTestimonial[] = [
     quote:
       'Không gian gỗ ấm áp, khoảng cách bàn rộng rãi nên ông bà và các cháu ngồi rất thoải mái. Nồi Lẩu Bò ninh xương ngọt thanh tự nhiên, Cá Hồi áp chảo mềm mọng. Điểm cộng lớn là thực đơn ghi rõ thành phần dị ứng và cho chọn mức cay riêng cho từng món.',
     orderedDishes: ['Lẩu Bò', 'Cá Hồi', 'Chả Giò', 'Nho'],
-    photo: reservationDiningImage,
-    photoPosition: 'center 55%',
+    photo: spaceFamilyImage,
+    photoPosition: 'center center',
     photoCaption: 'Bàn gia đình tại sảnh tầng 1 tối Thứ Bảy',
     verifiedLabel: 'Đánh giá 5★ trên Google Maps',
   },
@@ -1143,7 +1173,7 @@ export const RESTAURANT_TESTIMONIALS: RestaurantTestimonial[] = [
     quote:
       'Một trải nghiệm ẩm thực Việt Nam tinh tế và tử tế. Chồng mình bị dị ứng đậu phộng nên rất ấn tượng khi thấy nhãn cảnh báo rõ ràng ngay trên menu và nút yêu cầu dụng cụ chế biến riêng. Gỏi Gà không đậu phộng và Súp nóng đều tuyệt hảo!',
     orderedDishes: ['Gỏi Gà', 'Súp', 'Canh Chua'],
-    photo: heroImage,
+    photo: spaceRomanceImage,
     photoPosition: 'center center',
     photoCaption: 'Mâm món Việt chụp thực tế tại bàn sân vườn',
     verifiedLabel: 'Đánh giá 5★ trên Tripadvisor',
@@ -1159,8 +1189,8 @@ export const RESTAURANT_TESTIMONIALS: RestaurantTestimonial[] = [
     quote:
       'Đặt bàn trước 18h qua website vừa được giảm 20% vừa được chuẩn bị sẵn phòng VIP yên tĩnh, sang trọng. Lẩu Dê hầm thảo mộc và Vi Cá Mập lên món đồng loạt, nóng hổi, đối tác của tôi khen ngợi suốt buổi.',
     orderedDishes: ['Lẩu Dê', 'Vi Cá Mập', 'Cá Hồi'],
-    photo: reservationDiningImage,
-    photoPosition: 'center 20%',
+    photo: spaceVipImage,
+    photoPosition: 'center center',
     photoCaption: 'Không gian phòng VIP tiếp khách riêng tư',
     verifiedLabel: 'Khách đặt bàn xác thực (#RES-8942)',
   },
@@ -1175,8 +1205,8 @@ export const RESTAURANT_TESTIMONIALS: RestaurantTestimonial[] = [
     quote:
       'Mình hay đặt Cá Hồi kèm Canh Chua và Nho tráng miệng cho nhóm văn phòng. Website cho chọn cỡ Vừa, ít đường, thêm cơm trắng ST25 rất tiện. Tới giờ ghé lấy là bếp đã đóng hộp giấy giữ nhiệt, tách riêng nước xốt gọn gàng.',
     orderedDishes: ['Cá Hồi', 'Canh Chua', 'Nho'],
-    photo: menuShowcaseImage,
-    photoPosition: 'center 45%',
+    photo: promoLunchComboImage,
+    photoPosition: 'center center',
     photoCaption: 'Khẩu phần món chính & canh nóng chuẩn bị từ bếp',
     verifiedLabel: 'Đơn mang về xác thực (#ORD-4120)',
   },

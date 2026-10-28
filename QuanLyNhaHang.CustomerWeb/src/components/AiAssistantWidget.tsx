@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { useCustomerSession } from '../context/CustomerSessionContext'
 import { Bot } from 'lucide-react'
 import {
   getAiAssistantPublicConfig,
@@ -16,6 +17,18 @@ export default function AiAssistantWidget() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
+  const { session } = useCustomerSession()
+  const previousUserIdRef = useRef<string | null>(session?.userId ?? null)
+
+  useEffect(() => {
+    const currentUserId = session?.userId ?? null
+    if (previousUserIdRef.current !== currentUserId) {
+      previousUserIdRef.current = currentUserId
+      setMessages([])
+      setError('')
+      setInput('')
+    }
+  }, [session?.userId])
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const messagesRef = useRef<HTMLDivElement | null>(null)
 
@@ -107,8 +120,6 @@ export default function AiAssistantWidget() {
           <header className="ai-assistant-header">
             <div>
               <span className="ai-assistant-kicker">TRỢ LÝ AI</span>
-              <strong>Hỏi dữ liệu nhà hàng</strong>
-              <small>Đọc dữ liệu hệ thống theo thời gian thực</small>
             </div>
             <button
               type="button"
@@ -133,14 +144,6 @@ export default function AiAssistantWidget() {
                 <div className={`ai-assistant-message ${message.role}`}>
                   {message.content}
                 </div>
-                {message.role === 'assistant' && message.sources?.length ? (
-                  <div className="ai-assistant-sources" aria-label="Nguồn dữ liệu hệ thống">
-                    <span>Dữ liệu:</span>
-                    {message.sources.map((source) => (
-                      <b key={source}>{source}</b>
-                    ))}
-                  </div>
-                ) : null}
               </div>
             ))}
 
@@ -190,9 +193,6 @@ export default function AiAssistantWidget() {
             </button>
           </form>
 
-          <small className="ai-assistant-privacy">
-            Khi đăng nhập, AI chỉ được đọc đơn và thông báo của chính tài khoản đó. Không nhập mật khẩu hoặc thông tin thanh toán nhạy cảm.
-          </small>
         </section>
       ) : null}
 

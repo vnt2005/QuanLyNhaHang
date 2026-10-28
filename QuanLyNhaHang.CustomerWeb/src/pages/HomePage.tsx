@@ -30,6 +30,22 @@ import type { CustomerSiteBootstrap, PublicMenuItem } from '../services/customer
 import heroImage from '../assets/hero-vietnamese-table.webp'
 import menuShowcaseImage from '../assets/menu-showcase-vietnamese.webp'
 import reservationDiningImage from '../assets/reservation-dining-room.webp'
+import storyKitchenImage from '../assets/story-vietnamese-kitchen.webp'
+import spaceFamilyImage from '../assets/space-family.webp'
+import spaceRomanceImage from '../assets/space-romance.webp'
+import spaceVipImage from '../assets/space-vip.webp'
+import spaceCompanyImage from '../assets/space-company.webp'
+import promoEarlyBirdImage from '../assets/promo-early-bird.webp'
+import promoFamilySetImage from '../assets/promo-family-set.webp'
+import promoLunchComboImage from '../assets/promo-lunch-combo.webp'
+import dishSalmon from '../assets/dish-salmon.webp'
+import dishRolls from '../assets/dish-rolls.webp'
+import dishSalad from '../assets/dish-salad.webp'
+import dishHotpot from '../assets/dish-hotpot.webp'
+import dishSoup from '../assets/dish-soup.webp'
+import dishDessert from '../assets/dish-dessert.webp'
+import dishMeat from '../assets/dish-meat.webp'
+import dishPho from '../assets/dish-pho.webp'
 import {
   getDishRatingSummary,
   RESTAURANT_TESTIMONIALS,
@@ -94,8 +110,8 @@ const PROMO_CAMPAIGNS: PromoCampaign[] = [
     ctaPath: '/reservation',
     secondaryLabel: 'Xem thực đơn',
     secondaryPath: '/menu',
-    image: reservationDiningImage,
-    imagePosition: 'center 42%',
+    image: promoEarlyBirdImage,
+    imagePosition: 'center center',
   },
   {
     id: 'family-weekend-set',
@@ -116,7 +132,7 @@ const PROMO_CAMPAIGNS: PromoCampaign[] = [
     ctaPath: '/reservation',
     secondaryLabel: 'Khám phá món ăn',
     secondaryPath: '/menu',
-    image: heroImage,
+    image: promoFamilySetImage,
     imagePosition: 'center center',
   },
   {
@@ -138,8 +154,8 @@ const PROMO_CAMPAIGNS: PromoCampaign[] = [
     ctaPath: '/takeaway',
     secondaryLabel: 'Xem thực đơn trưa',
     secondaryPath: '/menu',
-    image: menuShowcaseImage,
-    imagePosition: 'center 35%',
+    image: promoLunchComboImage,
+    imagePosition: 'center center',
   },
 ]
 
@@ -172,8 +188,8 @@ const DINING_SPACES: DiningSpaceItem[] = [
       'Lối đi thông thoáng, thuận tiện cho người lớn tuổi và trẻ nhỏ',
       'Gần khu vực bếp mở, cảm nhận trọn vẹn hương thơm món mới ra lò',
     ],
-    image: reservationDiningImage,
-    imagePosition: 'center 60%',
+    image: spaceFamilyImage,
+    imagePosition: 'center center',
     areaKeyword: 'Tầng 1',
   },
   {
@@ -190,8 +206,8 @@ const DINING_SPACES: DiningSpaceItem[] = [
       'Góc chụp ảnh check-in mang đậm chất Indochine đương đại',
       'Hỗ trợ chuẩn bị bàn hoa hoặc lời chúc riêng khi đặt bàn trước',
     ],
-    image: heroImage,
-    imagePosition: 'left center',
+    image: spaceRomanceImage,
+    imagePosition: 'center center',
     areaKeyword: 'Sân Vườn',
   },
   {
@@ -208,8 +224,8 @@ const DINING_SPACES: DiningSpaceItem[] = [
       'Nhân viên phục vụ chuyên trách xuyên suốt bữa ăn',
       'Có thể đặt trước món đặc sản theo yêu cầu riêng của chủ tiệc',
     ],
-    image: reservationDiningImage,
-    imagePosition: 'center 18%',
+    image: spaceVipImage,
+    imagePosition: 'center center',
     areaKeyword: 'VIP',
   },
   {
@@ -226,8 +242,8 @@ const DINING_SPACES: DiningSpaceItem[] = [
       'Nhận đặt món trước để bếp lên món đồng loạt, không phải chờ đợi',
       'Hỗ trợ thanh toán trực tuyến nhanh gọn và áp mã khuyến mãi nhóm',
     ],
-    image: menuShowcaseImage,
-    imagePosition: 'center 70%',
+    image: spaceCompanyImage,
+    imagePosition: 'center center',
     areaKeyword: 'Tầng 2',
   },
 ]
@@ -263,26 +279,37 @@ function currency(value: number, code = 'VND') {
 
 function getFallbackDishImage(item: PublicMenuItem, index: number) {
   if (item.imageUrl) return item.imageUrl
-  const pool = [heroImage, menuShowcaseImage, reservationDiningImage]
-  const nameLower = item.name.toLocaleLowerCase('vi')
-  if (nameLower.includes('cá') || nameLower.includes('canh') || nameLower.includes('lẩu')) {
-    return menuShowcaseImage
+  const nameLower = (item.name || '').toLocaleLowerCase('vi')
+  if (nameLower.includes('cá hồi') || nameLower.includes('vi cá') || nameLower.includes('tôm') || nameLower.includes('hải sản') || nameLower.includes('cá')) {
+    return dishSalmon
   }
-  if (nameLower.includes('gỏi') || nameLower.includes('chả')) {
-    return heroImage
+  if (nameLower.includes('chả giò') || nameLower.includes('chả') || nameLower.includes('cuốn') || nameLower.includes('nem')) {
+    return dishRolls
   }
+  if (nameLower.includes('gỏi') || nameLower.includes('salad') || nameLower.includes('gà')) {
+    return dishSalad
+  }
+  if (nameLower.includes('lẩu') || nameLower.includes('dê')) {
+    return dishHotpot
+  }
+  if (nameLower.includes('canh') || nameLower.includes('súp')) {
+    return dishSoup
+  }
+  if (nameLower.includes('nho') || nameLower.includes('tráng miệng') || nameLower.includes('chè') || nameLower.includes('trái cây')) {
+    return dishDessert
+  }
+  if (nameLower.includes('bò') || nameLower.includes('thịt') || nameLower.includes('kho') || nameLower.includes('cơm')) {
+    return dishMeat
+  }
+  if (nameLower.includes('phở') || nameLower.includes('bún') || nameLower.includes('mì')) {
+    return dishPho
+  }
+  const pool = [dishSalmon, dishRolls, dishSalad, dishHotpot, dishSoup, dishMeat, dishPho]
   return pool[index % pool.length]
 }
 
-function getFallbackImagePosition(item: PublicMenuItem, index: number) {
-  if (item.imageUrl) return 'center center'
-  const nameLower = item.name.toLocaleLowerCase('vi')
-  if (nameLower.includes('cá') || nameLower.includes('kho')) return '22% 78%'
-  if (nameLower.includes('lẩu') || nameLower.includes('súp')) return '55% 22%'
-  if (nameLower.includes('chả') || nameLower.includes('gỏi')) return '72% 40%'
-  if (nameLower.includes('canh') || nameLower.includes('nho')) return '78% 75%'
-  const positions = ['center center', '55% 25%', '25% 75%', '75% 65%']
-  return positions[index % positions.length]
+function getFallbackImagePosition(item: PublicMenuItem, _index: number) {
+  return 'center center'
 }
 
 function getDishBadges(item: PublicMenuItem, index: number): DishBadgeMeta[] {
@@ -479,10 +506,6 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
     }))
   }, [data.reservationTables])
 
-  const welcome =
-    restaurant?.welcomeMessage ||
-    'Món Việt được chuẩn bị mỗi ngày bằng nguyên liệu tươi, hương vị quen thuộc và cách phục vụ gọn gàng, hiện đại.'
-
   function handleCopyPromoCode(code: string) {
     if (navigator.clipboard?.writeText) {
       void navigator.clipboard.writeText(code)
@@ -511,9 +534,8 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-home-hero-copy">
           <p className="sera-kicker">Ẩm thực Việt tại Nha Trang</p>
           <h1 className="sera-display" style={homeFontStyle}>
-            Món Việt quen thuộc, được phục vụ theo cách nhẹ nhàng hơn.
+            Chào mừng bạn đến với {restaurant?.restaurantName || 'VNT'}, nơi lưu giữ trọn vẹn tinh hoa phong vị Việt.
           </h1>
-          <p className="sera-copy">{welcome}</p>
           <div className="sera-home-actions">
             <Button size="lg" onClick={() => navigate('/menu')}>
               Xem thực đơn <ArrowRight aria-hidden="true" />
@@ -1106,8 +1128,8 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         <div className="sera-story-visual-column">
           <div className="sera-story-primary-photo">
             <img
-              src={menuShowcaseImage}
-              alt="Mâm cơm Việt truyền thống với nguyên liệu tươi sạch mỗi ngày"
+              src={storyKitchenImage}
+              alt="Bếp trưởng chế biến món Việt tinh hoa với nguyên liệu tươi sạch mỗi ngày"
             />
           </div>
           <div className="sera-story-chef-card">

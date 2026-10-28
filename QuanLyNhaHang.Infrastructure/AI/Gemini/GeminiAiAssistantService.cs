@@ -16,7 +16,7 @@ public sealed partial class GeminiAiAssistantService : IAiAssistantService
 {
     private const int MaxMessageLength = 1200;
     private static readonly TimeSpan ToolConversationTimeout = TimeSpan.FromSeconds(60);
-    private static readonly TimeSpan ProviderRequestTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan ProviderRequestTimeout = TimeSpan.FromSeconds(45);
 
     private readonly HttpClient _httpClient;
     private readonly IApplicationDbContext _dbContext;

@@ -35,7 +35,7 @@ public sealed class AiAssistantController : ControllerBase
     }
 
     [AllowAnonymous]
-    [EnableRateLimiting("OrderCreate")]
+    [EnableRateLimiting("AiAssistantChat")]
     [HttpPost("chat")]
     public async Task<IActionResult> Chat(
         [FromBody] AiAssistantChatRequestDto request,
@@ -70,7 +70,7 @@ public sealed class AiAssistantController : ControllerBase
     }
 
     [Authorize(Roles = SystemRoles.Admin)]
-    [EnableRateLimiting("OrderCreate")]
+    [EnableRateLimiting("AiAssistantChat")]
     [HttpPost("admin-chat")]
     public async Task<IActionResult> AdminChat(
         [FromBody] AiAssistantChatRequestDto request,

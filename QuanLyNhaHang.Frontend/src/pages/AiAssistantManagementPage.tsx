@@ -277,12 +277,6 @@ export default function AiAssistantManagementPage() {
           {adminMessages.map((item, index) => (
             <div className={`ai-admin-chat-row ${item.role}`} key={`${item.role}-${index}`}>
               <div className="ai-admin-chat-bubble">{item.content}</div>
-              {item.role === 'assistant' && item.sources?.length ? (
-                <div className="ai-admin-chat-sources">
-                  <small>Dữ liệu:</small>
-                  {item.sources.map((source) => <span key={source}>{source}</span>)}
-                </div>
-              ) : null}
             </div>
           ))}
           {adminSending ? (
