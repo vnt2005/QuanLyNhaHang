@@ -579,16 +579,17 @@ Hệ thống đã hoàn thành 100% các mục tiêu đặt ra ban đầu về n
 **Giảng viên hướng dẫn:** ThS. Nguyễn Văn Tự  
 
 | STT | Thời gian | Nội dung công việc thực hiện | Đánh giá của giảng viên |
-| :---: | :--- | :--- | :--- |
-| 1 | Tuần 1 | Khảo sát bài toán, xác định yêu cầu nghiệp vụ và lập kế hoạch đề tài. | |
-| 2 | Tuần 2 | Phân tích yêu cầu chức năng, phi chức năng và thiết kế sơ đồ Use Case. | |
-| 3 | Tuần 3 | Thiết kế kiến trúc hệ thống Clean Architecture và mô hình CSDL SQL Server. | |
-| 4 | Tuần 4 | Khởi tạo backend ASP.NET Core, thiết lập Domain Entities và EF Core DbContext. | |
-| 5 | Tuần 5 | Xây dựng tầng Application với mô hình CQRS, MediatR và Pipeline Behaviors. | |
-| 6 | Tuần 6 | Cài đặt xác thực JWT, phân quyền động Permission Policy và Rate Limiting. | |
-| 7 | Tuần 7 | Xây dựng giao diện ứng dụng quản trị Admin Web App với React và Vite. | |
-| 8 | Tuần 8 | Xây dựng Website Khách hàng CustomerWeb, tối ưu giao diện đặt món và giỏ hàng. | |
-| 9 | Tuần 9 | Hiện thực tính năng thời gian thực SignalR (KDS bếp, thông báo tức thời). | |
-| 10 | Tuần 10 | Tích hợp cổng thanh toán tự động VietQR SePay và xử lý đối soát Webhook. | |
-| 11 | Tuần 11 | Tích hợp Trợ lý AI Google Gemini, đóng gói toàn bộ hệ thống qua Docker Compose. | |
-| 12 | Tuần 12 | Viết Unit/Integration Test, thiết lập GitHub Actions CI và hoàn thiện báo cáo đồ án. | |
+| :---: | :---: | :--- | :---: |
+| 1 | 12/05/2026 –<br>25/05/2026 | • Khởi tạo dự án Quản Lý Nhà Hàng, thiết lập Git/GitHub repository và tổ chức thư mục mã nguồn.<br>• Khảo sát bài toán quản lý nhà hàng F&B, xác định các tác nhân hệ thống (Khách hàng, Nhân viên, Bếp, Thu ngân, Quản lý, Admin).<br>• Thiết kế sơ bộ kiến trúc hệ thống và cơ sở dữ liệu ban đầu cho phân hệ người dùng và phân quyền. | |
+| 2 | 26/05/2026 –<br>08/06/2026 | • Phân tích chi tiết yêu cầu chức năng và yêu cầu phi chức năng của hệ thống.<br>• Xây dựng sơ đồ Use Case tổng quát và chi tiết cho từng nhóm tác nhân.<br>• Thiết kế mô hình cơ sở dữ liệu quan hệ (ERD) cho các thực thể nghiệp vụ cốt lõi: danh mục món ăn, thực đơn, bàn ăn và khu vực. | |
+| 3 | 09/06/2026 –<br>22/06/2026 | • Xây dựng các API cơ bản cho quản lý danh mục thực đơn, bàn ăn và sơ đồ phòng bàn.<br>• Thiết kế các DTO (Data Transfer Object) và chuẩn hóa cấu trúc phản hồi API (API Response).<br>• Kiểm tra kết nối cơ sở dữ liệu và thử nghiệm các truy vấn nghiệp vụ bước đầu. | |
+| 4 | 23/06/2026 –<br>06/07/2026 | • Tinh chỉnh và tái cấu trúc các API Controller, bổ sung các ràng buộc validation dữ liệu đầu vào.<br>• Thiết kế wireframe và mockup giao diện người dùng cho Web App quản trị và Website khách hàng.<br>• Báo cáo tiến độ phân tích thiết kế với Giảng viên hướng dẫn. | |
+| 5 | 07/07/2026 –<br>20/07/2026 | • Tái cấu trúc Backend ASP.NET Core theo mô hình Clean Architecture, áp dụng mẫu thiết kế CQRS với MediatR.<br>• Xây dựng tầng Domain và Infrastructure với EF Core, cấu hình Fluent API và Migration cho SQL Server.<br>• Hiện thực cơ chế xác thực JWT kết hợp kiểm soát phiên làm việc (Session) và phân quyền bảo mật nhiều lớp.<br>• Thiết lập pipeline CI tự động với GitHub Actions và cấu hình Dockerfile cho backend. | |
+| 6 | 21/07/2026 –<br>03/08/2026 | • Hoàn thiện phân quyền động theo Role và Permission, tự động đồng bộ catalog quyền hạn khi khởi động.<br>• Hiện thực quy trình nghiệp vụ cốt lõi: Tiếp nhận đơn gọi món (Order) – Chuyển chế biến tại Bếp (Kitchen) – Hoàn tất và xuất hóa đơn (Invoice).<br>• Áp dụng Transaction ACID và cơ chế Idempotency đảm bảo toàn vẹn dữ liệu, chống ghi lặp khi có thao tác đồng thời. | |
+| 7 | 04/08/2026 –<br>17/08/2026 | • Chuẩn hóa xử lý múi giờ Việt Nam (UTC+7) trên toàn bộ hệ thống API, dashboard và báo cáo doanh thu.<br>• Xây dựng các phân hệ nghiệp vụ mở rộng: Quản lý kho nguyên liệu và định lượng món ăn, quản lý mã khuyến mãi, đặt bàn trước.<br>• Tích hợp SignalR để truyền dữ liệu và thông báo thời gian thực giữa Khách hàng, Bếp, Thu ngân và Quản lý. | |
+| 8 | 18/08/2026 –<br>31/08/2026 | • Tích hợp cổng thanh toán trực tuyến SePay và VietQR động, xây dựng endpoint nhận và xác thực Webhook tự động.<br>• Phát triển Background Service tự động kiểm tra và hủy các đơn mang về quá hạn chưa thanh toán.<br>• Xây dựng giao diện Website khách hàng (CustomerWeb) bằng React, Vite, Tailwind CSS với trải nghiệm đặt món mang về và đặt bàn trực tuyến. | |
+| 9 | 01/09/2026 –<br>14/09/2026 | • Tích hợp trợ lý AI Google Gemini: tư vấn món ăn/thực đơn cho khách hàng và phân tích dữ liệu cho nhà quản lý.<br>• Hoàn thiện chế độ hiển thị Sáng/Tối (Light/Dark Mode) cho cả CustomerWeb và Admin WebApp.<br>• Tăng cường bảo mật: cơ chế Rate Limiting và chống spam/lạm dụng đối với đơn hàng của khách vãng lai. | |
+| 10 | 15/09/2026 –<br>28/09/2026 | • Cấu hình Webhook Proxy (Cloudflare Workers) và hoàn thiện kênh thanh toán trực tuyến an toàn.<br>• Viết các bộ kiểm thử tích hợp (Integration Test) cho các luồng xác thực, gọi món, bếp, thanh toán và xử lý đơn mang về.<br>• Tối ưu hóa hiệu năng truy vấn cơ sở dữ liệu và xử lý các trường hợp ngoại lệ kết nối mạng. | |
+| 11 | 29/09/2026 –<br>12/10/2026 | • Đóng gói toàn bộ hệ thống bằng Docker Compose (Backend, SQL Server, HAProxy Gateway, Admin Web, Customer Web).<br>• Kiểm thử thủ công giao diện trên các kích thước màn hình (Responsive UI) và kiểm tra khả năng phục hồi của hệ thống.<br>• Soạn thảo nội dung các chương báo cáo Đồ án chuyên ngành theo đề cương quy định. | |
+| 12 | 13/10/2026 –<br>28/10/2026 | • Tinh chỉnh trải nghiệm người dùng: chuẩn hóa font chữ Plus Jakarta Sans, đồng bộ hình ảnh thực đơn thực tế từ CSDL.<br>• Loại bỏ dữ liệu tĩnh giả lập (mock data), cô lập giỏ hàng theo từng tài khoản khách hàng.<br>• Hoàn tất toàn diện Báo cáo Đồ án chuyên ngành chuẩn 5 chương, kiểm tra cấu trúc tài liệu và chuẩn bị slide bảo vệ đồ án. | |
+
