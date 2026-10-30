@@ -6,6 +6,7 @@ export type Shift = {
   shiftName: string
   startTime: string
   endTime: string
+  isOvernight?: boolean
   description?: string | null
   isActive: boolean
   createdAt: string
@@ -18,6 +19,7 @@ export type ShiftForm = {
   shiftName: string
   startTime: string
   endTime: string
+  isOvernight: boolean
   description: string
   isActive: boolean
 }
@@ -33,6 +35,7 @@ export type EmployeeShift = {
   shiftName: string
   startTime: string
   endTime: string
+  isOvernight?: boolean
   workDate: string
   note?: string | null
   isActive: boolean
@@ -118,6 +121,7 @@ function normalizeShift(value: Shift): Shift {
     shiftName: value?.shiftName ?? '',
     startTime: normalizeTime(value?.startTime),
     endTime: normalizeTime(value?.endTime),
+    isOvernight: Boolean(value?.isOvernight),
     isActive: Boolean(value?.isActive),
   }
 }
@@ -131,6 +135,7 @@ function normalizeEmployeeShift(value: EmployeeShift): EmployeeShift {
     shiftName: value?.shiftName ?? '',
     startTime: normalizeTime(value?.startTime),
     endTime: normalizeTime(value?.endTime),
+    isOvernight: Boolean(value?.isOvernight),
     isActive: Boolean(value?.isActive),
   }
 }
@@ -155,6 +160,7 @@ export function createShift(form: ShiftForm) {
       shiftName: form.shiftName.trim(),
       startTime: timePayload(form.startTime),
       endTime: timePayload(form.endTime),
+      isOvernight: Boolean(form.isOvernight),
       description: form.description.trim() || null,
     }),
   })
@@ -170,6 +176,7 @@ export function updateShift(form: ShiftForm) {
       shiftName: form.shiftName.trim(),
       startTime: timePayload(form.startTime),
       endTime: timePayload(form.endTime),
+      isOvernight: Boolean(form.isOvernight),
       description: form.description.trim() || null,
       isActive: form.isActive,
     }),

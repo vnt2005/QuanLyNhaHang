@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Application.Features.Shifts.DTOs;
+namespace QuanLyNhaHang.Application.Features.Shifts.DTOs;
 
 public class ShiftDto
 {
@@ -11,6 +11,8 @@ public class ShiftDto
     public TimeSpan StartTime { get; set; }
 
     public TimeSpan EndTime { get; set; }
+
+    public bool IsOvernight { get; set; }
 
     public string? Description { get; set; }
 

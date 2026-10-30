@@ -1185,3 +1185,22 @@ body:has(.scheduling-page) .ds-confirm-actions button.danger {
     transition-duration: 0.01ms !important;
   }
 }
+
+.dashboard .scheduling-overnight-option {
+  background: rgb(255 255 255 / 4%) !important;
+  border-color: rgb(255 255 255 / 10%) !important;
+}
+
+.dashboard .scheduling-checkbox-label strong {
+  color: #f1f5f9 !important;
+}
+
+.dashboard .scheduling-checkbox-label small {
+  color: #94a3b8 !important;
+}
+
+.dashboard .overnight-badge {
+  background: rgb(139 92 246 / 15%) !important;
+  color: #c4b5fd !important;
+  border-color: rgb(139 92 246 / 35%) !important;
+}

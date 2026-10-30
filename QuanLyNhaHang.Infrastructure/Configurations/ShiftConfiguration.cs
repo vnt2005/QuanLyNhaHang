@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using QuanLyNhaHang.Domain.Entities;
 
@@ -31,6 +31,10 @@ public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
 
         builder.Property(x => x.EndTime)
             .IsRequired();
+
+        builder.Property(x => x.IsOvernight)
+            .IsRequired()
+            .HasDefaultValue(false);
 
         builder.Property(x => x.Description)
             .HasMaxLength(255)

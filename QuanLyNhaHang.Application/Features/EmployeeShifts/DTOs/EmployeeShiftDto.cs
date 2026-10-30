@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Application.Features.EmployeeShifts.DTOs;
+namespace QuanLyNhaHang.Application.Features.EmployeeShifts.DTOs;
 
 public class EmployeeShiftDto
 {
@@ -21,6 +21,8 @@ public class EmployeeShiftDto
     public TimeSpan StartTime { get; set; }
 
     public TimeSpan EndTime { get; set; }
+
+    public bool IsOvernight { get; set; }
 
     public DateTime WorkDate { get; set; }
 

@@ -890,6 +890,12 @@ export default function RestaurantSettingsPage() {
                           onChange={event => updateField('closingTime', event.target.value)}
                         />
                       </label>
+                      {form.openingTime && form.closingTime && form.closingTime < form.openingTime ? (
+                        <p style={{ gridColumn: '1 / -1', margin: '2px 0 6px', fontSize: '12px', color: '#8b5cf6', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>🌙</span>
+                          <strong>Chế độ hoạt động xuyên đêm:</strong> Đóng cửa lúc {toInputTime(form.closingTime)} sáng ngày tiếp theo.
+                        </p>
+                      ) : null}
                       <label>
                         Đơn vị tiền tệ *
                         <input

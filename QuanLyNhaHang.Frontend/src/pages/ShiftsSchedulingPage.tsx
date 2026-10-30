@@ -25,6 +25,7 @@ const emptyShift = (): ShiftForm => ({
   shiftName: '',
   startTime: '08:00',
   endTime: '17:00',
+  isOvernight: false,
   description: '',
   isActive: true,
 })
@@ -208,6 +209,26 @@ export default function ShiftsSchedulingPage() {
     setModal('shift')
   }
 
+  function handleShiftTimeChange(field: 'startTime' | 'endTime', value: string) {
+    const nextStart = field === 'startTime' ? value : shiftForm.startTime
+    const nextEnd = field === 'endTime' ? value : shiftForm.endTime
+    let nextOvernight = shiftForm.isOvernight
+
+    if (nextStart && nextEnd) {
+      if (nextEnd <= nextStart) {
+        nextOvernight = true
+      } else if (nextEnd > nextStart && !shiftForm.id) {
+        nextOvernight = false
+      }
+    }
+
+    setShiftForm((prev) => ({
+      ...prev,
+      [field]: value,
+      isOvernight: nextOvernight,
+    }))
+  }
+
   function openEditShift(item: Shift) {
     setShiftForm({
       id: item.id,
@@ -215,6 +236,7 @@ export default function ShiftsSchedulingPage() {
       shiftName: item.shiftName,
       startTime: item.startTime,
       endTime: item.endTime,
+      isOvernight: Boolean(item.isOvernight),
       description: item.description ?? '',
       isActive: item.isActive,
     })
@@ -251,8 +273,14 @@ export default function ShiftsSchedulingPage() {
     if (!shiftForm.shiftCode.trim() || !shiftForm.shiftName.trim()) {
       return setFormError('Vui lòng nhập mã ca và tên ca.')
     }
-    if (!shiftForm.startTime || !shiftForm.endTime || shiftForm.startTime >= shiftForm.endTime) {
-      return setFormError('Giờ bắt đầu phải nhỏ hơn giờ kết thúc.')
+    if (!shiftForm.startTime || !shiftForm.endTime) {
+      return setFormError('Vui lòng chọn đầy đủ giờ bắt đầu và giờ kết thúc.')
+    }
+    if (shiftForm.startTime === shiftForm.endTime) {
+      return setFormError('Giờ bắt đầu và giờ kết thúc không được trùng nhau.')
+    }
+    if (!shiftForm.isOvernight && shiftForm.startTime > shiftForm.endTime) {
+      return setFormError('Giờ bắt đầu phải nhỏ hơn giờ kết thúc (hoặc bật Ca qua đêm nếu kết thúc vào sáng hôm sau).')
     }
     setSaving(true)
     try {
@@ -430,7 +458,7 @@ export default function ShiftsSchedulingPage() {
       ) : (
         <aside className="scheduling-guide-band">
           <span>Quy tắc thời gian</span>
-          <p><CheckIcon /> Giờ bắt đầu phải trước giờ kết thúc và mã ca không được trùng.</p>
+          <p><CheckIcon /> Mã ca không được trùng. Hỗ trợ ca làm việc qua đêm sang ngày hôm sau.</p>
         </aside>
       )}
 
@@ -506,7 +534,7 @@ export default function ShiftsSchedulingPage() {
                     <td>
                       <div className="scheduling-shift-cell">
                         <ClockIcon />
-                        <div><strong>{item.shiftName}</strong><small>{item.shiftCode} · {formatTime(item.startTime)}–{formatTime(item.endTime)}</small></div>
+                        <div><strong>{item.shiftName}</strong><small>{item.shiftCode} · {formatTime(item.startTime)}–{formatTime(item.endTime)}{item.isOvernight ? ' (+1)' : ''}</small></div>
                       </div>
                     </td>
                     <td><span className="scheduling-date"><CalendarIcon />{formatWorkDate(item.workDate)}</span></td>
@@ -526,7 +554,7 @@ export default function ShiftsSchedulingPage() {
                 <tr key={item.id}>
                   <td><strong>{item.shiftCode}</strong></td>
                   <td><strong>{item.shiftName}</strong></td>
-                  <td><span className="scheduling-time"><ClockIcon />{formatTime(item.startTime)} – {formatTime(item.endTime)}</span></td>
+                  <td><span className="scheduling-time"><ClockIcon />{formatTime(item.startTime)} – {formatTime(item.endTime)}{item.isOvernight ? <span className="overnight-badge" title="Ca kết thúc vào sáng hôm sau">Qua đêm (+1)</span> : null}</span></td>
                   <td>{item.description || 'Không có mô tả'}</td>
                   <td><span className={`state ${item.isActive ? 'active' : 'inactive'}`}>{item.isActive ? 'Đang hoạt động' : 'Ngưng hoạt động'}</span></td>
                   <td>
@@ -561,8 +589,21 @@ export default function ShiftsSchedulingPage() {
             <div className="modal-grid">
               <label><span>Mã ca <em>*</em></span><input required placeholder="Ví dụ: MORNING" value={shiftForm.shiftCode} onChange={(event) => setShiftForm({ ...shiftForm, shiftCode: event.target.value })} /></label>
               <label><span>Tên ca làm <em>*</em></span><input required placeholder="Ví dụ: Ca sáng" value={shiftForm.shiftName} onChange={(event) => setShiftForm({ ...shiftForm, shiftName: event.target.value })} /></label>
-              <label><span>Giờ bắt đầu <em>*</em></span><input required type="time" value={shiftForm.startTime} onChange={(event) => setShiftForm({ ...shiftForm, startTime: event.target.value })} /></label>
-              <label><span>Giờ kết thúc <em>*</em></span><input required type="time" value={shiftForm.endTime} onChange={(event) => setShiftForm({ ...shiftForm, endTime: event.target.value })} /></label>
+              <label><span>Giờ bắt đầu <em>*</em></span><input required type="time" value={shiftForm.startTime} onChange={(event) => handleShiftTimeChange('startTime', event.target.value)} /></label>
+              <label><span>Giờ kết thúc <em>*</em></span><input required type="time" value={shiftForm.endTime} onChange={(event) => handleShiftTimeChange('endTime', event.target.value)} /></label>
+              <div className="wide scheduling-overnight-option">
+                <label className="scheduling-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={shiftForm.isOvernight}
+                    onChange={(event) => setShiftForm({ ...shiftForm, isOvernight: event.target.checked })}
+                  />
+                  <span>
+                    <strong>Ca làm việc qua đêm (+1 ngày)</strong>
+                    <small>Đánh dấu ca kết thúc vào ngày hôm sau (ví dụ: 17:00 – 00:00 hoặc 22:00 – 05:00 sáng).</small>
+                  </span>
+                </label>
+              </div>
               <label className="wide"><span>Mô tả nhiệm vụ</span><textarea rows={3} placeholder="Ghi chú phạm vi hoặc lưu ý của ca làm…" value={shiftForm.description} onChange={(event) => setShiftForm({ ...shiftForm, description: event.target.value })} /></label>
               {shiftForm.id ? (
                 <fieldset className="scheduling-status-field wide">
@@ -592,7 +633,7 @@ export default function ShiftsSchedulingPage() {
             </header>
             <div className="modal-grid">
               <label><span>Nhân viên trực <em>*</em></span><select required value={assignmentForm.employeeId} onChange={(event) => setAssignmentForm({ ...assignmentForm, employeeId: event.target.value })}><option value="">Chọn nhân viên</option>{activeEmployees.map((item) => <option key={item.id} value={item.id}>{item.employeeCode} - {employeeName(item)}</option>)}</select></label>
-              <label><span>Ca làm việc <em>*</em></span><select required value={assignmentForm.shiftId} onChange={(event) => setAssignmentForm({ ...assignmentForm, shiftId: event.target.value })}><option value="">Chọn ca</option>{activeShiftOptions.map((item) => <option key={item.id} value={item.id}>{item.shiftCode} - {item.shiftName} ({formatTime(item.startTime)}–{formatTime(item.endTime)})</option>)}</select></label>
+              <label><span>Ca làm việc <em>*</em></span><select required value={assignmentForm.shiftId} onChange={(event) => setAssignmentForm({ ...assignmentForm, shiftId: event.target.value })}><option value="">Chọn ca</option>{activeShiftOptions.map((item) => <option key={item.id} value={item.id}>{item.shiftCode} - {item.shiftName} ({formatTime(item.startTime)}–{formatTime(item.endTime)}{item.isOvernight ? ' (+1)' : ''})</option>)}</select></label>
               <label><span>Ngày làm <em>*</em></span><input required type="date" value={assignmentForm.workDate} onChange={(event) => setAssignmentForm({ ...assignmentForm, workDate: event.target.value })} /></label>
               {assignmentForm.id ? (
                 <fieldset className="scheduling-status-field">

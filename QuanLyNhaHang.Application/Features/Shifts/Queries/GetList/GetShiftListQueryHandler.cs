@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.Shifts.DTOs;
@@ -29,6 +29,7 @@ public class GetShiftListQueryHandler
                 ShiftName = x.ShiftName,
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
+                IsOvernight = x.IsOvernight,
                 Description = x.Description,
                 IsActive = x.IsActive,
                 CreatedAt = x.CreatedAt,
