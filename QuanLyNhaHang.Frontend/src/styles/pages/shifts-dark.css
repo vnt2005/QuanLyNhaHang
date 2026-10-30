@@ -233,6 +233,12 @@
 }
 
 .dashboard .scheduling-alert {
+  position: static !important;
+  inset: auto !important;
+  width: fit-content !important;
+  min-width: min(20rem, 100%) !important;
+  max-width: min(34rem, 100%) !important;
+  box-sizing: border-box !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -243,18 +249,33 @@
   border-radius: 0.875rem;
   font-size: 0.8125rem;
   line-height: 1.5;
+  box-shadow: none !important;
+}
+
+.dashboard .scheduling-alert::before,
+.dashboard .scheduling-alert::after {
+  content: none !important;
+  display: none !important;
 }
 
 .dashboard .scheduling-alert.error {
-  color: #ff9eae;
-  border-color: rgb(255 102 143 / 28%);
-  background: rgb(255 102 143 / 8%);
+  color: #ff8797 !important;
+  border-color: rgb(255 97 120 / 30%) !important;
+  background: rgb(255 97 120 / 12%) !important;
+}
+
+.dashboard .scheduling-alert.error span {
+  color: #ff8797 !important;
 }
 
 .dashboard .scheduling-alert.success {
-  color: #7ce7c8;
-  border-color: rgb(0 215 165 / 28%);
-  background: rgb(0 215 165 / 8%);
+  color: #63e5bd !important;
+  border-color: rgb(23 215 174 / 28%) !important;
+  background: rgb(23 215 174 / 12%) !important;
+}
+
+.dashboard .scheduling-alert.success span {
+  color: #63e5bd !important;
 }
 
 .dashboard .scheduling-alert button {
@@ -267,6 +288,13 @@
   color: currentColor;
   border: 0;
   background: transparent;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 150ms ease;
+}
+
+.dashboard .scheduling-alert button:hover {
+  opacity: 1;
 }
 
 .dashboard .scheduling-alert button svg {
@@ -1184,4 +1212,23 @@ body:has(.scheduling-page) .ds-confirm-actions button.danger {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.dashboard .scheduling-overnight-option {
+  background: rgb(255 255 255 / 4%) !important;
+  border-color: rgb(255 255 255 / 10%) !important;
+}
+
+.dashboard .scheduling-checkbox-label strong {
+  color: #f1f5f9 !important;
+}
+
+.dashboard .scheduling-checkbox-label small {
+  color: #94a3b8 !important;
+}
+
+.dashboard .overnight-badge {
+  background: rgb(139 92 246 / 15%) !important;
+  color: #c4b5fd !important;
+  border-color: rgb(139 92 246 / 35%) !important;
 }

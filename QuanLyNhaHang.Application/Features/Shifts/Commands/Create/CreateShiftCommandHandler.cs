@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Domain.Entities;
@@ -41,7 +41,8 @@ public class CreateShiftCommandHandler : IRequestHandler<CreateShiftCommand, Gui
             request.ShiftName,
             request.StartTime,
             request.EndTime,
-            request.Description);
+            request.Description,
+            request.IsOvernight);
 
         _context.Shifts.Add(shift);
 

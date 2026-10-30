@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Common.Models;
@@ -27,7 +27,6 @@ public class GetShiftsWithPaginatedListQueryHandler
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
-
             query = query.Where(x =>
                 x.ShiftCode.Contains(keyword) ||
                 x.ShiftName.Contains(keyword) ||
@@ -43,6 +42,7 @@ public class GetShiftsWithPaginatedListQueryHandler
                 ShiftName = x.ShiftName,
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
+                IsOvernight = x.IsOvernight,
                 Description = x.Description,
                 IsActive = x.IsActive,
                 CreatedAt = x.CreatedAt,

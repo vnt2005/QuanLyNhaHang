@@ -443,17 +443,59 @@
   background: rgb(255 97 120 / 8%) !important;
 }
 
+.restaurant-settings-alert {
+  position: static !important;
+  inset: auto !important;
+  width: fit-content !important;
+  min-width: min(20rem, 100%) !important;
+  max-width: min(34rem, 100%) !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+}
+
+.restaurant-settings-alert::before,
+.restaurant-settings-alert::after {
+  content: none !important;
+  display: none !important;
+}
+
 .restaurant-settings-alert.success {
   color: #63e5bd !important;
   border-color: rgb(23 215 174 / 28%) !important;
-  background: rgb(23 215 174 / 8%) !important;
+  background: rgb(23 215 174 / 12%) !important;
+}
+
+.restaurant-settings-alert.success p {
+  color: #63e5bd !important;
+}
+
+.restaurant-settings-alert.success > span {
+  color: #0b1325 !important;
+  background: #63e5bd !important;
+}
+
+.restaurant-settings-alert.success > button {
+  color: #63e5bd !important;
 }
 
 .restaurant-settings-alert.error,
 .restaurant-settings-modal .modal-alert.error {
   color: #ff8797 !important;
   border-color: rgb(255 97 120 / 30%) !important;
-  background: rgb(255 97 120 / 8%) !important;
+  background: rgb(255 97 120 / 12%) !important;
+}
+
+.restaurant-settings-alert.error p {
+  color: #ff8797 !important;
+}
+
+.restaurant-settings-alert.error > span {
+  color: #0b1325 !important;
+  background: #ff8797 !important;
+}
+
+.restaurant-settings-alert.error > button {
+  color: #ff8797 !important;
 }
 
 @media (max-width: 1100px) {

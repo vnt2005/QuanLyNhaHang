@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Domain.Entities;
+namespace QuanLyNhaHang.Domain.Entities;
 
 public class Shift
 {
@@ -11,6 +11,8 @@ public class Shift
     public TimeSpan StartTime { get; private set; }
 
     public TimeSpan EndTime { get; private set; }
+
+    public bool IsOvernight { get; private set; }
 
     public string? Description { get; private set; }
 
@@ -29,13 +31,14 @@ public class Shift
         string shiftName,
         TimeSpan startTime,
         TimeSpan endTime,
-        string? description)
+        string? description,
+        bool? isOvernight = null)
     {
         Id = Guid.NewGuid();
 
         SetShiftCode(shiftCode);
         SetShiftName(shiftName);
-        SetTime(startTime, endTime);
+        SetTime(startTime, endTime, isOvernight);
         SetDescription(description);
 
         IsActive = true;
@@ -47,11 +50,12 @@ public class Shift
         string shiftName,
         TimeSpan startTime,
         TimeSpan endTime,
-        string? description)
+        string? description,
+        bool? isOvernight = null)
     {
         SetShiftCode(shiftCode);
         SetShiftName(shiftName);
-        SetTime(startTime, endTime);
+        SetTime(startTime, endTime, isOvernight);
         SetDescription(description);
 
         UpdatedAt = DateTime.UtcNow;
@@ -85,7 +89,7 @@ public class Shift
         ShiftName = shiftName.Trim();
     }
 
-    private void SetTime(TimeSpan startTime, TimeSpan endTime)
+    private void SetTime(TimeSpan startTime, TimeSpan endTime, bool? isOvernight = null)
     {
         if (startTime < TimeSpan.Zero || startTime >= TimeSpan.FromDays(1))
             throw new ArgumentException("Giờ bắt đầu không hợp lệ.");
@@ -93,11 +97,22 @@ public class Shift
         if (endTime < TimeSpan.Zero || endTime > TimeSpan.FromDays(1))
             throw new ArgumentException("Giờ kết thúc không hợp lệ.");
 
-        if (startTime >= endTime)
+        if (startTime == endTime)
+            throw new ArgumentException("Giờ bắt đầu và giờ kết thúc không được trùng nhau.");
+
+        var overnight = isOvernight ?? (startTime > endTime);
+
+        if (!overnight && startTime > endTime)
             throw new ArgumentException("Giờ bắt đầu phải nhỏ hơn giờ kết thúc.");
+
+        if (overnight && startTime < endTime)
+        {
+            overnight = false;
+        }
 
         StartTime = startTime;
         EndTime = endTime;
+        IsOvernight = overnight;
     }
 
     private void SetDescription(string? description)

@@ -1,11 +1,10 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
 namespace QuanLyNhaHang.Application.Features.EmployeeShifts.Commands.Update;
 
-public class UpdateEmployeeShiftCommandHandler
-    : IRequestHandler<UpdateEmployeeShiftCommand, bool>
+public class UpdateEmployeeShiftCommandHandler : IRequestHandler<UpdateEmployeeShiftCommand, bool>
 {
     private readonly IApplicationDbContext _context;
 
@@ -34,10 +33,10 @@ public class UpdateEmployeeShiftCommandHandler
             throw new Exception("Nhân viên không tồn tại hoặc đã ngưng hoạt động.");
         }
 
-        var shiftExists = await _context.Shifts
-            .AnyAsync(x => x.Id == request.ShiftId && x.IsActive, cancellationToken);
+        var targetShift = await _context.Shifts
+            .FirstOrDefaultAsync(x => x.Id == request.ShiftId && x.IsActive, cancellationToken);
 
-        if (!shiftExists)
+        if (targetShift == null)
         {
             throw new Exception("Ca làm việc không tồn tại hoặc đã ngưng hoạt động.");
         }
@@ -55,6 +54,39 @@ public class UpdateEmployeeShiftCommandHandler
         if (duplicateExists)
         {
             throw new Exception("Nhân viên đã được phân công vào ca này trong ngày này.");
+        }
+
+        if (request.IsActive)
+        {
+            var targetStart = workDate + targetShift.StartTime;
+            var targetEnd = targetShift.IsOvernight
+                ? workDate.AddDays(1) + targetShift.EndTime
+                : workDate + targetShift.EndTime;
+
+            var existingAssignments = await _context.EmployeeShifts
+                .Where(x => x.EmployeeId == request.EmployeeId &&
+                            x.IsActive &&
+                            x.Id != request.Id &&
+                            x.WorkDate >= workDate.AddDays(-1) &&
+                            x.WorkDate <= workDate.AddDays(1))
+                .Join(_context.Shifts,
+                    es => es.ShiftId,
+                    s => s.Id,
+                    (es, s) => new { es.WorkDate, s.StartTime, s.EndTime, s.IsOvernight, s.ShiftName })
+                .ToListAsync(cancellationToken);
+
+            foreach (var existing in existingAssignments)
+            {
+                var exStart = existing.WorkDate + existing.StartTime;
+                var exEnd = existing.IsOvernight
+                    ? existing.WorkDate.AddDays(1) + existing.EndTime
+                    : existing.WorkDate + existing.EndTime;
+
+                if (targetStart < exEnd && targetEnd > exStart)
+                {
+                    throw new Exception($"Trùng giờ làm việc với ca '{existing.ShiftName}' ({existing.StartTime:hh\\:mm} - {existing.EndTime:hh\\:mm}).");
+                }
+            }
         }
 
         employeeShift.UpdateInfo(

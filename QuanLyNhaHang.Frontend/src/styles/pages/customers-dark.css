@@ -312,6 +312,10 @@
 }
 
 .dashboard .customer-alert {
+  width: fit-content !important;
+  min-width: min(20rem, 100%) !important;
+  max-width: min(34rem, 100%) !important;
+  box-sizing: border-box !important;
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;

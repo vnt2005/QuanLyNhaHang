@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 
@@ -55,7 +55,8 @@ public class UpdateShiftCommandHandler : IRequestHandler<UpdateShiftCommand, boo
             request.ShiftName,
             request.StartTime,
             request.EndTime,
-            request.Description);
+            request.Description,
+            request.IsOvernight);
 
         if (request.IsActive)
         {

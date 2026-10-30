@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhaHang.Application.Common.Interfaces;
 using QuanLyNhaHang.Application.Features.EmployeeShifts.DTOs;
@@ -40,6 +40,7 @@ public class GetEmployeeShiftListQueryHandler
                 ShiftName = shift.ShiftName,
                 StartTime = shift.StartTime,
                 EndTime = shift.EndTime,
+                IsOvernight = shift.IsOvernight,
 
                 WorkDate = employeeShift.WorkDate,
                 Note = employeeShift.Note,

@@ -1,4 +1,4 @@
-﻿namespace QuanLyNhaHang.Domain.Entities;
+namespace QuanLyNhaHang.Domain.Entities;
 
 public class RestaurantSetting
 {
@@ -271,6 +271,23 @@ public class RestaurantSetting
     private void SetQrOrderWelcomeMessage(string? qrOrderWelcomeMessage)
     {
         QrOrderWelcomeMessage = NormalizeOptional(qrOrderWelcomeMessage);
+    }
+
+    public bool IsCurrentlyOpen(TimeSpan time)
+    {
+        if (TimeSpan.TryParse(OpeningTime, out var open) &&
+            TimeSpan.TryParse(ClosingTime, out var close))
+        {
+            if (open <= close)
+            {
+                return time >= open && time <= close;
+            }
+
+            // Khung giờ xuyên đêm: mở từ chiều tối hôm nay đến rạng sáng hôm sau
+            return time >= open || time <= close;
+        }
+
+        return true;
     }
 
     private static string? NormalizeOptional(string? value)

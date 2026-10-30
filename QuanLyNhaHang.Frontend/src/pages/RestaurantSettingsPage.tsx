@@ -431,8 +431,8 @@ export default function RestaurantSettingsPage() {
       </div>
 
       {message && (
-        <div className="restaurant-settings-alert success">
-          <span>✓</span>
+        <div className="restaurant-settings-alert success" role="status" aria-live="polite">
+          <span aria-hidden="true">✓</span>
           <p>{message}</p>
           <button type="button" aria-label="Đóng thông báo" onClick={() => setMessage('')}>
             ×
@@ -440,8 +440,8 @@ export default function RestaurantSettingsPage() {
         </div>
       )}
       {error && (
-        <div className="restaurant-settings-alert error">
-          <span>!</span>
+        <div className="restaurant-settings-alert error" role="alert" aria-live="assertive">
+          <span aria-hidden="true">!</span>
           <p>{error}</p>
           <button type="button" aria-label="Đóng thông báo" onClick={() => setError('')}>
             ×
@@ -890,6 +890,12 @@ export default function RestaurantSettingsPage() {
                           onChange={event => updateField('closingTime', event.target.value)}
                         />
                       </label>
+                      {form.openingTime && form.closingTime && form.closingTime < form.openingTime ? (
+                        <p style={{ gridColumn: '1 / -1', margin: '2px 0 6px', fontSize: '12px', color: '#8b5cf6', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>🌙</span>
+                          <strong>Chế độ hoạt động xuyên đêm:</strong> Đóng cửa lúc {toInputTime(form.closingTime)} sáng ngày tiếp theo.
+                        </p>
+                      ) : null}
                       <label>
                         Đơn vị tiền tệ *
                         <input

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 
 namespace QuanLyNhaHang.Application.Features.Shifts.Commands.Update;
 
@@ -13,6 +13,8 @@ public class UpdateShiftCommand : IRequest<bool>
     public TimeSpan StartTime { get; set; }
 
     public TimeSpan EndTime { get; set; }
+
+    public bool? IsOvernight { get; set; }
 
     public string? Description { get; set; }
 
