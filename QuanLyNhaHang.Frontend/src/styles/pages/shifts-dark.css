@@ -233,6 +233,10 @@
 }
 
 .dashboard .scheduling-alert {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -243,18 +247,33 @@
   border-radius: 0.875rem;
   font-size: 0.8125rem;
   line-height: 1.5;
+  box-shadow: none !important;
+}
+
+.dashboard .scheduling-alert::before,
+.dashboard .scheduling-alert::after {
+  content: none !important;
+  display: none !important;
 }
 
 .dashboard .scheduling-alert.error {
-  color: #ff9eae;
-  border-color: rgb(255 102 143 / 28%);
-  background: rgb(255 102 143 / 8%);
+  color: #ff8797 !important;
+  border-color: rgb(255 97 120 / 30%) !important;
+  background: rgb(255 97 120 / 12%) !important;
+}
+
+.dashboard .scheduling-alert.error span {
+  color: #ff8797 !important;
 }
 
 .dashboard .scheduling-alert.success {
-  color: #7ce7c8;
-  border-color: rgb(0 215 165 / 28%);
-  background: rgb(0 215 165 / 8%);
+  color: #63e5bd !important;
+  border-color: rgb(23 215 174 / 28%) !important;
+  background: rgb(23 215 174 / 12%) !important;
+}
+
+.dashboard .scheduling-alert.success span {
+  color: #63e5bd !important;
 }
 
 .dashboard .scheduling-alert button {
@@ -267,6 +286,13 @@
   color: currentColor;
   border: 0;
   background: transparent;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 150ms ease;
+}
+
+.dashboard .scheduling-alert button:hover {
+  opacity: 1;
 }
 
 .dashboard .scheduling-alert button svg {

@@ -392,7 +392,7 @@ export default function ShiftsSchedulingPage() {
       </nav>
 
       {error && (
-        <div className="scheduling-alert error" role="alert">
+        <div className="scheduling-alert error" role="alert" aria-live="assertive">
           <span>{error}</span>
           <button type="button" aria-label="Đóng thông báo lỗi" onClick={() => setError('')}>
             <CloseIcon />
@@ -400,7 +400,7 @@ export default function ShiftsSchedulingPage() {
         </div>
       )}
       {message && (
-        <div className="scheduling-alert success" role="status">
+        <div className="scheduling-alert success" role="status" aria-live="polite">
           <span>{message}</span>
           <button type="button" aria-label="Đóng thông báo" onClick={() => setMessage('')}>
             <CloseIcon />
@@ -455,12 +455,7 @@ export default function ShiftsSchedulingPage() {
             />
           </label>
         </section>
-      ) : (
-        <aside className="scheduling-guide-band">
-          <span>Quy tắc thời gian</span>
-          <p><CheckIcon /> Mã ca không được trùng. Hỗ trợ ca làm việc qua đêm sang ngày hôm sau.</p>
-        </aside>
-      )}
+      ) : null}
 
       <div className="scheduling-search-row">
         <label className="scheduling-search-box">
