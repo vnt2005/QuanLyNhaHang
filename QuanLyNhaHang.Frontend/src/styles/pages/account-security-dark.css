@@ -111,6 +111,14 @@
   background: var(--security-surface-3);
 }
 
+.admin-layout:has(.account-security-page) .account-security-alert {
+  width: fit-content !important;
+  min-width: min(20rem, 100%) !important;
+  max-width: min(34rem, 100%) !important;
+  box-sizing: border-box !important;
+  margin: 0 0 1rem !important;
+}
+
 .admin-layout:has(.account-security-page) .account-security-alert.error {
   color: #ff9aa9;
   border-color: rgb(255 97 120 / 32%);

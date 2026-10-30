@@ -173,6 +173,11 @@
 }
 
 .admin-layout:has(.activity-logs-page) .dashboard .activity-alert {
+  width: fit-content !important;
+  min-width: min(20rem, 100%) !important;
+  max-width: min(34rem, 100%) !important;
+  box-sizing: border-box !important;
+  margin: 0 0 1rem !important;
   color: var(--activity-text-soft);
   border: 1px solid var(--activity-border);
   border-radius: 0.85rem;

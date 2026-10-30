@@ -206,7 +206,11 @@
 }
 
 .dashboard .revenue-reports-page .inline-alert {
-  margin: -0.4rem 0 0;
+  width: fit-content !important;
+  min-width: min(20rem, 100%) !important;
+  max-width: min(34rem, 100%) !important;
+  box-sizing: border-box !important;
+  margin: -0.4rem 0 1rem;
   padding: 0.875rem 1rem;
   border-radius: 0.875rem;
   font-size: 0.8125rem;

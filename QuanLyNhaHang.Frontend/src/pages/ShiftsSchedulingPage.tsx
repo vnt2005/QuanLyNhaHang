@@ -457,36 +457,38 @@ export default function ShiftsSchedulingPage() {
         </section>
       ) : null}
 
-      <div className="scheduling-search-row">
-        <label className="scheduling-search-box">
-          <SearchIcon />
-          <span className="sr-only">Tìm kiếm</span>
-          <input
-            placeholder={isAssignmentsTab ? 'Tìm nhân viên hoặc ca làm…' : 'Tìm mã ca hoặc tên ca làm…'}
-            value={keyword}
-            onChange={(event) => {
-              setKeyword(event.target.value)
-              setPage(1)
-            }}
-          />
-          {keyword ? (
-            <button
-              type="button"
-              className="scheduling-clear-search"
-              aria-label="Xóa từ khóa tìm kiếm"
-              onClick={() => {
-                setKeyword('')
+      {isAssignmentsTab ? (
+        <div className="scheduling-search-row">
+          <label className="scheduling-search-box">
+            <SearchIcon />
+            <span className="sr-only">Tìm kiếm</span>
+            <input
+              placeholder="Tìm nhân viên hoặc ca làm…"
+              value={keyword}
+              onChange={(event) => {
+                setKeyword(event.target.value)
                 setPage(1)
               }}
-            >
-              <CloseIcon />
-            </button>
-          ) : null}
-        </label>
-        <span className="scheduling-result-count">
-          Tìm thấy <strong>{totalCount}</strong> bản ghi
-        </span>
-      </div>
+            />
+            {keyword ? (
+              <button
+                type="button"
+                className="scheduling-clear-search"
+                aria-label="Xóa từ khóa tìm kiếm"
+                onClick={() => {
+                  setKeyword('')
+                  setPage(1)
+                }}
+              >
+                <CloseIcon />
+              </button>
+            ) : null}
+          </label>
+          <span className="scheduling-result-count">
+            Tìm thấy <strong>{totalCount}</strong> bản ghi
+          </span>
+        </div>
+      ) : null}
 
       <section className="scheduling-panel" aria-label={isAssignmentsTab ? 'Danh sách phân ca' : 'Danh sách ca làm việc'}>
         <div className="scheduling-table-wrap">

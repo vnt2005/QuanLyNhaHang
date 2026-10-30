@@ -235,7 +235,9 @@
 .dashboard .scheduling-alert {
   position: static !important;
   inset: auto !important;
-  width: 100% !important;
+  width: fit-content !important;
+  min-width: min(20rem, 100%) !important;
+  max-width: min(34rem, 100%) !important;
   box-sizing: border-box !important;
   display: flex;
   align-items: center;

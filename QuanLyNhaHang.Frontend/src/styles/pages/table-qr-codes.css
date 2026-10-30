@@ -77,6 +77,11 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
+  width: fit-content;
+  min-width: min(20rem, 100%);
+  max-width: min(34rem, 100%);
+  box-sizing: border-box;
+  margin: 0 0 16px;
   padding: 12px 14px;
   border: 1px solid;
   border-radius: 12px;
