@@ -431,8 +431,8 @@ export default function RestaurantSettingsPage() {
       </div>
 
       {message && (
-        <div className="restaurant-settings-alert success">
-          <span>✓</span>
+        <div className="restaurant-settings-alert success" role="status" aria-live="polite">
+          <span aria-hidden="true">✓</span>
           <p>{message}</p>
           <button type="button" aria-label="Đóng thông báo" onClick={() => setMessage('')}>
             ×
@@ -440,8 +440,8 @@ export default function RestaurantSettingsPage() {
         </div>
       )}
       {error && (
-        <div className="restaurant-settings-alert error">
-          <span>!</span>
+        <div className="restaurant-settings-alert error" role="alert" aria-live="assertive">
+          <span aria-hidden="true">!</span>
           <p>{error}</p>
           <button type="button" aria-label="Đóng thông báo" onClick={() => setError('')}>
             ×
