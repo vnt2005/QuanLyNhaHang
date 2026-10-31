@@ -8,9 +8,6 @@ public sealed class CustomerPaymentAccessService
 {
     private static readonly HashSet<string> PayableOrderStatuses = new(StringComparer.Ordinal)
     {
-        "Confirmed",
-        "Preparing",
-        "Cooking",
         "Ready",
         "Served"
     };
@@ -71,25 +68,50 @@ public sealed class CustomerPaymentAccessService
         return validQr ? order : null;
     }
 
-    public static bool CanStartOnlinePayment(Order order)
+    public static bool CanStartOnlinePayment(
+        Order order,
+        IReadOnlyCollection<OrderItem>? orderItems = null)
     {
-        if (order.OrderType == "Takeaway" && order.Status == "Pending")
-            return true;
+        if (!PayableOrderStatuses.Contains(order.Status))
+            return false;
 
-        return PayableOrderStatuses.Contains(order.Status);
+        if (orderItems != null)
+        {
+            var activeItems = orderItems
+                .Where(x => x.Status != "Cancelled")
+                .ToList();
+
+            if (activeItems.Count == 0 ||
+                activeItems.Any(x => x.Status is not ("Ready" or "Served")))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    public static string GetPaymentUnavailableMessage(Order order)
+    public static string GetPaymentUnavailableMessage(
+        Order order,
+        IReadOnlyCollection<OrderItem>? orderItems = null)
         => order.Status switch
         {
-            "Pending" when order.OrderType == "DineIn" =>
-                "Đơn tại bàn đang chờ nhà hàng xác nhận. Vui lòng thanh toán sau khi nhà hàng bắt đầu xử lý món.",
-            "Pending" =>
-                "Đơn mang về đang chờ nhà hàng tiếp nhận. Bạn không bắt buộc thanh toán trước khi bếp bắt đầu chuẩn bị món.",
             "Cancelled" =>
                 "Đơn hàng đã hủy, không thể thanh toán.",
             "Completed" =>
                 "Đơn hàng đã hoàn tất, không thể tạo thêm giao dịch thanh toán.",
+            "Pending" when order.OrderType == "Takeaway" =>
+                "Đơn mang về đang chờ nhà hàng tiếp nhận. Vui lòng thanh toán sau khi bếp nấu xong món.",
+            "Pending" =>
+                "Đơn tại bàn đang chờ nhà hàng tiếp nhận. Vui lòng thanh toán sau khi bếp nấu xong món.",
+            "Confirmed" or "Preparing" or "Cooking" when order.OrderType == "Takeaway" =>
+                "Bếp đang chuẩn bị và nấu món. Quý khách vui lòng thanh toán sau khi bếp nấu xong.",
+            "Confirmed" or "Preparing" or "Cooking" =>
+                "Bếp đang nấu món ăn. Quý khách vui lòng thanh toán sau khi bếp hoàn thành.",
+            _ when orderItems != null && !orderItems.Any(x => x.Status != "Cancelled") =>
+                "Đơn hàng chưa có món hợp lệ để thanh toán.",
+            _ when orderItems != null && orderItems.Where(x => x.Status != "Cancelled").Any(x => x.Status is not ("Ready" or "Served")) =>
+                "Bếp chưa nấu xong tất cả các món. Quý khách vui lòng thanh toán sau khi bếp hoàn thành.",
             _ =>
                 "Trạng thái đơn hàng hiện không cho phép thanh toán online."
         };

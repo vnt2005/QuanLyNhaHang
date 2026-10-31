@@ -82,10 +82,14 @@ public sealed class CreateOnlinePaymentCommandHandler
                 });
         }
 
-        if (!CustomerPaymentAccessService.CanStartOnlinePayment(order))
+        var orderItems = await _context.OrderItems
+            .Where(item => item.OrderId == order.Id && item.Status != "Cancelled")
+            .ToListAsync(cancellationToken);
+
+        if (!CustomerPaymentAccessService.CanStartOnlinePayment(order, orderItems))
         {
             return CustomerPaymentResult<CustomerPaymentInstructionDto>.Conflict(
-                CustomerPaymentAccessService.GetPaymentUnavailableMessage(order),
+                CustomerPaymentAccessService.GetPaymentUnavailableMessage(order, orderItems),
                 order.Status);
         }
 

@@ -108,7 +108,11 @@ public sealed class ProcessPaymentWebhookCommandHandler
             return true;
         }
 
-        if (!CustomerPaymentAccessService.CanStartOnlinePayment(order))
+        var orderItems = await _context.OrderItems
+            .Where(item => item.OrderId == order.Id && item.Status != "Cancelled")
+            .ToListAsync(cancellationToken);
+
+        if (!CustomerPaymentAccessService.CanStartOnlinePayment(order, orderItems))
         {
             attempt.MarkRequiresReview(transaction.Amount, transaction.TransactionId, $"PaidWhenOrderStatusNotPayable:{order.Status}", "PAID");
             await _context.SaveChangesAsync(cancellationToken);
@@ -156,7 +160,6 @@ public sealed class ProcessPaymentWebhookCommandHandler
 
         if (order.OrderType == "Takeaway" && order.Status is "Ready" or "Served")
         {
-            var orderItems = await _context.OrderItems.Where(item => item.OrderId == order.Id).ToListAsync(cancellationToken);
             var activeItems = orderItems.Where(item => item.Status != "Cancelled").ToList();
             if (activeItems.Count > 0 && activeItems.All(item => item.Status is "Ready" or "Served"))
             {
