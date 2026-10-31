@@ -1286,22 +1286,55 @@
     .inventory-alert,
     .promotions-alert,
     .table-qr-alert,
-    .account-security-alert
-  ).success {
-  position: fixed;
-  top: calc(var(--ds-topbar-height) + var(--ds-space-4));
-  right: var(--ds-space-6);
-  z-index: var(--ds-z-toast);
-  display: flex;
-  align-items: center;
-  width: min(25rem, calc(100vw - 2rem));
-  min-height: 3.5rem;
-  margin: 0;
-  padding: var(--ds-space-3) var(--ds-space-4);
-  border-color: var(--ds-color-success-border);
-  background: var(--ds-color-surface);
-  box-shadow: var(--ds-shadow-md);
-  animation: ds-toast-enter 220ms ease-out;
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ):is(.success, .error):not(.modal-alert):not([class*='modal'] *):not([class*='dialog'] *) {
+  position: fixed !important;
+  top: calc(var(--ds-topbar-height, 4rem) + 1rem) !important;
+  right: 1.5rem !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+  width: fit-content !important;
+  min-width: min(18rem, calc(100vw - 3rem)) !important;
+  max-width: min(28rem, calc(100vw - 3rem)) !important;
+  min-height: auto !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid !important;
+  font-size: 0.84rem !important;
+  line-height: 1.45 !important;
+  pointer-events: auto !important;
+  animation: ds-toast-enter 220ms ease-out !important;
+}
+
+/* Light theme colors */
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).success:not(.modal-alert):not([class*='modal'] *) {
+  color: #065f46 !important;
+  border-color: #10b981 !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
 }
 
 .dashboard
@@ -1313,19 +1346,267 @@
     .inventory-alert,
     .promotions-alert,
     .table-qr-alert,
-    .account-security-alert
-  ).success::before {
-  display: grid;
-  place-items: center;
-  flex: 0 0 1.75rem;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin-right: var(--ds-space-3);
-  border-radius: var(--ds-radius-pill);
-  color: var(--ds-white);
-  background: var(--ds-color-success);
-  content: '✓';
-  font-weight: var(--ds-font-weight-bold);
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).error:not(.modal-alert):not([class*='modal'] *) {
+  color: #9f1239 !important;
+  border-color: #f43f5e !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Dark theme colors - applies whenever dark theme is active or page has dark background */
+html[data-admin-theme='dark'] .dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).success:not(.modal-alert):not([class*='modal'] *),
+.dark .dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).success:not(.modal-alert):not([class*='modal'] *),
+.admin-layout:has([class*='-dark'], .scheduling-page, .restaurant-settings-page, .customer-page, .access-page, .revenue-reports-page, .table-qr-page) .dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).success:not(.modal-alert):not([class*='modal'] *) {
+  color: #f0fdf4 !important;
+  border-color: #00d7a5 !important;
+  background: #0f1c34 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 215, 165, 0.3) !important;
+}
+
+html[data-admin-theme='dark'] .dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).error:not(.modal-alert):not([class*='modal'] *),
+.dark .dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).error:not(.modal-alert):not([class*='modal'] *),
+.admin-layout:has([class*='-dark'], .scheduling-page, .restaurant-settings-page, .customer-page, .access-page, .revenue-reports-page, .table-qr-page) .dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).error:not(.modal-alert):not([class*='modal'] *) {
+  color: #fff1f2 !important;
+  border-color: #ff668f !important;
+  background: #251322 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 102, 143, 0.3) !important;
+}
+
+/* Toast Text & Content */
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ):is(.success, .error):not(.modal-alert):not([class*='modal'] *)
+  :is(p, span:not(:first-child), strong, div) {
+  margin: 0 !important;
+  color: inherit !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  line-height: 1.45 !important;
+}
+
+/* Toast Badges / Icons */
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .scheduling-alert,
+    .account-security-alert,
+    .ai-admin-alert
+  ).success:not(.modal-alert):not([class*='modal'] *)::before {
+  content: '✓' !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 1.5rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  margin-right: 0.35rem !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  background: #10b981 !important;
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
+}
+
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .scheduling-alert,
+    .account-security-alert,
+    .ai-admin-alert
+  ).error:not(.modal-alert):not([class*='modal'] *)::before {
+  content: '!' !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 1.5rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  margin-right: 0.35rem !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  background: #f43f5e !important;
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
+}
+
+/* Elements that already have icon spans (like restaurant-settings-alert, reservations-alert, table-qr-alert, promotions-alert) */
+.dashboard
+  :is(
+    .restaurant-settings-alert,
+    .reservations-alert,
+    .table-qr-alert,
+    .promotions-alert
+  ):not(.modal-alert):not([class*='modal'] *)::before {
+  content: none !important;
+  display: none !important;
+}
+
+.dashboard
+  :is(
+    .restaurant-settings-alert,
+    .reservations-alert,
+    .table-qr-alert,
+    .promotions-alert
+  ).success:not(.modal-alert):not([class*='modal'] *) > span:first-child {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 1.5rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  margin-right: 0.35rem !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  background: #10b981 !important;
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
+}
+
+.dashboard
+  :is(
+    .restaurant-settings-alert,
+    .reservations-alert,
+    .table-qr-alert,
+    .promotions-alert
+  ).error:not(.modal-alert):not([class*='modal'] *) > span:first-child {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 1.5rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  margin-right: 0.35rem !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  background: #f43f5e !important;
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
+}
+
+/* Close buttons inside alerts */
+.dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ):not(.modal-alert):not([class*='modal'] *) button {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  padding: 0 !important;
+  margin-left: 0.35rem !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: currentColor !important;
+  cursor: pointer !important;
+  opacity: 0.75 !important;
+  font-size: 1.1rem !important;
+  line-height: 1 !important;
+  transition: opacity 150ms ease, background-color 150ms ease !important;
 }
 
 .dashboard
@@ -1337,11 +1618,13 @@
     .inventory-alert,
     .promotions-alert,
     .table-qr-alert,
-    .account-security-alert
-  ).success
-  :is(p, span) {
-  margin: 0;
-  color: inherit;
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ):not(.modal-alert):not([class*='modal'] *) button:hover {
+  opacity: 1 !important;
+  background: rgba(125, 125, 125, 0.18) !important;
 }
 
 .dashboard
@@ -1354,123 +1637,39 @@
     .promotions-alert,
     .table-qr-alert,
     .account-security-alert,
-    .modal-alert
-  ).error
-  :is(p, span) {
-  margin: 0;
-  color: inherit;
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ):not(.modal-alert):not([class*='modal'] *) button svg {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 2 !important;
 }
 
-html[data-admin-theme='dark'] .dashboard
-  :is(
-    .inline-alert,
-    .customer-alert,
-    .activity-alert,
-    .reservations-alert,
-    .inventory-alert,
-    .promotions-alert,
-    .table-qr-alert,
-    .account-security-alert
-  ).success,
-.dark .dashboard
-  :is(
-    .inline-alert,
-    .customer-alert,
-    .activity-alert,
-    .reservations-alert,
-    .inventory-alert,
-    .promotions-alert,
-    .table-qr-alert,
-    .account-security-alert
-  ).success {
-  color: #63e5bd !important;
-  border-color: rgb(23 215 174 / 28%) !important;
-  background: rgb(23 215 174 / 12%) !important;
-}
-
-html[data-admin-theme='dark'] .dashboard
-  :is(
-    .inline-alert,
-    .customer-alert,
-    .activity-alert,
-    .reservations-alert,
-    .inventory-alert,
-    .promotions-alert,
-    .table-qr-alert,
-    .account-security-alert
-  ).success
-  :is(p, span, strong),
-.dark .dashboard
-  :is(
-    .inline-alert,
-    .customer-alert,
-    .activity-alert,
-    .reservations-alert,
-    .inventory-alert,
-    .promotions-alert,
-    .table-qr-alert,
-    .account-security-alert
-  ).success
-  :is(p, span, strong) {
-  color: #63e5bd !important;
-}
-
-html[data-admin-theme='dark'] .dashboard
-  :is(
-    .inline-alert,
-    .customer-alert,
-    .activity-alert,
-    .reservations-alert,
-    .inventory-alert,
-    .promotions-alert,
-    .table-qr-alert,
-    .account-security-alert,
-    .modal-alert
-  ).error,
-.dark .dashboard
-  :is(
-    .inline-alert,
-    .customer-alert,
-    .activity-alert,
-    .reservations-alert,
-    .inventory-alert,
-    .promotions-alert,
-    .table-qr-alert,
-    .account-security-alert,
-    .modal-alert
-  ).error {
-  color: #ff8797 !important;
-  border-color: rgb(255 97 120 / 30%) !important;
-  background: rgb(255 97 120 / 12%) !important;
-}
-
-html[data-admin-theme='dark'] .dashboard
-  :is(
-    .inline-alert,
-    .customer-alert,
-    .activity-alert,
-    .reservations-alert,
-    .inventory-alert,
-    .promotions-alert,
-    .table-qr-alert,
-    .account-security-alert,
-    .modal-alert
-  ).error
-  :is(p, span, strong),
-.dark .dashboard
-  :is(
-    .inline-alert,
-    .customer-alert,
-    .activity-alert,
-    .reservations-alert,
-    .inventory-alert,
-    .promotions-alert,
-    .table-qr-alert,
-    .account-security-alert,
-    .modal-alert
-  ).error
-  :is(p, span, strong) {
-  color: #ff8797 !important;
+@media (max-width: 640px) {
+  .dashboard
+    :is(
+      .inline-alert,
+      .customer-alert,
+      .activity-alert,
+      .reservations-alert,
+      .inventory-alert,
+      .promotions-alert,
+      .table-qr-alert,
+      .account-security-alert,
+      .restaurant-settings-alert,
+      .scheduling-alert,
+      .ai-admin-alert
+    ):is(.success, .error):not(.modal-alert):not([class*='modal'] *):not([class*='dialog'] *) {
+    top: calc(var(--ds-topbar-height, 4rem) + 0.5rem) !important;
+    right: 1rem !important;
+    left: 1rem !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
 }
 
 @keyframes ds-toast-enter {

@@ -444,13 +444,29 @@
 }
 
 .restaurant-settings-alert {
-  position: static !important;
-  inset: auto !important;
+  position: fixed !important;
+  top: calc(var(--ds-topbar-height, 4rem) + 1rem) !important;
+  right: 1.5rem !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
   width: fit-content !important;
-  min-width: min(20rem, 100%) !important;
-  max-width: min(34rem, 100%) !important;
+  min-width: min(18rem, calc(100vw - 3rem)) !important;
+  max-width: min(28rem, calc(100vw - 3rem)) !important;
+  min-height: auto !important;
   box-sizing: border-box !important;
-  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.84rem !important;
+  line-height: 1.45 !important;
+  pointer-events: auto !important;
+  animation: ds-toast-enter 220ms ease-out !important;
 }
 
 .restaurant-settings-alert::before,
@@ -460,42 +476,67 @@
 }
 
 .restaurant-settings-alert.success {
-  color: #63e5bd !important;
-  border-color: rgb(23 215 174 / 28%) !important;
-  background: rgb(23 215 174 / 12%) !important;
+  color: #f0fdf4 !important;
+  border-color: #00d7a5 !important;
+  background: #0f1c34 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 215, 165, 0.3) !important;
 }
 
 .restaurant-settings-alert.success p {
-  color: #63e5bd !important;
+  color: #f0fdf4 !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
 }
 
 .restaurant-settings-alert.success > span {
-  color: #0b1325 !important;
-  background: #63e5bd !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 1.5rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  margin-right: 0.35rem !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  background: #00d7a5 !important;
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
 }
 
 .restaurant-settings-alert.success > button {
-  color: #63e5bd !important;
+  color: currentColor !important;
+  opacity: 0.75 !important;
 }
 
-.restaurant-settings-alert.error,
-.restaurant-settings-modal .modal-alert.error {
-  color: #ff8797 !important;
-  border-color: rgb(255 97 120 / 30%) !important;
-  background: rgb(255 97 120 / 12%) !important;
+.restaurant-settings-alert.error {
+  color: #fff1f2 !important;
+  border-color: #ff668f !important;
+  background: #251322 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 102, 143, 0.3) !important;
 }
 
 .restaurant-settings-alert.error p {
-  color: #ff8797 !important;
+  color: #fff1f2 !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
 }
 
 .restaurant-settings-alert.error > span {
-  color: #0b1325 !important;
-  background: #ff8797 !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 1.5rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  margin-right: 0.35rem !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  background: #ff668f !important;
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
 }
 
 .restaurant-settings-alert.error > button {
-  color: #ff8797 !important;
+  color: currentColor !important;
+  opacity: 0.75 !important;
 }
 
 @media (max-width: 1100px) {
