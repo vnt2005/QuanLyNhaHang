@@ -265,3 +265,9 @@ html[data-admin-theme='light'] .ai-admin-chat-popup-close {
   background: #e2e8f0 !important;
   color: #334155 !important;
 }
+
+html[data-admin-theme='light'] .ai-admin-save-btn {
+  background: #e99a62 !important;
+  border-color: #e99a62 !important;
+  color: #193044 !important;
+}

@@ -246,6 +246,49 @@
   padding: 0.75rem 0.8rem;
 }
 
+.ai-admin-page {
+  padding-bottom: 3.5rem;
+}
+
+.ai-admin-control-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ai-admin-save-btn {
+  min-height: 2.75rem;
+  padding: 0 1.35rem;
+  border: 1px solid #e99a62 !important;
+  border-radius: 9px;
+  background: #e99a62 !important;
+  color: #193044 !important;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(233, 154, 98, 0.3);
+  transition: all 180ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-admin-save-btn:hover:not(:disabled) {
+  background: #f1ad7c !important;
+  border-color: #f1ad7c !important;
+  box-shadow: 0 6px 18px rgba(233, 154, 98, 0.45);
+  transform: translateY(-1px);
+}
+
+.ai-admin-save-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .ai-admin-chat-form button,
 .ai-admin-page .ai-admin-footer button {
   min-height: 2.8rem;
@@ -341,6 +384,17 @@
   .ai-admin-live-card,
   .ai-admin-chat-form {
     grid-template-columns: 1fr;
+  }
+
+  .ai-admin-control-card {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .ai-admin-control-actions {
+    justify-content: flex-start;
+    gap: 1rem;
+    width: 100%;
   }
 }
 

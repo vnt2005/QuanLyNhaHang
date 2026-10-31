@@ -150,8 +150,8 @@ export default function AiAssistantManagementPage() {
     }
   }
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
+  async function handleSubmit(event?: FormEvent) {
+    if (event) event.preventDefault()
     if (saving) return
 
     setSaving(true)
@@ -253,16 +253,27 @@ export default function AiAssistantManagementPage() {
             nếu khách đăng nhập thì đọc thêm đơn/thông báo của đúng tài khoản đó.
           </p>
         </div>
-        <label className="ai-admin-switch">
-          <input
-            type="checkbox"
-            checked={config.enabled}
-            onChange={(event) => void handleToggleCustomerAi(event.target.checked)}
-            disabled={!config.providerConfigured || saving}
-          />
-          <span aria-hidden="true" />
-          <strong>{config.enabled ? 'Đang bật' : 'Đang tắt'}</strong>
-        </label>
+        <div className="ai-admin-control-actions">
+          <label className="ai-admin-switch">
+            <input
+              type="checkbox"
+              checked={config.enabled}
+              onChange={(event) => void handleToggleCustomerAi(event.target.checked)}
+              disabled={!config.providerConfigured || saving}
+            />
+            <span aria-hidden="true" />
+            <strong>{config.enabled ? 'Đang bật' : 'Đang tắt'}</strong>
+          </label>
+
+          <button
+            type="submit"
+            form="ai-admin-config-form"
+            className="ai-admin-save-btn"
+            disabled={saving}
+          >
+            {saving ? 'Đang lưu…' : 'Lưu cấu hình AI'}
+          </button>
+        </div>
       </div>
 
       <div className="ai-admin-bot-banner">
@@ -392,7 +403,7 @@ export default function AiAssistantManagementPage() {
       {error ? <div className="ai-admin-alert error">{error}</div> : null}
       {message ? <div className="ai-admin-alert success">{message}</div> : null}
 
-      <form className="ai-admin-form" onSubmit={handleSubmit}>
+      <form id="ai-admin-config-form" className="ai-admin-form" onSubmit={handleSubmit}>
         <div className="ai-admin-grid">
           <div className="ai-admin-card">
             <div className="ai-admin-section-heading">
@@ -508,9 +519,6 @@ export default function AiAssistantManagementPage() {
 
         <div className="ai-admin-footer">
           <small>Cập nhật gần nhất: {formatUpdatedAt(config.updatedAt)}</small>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Đang lưu…' : 'Lưu cấu hình AI'}
-          </button>
         </div>
       </form>
     </section>
