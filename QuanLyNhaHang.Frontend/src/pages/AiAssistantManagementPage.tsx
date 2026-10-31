@@ -27,23 +27,6 @@ const adminSuggestedQuestions = [
   'Doanh thu và thanh toán hôm nay thế nào?',
 ]
 
-const liveModules = [
-  'Dashboard',
-  'Tài khoản & phân quyền',
-  'Nhân viên & ca làm',
-  'Khu vực & bàn',
-  'Thực đơn',
-  'Đơn hàng & bếp',
-  'Thanh toán & hóa đơn',
-  'Doanh thu',
-  'Đặt bàn',
-  'Khuyến mãi',
-  'Tồn kho',
-  'Nhật ký & thông báo',
-  'QR & thao tác bàn',
-  'Cấu hình nhà hàng',
-]
-
 function formatUpdatedAt(value?: string | null) {
   if (!value) return 'Chưa cập nhật'
   const date = new Date(value)
@@ -223,21 +206,6 @@ export default function AiAssistantManagementPage() {
                 : 'Cấu hình GEMINI_API_KEY trên backend để bật trợ lý.'}
             </small>
           </div>
-        </div>
-      </div>
-
-      <div className="ai-admin-live-card">
-        <div className="ai-admin-live-copy">
-          <span className="ai-admin-label">Dữ liệu trực tiếp</span>
-          <h3>AI đọc các module WebApp theo yêu cầu</h3>
-          <p>
-            Customer AI chỉ thấy dữ liệu công khai và dữ liệu thuộc chính tài khoản
-            Customer đã đăng nhập. AI quản trị có thể đọc dữ liệu vận hành rộng hơn
-            nhưng vẫn là read-only và không nhận mật khẩu, API key, mã xác minh hay QR token.
-          </p>
-        </div>
-        <div className="ai-admin-module-list">
-          {liveModules.map((module) => <span key={module}>{module}</span>)}
         </div>
       </div>
 
@@ -447,15 +415,6 @@ export default function AiAssistantManagementPage() {
           <p className="ai-admin-help">
             Không cần chép thực đơn, đơn hàng, bàn, thanh toán, doanh thu, kho hoặc dữ liệu
             vận hành vào đây. AI tự lấy từ database qua công cụ read-only khi cần.
-          </p>
-        </div>
-
-        <div className="ai-admin-security-note">
-          <strong>API key và bí mật hệ thống không được quản lý trong giao diện.</strong>
-          <p>
-            Khóa Gemini chỉ đọc từ biến môi trường <code>GEMINI_API_KEY</code> ở backend.
-            Các trường nhạy cảm như password hash, mã xác minh/2FA/reset và QR token cũng
-            bị loại trước khi dữ liệu có thể được gửi tới Gemini.
           </p>
         </div>
 
