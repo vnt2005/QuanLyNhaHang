@@ -108,8 +108,8 @@
 .restaurant-settings-alert {
   position: fixed;
   top: calc(var(--ds-topbar-height, 4rem) + 1rem);
-  right: 1.5rem;
-  left: auto;
+  left: calc(var(--ds-sidebar-width, 16rem) + 2rem);
+  right: auto;
   bottom: auto;
   z-index: 9999;
   display: flex;

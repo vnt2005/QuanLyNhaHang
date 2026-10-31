@@ -1293,8 +1293,8 @@
   ):is(.success, .error):not(.modal-alert):not([class*='modal'] *):not([class*='dialog'] *) {
   position: fixed !important;
   top: calc(var(--ds-topbar-height, 4rem) + 1rem) !important;
-  right: 1.5rem !important;
-  left: auto !important;
+  left: calc(var(--ds-sidebar-width, 16rem) + 2rem) !important;
+  right: auto !important;
   bottom: auto !important;
   z-index: 9999 !important;
   display: flex !important;
@@ -1648,7 +1648,7 @@ html[data-admin-theme='dark'] .dashboard
   stroke-width: 2 !important;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .dashboard
     :is(
       .inline-alert,

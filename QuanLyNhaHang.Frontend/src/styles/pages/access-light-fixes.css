@@ -115,29 +115,6 @@ html[data-admin-theme='light'] body:has(.access-page) .ds-confirm-actions button
   background: #b83249 !important;
 }
 
-/* Access feedback is rendered directly after the tabs. Let it occupy its own
-   row instead of using the global fixed-toast position, which can cover the
-   Đồng bộ / Thêm vai trò toolbar buttons on desktop. */
-html[data-admin-theme='light'] .admin-layout:has(.access-page) .dashboard .access-page > .inline-alert.success {
-  position: static !important;
-  inset: auto !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  width: 100% !important;
-  min-height: 3.25rem;
-  margin: 0 0 1rem !important;
-  color: #147a62 !important;
-  border-color: #a7e3d4 !important;
-  background: #effbf7 !important;
-  box-shadow: none !important;
-}
-
-html[data-admin-theme='light'] .admin-layout:has(.access-page) .dashboard .access-page > .inline-alert.success::before {
-  color: #ffffff !important;
-  background: #15956f !important;
-}
 
 /* Light-mode Access Management uses the same blue accent as the corrected
    scheduling/customer modules. Semantic green/red states stay unchanged. */

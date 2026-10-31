@@ -235,8 +235,8 @@
 .dashboard .scheduling-alert {
   position: fixed !important;
   top: calc(var(--ds-topbar-height, 4rem) + 1rem) !important;
-  right: 1.5rem !important;
-  left: auto !important;
+  left: calc(var(--ds-sidebar-width, 16rem) + 2rem) !important;
+  right: auto !important;
   bottom: auto !important;
   z-index: 9999 !important;
   display: flex !important;
