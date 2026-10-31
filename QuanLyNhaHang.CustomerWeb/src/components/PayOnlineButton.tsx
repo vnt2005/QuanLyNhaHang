@@ -136,12 +136,14 @@ export default function PayOnlineButton({
   }
 
   const blockedLabel = orderStatus === 'Pending'
-    ? 'Chờ nhà hàng xác nhận'
-    : orderStatus === 'Cancelled'
-      ? 'Đơn đã hủy'
-      : orderStatus === 'Completed'
-        ? 'Đơn đã hoàn thành'
-        : 'Chưa thể thanh toán'
+    ? 'Chờ nhà hàng tiếp nhận'
+    : orderStatus === 'Cooking' || orderStatus === 'Preparing' || orderStatus === 'Confirmed'
+      ? 'Chờ bếp nấu xong'
+      : orderStatus === 'Cancelled'
+        ? 'Đơn đã hủy'
+        : orderStatus === 'Completed'
+          ? 'Đơn đã hoàn thành'
+          : 'Chưa thể thanh toán'
 
   return (
     <div className="grid w-full gap-4">
@@ -150,7 +152,13 @@ export default function PayOnlineButton({
         {paid ? <CheckCircle2 data-icon="inline-start" /> : canPay ? <QrCode data-icon="inline-start" /> : <Clock3 data-icon="inline-start" />}
         {paid ? 'Đã thanh toán' : checking ? 'Đang kiểm tra…' : loading ? 'Đang tạo mã QR…' : canPay ? 'Thanh toán online' : blockedLabel}
       </Button>
-      {!paid && !checking && !canPay && unavailableReason ? <Alert><AlertTitle>Thanh toán chưa sẵn sàng</AlertTitle><AlertDescription>{unavailableReason}</AlertDescription></Alert> : null}
+      {!paid && !checking && !canPay && unavailableReason ? (
+        <Alert>
+          <Clock3 className="size-4" />
+          <AlertTitle>Chưa thể thanh toán</AlertTitle>
+          <AlertDescription>{unavailableReason}</AlertDescription>
+        </Alert>
+      ) : null}
       {error ? <Alert variant="destructive"><AlertTitle>Không thể tạo thanh toán</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
     </div>
   )

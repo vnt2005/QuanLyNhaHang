@@ -227,3 +227,47 @@ html[data-admin-theme='light'] .ai-admin-toast.error {
   border-color: #f0b8c2 !important;
   background: #fff1f4 !important;
 }
+
+html[data-admin-theme='light'] .ai-admin-bot-banner {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+  border-color: #bae6fd !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06) !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-bot-badge {
+  background: #ffffff !important;
+  border-color: #0284c7 !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-bot-text h3 {
+  color: #0f172a !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-bot-text p {
+  color: #475569 !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-chat-popup {
+  background: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18) !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-chat-popup-heading strong {
+  color: #0f172a !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-chat-popup-heading small {
+  color: #0284c7 !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-chat-popup-close {
+  background: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-save-btn {
+  background: #e99a62 !important;
+  border-color: #e99a62 !important;
+  color: #193044 !important;
+}

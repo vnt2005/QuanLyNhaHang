@@ -75,6 +75,13 @@ public sealed class GetPaymentStatusQueryHandler
             .OrderByDescending(item => item.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
+        var orderItems = await _context.OrderItems
+            .Where(item => item.OrderId == order.Id && item.Status != "Cancelled")
+            .ToListAsync(cancellationToken);
+
+        var orderCanStartOnlinePayment =
+            CustomerPaymentAccessService.CanStartOnlinePayment(order, orderItems);
+
         var attemptChanged = false;
         if (latestAttempt != null &&
             (latestAttempt.Status == PaymentAttempt.CreatingStatus ||
@@ -87,7 +94,7 @@ public sealed class GetPaymentStatusQueryHandler
 
         if (payment == null &&
             latestAttempt != null &&
-            !CustomerPaymentAccessService.CanStartOnlinePayment(order) &&
+            !orderCanStartOnlinePayment &&
             (latestAttempt.Status == PaymentAttempt.CreatingStatus ||
              latestAttempt.Status == PaymentAttempt.PendingStatus))
         {
@@ -100,15 +107,13 @@ public sealed class GetPaymentStatusQueryHandler
             await _context.SaveChangesAsync(cancellationToken);
 
         var paymentChannel = _paymentChannelReadiness.GetSnapshot();
-        var orderCanStartOnlinePayment =
-            CustomerPaymentAccessService.CanStartOnlinePayment(order);
         var canPay = payment == null &&
                      orderCanStartOnlinePayment &&
                      paymentChannel.Ready;
         var paymentUnavailableReason = payment != null
             ? null
             : !orderCanStartOnlinePayment
-                ? CustomerPaymentAccessService.GetPaymentUnavailableMessage(order)
+                ? CustomerPaymentAccessService.GetPaymentUnavailableMessage(order, orderItems)
                 : !paymentChannel.Ready
                     ? CustomerPaymentAccessService.GetWebhookUnavailableMessage()
                     : null;

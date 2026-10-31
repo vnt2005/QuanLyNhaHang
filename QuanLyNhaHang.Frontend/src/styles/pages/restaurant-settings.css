@@ -106,21 +106,28 @@
 }
 
 .restaurant-settings-alert {
-  position: static;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  position: fixed;
+  top: calc(var(--ds-topbar-height, 4rem) + 1rem);
+  right: 1.5rem;
+  left: auto;
+  bottom: auto;
+  z-index: 9999;
+  display: flex;
   align-items: center;
-  gap: 11px;
+  justify-content: flex-start;
+  gap: 10px;
+  text-align: left;
   width: fit-content;
-  min-width: min(20rem, 100%);
-  max-width: min(34rem, 100%);
+  min-width: auto;
+  max-width: min(28rem, calc(100vw - 3rem));
   box-sizing: border-box;
-  margin: 0 0 16px;
+  margin: 0;
   padding: 12px 14px;
   border: 1px solid;
   border-radius: 12px;
   font-size: 13px;
-  box-shadow: none;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  animation: ds-toast-enter 220ms ease-out;
 }
 
 .restaurant-settings-alert::before,

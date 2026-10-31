@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import {
   getAiAssistantAdminConfig,
   sendAiAssistantAdminMessage,
@@ -27,29 +28,118 @@ const adminSuggestedQuestions = [
   'Doanh thu và thanh toán hôm nay thế nào?',
 ]
 
-const liveModules = [
-  'Dashboard',
-  'Tài khoản & phân quyền',
-  'Nhân viên & ca làm',
-  'Khu vực & bàn',
-  'Thực đơn',
-  'Đơn hàng & bếp',
-  'Thanh toán & hóa đơn',
-  'Doanh thu',
-  'Đặt bàn',
-  'Khuyến mãi',
-  'Tồn kho',
-  'Nhật ký & thông báo',
-  'QR & thao tác bàn',
-  'Cấu hình nhà hàng',
-]
-
 function formatUpdatedAt(value?: string | null) {
   if (!value) return 'Chưa cập nhật'
   const date = new Date(value)
   return Number.isNaN(date.getTime())
     ? 'Chưa cập nhật'
     : date.toLocaleString('vi-VN')
+}
+
+function RobotAvatarIcon({ size = 32 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 36 36"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <circle cx="18" cy="4.5" r="2.5" fill="#38bdf8" />
+      <line x1="18" y1="7" x2="18" y2="11" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" />
+      <rect x="5" y="11" width="26" height="19" rx="7" fill="#0f2639" stroke="#38bdf8" strokeWidth="2.2" />
+      <rect x="2" y="16.5" width="3" height="8" rx="1.5" fill="#38bdf8" />
+      <rect x="31" y="16.5" width="3" height="8" rx="1.5" fill="#38bdf8" />
+      <rect x="8" y="14" width="20" height="13" rx="4" fill="#081420" />
+      <circle cx="13" cy="20.5" r="2.5" fill="#38bdf8" />
+      <circle cx="23" cy="20.5" r="2.5" fill="#38bdf8" />
+      <path d="M15 23.5C16 24.8 20 24.8 21 23.5" stroke="#38bdf8" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function SendIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
+  )
+}
+
+interface AiAdminChatInputProps {
+  disabled: boolean
+  sending: boolean
+  onSubmit: (text: string) => void
+}
+
+function AiAdminChatInput({ disabled, sending, onSubmit }: AiAdminChatInputProps) {
+  const [value, setValue] = useState('')
+  const isComposingRef = useRef(false)
+  const inputRef = useRef<HTMLTextAreaElement | null>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    const trimmed = value.trim()
+    if (!trimmed || disabled || sending) return
+    onSubmit(trimmed)
+    setValue('')
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      if (isComposingRef.current || event.nativeEvent.isComposing) {
+        return
+      }
+      event.preventDefault()
+      event.currentTarget.form?.requestSubmit()
+    }
+  }
+
+  return (
+    <form className="ai-admin-chat-form" onSubmit={handleSubmit}>
+      <textarea
+        ref={inputRef}
+        rows={1}
+        maxLength={1200}
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        onCompositionStart={() => {
+          isComposingRef.current = true
+        }}
+        onCompositionEnd={() => {
+          isComposingRef.current = false
+        }}
+        onKeyDown={handleKeyDown}
+        placeholder="Hỏi doanh thu, đơn bếp, bàn, tồn kho…"
+        disabled={disabled || sending}
+      />
+      <button
+        type="submit"
+        className="ai-admin-send-btn"
+        disabled={disabled || sending || !value.trim()}
+        aria-label="Gửi câu hỏi"
+      >
+        <SendIcon size={16} />
+        <span>{sending ? 'Đang hỏi…' : 'Gửi'}</span>
+      </button>
+    </form>
+  )
 }
 
 export default function AiAssistantManagementPage() {
@@ -59,11 +149,57 @@ export default function AiAssistantManagementPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [adminMessages, setAdminMessages] = useState<AiAssistantAdminMessage[]>([])
-  const [adminInput, setAdminInput] = useState('')
   const [adminSending, setAdminSending] = useState(false)
   const [adminError, setAdminError] = useState('')
+  const [chatOpen, setChatOpen] = useState(false)
+
+  const adminMessagesRef = useRef<HTMLDivElement | null>(null)
+  const adminMessagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  const scrollAdminToBottom = useCallback((smooth = true) => {
+    const performScroll = () => {
+      if (adminMessagesEndRef.current) {
+        adminMessagesEndRef.current.scrollIntoView({
+          behavior: smooth ? 'smooth' : 'auto',
+          block: 'end',
+        })
+      }
+      if (adminMessagesRef.current) {
+        adminMessagesRef.current.scrollTop = adminMessagesRef.current.scrollHeight
+      }
+    }
+
+    requestAnimationFrame(() => {
+      performScroll()
+      setTimeout(performScroll, 60)
+      setTimeout(performScroll, 200)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (chatOpen) {
+      scrollAdminToBottom(false)
+    }
+  }, [chatOpen, scrollAdminToBottom])
+
+  useEffect(() => {
+    if (chatOpen) {
+      scrollAdminToBottom(true)
+    }
+  }, [adminMessages, chatOpen, adminSending, scrollAdminToBottom])
+
+  useEffect(() => {
+    if (!chatOpen) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setChatOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [chatOpen])
+
+  useAutoDismissMessage(message, setMessage, 4000)
+  useAutoDismissMessage(error, setError, 5000)
 
   useEffect(() => {
     let active = true
@@ -92,13 +228,6 @@ export default function AiAssistantManagementPage() {
     }
   }, [])
 
-  function showToast(type: 'success' | 'error', text: string) {
-    setToast({ type, text })
-    window.setTimeout(() => {
-      setToast((current) => current?.text === text ? null : current)
-    }, 3500)
-  }
-
   function updateField<K extends keyof AiAssistantAdminConfig>(
     key: K,
     value: AiAssistantAdminConfig[K],
@@ -106,8 +235,43 @@ export default function AiAssistantManagementPage() {
     setConfig((current) => ({ ...current, [key]: value }))
   }
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
+  async function handleToggleCustomerAi(newEnabled: boolean) {
+    if (saving) return
+    updateField('enabled', newEnabled)
+    setSaving(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const result = await updateAiAssistantAdminConfig({
+        enabled: newEnabled,
+        model: config.model.trim(),
+        welcomeMessage: config.welcomeMessage.trim(),
+        systemPrompt: config.systemPrompt.trim(),
+        knowledgeBase: config.knowledgeBase.trim(),
+        suggestedQuestions: suggestedQuestions
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean),
+        maxOutputTokens: config.maxOutputTokens,
+      })
+
+      setConfig(result.data)
+      setSuggestedQuestions(result.data.suggestedQuestions.join('\n'))
+      setMessage(newEnabled ? 'Đã bật hiển thị AI cho khách hàng.' : 'Đã tắt hiển thị AI cho khách hàng.')
+    } catch (exception) {
+      updateField('enabled', !newEnabled)
+      const text = exception instanceof Error
+        ? exception.message
+        : 'Không thể cập nhật trạng thái hiển thị AI.'
+      setError(text)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleSubmit(event?: FormEvent) {
+    if (event) event.preventDefault()
     if (saving) return
 
     setSaving(true)
@@ -130,14 +294,12 @@ export default function AiAssistantManagementPage() {
 
       setConfig(result.data)
       setSuggestedQuestions(result.data.suggestedQuestions.join('\n'))
-      setMessage(result.message)
-      showToast('success', 'Đã lưu cấu hình AI thành công.')
+      setMessage(result.message || 'Cập nhật cấu hình trợ lý AI thành công.')
     } catch (exception) {
       const text = exception instanceof Error
         ? exception.message
         : 'Không lưu được cấu hình trợ lý AI.'
       setError(text)
-      showToast('error', text)
     } finally {
       setSaving(false)
     }
@@ -149,7 +311,6 @@ export default function AiAssistantManagementPage() {
 
     const history = adminMessages.slice(-8)
     setAdminMessages((current) => [...current, { role: 'user', content: text }])
-    setAdminInput('')
     setAdminError('')
     setAdminSending(true)
 
@@ -174,11 +335,6 @@ export default function AiAssistantManagementPage() {
     }
   }
 
-  function handleAdminChatSubmit(event: FormEvent) {
-    event.preventDefault()
-    void askAdminAi(adminInput)
-  }
-
   if (loading) {
     return (
       <section className="ai-admin-page ai-admin-loading" role="status">
@@ -193,150 +349,189 @@ export default function AiAssistantManagementPage() {
 
   return (
     <section className="ai-admin-page">
-      {toast ? (
-        <div className={`ai-admin-toast ${toast.type}`} role="status">
-          <strong>{toast.type === 'success' ? 'Đã lưu' : 'Có lỗi'}</strong>
-          <span>{toast.text}</span>
-        </div>
-      ) : null}
-
-      <div className="ai-admin-hero">
+      <div className="ai-admin-card ai-admin-control-card">
         <div>
-          <span className="eyebrow">AI OPERATIONS</span>
-          <h2>Trợ lý AI nhà hàng</h2>
+          <span className="ai-admin-label">CustomerWeb</span>
+          <h3>Hiển thị AI cho khách hàng</h3>
           <p>
-            Một AI cho khách hàng và một chế độ AI quản trị. Cả hai đều tự truy vấn
-            dữ liệu mới nhất từ hệ thống thay vì dựa vào nội dung chép tay.
+            Khi bật, AI có thể đọc thông tin nhà hàng, món, giá, khuyến mãi, bàn và
+            nếu khách đăng nhập thì đọc thêm đơn/thông báo của đúng tài khoản đó.
           </p>
         </div>
-        <div className={`ai-admin-provider ${config.providerConfigured ? 'ready' : 'missing'}`}>
-          <span aria-hidden="true" />
-          <div>
-            <strong>
-              {config.providerConfigured
-                ? 'Google AI Studio đã sẵn sàng'
-                : 'Chưa có Gemini API key'}
-            </strong>
-            <small>
-              {config.providerConfigured
-                ? 'API key chỉ tồn tại ở backend.'
-                : 'Cấu hình GEMINI_API_KEY trên backend để bật trợ lý.'}
-            </small>
-          </div>
-        </div>
-      </div>
-
-      <div className="ai-admin-live-card">
-        <div className="ai-admin-live-copy">
-          <span className="ai-admin-label">Dữ liệu trực tiếp</span>
-          <h3>AI đọc các module WebApp theo yêu cầu</h3>
-          <p>
-            Customer AI chỉ thấy dữ liệu công khai và dữ liệu thuộc chính tài khoản
-            Customer đã đăng nhập. AI quản trị có thể đọc dữ liệu vận hành rộng hơn
-            nhưng vẫn là read-only và không nhận mật khẩu, API key, mã xác minh hay QR token.
-          </p>
-        </div>
-        <div className="ai-admin-module-list">
-          {liveModules.map((module) => <span key={module}>{module}</span>)}
-        </div>
-      </div>
-
-      <div className="ai-admin-chat-card">
-        <div className="ai-admin-section-heading">
-          <div>
-            <span className="ai-admin-label">AI dành cho Admin</span>
-            <h3>Hỏi trực tiếp dữ liệu vận hành</h3>
-            <p>
-              Ví dụ hỏi doanh thu, bếp, đơn hàng, tồn kho, đặt bàn hoặc tình trạng hệ thống.
-              AI sẽ gọi công cụ đọc dữ liệu thật rồi mới trả lời.
-            </p>
-          </div>
-          <span className="ai-admin-readonly">READ ONLY</span>
-        </div>
-
-        <div className="ai-admin-chat-suggestions">
-          {adminSuggestedQuestions.map((question) => (
-            <button
-              type="button"
-              key={question}
-              onClick={() => void askAdminAi(question)}
-              disabled={adminSending || !config.providerConfigured}
-            >
-              {question}
-            </button>
-          ))}
-        </div>
-
-        <div className="ai-admin-chat-messages" aria-live="polite">
-          {adminMessages.length === 0 ? (
-            <div className="ai-admin-chat-empty">
-              <strong>Hỏi AI về bất kỳ module vận hành nào.</strong>
-              <span>AI sẽ hiển thị nguồn dữ liệu hệ thống đã truy vấn sau mỗi câu trả lời.</span>
-            </div>
-          ) : null}
-          {adminMessages.map((item, index) => (
-            <div className={`ai-admin-chat-row ${item.role}`} key={`${item.role}-${index}`}>
-              <div className="ai-admin-chat-bubble">{item.content}</div>
-            </div>
-          ))}
-          {adminSending ? (
-            <div className="ai-admin-chat-row assistant">
-              <div className="ai-admin-chat-bubble thinking">Đang truy vấn dữ liệu WebApp…</div>
-            </div>
-          ) : null}
-        </div>
-
-        {adminError ? <div className="ai-admin-alert error">{adminError}</div> : null}
-
-        <form className="ai-admin-chat-form" onSubmit={handleAdminChatSubmit}>
-          <textarea
-            rows={2}
-            maxLength={1200}
-            value={adminInput}
-            onChange={(event) => setAdminInput(event.target.value)}
-            placeholder="Ví dụ: Hôm nay có bao nhiêu đơn đang nấu và tồn kho nào cần chú ý?"
-            disabled={adminSending || !config.providerConfigured}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault()
-                event.currentTarget.form?.requestSubmit()
-              }
-            }}
-          />
-          <button
-            type="submit"
-            disabled={adminSending || !adminInput.trim() || !config.providerConfigured}
-          >
-            {adminSending ? 'Đang hỏi…' : 'Hỏi dữ liệu'}
-          </button>
-        </form>
-      </div>
-
-      {error ? <div className="ai-admin-alert error">{error}</div> : null}
-      {message ? <div className="ai-admin-alert success">{message}</div> : null}
-
-      <form className="ai-admin-form" onSubmit={handleSubmit}>
-        <div className="ai-admin-card ai-admin-control-card">
-          <div>
-            <span className="ai-admin-label">CustomerWeb</span>
-            <h3>Hiển thị AI cho khách hàng</h3>
-            <p>
-              Khi bật, AI có thể đọc thông tin nhà hàng, món, giá, khuyến mãi, bàn và
-              nếu khách đăng nhập thì đọc thêm đơn/thông báo của đúng tài khoản đó.
-            </p>
-          </div>
+        <div className="ai-admin-control-actions">
           <label className="ai-admin-switch">
             <input
               type="checkbox"
               checked={config.enabled}
-              onChange={(event) => updateField('enabled', event.target.checked)}
-              disabled={!config.providerConfigured}
+              onChange={(event) => void handleToggleCustomerAi(event.target.checked)}
+              disabled={!config.providerConfigured || saving}
             />
             <span aria-hidden="true" />
             <strong>{config.enabled ? 'Đang bật' : 'Đang tắt'}</strong>
           </label>
-        </div>
 
+          <button
+            type="submit"
+            form="ai-admin-config-form"
+            className="ai-admin-save-btn"
+            disabled={saving}
+          >
+            {saving ? 'Đang lưu…' : 'Lưu cấu hình AI'}
+          </button>
+        </div>
+      </div>
+
+      <div className="ai-admin-bot-banner">
+        <div className="ai-admin-bot-badge">
+          <RobotAvatarIcon size={36} />
+          <span className="ai-admin-bot-pulse" />
+        </div>
+        <div className="ai-admin-bot-text">
+          <span className="ai-admin-label">AI DÀNH CHO ADMIN</span>
+          <h3>Trợ lý AI Quản trị Nhà hàng</h3>
+          <p>
+            Hỏi trực tiếp dữ liệu vận hành: doanh thu, bếp, đơn hàng, tồn kho, đặt bàn…
+          </p>
+        </div>
+        <button
+          type="button"
+          className="ai-admin-bot-toggle-btn"
+          onClick={() => setChatOpen(true)}
+        >
+          <RobotAvatarIcon size={20} />
+          <span>Hỏi AI ngay</span>
+        </button>
+      </div>
+
+      <div className="ai-admin-floating-shell">
+        <button
+          type="button"
+          className={`ai-admin-floating-launcher ${chatOpen ? 'active' : ''}`}
+          onClick={() => setChatOpen((prev) => !prev)}
+          aria-expanded={chatOpen}
+          aria-label={chatOpen ? 'Đóng trợ lý AI' : 'Mở trợ lý AI'}
+          title="Hỏi AI Quản trị"
+        >
+          <RobotAvatarIcon size={32} />
+          <span className="ai-admin-floating-ping" />
+        </button>
+      </div>
+
+      {chatOpen && (
+        <div className="ai-admin-chat-popup-overlay" onClick={() => setChatOpen(false)}>
+          <div
+            className="ai-admin-chat-popup"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Trợ lý AI Quản trị"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="ai-admin-chat-popup-header">
+              <div className="ai-admin-chat-popup-heading">
+                <RobotAvatarIcon size={28} />
+                <div>
+                  <strong>AI Quản trị Nhà hàng</strong>
+                  <small>Dữ liệu vận hành trực tiếp (Read-Only)</small>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="ai-admin-chat-popup-close"
+                onClick={() => setChatOpen(false)}
+                aria-label="Đóng cửa sổ chat"
+              >
+                ✕
+              </button>
+            </header>
+
+            <div
+              className="ai-admin-chat-messages"
+              ref={adminMessagesRef}
+              aria-live="polite"
+            >
+              {adminMessages.length === 0 ? (
+                <div className="ai-admin-chat-empty">
+                  <div className="ai-admin-chat-empty-icon">
+                    <RobotAvatarIcon size={46} />
+                  </div>
+                  <strong>Hỏi AI về bất kỳ module vận hành nào</strong>
+                  <span>AI sẽ truy vấn trực tiếp cơ sở dữ liệu hệ thống để trả lời.</span>
+                  <div className="ai-admin-chat-empty-suggestions">
+                    {adminSuggestedQuestions.map((question) => (
+                      <button
+                        type="button"
+                        key={question}
+                        className="ai-admin-empty-chip"
+                        onClick={() => void askAdminAi(question)}
+                        disabled={adminSending || !config.providerConfigured}
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                adminMessages.map((item, index) => (
+                  <div className={`ai-admin-chat-row ${item.role}`} key={`${item.role}-${index}`}>
+                    <div className="ai-admin-chat-bubble">{item.content}</div>
+                  </div>
+                ))
+              )}
+
+              {adminSending ? (
+                <div className="ai-admin-chat-row assistant">
+                  <div className="ai-admin-chat-bubble thinking">Đang truy vấn dữ liệu WebApp…</div>
+                </div>
+              ) : null}
+
+              <div ref={adminMessagesEndRef} aria-hidden="true" style={{ height: 1, minHeight: 1 }} />
+            </div>
+
+            {adminMessages.length > 0 ? (
+              <div className="ai-admin-chat-chips-scroll" aria-label="Gợi ý câu hỏi nhanh">
+                {adminSuggestedQuestions.map((question) => (
+                  <button
+                    type="button"
+                    key={question}
+                    className="ai-admin-chip-btn"
+                    onClick={() => void askAdminAi(question)}
+                    disabled={adminSending || !config.providerConfigured}
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {adminError ? <div className="ai-admin-alert error">{adminError}</div> : null}
+
+            <AiAdminChatInput
+              disabled={!config.providerConfigured}
+              sending={adminSending}
+              onSubmit={(text) => void askAdminAi(text)}
+            />
+          </div>
+        </div>
+      )}
+
+      {error ? (
+        <div className="ai-admin-alert error" role="alert" aria-live="assertive">
+          <span>{error}</span>
+          <button type="button" aria-label="Đóng thông báo lỗi" onClick={() => setError('')}>
+            ×
+          </button>
+        </div>
+      ) : null}
+      {message ? (
+        <div className="ai-admin-alert success" role="status" aria-live="polite">
+          <span>{message}</span>
+          <button type="button" aria-label="Đóng thông báo" onClick={() => setMessage('')}>
+            ×
+          </button>
+        </div>
+      ) : null}
+
+      <form id="ai-admin-config-form" className="ai-admin-form" onSubmit={handleSubmit}>
         <div className="ai-admin-grid">
           <div className="ai-admin-card">
             <div className="ai-admin-section-heading">
@@ -450,20 +645,8 @@ export default function AiAssistantManagementPage() {
           </p>
         </div>
 
-        <div className="ai-admin-security-note">
-          <strong>API key và bí mật hệ thống không được quản lý trong giao diện.</strong>
-          <p>
-            Khóa Gemini chỉ đọc từ biến môi trường <code>GEMINI_API_KEY</code> ở backend.
-            Các trường nhạy cảm như password hash, mã xác minh/2FA/reset và QR token cũng
-            bị loại trước khi dữ liệu có thể được gửi tới Gemini.
-          </p>
-        </div>
-
         <div className="ai-admin-footer">
           <small>Cập nhật gần nhất: {formatUpdatedAt(config.updatedAt)}</small>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Đang lưu…' : 'Lưu cấu hình AI'}
-          </button>
         </div>
       </form>
     </section>

@@ -119,7 +119,7 @@ public sealed class CustomerPaymentWorkflowTests
     }
 
     [Fact]
-    public async Task PendingTakeaway_CanCreateQr_AndReusesExistingAttempt()
+    public async Task PendingTakeaway_IsBlockedFromCreatingQr_UntilCookingComplete()
     {
         using var factory = CreateSePayFactory();
         using var client = CreateHttpsClient(factory);
@@ -132,14 +132,7 @@ public sealed class CustomerPaymentWorkflowTests
             $"/api/customer-payments/orders/{scenario.OrderId}/sepay-qr",
             new { qrToken = (string?)null });
 
-        Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
-        var instruction = await createResponse.Content
-            .ReadFromJsonAsync<PaymentInstructionResponse>();
-        Assert.NotNull(instruction);
-        Assert.False(instruction!.AlreadyPaid);
-        Assert.True(instruction.Reused);
-        Assert.Equal(scenario.AttemptId, instruction.AttemptId);
-        Assert.Equal(scenario.PaymentCode, instruction.TransferContent);
+        Assert.Equal(HttpStatusCode.Conflict, createResponse.StatusCode);
 
         using var statusResponse = await client.GetAsync(
             $"/api/customer-payments/orders/{scenario.OrderId}/status");
@@ -148,23 +141,76 @@ public sealed class CustomerPaymentWorkflowTests
             .ReadFromJsonAsync<PaymentStatusResponse>();
         Assert.NotNull(status);
         Assert.Equal("Pending", status!.OrderStatus);
-        Assert.True(status.CanPay);
-        Assert.Equal(PaymentAttempt.PendingStatus, status.AttemptStatus);
+        Assert.False(status.CanPay);
+        Assert.NotNull(status.PaymentUnavailableReason);
 
-        using var scope = factory.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        Assert.Equal(
-            1,
-            await context.PaymentAttempts.CountAsync(
-                item => item.OrderId == scenario.OrderId));
-        var attempt = await context.PaymentAttempts
-            .AsNoTracking()
-            .SingleAsync(item => item.Id == scenario.AttemptId);
-        Assert.Equal(PaymentAttempt.PendingStatus, attempt.Status);
+        using (var updateScope = factory.Services.CreateScope())
+        {
+            var updateContext = updateScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var order = await updateContext.Orders.SingleAsync(item => item.Id == scenario.OrderId);
+            var items = await updateContext.OrderItems.Where(item => item.OrderId == scenario.OrderId).ToListAsync();
+            foreach (var item in items) item.MarkReady();
+            order.MarkReady();
+            await updateContext.SaveChangesAsync();
+        }
+
+        using var readyCreateResponse = await client.PostAsJsonAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/sepay-qr",
+            new { qrToken = (string?)null });
+        Assert.Equal(HttpStatusCode.OK, readyCreateResponse.StatusCode);
+        var instruction = await readyCreateResponse.Content
+            .ReadFromJsonAsync<PaymentInstructionResponse>();
+        Assert.NotNull(instruction);
+        Assert.False(instruction!.AlreadyPaid);
+        Assert.False(instruction.Reused);
+        Assert.NotNull(instruction.AttemptId);
+        Assert.False(string.IsNullOrWhiteSpace(instruction.TransferContent));
+
+        using var readyStatusResponse = await client.GetAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/status");
+        Assert.Equal(HttpStatusCode.OK, readyStatusResponse.StatusCode);
+        var readyStatus = await readyStatusResponse.Content
+            .ReadFromJsonAsync<PaymentStatusResponse>();
+        Assert.NotNull(readyStatus);
+        Assert.True(readyStatus!.CanPay);
     }
 
     [Fact]
-    public async Task SePayWebhook_WhileTakeawayPending_RecordsEarlyPayment()
+    public async Task CookingOrder_IsBlockedFromCreatingQr()
+    {
+        using var factory = CreateSePayFactory();
+        using var client = CreateHttpsClient(factory);
+        var scenario = await SeedTakeawayOrderWithAttemptAsync(
+            factory,
+            cancelOrder: false,
+            markServed: false);
+
+        using (var updateScope = factory.Services.CreateScope())
+        {
+            var updateContext = updateScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var order = await updateContext.Orders.SingleAsync(item => item.Id == scenario.OrderId);
+            order.MarkCooking();
+            await updateContext.SaveChangesAsync();
+        }
+
+        using var createResponse = await client.PostAsJsonAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/sepay-qr",
+            new { qrToken = (string?)null });
+        Assert.Equal(HttpStatusCode.Conflict, createResponse.StatusCode);
+
+        using var statusResponse = await client.GetAsync(
+            $"/api/customer-payments/orders/{scenario.OrderId}/status");
+        Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
+        var status = await statusResponse.Content
+            .ReadFromJsonAsync<PaymentStatusResponse>();
+        Assert.NotNull(status);
+        Assert.Equal("Cooking", status!.OrderStatus);
+        Assert.False(status.CanPay);
+        Assert.Contains("Bếp đang chuẩn bị", status.PaymentUnavailableReason);
+    }
+
+    [Fact]
+    public async Task SePayWebhook_WhileTakeawayPending_HoldsForReview()
     {
         using var factory = CreateSePayFactory();
         using var client = CreateHttpsClient(factory);
@@ -186,18 +232,12 @@ public sealed class CustomerPaymentWorkflowTests
 
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var payment = await context.Payments
-            .AsNoTracking()
-            .SingleAsync(item => item.OrderId == scenario.OrderId);
+        Assert.False(await context.Payments.AnyAsync(payment => payment.OrderId == scenario.OrderId));
         var attempt = await context.PaymentAttempts
             .AsNoTracking()
             .SingleAsync(item => item.Id == scenario.AttemptId);
-
-        Assert.Equal("Paid", payment.Status);
-        Assert.Equal("BankTransfer", payment.PaymentMethod);
-        Assert.Equal(PaymentAttempt.PaidStatus, attempt.Status);
-        Assert.Equal(payment.Id, attempt.PaymentId);
-        Assert.Null(attempt.ReviewReason);
+        Assert.Equal(PaymentAttempt.RequiresReviewStatus, attempt.Status);
+        Assert.Equal("PaidWhenOrderStatusNotPayable:Pending", attempt.ReviewReason);
     }
 
     [Fact]
@@ -591,7 +631,7 @@ public sealed class CustomerPaymentWorkflowTests
     }
 
     [Fact]
-    public async Task PaidCookingOrder_IsExcludedFromAdminUnpaidOrderQuery()
+    public async Task PaidReadyOrder_IsExcludedFromAdminUnpaidOrderQuery()
     {
         using var factory = CreateSePayFactory();
         using var client = CreateHttpsClient(factory);
@@ -606,7 +646,11 @@ public sealed class CustomerPaymentWorkflowTests
                 .GetRequiredService<ApplicationDbContext>();
             var order = await statusContext.Orders
                 .SingleAsync(item => item.Id == scenario.OrderId);
-            order.MarkCooking();
+            var items = await statusContext.OrderItems
+                .Where(item => item.OrderId == scenario.OrderId)
+                .ToListAsync();
+            foreach (var item in items) item.MarkReady();
+            order.MarkReady();
             await statusContext.SaveChangesAsync();
         }
 
@@ -624,25 +668,25 @@ public sealed class CustomerPaymentWorkflowTests
 
         using var scope = factory.Services.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var allCooking = await mediator.Send(new GetOrdersWithPaginatedListQuery
+        var allCompleted = await mediator.Send(new GetOrdersWithPaginatedListQuery
         {
-            Status = "Cooking",
+            Status = "Completed",
             IsActive = true,
             PageNumber = 1,
             PageSize = 100
         });
-        var unpaidCooking = await mediator.Send(new GetOrdersWithPaginatedListQuery
+        var unpaidCompleted = await mediator.Send(new GetOrdersWithPaginatedListQuery
         {
-            Status = "Cooking",
+            Status = "Completed",
             IsActive = true,
             OnlyUnpaid = true,
             PageNumber = 1,
             PageSize = 100
         });
 
-        Assert.Contains(allCooking.Items, item => item.Id == scenario.OrderId);
+        Assert.Contains(allCompleted.Items, item => item.Id == scenario.OrderId);
         Assert.DoesNotContain(
-            unpaidCooking.Items,
+            unpaidCompleted.Items,
             item => item.Id == scenario.OrderId);
     }
 

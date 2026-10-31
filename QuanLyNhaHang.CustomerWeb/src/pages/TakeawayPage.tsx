@@ -337,9 +337,9 @@ export default function TakeawayPage({
 
               <Alert>
                 <Clock3 />
-                <AlertTitle>Thanh toán trực tuyến</AlertTitle>
+                <AlertTitle>Tiến độ đơn hàng</AlertTitle>
                 <AlertDescription>
-                  Bạn có thể thanh toán trực tuyến ngay bây giờ qua mã QR hoặc thanh toán tại quầy khi nhận món.
+                  Đơn mang về đã được gửi đến nhà hàng. Bếp sẽ chuẩn bị món và bạn có thể thanh toán trực tuyến qua mã QR ngay sau khi bếp nấu xong (hoặc thanh toán tại quầy khi nhận món).
                 </AlertDescription>
               </Alert>
 
