@@ -89,6 +89,43 @@ export default function AiAssistantManagementPage() {
     setConfig((current) => ({ ...current, [key]: value }))
   }
 
+  async function handleToggleCustomerAi(newEnabled: boolean) {
+    if (saving) return
+    updateField('enabled', newEnabled)
+    setSaving(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const result = await updateAiAssistantAdminConfig({
+        enabled: newEnabled,
+        model: config.model.trim(),
+        welcomeMessage: config.welcomeMessage.trim(),
+        systemPrompt: config.systemPrompt.trim(),
+        knowledgeBase: config.knowledgeBase.trim(),
+        suggestedQuestions: suggestedQuestions
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean),
+        maxOutputTokens: config.maxOutputTokens,
+      })
+
+      setConfig(result.data)
+      setSuggestedQuestions(result.data.suggestedQuestions.join('\n'))
+      setMessage(result.message)
+      showToast('success', newEnabled ? 'Đã bật hiển thị AI cho khách hàng.' : 'Đã tắt hiển thị AI cho khách hàng.')
+    } catch (exception) {
+      updateField('enabled', !newEnabled)
+      const text = exception instanceof Error
+        ? exception.message
+        : 'Không thể cập nhật trạng thái hiển thị AI.'
+      setError(text)
+      showToast('error', text)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (saving) return
@@ -183,30 +220,25 @@ export default function AiAssistantManagementPage() {
         </div>
       ) : null}
 
-      <div className="ai-admin-hero">
+      <div className="ai-admin-card ai-admin-control-card">
         <div>
-          <span className="eyebrow">AI OPERATIONS</span>
-          <h2>Trợ lý AI nhà hàng</h2>
+          <span className="ai-admin-label">CustomerWeb</span>
+          <h3>Hiển thị AI cho khách hàng</h3>
           <p>
-            Một AI cho khách hàng và một chế độ AI quản trị. Cả hai đều tự truy vấn
-            dữ liệu mới nhất từ hệ thống thay vì dựa vào nội dung chép tay.
+            Khi bật, AI có thể đọc thông tin nhà hàng, món, giá, khuyến mãi, bàn và
+            nếu khách đăng nhập thì đọc thêm đơn/thông báo của đúng tài khoản đó.
           </p>
         </div>
-        <div className={`ai-admin-provider ${config.providerConfigured ? 'ready' : 'missing'}`}>
+        <label className="ai-admin-switch">
+          <input
+            type="checkbox"
+            checked={config.enabled}
+            onChange={(event) => void handleToggleCustomerAi(event.target.checked)}
+            disabled={!config.providerConfigured || saving}
+          />
           <span aria-hidden="true" />
-          <div>
-            <strong>
-              {config.providerConfigured
-                ? 'Google AI Studio đã sẵn sàng'
-                : 'Chưa có Gemini API key'}
-            </strong>
-            <small>
-              {config.providerConfigured
-                ? 'API key chỉ tồn tại ở backend.'
-                : 'Cấu hình GEMINI_API_KEY trên backend để bật trợ lý.'}
-            </small>
-          </div>
-        </div>
+          <strong>{config.enabled ? 'Đang bật' : 'Đang tắt'}</strong>
+        </label>
       </div>
 
       <div className="ai-admin-chat-card">
@@ -284,27 +316,6 @@ export default function AiAssistantManagementPage() {
       {message ? <div className="ai-admin-alert success">{message}</div> : null}
 
       <form className="ai-admin-form" onSubmit={handleSubmit}>
-        <div className="ai-admin-card ai-admin-control-card">
-          <div>
-            <span className="ai-admin-label">CustomerWeb</span>
-            <h3>Hiển thị AI cho khách hàng</h3>
-            <p>
-              Khi bật, AI có thể đọc thông tin nhà hàng, món, giá, khuyến mãi, bàn và
-              nếu khách đăng nhập thì đọc thêm đơn/thông báo của đúng tài khoản đó.
-            </p>
-          </div>
-          <label className="ai-admin-switch">
-            <input
-              type="checkbox"
-              checked={config.enabled}
-              onChange={(event) => updateField('enabled', event.target.checked)}
-              disabled={!config.providerConfigured}
-            />
-            <span aria-hidden="true" />
-            <strong>{config.enabled ? 'Đang bật' : 'Đang tắt'}</strong>
-          </label>
-        </div>
-
         <div className="ai-admin-grid">
           <div className="ai-admin-card">
             <div className="ai-admin-section-heading">
