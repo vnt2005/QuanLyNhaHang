@@ -108,16 +108,17 @@
 .restaurant-settings-alert {
   position: fixed;
   top: calc(var(--ds-topbar-height, 4rem) + 1rem);
-  left: calc(var(--ds-sidebar-width, 16rem) + 2rem);
-  right: auto;
+  right: 1.5rem;
+  left: auto;
   bottom: auto;
   z-index: 9999;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 11px;
+  justify-content: flex-start;
+  gap: 10px;
+  text-align: left;
   width: fit-content;
-  min-width: min(18rem, calc(100vw - 3rem));
+  min-width: auto;
   max-width: min(28rem, calc(100vw - 3rem));
   box-sizing: border-box;
   margin: 0;
