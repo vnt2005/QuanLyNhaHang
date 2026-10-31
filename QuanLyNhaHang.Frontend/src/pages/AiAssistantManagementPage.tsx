@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import {
   getAiAssistantAdminConfig,
@@ -59,6 +59,25 @@ function RobotAvatarIcon({ size = 32 }: { size?: number }) {
   )
 }
 
+function SendIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
+  )
+}
+
 export default function AiAssistantManagementPage() {
   const [config, setConfig] = useState<AiAssistantAdminConfig>(fallbackConfig)
   const [suggestedQuestions, setSuggestedQuestions] = useState('')
@@ -71,6 +90,50 @@ export default function AiAssistantManagementPage() {
   const [adminSending, setAdminSending] = useState(false)
   const [adminError, setAdminError] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
+
+  const adminMessagesRef = useRef<HTMLDivElement | null>(null)
+  const adminMessagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  const scrollAdminToBottom = useCallback((smooth = true) => {
+    const performScroll = () => {
+      if (adminMessagesEndRef.current) {
+        adminMessagesEndRef.current.scrollIntoView({
+          behavior: smooth ? 'smooth' : 'auto',
+          block: 'end',
+        })
+      }
+      if (adminMessagesRef.current) {
+        adminMessagesRef.current.scrollTop = adminMessagesRef.current.scrollHeight
+      }
+    }
+
+    requestAnimationFrame(() => {
+      performScroll()
+      setTimeout(performScroll, 60)
+      setTimeout(performScroll, 200)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (chatOpen) {
+      scrollAdminToBottom(false)
+    }
+  }, [chatOpen, scrollAdminToBottom])
+
+  useEffect(() => {
+    if (chatOpen) {
+      scrollAdminToBottom(true)
+    }
+  }, [adminMessages, chatOpen, adminSending, scrollAdminToBottom])
+
+  useEffect(() => {
+    if (!chatOpen) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setChatOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [chatOpen])
 
   useAutoDismissMessage(message, setMessage, 4000)
   useAutoDismissMessage(error, setError, 5000)
@@ -324,48 +387,74 @@ export default function AiAssistantManagementPage() {
               </button>
             </header>
 
-            <div className="ai-admin-chat-suggestions">
-              {adminSuggestedQuestions.map((question) => (
-                <button
-                  type="button"
-                  key={question}
-                  onClick={() => void askAdminAi(question)}
-                  disabled={adminSending || !config.providerConfigured}
-                >
-                  {question}
-                </button>
-              ))}
-            </div>
-
-            <div className="ai-admin-chat-messages" aria-live="polite">
+            <div
+              className="ai-admin-chat-messages"
+              ref={adminMessagesRef}
+              aria-live="polite"
+            >
               {adminMessages.length === 0 ? (
                 <div className="ai-admin-chat-empty">
-                  <RobotAvatarIcon size={44} />
-                  <strong>Hỏi AI về bất kỳ module vận hành nào.</strong>
+                  <div className="ai-admin-chat-empty-icon">
+                    <RobotAvatarIcon size={46} />
+                  </div>
+                  <strong>Hỏi AI về bất kỳ module vận hành nào</strong>
                   <span>AI sẽ truy vấn trực tiếp cơ sở dữ liệu hệ thống để trả lời.</span>
+                  <div className="ai-admin-chat-empty-suggestions">
+                    {adminSuggestedQuestions.map((question) => (
+                      <button
+                        type="button"
+                        key={question}
+                        className="ai-admin-empty-chip"
+                        onClick={() => void askAdminAi(question)}
+                        disabled={adminSending || !config.providerConfigured}
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              ) : null}
-              {adminMessages.map((item, index) => (
-                <div className={`ai-admin-chat-row ${item.role}`} key={`${item.role}-${index}`}>
-                  <div className="ai-admin-chat-bubble">{item.content}</div>
-                </div>
-              ))}
+              ) : (
+                adminMessages.map((item, index) => (
+                  <div className={`ai-admin-chat-row ${item.role}`} key={`${item.role}-${index}`}>
+                    <div className="ai-admin-chat-bubble">{item.content}</div>
+                  </div>
+                ))
+              )}
+
               {adminSending ? (
                 <div className="ai-admin-chat-row assistant">
                   <div className="ai-admin-chat-bubble thinking">Đang truy vấn dữ liệu WebApp…</div>
                 </div>
               ) : null}
+
+              <div ref={adminMessagesEndRef} aria-hidden="true" style={{ height: 1, minHeight: 1 }} />
             </div>
+
+            {adminMessages.length > 0 ? (
+              <div className="ai-admin-chat-chips-scroll" aria-label="Gợi ý câu hỏi nhanh">
+                {adminSuggestedQuestions.map((question) => (
+                  <button
+                    type="button"
+                    key={question}
+                    className="ai-admin-chip-btn"
+                    onClick={() => void askAdminAi(question)}
+                    disabled={adminSending || !config.providerConfigured}
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            ) : null}
 
             {adminError ? <div className="ai-admin-alert error">{adminError}</div> : null}
 
             <form className="ai-admin-chat-form" onSubmit={handleAdminChatSubmit}>
               <textarea
-                rows={2}
+                rows={1}
                 maxLength={1200}
                 value={adminInput}
                 onChange={(event) => setAdminInput(event.target.value)}
-                placeholder="Ví dụ: Hôm nay có bao nhiêu đơn đang nấu và tồn kho nào cần chú ý?"
+                placeholder="Hỏi doanh thu, đơn bếp, bàn, tồn kho…"
                 disabled={adminSending || !config.providerConfigured}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' && !event.shiftKey) {
@@ -376,9 +465,12 @@ export default function AiAssistantManagementPage() {
               />
               <button
                 type="submit"
+                className="ai-admin-send-btn"
                 disabled={adminSending || !adminInput.trim() || !config.providerConfigured}
+                aria-label="Gửi câu hỏi"
               >
-                {adminSending ? 'Đang hỏi…' : 'Hỏi dữ liệu'}
+                <SendIcon size={16} />
+                <span>{adminSending ? 'Đang hỏi…' : 'Gửi'}</span>
               </button>
             </form>
           </div>

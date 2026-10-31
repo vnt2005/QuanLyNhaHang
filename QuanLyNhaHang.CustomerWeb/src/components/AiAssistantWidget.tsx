@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useCustomerSession } from '../context/CustomerSessionContext'
 import { Bot } from 'lucide-react'
 import {
@@ -31,6 +31,27 @@ export default function AiAssistantWidget() {
   }, [session?.userId])
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const messagesRef = useRef<HTMLDivElement | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    const performScroll = () => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({
+          behavior: smooth ? 'smooth' : 'auto',
+          block: 'end',
+        })
+      }
+      if (messagesRef.current) {
+        messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+      }
+    }
+
+    requestAnimationFrame(() => {
+      performScroll()
+      setTimeout(performScroll, 60)
+      setTimeout(performScroll, 200)
+    })
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -57,15 +78,15 @@ export default function AiAssistantWidget() {
 
     window.addEventListener('keydown', handleKeyDown)
     window.setTimeout(() => inputRef.current?.focus(), 0)
+    scrollToBottom(false)
 
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [open])
+  }, [open, scrollToBottom])
 
   useEffect(() => {
     if (!open) return
-    const node = messagesRef.current
-    if (node) node.scrollTop = node.scrollHeight
-  }, [messages, open, sending])
+    scrollToBottom(true)
+  }, [messages, open, sending, scrollToBottom])
 
   const visible = Boolean(config?.enabled && config.providerConfigured)
   const history = useMemo(() => messages.slice(-8), [messages])
@@ -152,6 +173,8 @@ export default function AiAssistantWidget() {
                 Đang truy vấn dữ liệu nhà hàng…
               </div>
             ) : null}
+
+            <div ref={messagesEndRef} aria-hidden="true" style={{ height: 1, minHeight: 1 }} />
           </div>
 
           {messages.length === 0 && config.suggestedQuestions.length > 0 ? (
