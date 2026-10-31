@@ -206,6 +206,7 @@ export default function AiAssistantWidget() {
               disabled={sending}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' && !event.shiftKey) {
+                  if (event.nativeEvent.isComposing) return
                   event.preventDefault()
                   event.currentTarget.form?.requestSubmit()
                 }

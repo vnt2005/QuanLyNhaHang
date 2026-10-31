@@ -66,8 +66,7 @@
 }
 
 .ai-admin-page .ai-admin-card input:not([type='checkbox']),
-.ai-admin-page .ai-admin-card textarea,
-.ai-admin-page .ai-admin-chat-form textarea {
+.ai-admin-page .ai-admin-card textarea {
   border: 1px solid var(--ai-border) !important;
   border-radius: 10px !important;
   background: var(--ai-field) !important;
@@ -76,14 +75,12 @@
 }
 
 .ai-admin-page .ai-admin-card input:not([type='checkbox'])::placeholder,
-.ai-admin-page .ai-admin-card textarea::placeholder,
-.ai-admin-page .ai-admin-chat-form textarea::placeholder {
+.ai-admin-page .ai-admin-card textarea::placeholder {
   color: #8fa5b8 !important;
 }
 
 .ai-admin-page .ai-admin-card input:not([type='checkbox']):focus,
-.ai-admin-page .ai-admin-card textarea:focus,
-.ai-admin-page .ai-admin-chat-form textarea:focus {
+.ai-admin-page .ai-admin-card textarea:focus {
   border-color: var(--ai-accent) !important;
   background: var(--ai-field-hover) !important;
   box-shadow: 0 0 0 3px rgb(233 154 98 / 16%) !important;

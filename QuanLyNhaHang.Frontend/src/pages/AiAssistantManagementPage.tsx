@@ -78,6 +78,70 @@ function SendIcon({ size = 18 }: { size?: number }) {
   )
 }
 
+interface AiAdminChatInputProps {
+  disabled: boolean
+  sending: boolean
+  onSubmit: (text: string) => void
+}
+
+function AiAdminChatInput({ disabled, sending, onSubmit }: AiAdminChatInputProps) {
+  const [value, setValue] = useState('')
+  const isComposingRef = useRef(false)
+  const inputRef = useRef<HTMLTextAreaElement | null>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    const trimmed = value.trim()
+    if (!trimmed || disabled || sending) return
+    onSubmit(trimmed)
+    setValue('')
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      if (isComposingRef.current || event.nativeEvent.isComposing) {
+        return
+      }
+      event.preventDefault()
+      event.currentTarget.form?.requestSubmit()
+    }
+  }
+
+  return (
+    <form className="ai-admin-chat-form" onSubmit={handleSubmit}>
+      <textarea
+        ref={inputRef}
+        rows={1}
+        maxLength={1200}
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        onCompositionStart={() => {
+          isComposingRef.current = true
+        }}
+        onCompositionEnd={() => {
+          isComposingRef.current = false
+        }}
+        onKeyDown={handleKeyDown}
+        placeholder="Hỏi doanh thu, đơn bếp, bàn, tồn kho…"
+        disabled={disabled || sending}
+      />
+      <button
+        type="submit"
+        className="ai-admin-send-btn"
+        disabled={disabled || sending || !value.trim()}
+        aria-label="Gửi câu hỏi"
+      >
+        <SendIcon size={16} />
+        <span>{sending ? 'Đang hỏi…' : 'Gửi'}</span>
+      </button>
+    </form>
+  )
+}
+
 export default function AiAssistantManagementPage() {
   const [config, setConfig] = useState<AiAssistantAdminConfig>(fallbackConfig)
   const [suggestedQuestions, setSuggestedQuestions] = useState('')
@@ -86,7 +150,6 @@ export default function AiAssistantManagementPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [adminMessages, setAdminMessages] = useState<AiAssistantAdminMessage[]>([])
-  const [adminInput, setAdminInput] = useState('')
   const [adminSending, setAdminSending] = useState(false)
   const [adminError, setAdminError] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
@@ -248,7 +311,6 @@ export default function AiAssistantManagementPage() {
 
     const history = adminMessages.slice(-8)
     setAdminMessages((current) => [...current, { role: 'user', content: text }])
-    setAdminInput('')
     setAdminError('')
     setAdminSending(true)
 
@@ -271,11 +333,6 @@ export default function AiAssistantManagementPage() {
     } finally {
       setAdminSending(false)
     }
-  }
-
-  function handleAdminChatSubmit(event: FormEvent) {
-    event.preventDefault()
-    void askAdminAi(adminInput)
   }
 
   if (loading) {
@@ -448,31 +505,11 @@ export default function AiAssistantManagementPage() {
 
             {adminError ? <div className="ai-admin-alert error">{adminError}</div> : null}
 
-            <form className="ai-admin-chat-form" onSubmit={handleAdminChatSubmit}>
-              <textarea
-                rows={1}
-                maxLength={1200}
-                value={adminInput}
-                onChange={(event) => setAdminInput(event.target.value)}
-                placeholder="Hỏi doanh thu, đơn bếp, bàn, tồn kho…"
-                disabled={adminSending || !config.providerConfigured}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault()
-                    event.currentTarget.form?.requestSubmit()
-                  }
-                }}
-              />
-              <button
-                type="submit"
-                className="ai-admin-send-btn"
-                disabled={adminSending || !adminInput.trim() || !config.providerConfigured}
-                aria-label="Gửi câu hỏi"
-              >
-                <SendIcon size={16} />
-                <span>{adminSending ? 'Đang hỏi…' : 'Gửi'}</span>
-              </button>
-            </form>
+            <AiAdminChatInput
+              disabled={!config.providerConfigured}
+              sending={adminSending}
+              onSubmit={(text) => void askAdminAi(text)}
+            />
           </div>
         </div>
       )}
