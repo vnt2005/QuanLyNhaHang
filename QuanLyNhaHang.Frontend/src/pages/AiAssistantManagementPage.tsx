@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import {
   getAiAssistantAdminConfig,
   sendAiAssistantAdminMessage,
@@ -65,12 +66,14 @@ export default function AiAssistantManagementPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [adminMessages, setAdminMessages] = useState<AiAssistantAdminMessage[]>([])
   const [adminInput, setAdminInput] = useState('')
   const [adminSending, setAdminSending] = useState(false)
   const [adminError, setAdminError] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
+
+  useAutoDismissMessage(message, setMessage, 4000)
+  useAutoDismissMessage(error, setError, 5000)
 
   useEffect(() => {
     let active = true
@@ -98,13 +101,6 @@ export default function AiAssistantManagementPage() {
       active = false
     }
   }, [])
-
-  function showToast(type: 'success' | 'error', text: string) {
-    setToast({ type, text })
-    window.setTimeout(() => {
-      setToast((current) => current?.text === text ? null : current)
-    }, 3500)
-  }
 
   function updateField<K extends keyof AiAssistantAdminConfig>(
     key: K,
@@ -136,15 +132,13 @@ export default function AiAssistantManagementPage() {
 
       setConfig(result.data)
       setSuggestedQuestions(result.data.suggestedQuestions.join('\n'))
-      setMessage(result.message)
-      showToast('success', newEnabled ? 'Đã bật hiển thị AI cho khách hàng.' : 'Đã tắt hiển thị AI cho khách hàng.')
+      setMessage(newEnabled ? 'Đã bật hiển thị AI cho khách hàng.' : 'Đã tắt hiển thị AI cho khách hàng.')
     } catch (exception) {
       updateField('enabled', !newEnabled)
       const text = exception instanceof Error
         ? exception.message
         : 'Không thể cập nhật trạng thái hiển thị AI.'
       setError(text)
-      showToast('error', text)
     } finally {
       setSaving(false)
     }
@@ -174,14 +168,12 @@ export default function AiAssistantManagementPage() {
 
       setConfig(result.data)
       setSuggestedQuestions(result.data.suggestedQuestions.join('\n'))
-      setMessage(result.message)
-      showToast('success', 'Đã lưu cấu hình AI thành công.')
+      setMessage(result.message || 'Cập nhật cấu hình trợ lý AI thành công.')
     } catch (exception) {
       const text = exception instanceof Error
         ? exception.message
         : 'Không lưu được cấu hình trợ lý AI.'
       setError(text)
-      showToast('error', text)
     } finally {
       setSaving(false)
     }
@@ -237,13 +229,6 @@ export default function AiAssistantManagementPage() {
 
   return (
     <section className="ai-admin-page">
-      {toast ? (
-        <div className={`ai-admin-toast ${toast.type}`} role="status">
-          <strong>{toast.type === 'success' ? 'Đã lưu' : 'Có lỗi'}</strong>
-          <span>{toast.text}</span>
-        </div>
-      ) : null}
-
       <div className="ai-admin-card ai-admin-control-card">
         <div>
           <span className="ai-admin-label">CustomerWeb</span>
@@ -400,8 +385,22 @@ export default function AiAssistantManagementPage() {
         </div>
       )}
 
-      {error ? <div className="ai-admin-alert error">{error}</div> : null}
-      {message ? <div className="ai-admin-alert success">{message}</div> : null}
+      {error ? (
+        <div className="ai-admin-alert error" role="alert" aria-live="assertive">
+          <span>{error}</span>
+          <button type="button" aria-label="Đóng thông báo lỗi" onClick={() => setError('')}>
+            ×
+          </button>
+        </div>
+      ) : null}
+      {message ? (
+        <div className="ai-admin-alert success" role="status" aria-live="polite">
+          <span>{message}</span>
+          <button type="button" aria-label="Đóng thông báo" onClick={() => setMessage('')}>
+            ×
+          </button>
+        </div>
+      ) : null}
 
       <form id="ai-admin-config-form" className="ai-admin-form" onSubmit={handleSubmit}>
         <div className="ai-admin-grid">
