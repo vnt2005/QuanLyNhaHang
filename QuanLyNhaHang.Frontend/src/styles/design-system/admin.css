@@ -1331,6 +1331,20 @@
     .restaurant-settings-alert,
     .scheduling-alert,
     .ai-admin-alert
+  ).success:not(.modal-alert):not([class*='modal'] *),
+html[data-admin-theme='light'] .admin-layout .dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
   ).success:not(.modal-alert):not([class*='modal'] *) {
   color: #065f46 !important;
   border-color: #10b981 !important;
@@ -1339,6 +1353,20 @@
 }
 
 .dashboard
+  :is(
+    .inline-alert,
+    .customer-alert,
+    .activity-alert,
+    .reservations-alert,
+    .inventory-alert,
+    .promotions-alert,
+    .table-qr-alert,
+    .account-security-alert,
+    .restaurant-settings-alert,
+    .scheduling-alert,
+    .ai-admin-alert
+  ).error:not(.modal-alert):not([class*='modal'] *),
+html[data-admin-theme='light'] .admin-layout .dashboard
   :is(
     .inline-alert,
     .customer-alert,
@@ -1373,7 +1401,7 @@ html[data-admin-theme='dark'] .dashboard
     .scheduling-alert,
     .ai-admin-alert
   ).success:not(.modal-alert):not([class*='modal'] *),
-.dark .dashboard
+html:not([data-admin-theme='light']) .dark .dashboard
   :is(
     .inline-alert,
     .customer-alert,
@@ -1387,7 +1415,7 @@ html[data-admin-theme='dark'] .dashboard
     .scheduling-alert,
     .ai-admin-alert
   ).success:not(.modal-alert):not([class*='modal'] *),
-.admin-layout:has([class*='-dark'], .scheduling-page, .restaurant-settings-page, .customer-page, .access-page, .revenue-reports-page, .table-qr-page) .dashboard
+html:not([data-admin-theme='light']) .admin-layout:has([class*='-dark'], .scheduling-page, .restaurant-settings-page, .customer-page, .access-page, .revenue-reports-page, .table-qr-page) .dashboard
   :is(
     .inline-alert,
     .customer-alert,
@@ -1421,7 +1449,7 @@ html[data-admin-theme='dark'] .dashboard
     .scheduling-alert,
     .ai-admin-alert
   ).error:not(.modal-alert):not([class*='modal'] *),
-.dark .dashboard
+html:not([data-admin-theme='light']) .dark .dashboard
   :is(
     .inline-alert,
     .customer-alert,
@@ -1435,7 +1463,7 @@ html[data-admin-theme='dark'] .dashboard
     .scheduling-alert,
     .ai-admin-alert
   ).error:not(.modal-alert):not([class*='modal'] *),
-.admin-layout:has([class*='-dark'], .scheduling-page, .restaurant-settings-page, .customer-page, .access-page, .revenue-reports-page, .table-qr-page) .dashboard
+html:not([data-admin-theme='light']) .admin-layout:has([class*='-dark'], .scheduling-page, .restaurant-settings-page, .customer-page, .access-page, .revenue-reports-page, .table-qr-page) .dashboard
   :is(
     .inline-alert,
     .customer-alert,

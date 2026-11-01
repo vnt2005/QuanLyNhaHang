@@ -217,13 +217,13 @@
   font-weight: 650;
 }
 
-.dashboard .revenue-reports-page .inline-alert.success {
+html:not([data-admin-theme='light']) .dashboard .revenue-reports-page .inline-alert.success {
   color: #8ff1d2;
   border: 1px solid rgb(0 215 165 / 28%);
   background: rgb(0 215 165 / 10%);
 }
 
-.dashboard .revenue-reports-page .inline-alert.error {
+html:not([data-admin-theme='light']) .dashboard .revenue-reports-page .inline-alert.error {
   color: #ffb0c5;
   border: 1px solid rgb(255 102 143 / 28%);
   background: rgb(255 102 143 / 10%);

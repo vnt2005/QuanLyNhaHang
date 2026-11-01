@@ -279,13 +279,13 @@
   line-height: 1.5;
 }
 
-.dashboard .access-page .inline-alert.success {
+html:not([data-admin-theme='light']) .dashboard .access-page .inline-alert.success {
   color: #7ce7c8;
   border-color: rgb(0 215 165 / 28%);
   background: rgb(0 215 165 / 8%);
 }
 
-.dashboard .access-page .inline-alert.error {
+html:not([data-admin-theme='light']) .dashboard .access-page .inline-alert.error {
   color: #ff9eae;
   border-color: rgb(255 102 143 / 28%);
   background: rgb(255 102 143 / 8%);

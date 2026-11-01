@@ -119,13 +119,13 @@
   margin: 0 0 1rem !important;
 }
 
-.admin-layout:has(.account-security-page) .account-security-alert.error {
+html:not([data-admin-theme='light']) .admin-layout:has(.account-security-page) .account-security-alert.error {
   color: #ff9aa9;
   border-color: rgb(255 97 120 / 32%);
   background: rgb(255 97 120 / 8%);
 }
 
-.admin-layout:has(.account-security-page) .account-security-alert.success {
+html:not([data-admin-theme='light']) .admin-layout:has(.account-security-page) .account-security-alert.success {
   color: var(--security-teal);
   border-color: rgb(23 215 174 / 28%);
   background: rgb(23 215 174 / 8%);

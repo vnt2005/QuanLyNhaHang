@@ -210,13 +210,13 @@
   font-size: 0.76rem;
 }
 
-.admin-layout:has(.areas-tables-page) .dashboard .areas-tables-page .inline-alert.success {
+html:not([data-admin-theme='light']) .admin-layout:has(.areas-tables-page) .dashboard .areas-tables-page .inline-alert.success {
   color: #94f1d6;
   border-color: rgb(22 216 178 / 28%);
   background: rgb(22 216 178 / 8%);
 }
 
-.admin-layout:has(.areas-tables-page) .dashboard .areas-tables-page .inline-alert.error {
+html:not([data-admin-theme='light']) .admin-layout:has(.areas-tables-page) .dashboard .areas-tables-page .inline-alert.error {
   color: #ffb1be;
   border-color: rgb(255 83 109 / 30%);
   background: rgb(255 83 109 / 8%);

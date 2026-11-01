@@ -356,13 +356,13 @@
   text-align: left;
 }
 
-.dashboard .employees-page .inline-alert.success {
+html:not([data-admin-theme='light']) .dashboard .employees-page .inline-alert.success {
   color: #7ce7c8;
   border-color: rgb(0 215 165 / 28%);
   background: rgb(0 215 165 / 8%);
 }
 
-.dashboard .employees-page .inline-alert.error {
+html:not([data-admin-theme='light']) .dashboard .employees-page .inline-alert.error {
   color: #ff9e9e;
   border-color: rgb(255 103 103 / 28%);
   background: rgb(255 103 103 / 8%);
