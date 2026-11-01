@@ -773,7 +773,6 @@ export default function TableQrCodesPage() {
               <button type="button" onClick={() => setDetail(null)} disabled={Boolean(actionId)} aria-label="Đóng">×</button>
             </header>
 
-            {(error || message) && <div className={`table-qr-inline-notice ${error ? 'error' : 'success'}`}>{error || message}</div>}
             <div className="table-qr-detail-content">
               <div className="table-qr-detail-preview">
                 <QrImage value={detail.qrCodeUrl} label={detail.restaurantTableName} />
