@@ -170,7 +170,7 @@ export default function AiAssistantWidget() {
 
             {sending ? (
               <div className="ai-assistant-message assistant ai-assistant-thinking">
-                Đang truy vấn dữ liệu nhà hàng…
+                <span className="ai-thinking-text">Đang suy nghĩ</span>
               </div>
             ) : null}
 

@@ -259,19 +259,19 @@
   animation: ds-toast-enter 220ms ease-out !important;
 }
 
-.dashboard .scheduling-alert.success {
+html:not([data-admin-theme='light']) .dashboard .scheduling-alert.success {
   color: #f0fdf4 !important;
   border-color: #00d7a5 !important;
   background: #0f1c34 !important;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 215, 165, 0.3) !important;
 }
 
-.dashboard .scheduling-alert.success span {
+html:not([data-admin-theme='light']) .dashboard .scheduling-alert.success span {
   color: #f0fdf4 !important;
   font-weight: 600 !important;
 }
 
-.dashboard .scheduling-alert.success::before {
+html:not([data-admin-theme='light']) .dashboard .scheduling-alert.success::before {
   content: '✓' !important;
   display: grid !important;
   place-items: center !important;
@@ -286,19 +286,19 @@
   font-size: 0.8rem !important;
 }
 
-.dashboard .scheduling-alert.error {
+html:not([data-admin-theme='light']) .dashboard .scheduling-alert.error {
   color: #fff1f2 !important;
   border-color: #ff668f !important;
   background: #251322 !important;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 102, 143, 0.3) !important;
 }
 
-.dashboard .scheduling-alert.error span {
+html:not([data-admin-theme='light']) .dashboard .scheduling-alert.error span {
   color: #fff1f2 !important;
   font-weight: 600 !important;
 }
 
-.dashboard .scheduling-alert.error::before {
+html:not([data-admin-theme='light']) .dashboard .scheduling-alert.error::before {
   content: '!' !important;
   display: grid !important;
   place-items: center !important;

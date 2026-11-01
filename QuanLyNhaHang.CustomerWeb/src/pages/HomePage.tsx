@@ -392,6 +392,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [activeBadgeFilter, setActiveBadgeFilter] = useState<'all' | DishBadgeId>('all')
   const [activeSpaceId, setActiveSpaceId] = useState<string>(DINING_SPACES[0].id)
+  const [spacePaused, setSpacePaused] = useState(false)
   const [reviewPlatformFilter, setReviewPlatformFilter] = useState<string>('all')
   const [addedItemMessage, setAddedItemMessage] = useState<string>('')
 
@@ -419,6 +420,18 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
     )
     return () => window.clearInterval(timer)
   }, [promoPaused])
+
+  useEffect(() => {
+    if (spacePaused || DINING_SPACES.length <= 1) return
+    const timer = window.setInterval(() => {
+      setActiveSpaceId(currentId => {
+        const currentIndex = DINING_SPACES.findIndex(s => s.id === currentId)
+        const nextIndex = (currentIndex + 1) % DINING_SPACES.length
+        return DINING_SPACES[nextIndex].id
+      })
+    }, 6000)
+    return () => window.clearInterval(timer)
+  }, [spacePaused])
 
   const enrichedItems = useMemo(
     () =>
@@ -969,7 +982,12 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
       </section>
 
       {/* 3. DINING SPACE & AMBIANCE GALLERY */}
-      <section className="sera-home-gallery" aria-labelledby="home-gallery-heading">
+      <section
+        className="sera-home-gallery"
+        aria-labelledby="home-gallery-heading"
+        onMouseEnter={() => setSpacePaused(true)}
+        onMouseLeave={() => setSpacePaused(false)}
+      >
         <div className="sera-section-head">
           <div>
             <p className="sera-kicker">Không gian & Trải nghiệm thưởng thức</p>
@@ -977,9 +995,21 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
               Mỗi cuộc gặp gỡ đều có một góc bàn vừa vặn.
             </h2>
           </div>
-          <Button variant="outline" onClick={() => navigate('/reservation')}>
-            <CalendarDays aria-hidden="true" /> Chọn bàn trực tuyến
-          </Button>
+          <div className="sera-promo-controls" aria-label="Điều khiển trình chiếu không gian">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setSpacePaused(current => !current)}
+              aria-label={spacePaused ? 'Tiếp tục tự động chuyển không gian' : 'Tạm dừng tự động chuyển không gian'}
+              title={spacePaused ? 'Tiếp tục trình chiếu' : 'Tạm dừng trình chiếu'}
+            >
+              {spacePaused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/reservation')}>
+              <CalendarDays aria-hidden="true" /> Chọn bàn trực tuyến
+            </Button>
+          </div>
         </div>
 
         <div className="sera-gallery-tabs" role="tablist" aria-label="Chọn loại không gian nhà hàng">

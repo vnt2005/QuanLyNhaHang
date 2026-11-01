@@ -184,19 +184,19 @@
   background: var(--activity-surface);
 }
 
-.admin-layout:has(.activity-logs-page) .dashboard .activity-alert.error {
+html:not([data-admin-theme='light']) .admin-layout:has(.activity-logs-page) .dashboard .activity-alert.error {
   color: #ffb3c0;
   border-color: rgb(255 95 120 / 30%);
   background: rgb(255 95 120 / 9%);
 }
 
-.admin-layout:has(.activity-logs-page) .dashboard .activity-alert.success {
+html:not([data-admin-theme='light']) .admin-layout:has(.activity-logs-page) .dashboard .activity-alert.success {
   color: #96f4d9;
   border-color: rgb(17 215 176 / 28%);
   background: rgb(17 215 176 / 8%);
 }
 
-.admin-layout:has(.activity-logs-page) .dashboard .activity-alert button {
+html:not([data-admin-theme='light']) .admin-layout:has(.activity-logs-page) .dashboard .activity-alert button {
   color: currentColor;
 }
 

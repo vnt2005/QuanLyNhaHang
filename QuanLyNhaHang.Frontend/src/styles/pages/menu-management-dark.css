@@ -187,13 +187,13 @@
   background: var(--menu-surface);
 }
 
-.admin-layout:has(.menu-page) .menu-page .inline-alert.success {
+html:not([data-admin-theme='light']) .admin-layout:has(.menu-page) .menu-page .inline-alert.success {
   color: #80f1d2;
   border-color: rgb(23 215 174 / 28%);
   background: rgb(23 215 174 / 8%);
 }
 
-.admin-layout:has(.menu-page) .menu-page .inline-alert.error {
+html:not([data-admin-theme='light']) .admin-layout:has(.menu-page) .menu-page .inline-alert.error {
   color: #ffb0bd;
   border-color: rgb(255 97 120 / 30%);
   background: rgb(255 97 120 / 8%);

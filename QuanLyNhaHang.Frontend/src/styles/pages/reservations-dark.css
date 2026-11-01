@@ -220,23 +220,23 @@
   background: transparent;
 }
 
-.admin-layout:has(.reservations-page) .dashboard .reservations-alert.error {
+html:not([data-admin-theme='light']) .admin-layout:has(.reservations-page) .dashboard .reservations-alert.error {
   color: #ffb5c1;
   border-color: rgb(255 95 120 / 30%);
   background: rgb(255 95 120 / 8%);
 }
 
-.admin-layout:has(.reservations-page) .dashboard .reservations-alert.error > span {
+html:not([data-admin-theme='light']) .admin-layout:has(.reservations-page) .dashboard .reservations-alert.error > span {
   background: rgb(255 95 120 / 12%);
 }
 
-.admin-layout:has(.reservations-page) .dashboard .reservations-alert.success {
+html:not([data-admin-theme='light']) .admin-layout:has(.reservations-page) .dashboard .reservations-alert.success {
   color: #97f1d8;
   border-color: rgb(22 216 178 / 28%);
   background: rgb(22 216 178 / 8%);
 }
 
-.admin-layout:has(.reservations-page) .dashboard .reservations-alert.success > span {
+html:not([data-admin-theme='light']) .admin-layout:has(.reservations-page) .dashboard .reservations-alert.success > span {
   background: rgb(22 216 178 / 12%);
 }
 

@@ -304,6 +304,22 @@
   font-style: italic;
 }
 
+.ai-admin-chat-bubble.thinking .ai-thinking-text {
+  display: inline-block;
+  animation: ai-thinking-bounce 1.4s ease-in-out infinite;
+}
+
+@keyframes ai-thinking-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+}
+
 .ai-admin-chat-sources {
   display: flex;
   flex-wrap: wrap;

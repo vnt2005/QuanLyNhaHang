@@ -323,13 +323,13 @@
   line-height: 1.5;
 }
 
-.dashboard .customer-alert.success {
+html:not([data-admin-theme='light']) .dashboard .customer-alert.success {
   color: #7ce7c8;
   border: 1px solid rgb(0 215 165 / 28%);
   background: rgb(0 215 165 / 8%);
 }
 
-.dashboard .customer-alert.error {
+html:not([data-admin-theme='light']) .dashboard .customer-alert.error {
   color: #ff9eae;
   border: 1px solid rgb(255 102 143 / 28%);
   background: rgb(255 102 143 / 8%);

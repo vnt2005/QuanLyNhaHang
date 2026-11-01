@@ -265,21 +265,26 @@ export default function QrOrderPage({ token, session }: { token: string; session
     { status: 'Served', threshold: 5 },
   ]
 
+  const tableNameDisplay = table.restaurantTableName.toLowerCase().startsWith('bàn')
+    ? table.restaurantTableName
+    : `Bàn ${table.restaurantTableName}`
+
   return (
     <main className="sera-page">
-      <Button variant="ghost" className="mb-6 px-0" type="button" onClick={() => navigate('/menu')}><ChevronLeft /> Xem thực đơn chung</Button>
-
-      <header className="sera-page-head">
-        <div>
-          <p className="sera-kicker">Gọi món bằng QR</p>
-          <h1 className="sera-display mt-3">Bàn {table.restaurantTableName}.</h1>
-          <p>Chọn món, kiểm tra số lượng và gửi trực tiếp xuống bếp. Mỗi món tối đa {MAX_ITEM_QUANTITY} phần trong một lượt gọi.</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" className="px-0" type="button" onClick={() => navigate('/menu')}>
+            <ChevronLeft /> Xem thực đơn chung
+          </Button>
+          <Badge variant="outline" className="text-xs font-semibold">
+            {tableNameDisplay}
+          </Badge>
         </div>
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant={view === 'menu' ? 'default' : 'outline'} onClick={() => setView('menu')}><Utensils /> Chọn món</Button>
           <Button type="button" variant={view === 'order' ? 'default' : 'outline'} onClick={() => setView('order')}><ShoppingBag /> Đơn hiện tại</Button>
         </div>
-      </header>
+      </div>
 
       {error ? <Alert variant="destructive" className="mt-6"><AlertTitle>Không thể hoàn tất thao tác</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
       {success ? <Alert className="mt-6"><CheckCircle2 /><AlertTitle>Đã cập nhật</AlertTitle><AlertDescription>{success}</AlertDescription></Alert> : null}

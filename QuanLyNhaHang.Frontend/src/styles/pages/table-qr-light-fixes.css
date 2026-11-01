@@ -196,3 +196,17 @@ html[data-admin-theme='light'] .admin-layout:has(.table-qr-page)
   border-color: #f3c2cc !important;
   background: #fff4f6 !important;
 }
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-alert.success {
+  background: #ffffff !important;
+  color: #065f46 !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.table-qr-page) .table-qr-alert.error {
+  background: #ffffff !important;
+  color: #9f1239 !important;
+  border-color: #f43f5e !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}

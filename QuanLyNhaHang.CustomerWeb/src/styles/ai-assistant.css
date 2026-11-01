@@ -161,6 +161,22 @@
   font-style: italic;
 }
 
+.ai-assistant-thinking .ai-thinking-text {
+  display: inline-block;
+  animation: ai-customer-thinking-bounce 1.4s ease-in-out infinite;
+}
+
+@keyframes ai-customer-thinking-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+}
+
 .ai-assistant-sources {
   display: flex;
   flex-wrap: wrap;

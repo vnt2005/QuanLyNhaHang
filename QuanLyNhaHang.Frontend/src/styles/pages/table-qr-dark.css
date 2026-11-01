@@ -485,6 +485,31 @@
   color: #9fb0c7;
 }
 
+.admin-layout:has(.table-qr-page) .table-qr-url-preview {
+  border-color: #293953 !important;
+  background: #101c31 !important;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-url-preview span {
+  color: #8ea1bc !important;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-url-preview code {
+  color: #38bdf8 !important;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-inline-notice.error {
+  color: #ff9b9b !important;
+  border-color: rgb(255 97 120 / 35%) !important;
+  background: rgb(255 97 120 / 12%) !important;
+}
+
+.admin-layout:has(.table-qr-page) .table-qr-inline-notice.success {
+  color: #4ade80 !important;
+  border-color: rgb(74 222 128 / 35%) !important;
+  background: rgb(74 222 128 / 12%) !important;
+}
+
 .admin-layout:has(.table-qr-page) .table-qr-modal-actions > button:not(.table-qr-primary) {
   color: var(--qr-text-soft);
   border-color: var(--qr-border);

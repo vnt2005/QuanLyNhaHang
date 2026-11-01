@@ -552,15 +552,15 @@
   margin: 0 0 1rem !important;
 }
 
-.admin-layout:has(.promotions-page) .promotions-alert.error,
-.admin-layout:has(.promotions-page) .modal-alert.error {
+html:not([data-admin-theme='light']) .admin-layout:has(.promotions-page) .promotions-alert.error,
+html:not([data-admin-theme='light']) .admin-layout:has(.promotions-page) .modal-alert.error {
   color: #ff9aa9;
   border-color: rgb(255 97 120 / 30%);
   background: rgb(255 97 120 / 8%);
 }
 
-.admin-layout:has(.promotions-page) .promotions-alert.success,
-.admin-layout:has(.promotions-page) .modal-alert.success {
+html:not([data-admin-theme='light']) .admin-layout:has(.promotions-page) .promotions-alert.success,
+html:not([data-admin-theme='light']) .admin-layout:has(.promotions-page) .modal-alert.success {
   color: #72edcf;
   border-color: rgb(23 215 174 / 28%);
   background: rgb(23 215 174 / 8%);
