@@ -144,15 +144,15 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-promo-discount-stamp { position: absolute; top: 22px; left: 22px; padding: 12px 16px; border: 1px solid rgba(255,255,255,.28); background: rgba(24,18,15,.84); backdrop-filter: blur(8px); color: #fffdf8; }
 .sera-promo-discount-stamp span { display: block; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; opacity: .82; }
 .sera-promo-discount-stamp strong { display: block; margin-top: 3px; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
-.sera-promo-spotlight-body { display: flex; flex-direction: column; justify-content: center; padding: clamp(32px, 4.5vw, 56px); border-left: 1px solid var(--sera-line); background: var(--sera-paper); }
+.sera-promo-spotlight-body { display: flex; flex-direction: column; justify-content: center; padding: clamp(26px, 3.6vw, 44px); border-left: 1px solid var(--sera-line); background: var(--sera-paper); }
 .sera-promo-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
 .sera-promo-schedule { display: inline-flex; align-items: center; gap: 6px; color: var(--sera-muted); font-size: 12px; font-weight: 600; }
 .sera-promo-schedule svg { width: 14px; height: 14px; color: var(--sera-accent); }
-.sera-promo-spotlight-body h3 { margin: 0 0 14px; font-size: clamp(28px, 3vw, 40px); font-weight: 600; line-height: 1.1; letter-spacing: -.03em; }
-.sera-promo-perks { list-style: none; margin: 20px 0 24px; padding: 18px 0; border-top: 1px solid var(--sera-line); border-bottom: 1px solid var(--sera-line); display: grid; gap: 10px; }
+.sera-promo-spotlight-body h3 { margin: 0 0 12px; font-size: clamp(26px, 2.8vw, 38px); font-weight: 600; line-height: 1.15; letter-spacing: -.03em; }
+.sera-promo-perks { list-style: none; margin: 16px 0 20px; padding: 14px 0; border-top: 1px solid var(--sera-line); border-bottom: 1px solid var(--sera-line); display: grid; gap: 8px; }
 .sera-promo-perks li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; color: var(--sera-ink); }
 .sera-promo-perks svg { width: 15px; height: 15px; margin-top: 2px; flex: 0 0 auto; color: var(--sera-accent); }
-.sera-promo-code-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 18px; margin-bottom: 22px; border: 1px dashed var(--sera-line); background: var(--sera-wash); }
+.sera-promo-code-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 16px; margin-bottom: 18px; border: 1px dashed var(--sera-line); background: var(--sera-wash); }
 .sera-promo-code-bar small { display: block; color: var(--sera-muted); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .sera-promo-code-bar strong { display: block; margin-top: 2px; color: var(--sera-accent-dark); font-size: 18px; font-weight: 800; letter-spacing: .12em; }
 .sera-promo-actions { display: flex; flex-wrap: wrap; gap: 10px; }
