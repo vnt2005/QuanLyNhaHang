@@ -480,7 +480,14 @@ export default function AiAssistantManagementPage() {
 
               {adminSending ? (
                 <div className="ai-admin-chat-row assistant">
-                  <div className="ai-admin-chat-bubble thinking">Đang truy vấn dữ liệu WebApp…</div>
+                  <div className="ai-admin-chat-bubble thinking">
+                    <span>Đang suy nghĩ</span>
+                    <span className="ai-thinking-dots" aria-hidden="true">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </span>
+                  </div>
                 </div>
               ) : null}
 
