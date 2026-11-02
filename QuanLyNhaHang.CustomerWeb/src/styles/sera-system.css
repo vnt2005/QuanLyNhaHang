@@ -648,29 +648,189 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 }
 
 /* 4. Brand Story, Ingredients & Chef Philosophy */
-.sera-home-story { display: grid; grid-template-columns: .94fr 1.06fr; gap: clamp(36px, 5vw, 72px); padding: 88px 0 40px; align-items: start; }
-.sera-story-visual-column { display: grid; gap: 20px; }
-.sera-story-primary-photo { height: 460px; border: 1px solid var(--sera-line); overflow: hidden; background: var(--sera-wash); }
-.sera-story-primary-photo img { width: 100%; height: 100%; object-fit: cover; }
-.sera-story-chef-card { padding: 26px 28px; border: 1px solid var(--sera-line); background: var(--sera-wash); }
-.sera-story-chef-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-.sera-story-chef-icon { display: grid; width: 46px; height: 46px; place-items: center; border: 1px solid var(--sera-accent); background: var(--sera-paper); color: var(--sera-accent-dark); flex: 0 0 auto; }
-.sera-story-chef-icon svg { width: 22px; height: 22px; }
-.sera-story-chef-header small { display: block; color: var(--sera-accent-dark); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.sera-story-chef-header strong { display: block; font-size: 19px; font-weight: 600; margin-top: 2px; }
-.sera-story-chef-header span { display: block; color: var(--sera-muted); font-size: 12px; }
-.sera-story-chef-card blockquote { margin: 0; padding-top: 14px; border-top: 1px solid var(--sera-line); color: var(--sera-ink); font-size: 14px; font-style: italic; line-height: 1.75; }
-.sera-story-copy-column h2 { margin: 8px 0 18px; font-size: clamp(34px, 3.8vw, 54px); font-weight: 600; line-height: 1.05; letter-spacing: -.035em; }
-.sera-story-pillars { display: grid; gap: 16px; margin: 28px 0; }
-.sera-story-pillar { padding: 20px 24px; border: 1px solid var(--sera-line); background: var(--sera-paper); }
-.sera-story-pillar-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-.sera-story-pillar-head h3 { margin: 0; font-size: 17px; font-weight: 600; }
-.sera-story-pillar-metric { padding: 3px 9px; border: 1px solid var(--sera-line); background: var(--sera-wash); color: var(--sera-accent-dark); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
-.sera-story-pillar p { margin: 0; color: var(--sera-muted); font-size: 13px; line-height: 1.65; }
-.sera-story-footer-cta { padding-top: 22px; border-top: 1px solid var(--sera-line); display: grid; gap: 18px; }
-.sera-story-promise { display: flex; align-items: center; gap: 10px; color: var(--sera-muted); font-size: 13px; line-height: 1.6; }
-.sera-story-promise svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--sera-accent); }
-.sera-story-promise strong { color: var(--sera-ink); }
+.sera-home-story {
+  display: grid;
+  grid-template-columns: .94fr 1.06fr;
+  gap: clamp(26px, 3.5vw, 48px);
+  padding: clamp(10px, 1.3vh, 16px) 0 clamp(8px, 1.1vh, 14px);
+  align-items: stretch;
+  scroll-margin-top: 79px;
+  border-bottom: 1px solid var(--sera-line);
+}
+.sera-story-visual-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 12px;
+  min-height: 0;
+}
+.sera-story-primary-photo {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  border: 1px solid var(--sera-line);
+  position: relative;
+  overflow: hidden;
+  background: var(--sera-wash);
+}
+.sera-story-primary-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sera-story-chef-card {
+  flex: 0 0 auto;
+  padding: clamp(12px, 1.6vh, 16px) clamp(14px, 2vw, 20px);
+  border: 1px solid var(--sera-line);
+  background: var(--sera-wash);
+}
+.sera-story-chef-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.sera-story-chef-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--sera-accent);
+  background: var(--sera-paper);
+  color: var(--sera-accent-dark);
+  flex: 0 0 auto;
+}
+.sera-story-chef-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.sera-story-chef-header small {
+  display: block;
+  color: var(--sera-accent-dark);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.sera-story-chef-header strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 1px;
+}
+.sera-story-chef-header span {
+  display: block;
+  color: var(--sera-muted);
+  font-size: 12px;
+}
+.sera-story-chef-card blockquote {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--sera-line);
+  color: var(--sera-ink);
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.5;
+}
+.sera-story-copy-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+}
+.sera-story-copy-column h2 {
+  margin: 4px 0 8px;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
+.sera-story-copy-column p.sera-copy {
+  margin: 0;
+  color: var(--sera-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sera-story-pillars {
+  display: grid;
+  gap: 8px;
+  margin: clamp(8px, 1.2vh, 14px) 0;
+}
+.sera-story-pillar {
+  padding: 10px 16px;
+  border: 1px solid var(--sera-line);
+  background: var(--sera-paper);
+}
+.sera-story-pillar-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.sera-story-pillar-head h3 {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 600;
+}
+.sera-story-pillar-metric {
+  padding: 2px 8px;
+  border: 1px solid var(--sera-line);
+  background: var(--sera-wash);
+  color: var(--sera-accent-dark);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.sera-story-pillar p {
+  margin: 0;
+  color: var(--sera-muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sera-story-footer-cta {
+  padding-top: 10px;
+  border-top: 1px solid var(--sera-line);
+  display: grid;
+  gap: 10px;
+}
+.sera-story-promise {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sera-muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.sera-story-promise svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--sera-accent);
+}
+.sera-story-promise strong {
+  color: var(--sera-ink);
+}
+.sera-story-footer-cta .sera-home-actions {
+  gap: 10px;
+}
+.sera-story-footer-cta .sera-home-actions [data-slot="button"] {
+  height: 36px;
+  padding: 0 18px;
+  font-size: 13px;
+}
 
 .sera-home-reservation { display: grid; grid-template-columns: .9fr 1.1fr; min-height: 560px; margin: 96px 0 0; }
 .sera-home-reservation-media { overflow: hidden; }
@@ -937,7 +1097,9 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   .sera-gallery-main-visual img { position: static; height: 100%; }
   .sera-gallery-detail { border-top: 1px solid var(--sera-line); border-left: 0; }
   .sera-gallery-mosaic { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sera-home-story { grid-template-columns: 1fr; }
+  .sera-home-story { grid-template-columns: 1fr; gap: 24px; }
+  .sera-story-primary-photo { min-height: 280px; height: 280px; }
+  .sera-story-primary-photo img { position: static; width: 100%; height: 100%; }
   .sera-home-reservation { grid-template-columns: 1fr; }
   .sera-home-reservation-media { min-height: 420px; }
   .sera-menu-head, .sera-page-head, .sera-detail-pairings-head { grid-template-columns: 1fr; }
@@ -2477,7 +2639,8 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   .sera-signature-media img { position: static; width: 100%; height: 100%; }
   .sera-gallery-tabs { grid-template-columns: 1fr; }
   .sera-gallery-mosaic { grid-template-columns: 1fr 1fr; }
-  .sera-story-primary-photo { height: 320px; }
+  .sera-story-primary-photo { height: 260px; }
+  .sera-story-primary-photo img { position: static; width: 100%; height: 100%; }
   .sera-testimonial-card { grid-template-columns: 1fr; }
   .sera-testimonial-media { min-height: 200px; }
   .sera-fulfillment-switcher, .sera-zone-grid, .sera-delivery-speed-grid { grid-template-columns: 1fr; }
