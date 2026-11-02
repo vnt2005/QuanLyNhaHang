@@ -234,23 +234,155 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-signature-actions [data-slot="button"] { height: 30px; padding: 0 12px; font-size: 11px; }
 
 /* Featured Menu List & Tag Filters */
-.sera-home-featured { padding: 84px 0 96px; border-bottom: 1px solid var(--sera-line); }
+.sera-home-featured {
+  padding: clamp(10px, 1.3vh, 16px) 0 clamp(10px, 1.3vh, 14px);
+  border-bottom: 1px solid var(--sera-line);
+  scroll-margin-top: 79px;
+}
 .sera-section-head { display: flex; align-items: end; justify-content: space-between; gap: 34px; margin-bottom: 34px; }
 .sera-section-head h2 { max-width: 760px; margin: 7px 0 0; font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(38px, 4vw, 62px); font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
-.sera-home-badge-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
-.sera-badge-filter-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 1px solid var(--sera-line); background: transparent; color: var(--sera-muted); font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; }
-.sera-badge-filter-btn svg { width: 13px; height: 13px; color: var(--sera-accent); }
+.sera-home-featured .sera-section-head {
+  gap: 16px;
+  margin-bottom: clamp(6px, 1vh, 10px);
+}
+.sera-home-featured .sera-section-head h2 {
+  margin-top: 4px;
+  font-size: clamp(28px, 3.2vw, 42px);
+  line-height: 1.15;
+}
+.sera-home-badge-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: clamp(8px, 1.2vh, 12px);
+}
+.sera-badge-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--sera-line);
+  background: transparent;
+  color: var(--sera-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sera-badge-filter-btn svg { width: 12px; height: 12px; color: var(--sera-accent); }
 .sera-badge-filter-btn small { opacity: .75; font-size: 10px; }
 .sera-badge-filter-btn.active, .sera-badge-filter-btn:hover { border-color: var(--sera-ink); background: var(--sera-wash); color: var(--sera-ink); }
-.sera-dish-list { border-top: 1px solid var(--sera-line); }
-.sera-dish-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(160px, .35fr) auto; align-items: center; min-height: 128px; border-bottom: 1px solid var(--sera-line); gap: 24px; }
-.sera-dish-row-media { width: 92px; height: 92px; overflow: hidden; background: var(--sera-wash); }
-.sera-dish-row-media img { width: 100%; height: 100%; object-fit: cover; }
-.sera-dish-row-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.sera-dish-row h3 { margin: 0; font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 30px; font-weight: 500; }
-.sera-dish-row p { margin: 6px 0 0; color: var(--sera-muted); font-size: 13px; line-height: 1.55; }
-.sera-dish-row-meta { color: var(--sera-muted); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
-.sera-dish-row-price { min-width: 120px; text-align: right; font-size: 15px; font-weight: 800; }
+.sera-dish-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+  border-top: 1px solid var(--sera-line);
+}
+.sera-dish-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 0;
+  border: 0;
+  border-bottom: 1px solid var(--sera-line);
+  background: transparent;
+  gap: 14px;
+  padding: 8px 0;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  transition: background-color 0.15s ease;
+}
+.sera-dish-row:hover h3 {
+  color: var(--sera-accent);
+}
+.sera-dish-row-media {
+  width: 78px;
+  height: 78px;
+  overflow: hidden;
+  background: var(--sera-wash);
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+.sera-dish-row-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sera-dish-row-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sera-dish-row h3 {
+  margin: 0;
+  font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: color 0.15s ease;
+}
+.sera-dish-row p {
+  margin: 2px 0 0;
+  color: var(--sera-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sera-dish-row-meta {
+  display: none;
+}
+.sera-dish-row-price {
+  font-size: 16px;
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--sera-accent);
+}
+.sera-featured-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 0 2px;
+}
+.sera-featured-pagination .sera-page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--sera-line);
+  background: var(--sera-paper);
+  color: var(--sera-ink);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sera-featured-pagination .sera-page-btn:hover:not(:disabled) {
+  border-color: var(--sera-accent);
+  background: var(--sera-wash);
+  color: var(--sera-accent);
+}
+.sera-featured-pagination .sera-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.sera-featured-pagination .sera-page-info {
+  font-size: 12.5px;
+  color: var(--sera-muted);
+}
+.sera-featured-pagination .sera-page-info strong {
+  color: var(--sera-ink);
+}
 
 /* 3. Dining Space & Ambiance Gallery */
 .sera-home-gallery { padding: 84px 0 92px; border-bottom: 1px solid var(--sera-line); }
@@ -2123,10 +2255,11 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   .sera-fulfillment-switcher, .sera-zone-grid, .sera-delivery-speed-grid { grid-template-columns: 1fr; }
   .sera-route-visualizer { grid-template-columns: 1fr; text-align: left; }
   .sera-route-node.is-dest { justify-content: flex-start; text-align: left; }
-  .sera-dish-row { grid-template-columns: 76px minmax(0, 1fr); min-height: 112px; gap: 16px; }
+  .sera-dish-list { grid-template-columns: 1fr; gap: 0; }
+  .sera-dish-row { grid-template-columns: 76px minmax(0, 1fr); min-height: 96px; gap: 14px; }
   .sera-dish-row-media { width: 76px; height: 76px; }
-  .sera-dish-row h3 { font-size: 24px; }
-  .sera-dish-row-meta, .sera-dish-row-price { grid-column: 2; text-align: left; }
+  .sera-dish-row h3 { font-size: 20px; }
+  .sera-dish-row-price { grid-column: 2; text-align: left; }
   .sera-menu { padding-top: 48px; }
   .sera-menu-layout { grid-template-columns: 1fr; }
   .sera-filter { position: static; display: grid; grid-template-columns: 1fr; gap: 12px; }
