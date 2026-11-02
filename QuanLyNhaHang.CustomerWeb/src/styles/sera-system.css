@@ -1185,23 +1185,38 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
 
 /* 2. Homepage Customer Reviews & Social Proof Section (.sera-home-reviews) */
 .sera-home-reviews {
-  width: min(var(--sera-max), calc(100% - var(--sera-gutter) * 2));
-  margin: 0 auto;
-  padding: 96px 0;
+  width: 100%;
+  margin: 0;
+  padding: clamp(8px, 1.1vh, 10px) 0 clamp(6px, 0.9vh, 8px);
   border-bottom: 1px solid var(--sera-line);
+  scroll-margin-top: 79px;
+}
+.sera-home-reviews .sera-section-head {
+  gap: 16px;
+  margin-bottom: clamp(4px, 0.6vh, 6px);
+}
+.sera-home-reviews .sera-section-head h2 {
+  margin-top: 1px;
+  font-size: clamp(22px, 2.3vw, 28px);
+  line-height: 1.15;
+}
+.sera-home-reviews .sera-section-head [data-slot="button"] {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 11.5px;
 }
 .sera-reviews-scorecard {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  margin-bottom: 28px;
+  gap: 8px;
+  margin-bottom: clamp(4px, 0.6vh, 6px);
 }
 .sera-scorecard-item {
   background: var(--sera-surface);
   border: 1px solid var(--sera-line);
-  padding: 24px 26px;
+  padding: 6px 12px;
   display: grid;
-  gap: 12px;
+  gap: 2px;
   position: relative;
 }
 .sera-scorecard-item::before {
@@ -1210,7 +1225,7 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   top: 0;
   left: 0;
   width: 100%;
-  height: 3px;
+  height: 2px;
   background: linear-gradient(90deg, var(--sera-copper), var(--sera-gold));
 }
 .sera-scorecard-top {
@@ -1218,10 +1233,10 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
 }
 .sera-scorecard-platform {
-  font-size: 13.5px;
+  font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1230,30 +1245,30 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-scorecard-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: 3px;
+  font-size: 9.5px;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 1px 5px;
   background: rgba(46, 74, 59, 0.1);
   color: var(--sera-forest);
   border: 1px solid rgba(46, 74, 59, 0.22);
 }
 .sera-scorecard-badge svg {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
 }
 .sera-scorecard-rating,
 .sera-scorecard-score {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 .sera-scorecard-rating strong,
 .sera-scorecard-score strong {
   font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', 'Plus Jakarta Sans Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 42px;
-  line-height: 1;
+  font-size: 17.5px;
+  line-height: 1.1;
   font-weight: 600;
   color: var(--sera-ink);
 }
@@ -1264,37 +1279,53 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   color: #c88719;
 }
 .sera-scorecard-stars svg {
-  width: 15px;
-  height: 15px;
+  width: 11.5px;
+  height: 11.5px;
   fill: #c88719;
   color: #c88719;
 }
 .sera-scorecard-rating small {
-  width: 100%;
-  font-size: 12.5px;
+  font-size: 10.5px;
   font-weight: 600;
   color: var(--sera-copper);
 }
 .sera-scorecard-item p {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 11px;
+  line-height: 1.3;
   color: var(--sera-ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-
+.sera-home-reviews .sera-home-badge-filters {
+  gap: 5px;
+  margin-bottom: clamp(4px, 0.6vh, 6px);
+}
+.sera-home-reviews .sera-badge-filter-btn {
+  padding: 3px 9px;
+  font-size: 10.5px;
+  gap: 4px;
+}
+.sera-home-reviews .sera-badge-filter-btn svg {
+  width: 11px;
+  height: 11px;
+}
 .sera-testimonials-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-  margin-top: 24px;
+  gap: 6px 12px;
+  margin-top: 0;
 }
 .sera-testimonial-card {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 132px minmax(0, 1fr);
   background: var(--sera-surface);
   border: 1px solid var(--sera-line);
   overflow: hidden;
   transition: border-color 0.25s ease, transform 0.25s ease;
+  min-height: 0;
 }
 .sera-testimonial-card:hover {
   border-color: var(--sera-line-strong);
@@ -1302,10 +1333,14 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
 }
 .sera-testimonial-media {
   position: relative;
-  min-height: 260px;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
   background: var(--sera-surface-strong);
 }
 .sera-testimonial-media img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1313,34 +1348,33 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
 }
 .sera-testimonial-platform-pill {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
+  top: 5px;
+  left: 5px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
   width: fit-content;
-  max-width: calc(100% - 24px);
-  padding: 5px 10px;
-  font-size: 11px;
+  max-width: calc(100% - 10px);
+  padding: 2px 5px;
+  font-size: 9px;
   font-weight: 700;
   background: rgba(25, 20, 16, 0.88);
   color: #fff8ef;
   backdrop-filter: blur(4px);
 }
 .sera-testimonial-platform-pill svg {
-  width: 13px;
-  height: 13px;
+  width: 10px;
+  height: 10px;
   color: #eab308;
   flex-shrink: 0;
 }
 .sera-testimonial-photo-caption {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  right: 10px;
-  padding: 6px 10px;
-  font-size: 11.5px;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+  padding: 3px 5px;
+  font-size: 9.5px;
   font-weight: 600;
   background: rgba(20, 16, 13, 0.88);
   color: #fff8ef;
@@ -1348,45 +1382,47 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   backdrop-filter: blur(4px);
 }
 .sera-testimonial-body {
-  padding: 22px 24px;
+  padding: 6px 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
+  gap: 3px;
+  min-height: 0;
 }
 .sera-testimonial-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
 }
 .sera-testimonial-stars {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   color: #c88719;
 }
 .sera-testimonial-stars svg {
-  width: 14px;
-  height: 14px;
+  width: 11px;
+  height: 11px;
   fill: #c88719;
   color: #c88719;
 }
 .sera-testimonial-stars strong {
-  margin-left: 6px;
-  font-size: 13px;
+  margin-left: 3px;
+  font-size: 11.5px;
   color: var(--sera-ink);
 }
 .sera-testimonial-meta small {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--sera-muted);
 }
 .sera-testimonial-context {
   display: inline-block;
   width: fit-content;
-  padding: 3px 9px;
-  font-size: 11.5px;
+  padding: 1px 5px;
+  font-size: 10px;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--sera-forest);
   background: rgba(46, 74, 59, 0.09);
   border: 1px solid rgba(46, 74, 59, 0.2);
@@ -1396,39 +1432,43 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   position: relative;
 }
 .sera-quote-icon {
-  width: 18px;
-  height: 18px;
+  width: 11px;
+  height: 11px;
   color: var(--sera-copper);
   opacity: 0.45;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 .sera-testimonial-quote p {
   margin: 0;
-  font-size: 13.5px;
-  line-height: 1.65;
+  font-size: 11.5px;
+  line-height: 1.3;
   color: var(--sera-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .sera-testimonial-dishes {
   display: grid;
-  gap: 6px;
-  padding-top: 4px;
+  gap: 2px;
+  padding-top: 0;
 }
 .sera-testimonial-dishes small {
-  font-size: 11.5px;
+  font-size: 9.5px;
   color: var(--sera-muted);
   font-weight: 600;
 }
 .sera-testimonial-dish-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 3px;
 }
 .sera-testimonial-dish-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  font-size: 11.5px;
+  gap: 2px;
+  padding: 1px 5px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--sera-copper);
   background: rgba(154, 77, 46, 0.08);
@@ -1436,8 +1476,8 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   transition: all 0.2s ease;
 }
 .sera-testimonial-dish-chip svg {
-  width: 12px;
-  height: 12px;
+  width: 9px;
+  height: 9px;
 }
 .sera-testimonial-dish-chip.is-clickable {
   cursor: pointer;
@@ -1449,31 +1489,28 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-testimonial-author {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--sera-line);
+  gap: 6px;
 }
 .sera-testimonial-avatar {
-  width: 36px;
-  height: 36px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--sera-copper);
-  color: #fff8ef;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  color: #fff;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 10px;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
 }
 .sera-testimonial-author strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 11.5px;
   color: var(--sera-ink);
 }
 .sera-testimonial-author small {
   display: block;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--sera-muted);
 }
 
@@ -2642,7 +2679,8 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
   .sera-story-primary-photo { height: 260px; }
   .sera-story-primary-photo img { position: static; width: 100%; height: 100%; }
   .sera-testimonial-card { grid-template-columns: 1fr; }
-  .sera-testimonial-media { min-height: 200px; }
+  .sera-testimonial-media { min-height: 180px; height: 180px; }
+  .sera-testimonial-media img { position: static; width: 100%; height: 100%; }
   .sera-fulfillment-switcher, .sera-zone-grid, .sera-delivery-speed-grid { grid-template-columns: 1fr; }
   .sera-route-visualizer { grid-template-columns: 1fr; text-align: left; }
   .sera-route-node.is-dest { justify-content: flex-start; text-align: left; }
