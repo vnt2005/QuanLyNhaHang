@@ -123,7 +123,7 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
   overflow: hidden;
 }
 .sera-home-hero-copy .sera-kicker { margin: 0 0 clamp(6px, 1vh, 12px); font-size: 11px; }
-.sera-home-hero-copy .sera-display { max-width: clamp(420px, 32vw, 490px); margin-bottom: clamp(10px, 1.5vh, 16px); font-size: clamp(38px, min(4.8vw, 8vh), 64px); font-weight: 650; line-height: 1.08; letter-spacing: -.03em; }
+.sera-home-hero-copy .sera-display { max-width: clamp(480px, 42vw, 680px); margin-bottom: clamp(8px, 1.4vh, 14px); font-size: clamp(44px, min(5.6vw, 11vh), 82px); font-weight: 650; line-height: 1.02; letter-spacing: -.035em; }
 .sera-home-hero-copy > p:not(.sera-kicker) { max-width: 620px; margin: 16px 0 20px; }
 .sera-home-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: auto; }
 .sera-home-actions [data-slot="button"] { padding: 0 16px; height: 38px; font-size: 11px; }
