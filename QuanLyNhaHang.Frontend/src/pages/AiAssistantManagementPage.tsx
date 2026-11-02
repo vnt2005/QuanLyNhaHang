@@ -337,13 +337,31 @@ export default function AiAssistantManagementPage() {
     }
   }, [adminMessages, chatOpen, adminSending, scrollAdminToBottom])
 
+  const popupRef = useRef<HTMLElement | null>(null)
+  const launcherRef = useRef<HTMLButtonElement | null>(null)
+
   useEffect(() => {
     if (!chatOpen) return
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node | null
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(target) &&
+        !launcherRef.current?.contains(target) &&
+        !(event.target as HTMLElement)?.closest('.ai-admin-bot-toggle-btn')
+      ) {
+        setChatOpen(false)
+      }
+    }
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setChatOpen(false)
     }
+    document.addEventListener('mousedown', handleClickOutside)
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
   }, [chatOpen])
 
   useAutoDismissMessage(message, setMessage, 4000)
@@ -571,32 +589,19 @@ export default function AiAssistantManagementPage() {
       </div>
 
       <div className="ai-admin-floating-shell">
-        <button
-          type="button"
-          className={`ai-admin-floating-launcher ${chatOpen ? 'active' : ''}`}
-          onClick={() => setChatOpen((prev) => !prev)}
-          aria-expanded={chatOpen}
-          aria-label={chatOpen ? 'Đóng trợ lý AI' : 'Mở trợ lý AI'}
-          title="Hỏi AI Quản trị"
-        >
-          <RobotAvatarIcon size={32} />
-          <span className="ai-admin-floating-ping" />
-        </button>
-      </div>
-
-      {chatOpen && (
-        <div className="ai-admin-chat-popup-overlay" onClick={() => setChatOpen(false)}>
-          <div
+        {chatOpen && (
+          <section
+            ref={popupRef}
             className="ai-admin-chat-popup"
             role="dialog"
-            aria-modal="true"
+            aria-modal="false"
             aria-label="Trợ lý AI Quản trị"
-            onClick={(e) => e.stopPropagation()}
           >
             <header className="ai-admin-chat-popup-header">
               <div className="ai-admin-chat-popup-heading">
-                <RobotAvatarIcon size={28} />
+                <RobotAvatarIcon size={24} />
                 <div>
+                  <span className="ai-admin-chat-kicker">TRỢ LÝ AI QUẢN TRỊ</span>
                   <strong>AI Quản trị Nhà hàng</strong>
                   <small>Dữ liệu vận hành trực tiếp (Read-Only)</small>
                 </div>
@@ -607,7 +612,7 @@ export default function AiAssistantManagementPage() {
                 onClick={() => setChatOpen(false)}
                 aria-label="Đóng cửa sổ chat"
               >
-                ✕
+                ×
               </button>
             </header>
 
@@ -619,7 +624,7 @@ export default function AiAssistantManagementPage() {
               {adminMessages.length === 0 ? (
                 <div className="ai-admin-chat-empty">
                   <div className="ai-admin-chat-empty-icon">
-                    <RobotAvatarIcon size={46} />
+                    <RobotAvatarIcon size={38} />
                   </div>
                   <strong>Hỏi AI về bất kỳ module vận hành nào</strong>
                   <span>AI sẽ truy vấn trực tiếp cơ sở dữ liệu hệ thống để trả lời.</span>
@@ -679,9 +684,22 @@ export default function AiAssistantManagementPage() {
               sending={adminSending}
               onSubmit={(text) => void askAdminAi(text)}
             />
-          </div>
-        </div>
-      )}
+          </section>
+        )}
+
+        <button
+          ref={launcherRef}
+          type="button"
+          className={`ai-admin-floating-launcher ${chatOpen ? 'active' : ''}`}
+          onClick={() => setChatOpen((prev) => !prev)}
+          aria-expanded={chatOpen}
+          aria-label={chatOpen ? 'Đóng trợ lý AI' : 'Mở trợ lý AI'}
+          title="Hỏi AI Quản trị"
+        >
+          <RobotAvatarIcon size={24} />
+          <span className="ai-admin-floating-ping" />
+        </button>
+      </div>
 
       {error ? (
         <div className="ai-admin-alert error" role="alert" aria-live="assertive">
