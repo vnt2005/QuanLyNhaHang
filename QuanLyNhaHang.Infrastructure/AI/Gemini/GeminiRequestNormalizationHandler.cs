@@ -22,8 +22,8 @@ namespace QuanLyNhaHang.Infrastructure.AI;
 internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 {
     private const int MaxTransientAttemptsPerModel = 2;
-    private static readonly TimeSpan TransientModelCooldown = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan QuotaModelCooldown = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan TransientModelCooldown = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan QuotaModelCooldown = TimeSpan.FromMinutes(2);
 
     private static readonly ConcurrentDictionary<string, DateTimeOffset>
         UnavailableModels = new(StringComparer.OrdinalIgnoreCase);
@@ -260,6 +260,9 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 
         if (!model.Equals("gemini-3.1-flash-lite", StringComparison.OrdinalIgnoreCase))
             models.Add("gemini-3.1-flash-lite");
+
+        if (!model.Equals("gemini-2.0-flash", StringComparison.OrdinalIgnoreCase))
+            models.Add("gemini-2.0-flash");
 
         return models
             .Distinct(StringComparer.OrdinalIgnoreCase)
