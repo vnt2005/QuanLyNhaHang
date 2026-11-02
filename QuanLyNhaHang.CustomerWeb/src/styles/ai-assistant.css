@@ -57,6 +57,7 @@
   background: color-mix(in srgb, var(--sera-paper) 94%, var(--sera-wash));
   color: var(--sera-ink);
   box-shadow: 0 24px 70px rgb(var(--sera-shadow-rgb) / 22%);
+  contain: content;
 }
 
 .ai-assistant-header {
