@@ -391,6 +391,12 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
   const [promoPaused, setPromoPaused] = useState(false)
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [activeBadgeFilter, setActiveBadgeFilter] = useState<'all' | DishBadgeId>('all')
+  const [featuredPage, setFeaturedPage] = useState(1)
+
+  const handleBadgeFilterChange = (filter: 'all' | DishBadgeId) => {
+    setActiveBadgeFilter(filter)
+    setFeaturedPage(1)
+  }
   const [activeSpaceId, setActiveSpaceId] = useState<string>(DINING_SPACES[0].id)
   const [spacePaused, setSpacePaused] = useState(false)
   const [reviewPlatformFilter, setReviewPlatformFilter] = useState<string>('all')
@@ -460,6 +466,13 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
       entry.badges.some(badge => badge.id === activeBadgeFilter),
     )
   }, [activeBadgeFilter, enrichedItems])
+
+  const FEATURED_PAGE_SIZE = 10
+  const totalFeaturedPages = Math.max(1, Math.ceil(filteredMenuItems.length / FEATURED_PAGE_SIZE))
+  const paginatedMenuItems = useMemo(() => {
+    const start = (featuredPage - 1) * FEATURED_PAGE_SIZE
+    return filteredMenuItems.slice(start, start + FEATURED_PAGE_SIZE)
+  }, [filteredMenuItems, featuredPage])
 
   const filteredTestimonials = useMemo(() => {
     if (reviewPlatformFilter === 'all') return RESTAURANT_TESTIMONIALS
@@ -881,7 +894,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
           <button
             type="button"
             className={`sera-badge-filter-btn ${activeBadgeFilter === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveBadgeFilter('all')}
+            onClick={() => handleBadgeFilterChange('all')}
             aria-pressed={activeBadgeFilter === 'all'}
           >
             Tất cả ({enrichedItems.length})
@@ -896,7 +909,7 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
                 key={badge.id}
                 type="button"
                 className={`sera-badge-filter-btn ${activeBadgeFilter === badge.id ? 'active' : ''}`}
-                onClick={() => setActiveBadgeFilter(badge.id)}
+                onClick={() => handleBadgeFilterChange(badge.id)}
                 aria-pressed={activeBadgeFilter === badge.id}
               >
                 <BadgeIcon id={badge.id} />
@@ -908,71 +921,91 @@ export default function HomePage({ data }: { data: CustomerSiteBootstrap }) {
         </div>
 
         {filteredMenuItems.length ? (
-          <div className="sera-dish-list">
-            {filteredMenuItems.map(({ item, badges, description, image, imagePosition, ratingSummary }) => (
-              <button
-                key={item.id}
-                type="button"
-                className="sera-dish-row"
-                onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
-                style={{
-                  width: '100%',
-                  borderLeft: 0,
-                  borderRight: 0,
-                  background: 'transparent',
-                  padding: 0,
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <span className="sera-dish-row-media">
-                  <img
-                    src={image}
-                    alt=""
-                    style={{ objectPosition: imagePosition }}
-                  />
-                </span>
-                <span>
-                  <span className="sera-dish-row-heading">
-                    <h3>{item.name}</h3>
-                    <span className="sera-badge-row">
-                      {badges.map(badge => (
-                        <span
-                          key={badge.id}
-                          className={`sera-culinary-badge is-${badge.tone}`}
-                        >
-                          <BadgeIcon id={badge.id} />
-                          {badge.label}
-                        </span>
-                      ))}
-                    </span>
+          <>
+            <div className="sera-dish-list">
+              {paginatedMenuItems.map(({ item, badges, description, image, imagePosition, ratingSummary }) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="sera-dish-row"
+                  onClick={() => navigate(`/menu/${encodeURIComponent(item.id)}`)}
+                >
+                  <span className="sera-dish-row-media">
+                    <img
+                      src={image}
+                      alt=""
+                      style={{ objectPosition: imagePosition }}
+                    />
                   </span>
-                  <span className="sera-dish-rating-row sera-dish-rating-row--compact">
-                    <span className="sera-dish-rating-stars">
-                      <Star aria-hidden="true" />
-                      <strong>{ratingSummary.rating.toFixed(1)}</strong>/5
+                  <span>
+                    <span className="sera-dish-row-heading">
+                      <h3>{item.name}</h3>
+                      <span className="sera-badge-row">
+                        {badges.map(badge => (
+                          <span
+                            key={badge.id}
+                            className={`sera-culinary-badge is-${badge.tone}`}
+                          >
+                            <BadgeIcon id={badge.id} />
+                            {badge.label}
+                          </span>
+                        ))}
+                      </span>
                     </span>
-                    <span className="sera-dish-rating-sep">·</span>
-                    <span>{ratingSummary.reviewCount} đánh giá</span>
-                    <span className="sera-dish-rating-sep">·</span>
-                    <span className="sera-dish-order-count">{ratingSummary.orderCountLabel}</span>
+                    <span className="sera-dish-rating-row sera-dish-rating-row--compact">
+                      <span className="sera-dish-rating-stars">
+                        <Star aria-hidden="true" />
+                        <strong>{ratingSummary.rating.toFixed(1)}</strong>/5
+                      </span>
+                      <span className="sera-dish-rating-sep">·</span>
+                      <span>{ratingSummary.reviewCount} đánh giá</span>
+                      <span className="sera-dish-rating-sep">·</span>
+                      <span className="sera-dish-order-count">{ratingSummary.orderCountLabel}</span>
+                    </span>
+                    <p>{description}</p>
                   </span>
-                  <p>{description}</p>
+                  <span className="sera-dish-row-meta">{item.menuCategoryName}</span>
+                  <span className="sera-dish-row-price">
+                    {currency(item.price, restaurant?.currency)}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {totalFeaturedPages > 1 && (
+              <div className="sera-featured-pagination" role="navigation" aria-label="Phân trang thực đơn nổi bật">
+                <button
+                  type="button"
+                  className="sera-page-btn"
+                  onClick={() => setFeaturedPage(p => Math.max(1, p - 1))}
+                  disabled={featuredPage <= 1}
+                  aria-label="Trang trước"
+                >
+                  <ChevronLeft size={16} aria-hidden="true" />
+                  <span>Trước</span>
+                </button>
+                <span className="sera-page-info">
+                  Trang <strong>{featuredPage}</strong> / {totalFeaturedPages}
                 </span>
-                <span className="sera-dish-row-meta">{item.menuCategoryName}</span>
-                <span className="sera-dish-row-price">
-                  {currency(item.price, restaurant?.currency)}
-                </span>
-              </button>
-            ))}
-          </div>
+                <button
+                  type="button"
+                  className="sera-page-btn"
+                  onClick={() => setFeaturedPage(p => Math.min(totalFeaturedPages, p + 1))}
+                  disabled={featuredPage >= totalFeaturedPages}
+                  aria-label="Trang sau"
+                >
+                  <span>Sau</span>
+                  <ChevronRight size={16} aria-hidden="true" />
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="sera-empty">
             <div>
               <h2>Thực đơn đang được cập nhật.</h2>
               <p>Nhà hàng chưa có món đang mở bán thuộc nhóm nhãn này.</p>
               {activeBadgeFilter !== 'all' ? (
-                <Button variant="outline" onClick={() => setActiveBadgeFilter('all')}>
+                <Button variant="outline" onClick={() => handleBadgeFilterChange('all')}>
                   Xem tất cả món đang bán
                 </Button>
               ) : null}
