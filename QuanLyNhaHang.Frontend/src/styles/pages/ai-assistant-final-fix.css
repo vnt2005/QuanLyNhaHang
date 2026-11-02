@@ -145,6 +145,25 @@
   border: none;
   background: transparent;
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #234866 transparent;
+}
+
+.ai-admin-chat-messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+.ai-admin-chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-admin-chat-messages::-webkit-scrollbar-thumb {
+  background: #234866;
+  border-radius: 999px;
+}
+
+.ai-admin-chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
 }
 
 .ai-admin-chat-empty {
@@ -366,6 +385,16 @@
   padding: 0.4rem 0.2rem !important;
   line-height: 1.45 !important;
   box-shadow: none !important;
+  overflow-y: auto !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ai-admin-page .ai-admin-chat-form textarea::-webkit-scrollbar,
+.ai-admin-chat-form textarea::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .ai-admin-page .ai-admin-chat-form textarea::placeholder,
@@ -831,6 +860,15 @@
   max-height: 4.5rem !important;
   font-size: 0.86rem !important;
   padding: 0.3rem 0.2rem !important;
+  overflow-y: auto !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ai-admin-chat-popup .ai-admin-chat-form textarea::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .ai-admin-chat-popup .ai-admin-send-btn {

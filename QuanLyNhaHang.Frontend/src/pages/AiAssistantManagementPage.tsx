@@ -100,6 +100,7 @@ function AiAdminChatInput({ disabled, sending, onSubmit }: AiAdminChatInputProps
     onSubmit(trimmed)
     if (inputRef.current) {
       inputRef.current.value = ''
+      inputRef.current.style.height = 'auto'
     }
     setCanSend(false)
   }
@@ -115,10 +116,13 @@ function AiAdminChatInput({ disabled, sending, onSubmit }: AiAdminChatInputProps
   }
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const hasContent = Boolean(event.target.value.trim())
+    const target = event.target
+    const hasContent = Boolean(target.value.trim())
     if (hasContent !== canSend) {
       setCanSend(hasContent)
     }
+    target.style.height = 'auto'
+    target.style.height = `${Math.min(target.scrollHeight, 100)}px`
   }
 
   return (
