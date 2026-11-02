@@ -10,11 +10,77 @@ import {
 
 const MAX_MESSAGE_LENGTH = 1200
 
+interface AiCustomerChatInputProps {
+  disabled: boolean
+  onSubmit: (text: string) => void
+}
+
+function AiCustomerChatInput({ disabled, onSubmit }: AiCustomerChatInputProps) {
+  const [canSend, setCanSend] = useState(false)
+  const isComposingRef = useRef(false)
+  const inputRef = useRef<HTMLTextAreaElement | null>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    const trimmed = inputRef.current?.value.trim() ?? ''
+    if (!trimmed || disabled) return
+    onSubmit(trimmed)
+    if (inputRef.current) {
+      inputRef.current.value = ''
+    }
+    setCanSend(false)
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      if (isComposingRef.current || event.nativeEvent.isComposing) {
+        return
+      }
+      event.preventDefault()
+      event.currentTarget.form?.requestSubmit()
+    }
+  }
+
+  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const hasContent = Boolean(event.target.value.trim())
+    if (hasContent !== canSend) {
+      setCanSend(hasContent)
+    }
+  }
+
+  return (
+    <form className="ai-assistant-form" onSubmit={handleSubmit}>
+      <textarea
+        ref={inputRef}
+        maxLength={MAX_MESSAGE_LENGTH}
+        rows={2}
+        placeholder="Hỏi món, giá, bàn, đơn hàng…"
+        aria-label="Nội dung hỏi trợ lý AI"
+        disabled={disabled}
+        onChange={handleInput}
+        onCompositionStart={() => {
+          isComposingRef.current = true
+        }}
+        onCompositionEnd={() => {
+          isComposingRef.current = false
+        }}
+        onKeyDown={handleKeyDown}
+      />
+      <button type="submit" disabled={disabled || !canSend}>
+        Gửi
+      </button>
+    </form>
+  )
+}
+
 export default function AiAssistantWidget() {
   const [config, setConfig] = useState<AiAssistantPublicConfig | null>(null)
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<AiAssistantMessage[]>([])
-  const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
   const { session } = useCustomerSession()
@@ -26,10 +92,8 @@ export default function AiAssistantWidget() {
       previousUserIdRef.current = currentUserId
       setMessages([])
       setError('')
-      setInput('')
     }
   }, [session?.userId])
-  const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const messagesRef = useRef<HTMLDivElement | null>(null)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
@@ -77,7 +141,6 @@ export default function AiAssistantWidget() {
     }
 
     window.addEventListener('keydown', handleKeyDown)
-    window.setTimeout(() => inputRef.current?.focus(), 0)
     scrollToBottom(false)
 
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -99,7 +162,6 @@ export default function AiAssistantWidget() {
 
     const userMessage: AiAssistantMessage = { role: 'user', content: message }
     setMessages((current) => [...current, userMessage])
-    setInput('')
     setError('')
     setSending(true)
 
@@ -122,11 +184,6 @@ export default function AiAssistantWidget() {
     } finally {
       setSending(false)
     }
-  }
-
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-    void submitMessage(input)
   }
 
   return (
@@ -194,28 +251,10 @@ export default function AiAssistantWidget() {
 
           {error ? <p className="ai-assistant-error">{error}</p> : null}
 
-          <form className="ai-assistant-form" onSubmit={handleSubmit}>
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              maxLength={MAX_MESSAGE_LENGTH}
-              rows={2}
-              placeholder="Hỏi món, giá, bàn, đơn hàng…"
-              aria-label="Nội dung hỏi trợ lý AI"
-              disabled={sending}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                  if (event.nativeEvent.isComposing) return
-                  event.preventDefault()
-                  event.currentTarget.form?.requestSubmit()
-                }
-              }}
-            />
-            <button type="submit" disabled={sending || !input.trim()}>
-              Gửi
-            </button>
-          </form>
+          <AiCustomerChatInput
+            disabled={sending}
+            onSubmit={(text) => void submitMessage(text)}
+          />
 
         </section>
       ) : null}

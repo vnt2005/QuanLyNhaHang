@@ -22,8 +22,8 @@ namespace QuanLyNhaHang.Infrastructure.AI;
 internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 {
     private const int MaxTransientAttemptsPerModel = 2;
-    private static readonly TimeSpan TransientModelCooldown = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan QuotaModelCooldown = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan TransientModelCooldown = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan QuotaModelCooldown = TimeSpan.FromMinutes(2);
 
     private static readonly ConcurrentDictionary<string, DateTimeOffset>
         UnavailableModels = new(StringComparer.OrdinalIgnoreCase);
@@ -255,11 +255,23 @@ internal sealed class GeminiRequestNormalizationHandler : DelegatingHandler
 
         var models = new List<string> { model };
 
+        if (!model.Equals("gemini-3.8-flash", StringComparison.OrdinalIgnoreCase))
+            models.Add("gemini-3.8-flash");
+
+        if (!model.Equals("gemini-3.7-flash", StringComparison.OrdinalIgnoreCase))
+            models.Add("gemini-3.7-flash");
+
+        if (!model.Equals("gemini-3.5-flash", StringComparison.OrdinalIgnoreCase))
+            models.Add("gemini-3.5-flash");
+
         if (!model.Equals("gemini-3.5-flash-lite", StringComparison.OrdinalIgnoreCase))
             models.Add("gemini-3.5-flash-lite");
 
         if (!model.Equals("gemini-3.1-flash-lite", StringComparison.OrdinalIgnoreCase))
             models.Add("gemini-3.1-flash-lite");
+
+        if (!model.Equals("gemini-flash-latest", StringComparison.OrdinalIgnoreCase))
+            models.Add("gemini-flash-latest");
 
         return models
             .Distinct(StringComparer.OrdinalIgnoreCase)

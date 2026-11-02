@@ -60,9 +60,7 @@ function getErrorMessage(body: unknown, status: number) {
     return 'Trợ lý AI đang tạm thời gặp sự cố. Vui lòng thử lại sau.'
   }
   if (status === 401) {
-    return problem?.message
-      ?? problem?.detail
-      ?? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+    return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại vào hệ thống quản trị để sử dụng Trợ lý AI.'
   }
   if (status === 403) {
     return problem?.message
@@ -81,11 +79,16 @@ function getErrorMessage(body: unknown, status: number) {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = sessionStorage.getItem('accessToken')
+  if (!token) {
+    throw new Error(
+      'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại vào hệ thống quản trị để sử dụng Trợ lý AI.',
+    )
+  }
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
       ...init?.headers,
     },
   })

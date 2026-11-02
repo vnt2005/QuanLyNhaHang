@@ -85,7 +85,7 @@ interface AiAdminChatInputProps {
 }
 
 function AiAdminChatInput({ disabled, sending, onSubmit }: AiAdminChatInputProps) {
-  const [value, setValue] = useState('')
+  const [canSend, setCanSend] = useState(false)
   const isComposingRef = useRef(false)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
 
@@ -95,10 +95,14 @@ function AiAdminChatInput({ disabled, sending, onSubmit }: AiAdminChatInputProps
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
-    const trimmed = value.trim()
+    const trimmed = inputRef.current?.value.trim() ?? ''
     if (!trimmed || disabled || sending) return
     onSubmit(trimmed)
-    setValue('')
+    if (inputRef.current) {
+      inputRef.current.value = ''
+      inputRef.current.style.height = 'auto'
+    }
+    setCanSend(false)
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -111,14 +115,23 @@ function AiAdminChatInput({ disabled, sending, onSubmit }: AiAdminChatInputProps
     }
   }
 
+  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const target = event.target
+    const hasContent = Boolean(target.value.trim())
+    if (hasContent !== canSend) {
+      setCanSend(hasContent)
+    }
+    target.style.height = 'auto'
+    target.style.height = `${Math.min(target.scrollHeight, 100)}px`
+  }
+
   return (
     <form className="ai-admin-chat-form" onSubmit={handleSubmit}>
       <textarea
         ref={inputRef}
         rows={1}
         maxLength={1200}
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
+        onChange={handleInput}
         onCompositionStart={() => {
           isComposingRef.current = true
         }}
@@ -132,13 +145,152 @@ function AiAdminChatInput({ disabled, sending, onSubmit }: AiAdminChatInputProps
       <button
         type="submit"
         className="ai-admin-send-btn"
-        disabled={disabled || sending || !value.trim()}
+        disabled={disabled || sending || !canSend}
         aria-label="Gửi câu hỏi"
       >
         <SendIcon size={16} />
         <span>{sending ? 'Đang hỏi…' : 'Gửi'}</span>
       </button>
     </form>
+  )
+}
+
+interface AiAdminFieldTextareaProps {
+  name: string
+  label: string
+  rows: number
+  maxLength?: number
+  placeholder: string
+  helpText?: string
+  value: string
+  onChange: (value: string) => void
+}
+
+function AiAdminFieldTextarea({
+  name,
+  label,
+  rows,
+  maxLength,
+  placeholder,
+  helpText,
+  value,
+  onChange,
+}: AiAdminFieldTextareaProps) {
+  const [localValue, setLocalValue] = useState(value)
+  const debounceRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
+  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const next = event.target.value
+    setLocalValue(next)
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current)
+    }
+    debounceRef.current = window.setTimeout(() => {
+      onChange(next)
+    }, 150)
+  }
+
+  const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current)
+      debounceRef.current = null
+    }
+    onChange(event.target.value)
+  }
+
+  return (
+    <label>
+      <span>{label}</span>
+      <textarea
+        name={name}
+        rows={rows}
+        maxLength={maxLength}
+        value={localValue}
+        onChange={handleInput}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+      />
+      {helpText ? <small>{helpText}</small> : null}
+    </label>
+  )
+}
+
+interface AiAdminTextareaCardProps {
+  name: string
+  label: string
+  title: string
+  maxLength: number
+  rows: number
+  placeholder: string
+  helpText: string
+  value: string
+  onChange: (value: string) => void
+}
+
+function AiAdminTextareaCard({
+  name,
+  label,
+  title,
+  maxLength,
+  rows,
+  placeholder,
+  helpText,
+  value,
+  onChange,
+}: AiAdminTextareaCardProps) {
+  const [localValue, setLocalValue] = useState(value)
+  const debounceRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
+  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const next = event.target.value
+    setLocalValue(next)
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current)
+    }
+    debounceRef.current = window.setTimeout(() => {
+      onChange(next)
+    }, 150)
+  }
+
+  const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current)
+      debounceRef.current = null
+    }
+    onChange(event.target.value)
+  }
+
+  return (
+    <div className="ai-admin-card">
+      <div className="ai-admin-section-heading">
+        <div>
+          <span className="ai-admin-label">{label}</span>
+          <h3>{title}</h3>
+        </div>
+        <small>
+          {localValue.length}/{maxLength}
+        </small>
+      </div>
+      <textarea
+        name={name}
+        className="ai-admin-large-textarea"
+        rows={rows}
+        maxLength={maxLength}
+        value={localValue}
+        onChange={handleInput}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+      />
+      <p className="ai-admin-help">{helpText}</p>
+    </div>
   )
 }
 
@@ -189,13 +341,31 @@ export default function AiAssistantManagementPage() {
     }
   }, [adminMessages, chatOpen, adminSending, scrollAdminToBottom])
 
+  const popupRef = useRef<HTMLElement | null>(null)
+  const launcherRef = useRef<HTMLButtonElement | null>(null)
+
   useEffect(() => {
     if (!chatOpen) return
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node | null
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(target) &&
+        !launcherRef.current?.contains(target) &&
+        !(event.target as HTMLElement)?.closest('.ai-admin-bot-toggle-btn')
+      ) {
+        setChatOpen(false)
+      }
+    }
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setChatOpen(false)
     }
+    document.addEventListener('mousedown', handleClickOutside)
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
   }, [chatOpen])
 
   useAutoDismissMessage(message, setMessage, 4000)
@@ -243,17 +413,26 @@ export default function AiAssistantManagementPage() {
     setMessage('')
 
     try {
+      const form = document.getElementById('ai-admin-config-form') as HTMLFormElement | null
+      const formData = form ? new FormData(form) : null
+      const modelVal = (formData?.get('model')?.toString() ?? config.model).trim()
+      const welcomeVal = (formData?.get('welcomeMessage')?.toString() ?? config.welcomeMessage).trim()
+      const systemVal = (formData?.get('systemPrompt')?.toString() ?? config.systemPrompt).trim()
+      const knowledgeVal = (formData?.get('knowledgeBase')?.toString() ?? config.knowledgeBase).trim()
+      const questionsVal = formData?.get('suggestedQuestions')?.toString() ?? suggestedQuestions
+      const maxTokensVal = Number(formData?.get('maxOutputTokens')) || config.maxOutputTokens
+
       const result = await updateAiAssistantAdminConfig({
         enabled: newEnabled,
-        model: config.model.trim(),
-        welcomeMessage: config.welcomeMessage.trim(),
-        systemPrompt: config.systemPrompt.trim(),
-        knowledgeBase: config.knowledgeBase.trim(),
-        suggestedQuestions: suggestedQuestions
+        model: modelVal,
+        welcomeMessage: welcomeVal,
+        systemPrompt: systemVal,
+        knowledgeBase: knowledgeVal,
+        suggestedQuestions: questionsVal
           .split('\n')
           .map((item) => item.trim())
           .filter(Boolean),
-        maxOutputTokens: config.maxOutputTokens,
+        maxOutputTokens: maxTokensVal,
       })
 
       setConfig(result.data)
@@ -279,17 +458,27 @@ export default function AiAssistantManagementPage() {
     setMessage('')
 
     try {
+      const form = (event?.currentTarget as HTMLFormElement | null) ??
+        (document.getElementById('ai-admin-config-form') as HTMLFormElement | null)
+      const formData = form ? new FormData(form) : null
+      const modelVal = (formData?.get('model')?.toString() ?? config.model).trim()
+      const welcomeVal = (formData?.get('welcomeMessage')?.toString() ?? config.welcomeMessage).trim()
+      const systemVal = (formData?.get('systemPrompt')?.toString() ?? config.systemPrompt).trim()
+      const knowledgeVal = (formData?.get('knowledgeBase')?.toString() ?? config.knowledgeBase).trim()
+      const questionsVal = formData?.get('suggestedQuestions')?.toString() ?? suggestedQuestions
+      const maxTokensVal = Number(formData?.get('maxOutputTokens')) || config.maxOutputTokens
+
       const result = await updateAiAssistantAdminConfig({
         enabled: config.enabled,
-        model: config.model.trim(),
-        welcomeMessage: config.welcomeMessage.trim(),
-        systemPrompt: config.systemPrompt.trim(),
-        knowledgeBase: config.knowledgeBase.trim(),
-        suggestedQuestions: suggestedQuestions
+        model: modelVal,
+        welcomeMessage: welcomeVal,
+        systemPrompt: systemVal,
+        knowledgeBase: knowledgeVal,
+        suggestedQuestions: questionsVal
           .split('\n')
           .map((item) => item.trim())
           .filter(Boolean),
-        maxOutputTokens: config.maxOutputTokens,
+        maxOutputTokens: maxTokensVal,
       })
 
       setConfig(result.data)
@@ -404,32 +593,19 @@ export default function AiAssistantManagementPage() {
       </div>
 
       <div className="ai-admin-floating-shell">
-        <button
-          type="button"
-          className={`ai-admin-floating-launcher ${chatOpen ? 'active' : ''}`}
-          onClick={() => setChatOpen((prev) => !prev)}
-          aria-expanded={chatOpen}
-          aria-label={chatOpen ? 'Đóng trợ lý AI' : 'Mở trợ lý AI'}
-          title="Hỏi AI Quản trị"
-        >
-          <RobotAvatarIcon size={32} />
-          <span className="ai-admin-floating-ping" />
-        </button>
-      </div>
-
-      {chatOpen && (
-        <div className="ai-admin-chat-popup-overlay" onClick={() => setChatOpen(false)}>
-          <div
+        {chatOpen && (
+          <section
+            ref={popupRef}
             className="ai-admin-chat-popup"
             role="dialog"
-            aria-modal="true"
+            aria-modal="false"
             aria-label="Trợ lý AI Quản trị"
-            onClick={(e) => e.stopPropagation()}
           >
             <header className="ai-admin-chat-popup-header">
               <div className="ai-admin-chat-popup-heading">
-                <RobotAvatarIcon size={28} />
+                <RobotAvatarIcon size={24} />
                 <div>
+                  <span className="ai-admin-chat-kicker">TRỢ LÝ AI QUẢN TRỊ</span>
                   <strong>AI Quản trị Nhà hàng</strong>
                   <small>Dữ liệu vận hành trực tiếp (Read-Only)</small>
                 </div>
@@ -440,7 +616,7 @@ export default function AiAssistantManagementPage() {
                 onClick={() => setChatOpen(false)}
                 aria-label="Đóng cửa sổ chat"
               >
-                ✕
+                ×
               </button>
             </header>
 
@@ -452,7 +628,7 @@ export default function AiAssistantManagementPage() {
               {adminMessages.length === 0 ? (
                 <div className="ai-admin-chat-empty">
                   <div className="ai-admin-chat-empty-icon">
-                    <RobotAvatarIcon size={46} />
+                    <RobotAvatarIcon size={38} />
                   </div>
                   <strong>Hỏi AI về bất kỳ module vận hành nào</strong>
                   <span>AI sẽ truy vấn trực tiếp cơ sở dữ liệu hệ thống để trả lời.</span>
@@ -512,9 +688,22 @@ export default function AiAssistantManagementPage() {
               sending={adminSending}
               onSubmit={(text) => void askAdminAi(text)}
             />
-          </div>
-        </div>
-      )}
+          </section>
+        )}
+
+        <button
+          ref={launcherRef}
+          type="button"
+          className={`ai-admin-floating-launcher ${chatOpen ? 'active' : ''}`}
+          onClick={() => setChatOpen((prev) => !prev)}
+          aria-expanded={chatOpen}
+          aria-label={chatOpen ? 'Đóng trợ lý AI' : 'Mở trợ lý AI'}
+          title="Hỏi AI Quản trị"
+        >
+          <RobotAvatarIcon size={24} />
+          <span className="ai-admin-floating-ping" />
+        </button>
+      </div>
 
       {error ? (
         <div className="ai-admin-alert error" role="alert" aria-live="assertive">
@@ -546,6 +735,7 @@ export default function AiAssistantManagementPage() {
             <label>
               <span>Gemini model</span>
               <input
+                name="model"
                 value={config.model}
                 onChange={(event) => updateField('model', event.target.value)}
                 maxLength={100}
@@ -558,6 +748,7 @@ export default function AiAssistantManagementPage() {
             <label>
               <span>Token đầu ra tối đa</span>
               <input
+                name="maxOutputTokens"
                 type="number"
                 min={100}
                 max={2000}
@@ -579,73 +770,51 @@ export default function AiAssistantManagementPage() {
               </div>
             </div>
 
-            <label>
-              <span>Lời chào</span>
-              <textarea
-                rows={3}
-                maxLength={1000}
-                value={config.welcomeMessage}
-                onChange={(event) => updateField('welcomeMessage', event.target.value)}
-                placeholder="Xin chào! Tôi có thể giúp gì cho bạn?"
-              />
-            </label>
+            <AiAdminFieldTextarea
+              name="welcomeMessage"
+              label="Lời chào"
+              rows={3}
+              maxLength={1000}
+              value={config.welcomeMessage}
+              onChange={(value) => updateField('welcomeMessage', value)}
+              placeholder="Xin chào! Tôi có thể giúp gì cho bạn?"
+            />
 
-            <label>
-              <span>Câu hỏi gợi ý</span>
-              <textarea
-                rows={5}
-                value={suggestedQuestions}
-                onChange={(event) => setSuggestedQuestions(event.target.value)}
-                placeholder={'Mỗi dòng một câu hỏi\nHôm nay có món gì nổi bật?'}
-              />
-              <small>Tối đa 6 câu, mỗi câu tối đa 160 ký tự.</small>
-            </label>
+            <AiAdminFieldTextarea
+              name="suggestedQuestions"
+              label="Câu hỏi gợi ý"
+              rows={5}
+              value={suggestedQuestions}
+              onChange={(value) => setSuggestedQuestions(value)}
+              placeholder={'Mỗi dòng một câu hỏi\nHôm nay có món gì nổi bật?'}
+              helpText="Tối đa 6 câu, mỗi câu tối đa 160 ký tự."
+            />
           </div>
         </div>
 
-        <div className="ai-admin-card">
-          <div className="ai-admin-section-heading">
-            <div>
-              <span className="ai-admin-label">Quy tắc</span>
-              <h3>System prompt của nhà hàng</h3>
-            </div>
-            <small>{config.systemPrompt.length}/8000</small>
-          </div>
-          <textarea
-            className="ai-admin-large-textarea"
-            rows={8}
-            maxLength={8000}
-            value={config.systemPrompt}
-            onChange={(event) => updateField('systemPrompt', event.target.value)}
-            placeholder="Quy định giọng điệu, phạm vi trả lời và cách xử lý khi AI không chắc chắn…"
-          />
-          <p className="ai-admin-help">
-            Backend luôn bổ sung quyền truy cập dữ liệu và quy tắc bảo mật bắt buộc;
-            nội dung tại đây không thể cho AI vượt qua các giới hạn đó.
-          </p>
-        </div>
+        <AiAdminTextareaCard
+          name="systemPrompt"
+          label="Quy tắc"
+          title="System prompt của nhà hàng"
+          maxLength={8000}
+          rows={8}
+          value={config.systemPrompt}
+          onChange={(value) => updateField('systemPrompt', value)}
+          placeholder="Quy định giọng điệu, phạm vi trả lời và cách xử lý khi AI không chắc chắn…"
+          helpText="Backend luôn bổ sung quyền truy cập dữ liệu và quy tắc bảo mật bắt buộc; nội dung tại đây không thể cho AI vượt qua các giới hạn đó."
+        />
 
-        <div className="ai-admin-card">
-          <div className="ai-admin-section-heading">
-            <div>
-              <span className="ai-admin-label">Kiến thức bổ sung</span>
-              <h3>Thông tin riêng do quản trị viên cung cấp</h3>
-            </div>
-            <small>{config.knowledgeBase.length}/30000</small>
-          </div>
-          <textarea
-            className="ai-admin-large-textarea"
-            rows={10}
-            maxLength={30000}
-            value={config.knowledgeBase}
-            onChange={(event) => updateField('knowledgeBase', event.target.value)}
-            placeholder="Ví dụ: chính sách giữ bàn, khu vực gửi xe, quy định nhận món mang về…"
-          />
-          <p className="ai-admin-help">
-            Không cần chép thực đơn, đơn hàng, bàn, thanh toán, doanh thu, kho hoặc dữ liệu
-            vận hành vào đây. AI tự lấy từ database qua công cụ read-only khi cần.
-          </p>
-        </div>
+        <AiAdminTextareaCard
+          name="knowledgeBase"
+          label="Kiến thức bổ sung"
+          title="Thông tin riêng do quản trị viên cung cấp"
+          maxLength={30000}
+          rows={10}
+          value={config.knowledgeBase}
+          onChange={(value) => updateField('knowledgeBase', value)}
+          placeholder="Ví dụ: chính sách giữ bàn, khu vực gửi xe, quy định nhận món mang về…"
+          helpText="Không cần chép thực đơn, đơn hàng, bàn, thanh toán, doanh thu, kho hoặc dữ liệu vận hành vào đây. AI tự lấy từ database qua công cụ read-only khi cần."
+        />
 
         <div className="ai-admin-footer">
           <small>Cập nhật gần nhất: {formatUpdatedAt(config.updatedAt)}</small>
