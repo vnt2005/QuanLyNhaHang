@@ -2225,14 +2225,9 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
 .sera-footer-map-section {
   width: min(var(--sera-max), calc(100% - 2 * var(--sera-gutter)));
   margin: 0 auto;
-  min-height: calc(100vh - 79px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   padding: var(--sera-section-py) 0;
   border-bottom: 1px solid var(--sera-line);
   scroll-margin-top: 79px;
-  box-sizing: border-box;
 }
 .sera-footer-map-card {
   display: grid;
@@ -2659,7 +2654,6 @@ select option { background: var(--sera-paper); color: var(--sera-ink); }
 }
 
 @media (max-width: 1080px) {
-  .sera-footer-map-section { min-height: auto; }
   .sera-footer-map-card { grid-template-columns: 1fr; }
   .sera-footer-map-info { border-right: 0; border-bottom: 1px solid var(--sera-line); }
   .sera-footer-main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
