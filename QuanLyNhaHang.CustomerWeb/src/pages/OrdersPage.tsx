@@ -11,6 +11,7 @@ import AuthPortal from '../components/AuthPortal'
 import { confirmCustomerAction } from '../components/CustomerConfirmDialog'
 import PayOnlineButton from '../components/PayOnlineButton'
 import { navigate } from '../utils/navigation'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import { getCustomerQrTokenForTable } from '../utils/customerQrAccess'
 
 const terminalStatuses = new Set(['Completed', 'Cancelled'])
@@ -85,6 +86,7 @@ export default function OrdersPage({ session, initialMessage, onSessionChanged }
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [cancellingId, setCancellingId] = useState('')
   const [orderSearch, setOrderSearch] = useState('')
   const [debouncedOrderSearch, setDebouncedOrderSearch] = useState('')

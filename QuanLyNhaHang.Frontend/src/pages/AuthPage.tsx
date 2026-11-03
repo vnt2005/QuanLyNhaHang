@@ -15,6 +15,7 @@ import {
   verifyEmail,
   type LoginResult,
 } from '../services/auth'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 
 type AuthMode =
   | 'login'
@@ -102,6 +103,7 @@ export default function AuthPage({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState(initialMessage)
+  useAutoDismissMessage(message, setMessage)
   const [verificationFromRegistration, setVerificationFromRegistration] =
     useState(false)
   const content = useMemo(() => modeContent[mode], [mode])

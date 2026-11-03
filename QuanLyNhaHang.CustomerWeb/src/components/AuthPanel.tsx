@@ -23,6 +23,7 @@ import {
   verifyCustomerTwoFactor,
   type CustomerSession,
 } from '../services/customerAuth'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 
 type Mode = 'login' | 'register' | 'verify' | 'twoFactor' | 'forgot' | 'reset'
 
@@ -44,6 +45,7 @@ export default function AuthPanel({
   const [phoneNumber, setPhoneNumber] = useState('')
   const [code, setCode] = useState('')
   const [message, setMessage] = useState(initialMessage)
+  useAutoDismissMessage(message, setMessage)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 

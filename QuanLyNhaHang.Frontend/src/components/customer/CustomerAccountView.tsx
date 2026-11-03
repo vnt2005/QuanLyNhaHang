@@ -18,6 +18,7 @@ import {
   verifyCustomerTwoFactor,
   type CustomerSession,
 } from '../../services/customerAuth'
+import { useAutoDismissMessage } from '../../hooks/useAutoDismissMessage'
 
 type AuthMode =
   | 'login'
@@ -212,6 +213,7 @@ function CustomerAuthView({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState(initialMessage)
+  useAutoDismissMessage(message, setMessage)
 
   useEffect(() => {
     setMessage(initialMessage)

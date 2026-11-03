@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { changeCustomerPassword, logoutCustomer, type CustomerSession } from '../services/customerAuth'
 import AuthPortal from '../components/AuthPortal'
 import { navigate } from '../utils/navigation'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 
 type AccountTab = 'profile' | 'security'
 
@@ -13,6 +14,7 @@ export default function AccountPage({ session, initialMessage, onSessionChanged 
   const [tab, setTab] = useState<AccountTab>('profile')
   const [error, setError] = useState('')
   const [passwordMessage, setPasswordMessage] = useState('')
+  useAutoDismissMessage(passwordMessage, setPasswordMessage)
   const [changingPassword, setChangingPassword] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
