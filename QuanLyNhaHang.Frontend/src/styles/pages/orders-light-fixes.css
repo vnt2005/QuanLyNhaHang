@@ -219,3 +219,68 @@ html[data-admin-theme='light'] body:has(.orders-page)
   border-color: #b9c6d4 !important;
   background: #f8fafc !important;
 }
+
+/* Order filters and inline controls in Light Mode ----------------------- */
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  :is(
+    .order-filters input,
+    .order-filters select,
+    .order-form input,
+    .order-form select,
+    .order-form textarea,
+    .order-card-actions select
+  ) {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  border: 1px solid #d6e0e9 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color-scheme: light !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  :is(
+    .order-filters input,
+    .order-filters select,
+    .order-form input,
+    .order-form select,
+    .order-form textarea,
+    .order-card-actions select
+  ):hover:not(:focus) {
+  border-color: #b9c6d4 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  :is(
+    .order-filters input,
+    .order-filters select,
+    .order-form input,
+    .order-form select,
+    .order-form textarea,
+    .order-card-actions select
+  ):focus {
+  border-color: #2563eb !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  :is(.order-filters input, .order-form input, .order-form textarea)::placeholder {
+  color: #8b99aa !important;
+  -webkit-text-fill-color: #8b99aa !important;
+  opacity: 1 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.orders-page)
+  :is(.order-form select, .order-filters select, .order-card-actions select) option {
+  color: #172033 !important;
+  background: #ffffff !important;
+}
+
