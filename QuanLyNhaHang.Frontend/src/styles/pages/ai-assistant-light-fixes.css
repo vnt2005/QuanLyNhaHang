@@ -109,28 +109,38 @@ html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-
   color: #708198 !important;
 }
 
+html[data-admin-theme='light'] .ai-admin-chat-empty strong,
 html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-empty strong {
-  color: #334155 !important;
+  color: #0f172a !important;
 }
 
+html[data-admin-theme='light'] .ai-admin-chat-empty span,
+html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-empty span {
+  color: #64748b !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-chat-bubble,
 html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-bubble {
-  color: #334155 !important;
-  border-color: #d7e1eb !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
   background: #ffffff !important;
   background-image: none !important;
   box-shadow: 0 1px 3px rgb(15 23 42 / 5%) !important;
 }
 
+html[data-admin-theme='light'] .ai-admin-chat-row.user .ai-admin-chat-bubble,
 html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-row.user .ai-admin-chat-bubble {
-  color: #7d4315 !important;
-  border-color: #efc69f !important;
-  background: #fff4e8 !important;
+  color: #1e3a8a !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
   background-image: none !important;
 }
 
+html[data-admin-theme='light'] .ai-admin-chat-bubble.thinking,
+html[data-admin-theme='light'] .ai-admin-chat-sources small,
 html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-bubble.thinking,
 html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) .ai-admin-chat-sources small {
-  color: #708198 !important;
+  color: #64748b !important;
 }
 
 html[data-admin-theme='light'] .admin-layout:has(.ai-admin-page) :is(
@@ -300,6 +310,10 @@ html[data-admin-theme='light'] .ai-admin-empty-chip {
   border: 1px solid #e2e8f0 !important;
   color: #1e293b !important;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+html[data-admin-theme='light'] .ai-admin-empty-chip::after {
+  color: #0284c7 !important;
 }
 
 html[data-admin-theme='light'] .ai-admin-empty-chip:hover:not(:disabled) {
