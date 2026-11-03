@@ -16,6 +16,7 @@ import {
   type CustomerSession,
 } from '../services/customerAuth'
 import { claimCustomerOrder } from '../services/customerOrders'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import CustomerAccountView from '../components/customer/CustomerAccountView'
 import CustomerOrderHistoryView from '../components/customer/CustomerOrderHistoryView'
 import {
@@ -76,6 +77,7 @@ export default function QrOrderPage({ token }: QrOrderPageProps) {
     hasStoredCustomerSession,
   )
   const [customerAuthMessage, setCustomerAuthMessage] = useState('')
+  useAutoDismissMessage(customerAuthMessage, setCustomerAuthMessage)
   const [customerOrderRevision, setCustomerOrderRevision] = useState(0)
   const claimedOrderKeyRef = useRef('')
 

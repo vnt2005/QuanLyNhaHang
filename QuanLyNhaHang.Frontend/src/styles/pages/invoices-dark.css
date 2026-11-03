@@ -313,7 +313,7 @@ html:not([data-admin-theme='light']) .dashboard .invoices-page .inline-alert.err
 
 .dashboard .invoice-search-field input {
   min-height: 3rem;
-  padding: 0 1rem 0 3rem;
+  padding: 0 1rem 0 3rem !important;
 }
 
 .dashboard .invoice-search-field input::placeholder,

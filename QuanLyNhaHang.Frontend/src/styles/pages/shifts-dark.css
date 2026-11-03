@@ -904,7 +904,7 @@ html:not([data-admin-theme='light']) .dashboard .scheduling-alert.error::before 
   grid-column: 1 / -1;
 }
 
-.dashboard .scheduling-modal :is(input, select, textarea) {
+.dashboard .scheduling-modal :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -919,9 +919,29 @@ html:not([data-admin-theme='light']) .dashboard .scheduling-alert.error::before 
   color-scheme: dark;
 }
 
-.dashboard .scheduling-modal :is(input, select) {
+.dashboard .scheduling-modal :is(input:not([type='checkbox']):not([type='radio']), select) {
   min-height: 2.75rem;
   padding: 0 0.875rem;
+}
+
+.dashboard .scheduling-modal input[type='checkbox'],
+.dashboard .scheduling-checkbox-label input[type='checkbox'] {
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+  min-width: 1.125rem !important;
+  min-height: 1.125rem !important;
+  max-width: 1.125rem !important;
+  max-height: 1.125rem !important;
+  padding: 0 !important;
+  margin: 2px 0 0 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  cursor: pointer !important;
+  accent-color: #2563eb !important;
 }
 
 .dashboard .scheduling-modal select {
@@ -1252,16 +1272,16 @@ body:has(.scheduling-page) .ds-confirm-actions button.danger {
   }
 }
 
-.dashboard .scheduling-overnight-option {
+html[data-admin-theme='dark'] .dashboard .scheduling-overnight-option {
   background: rgb(255 255 255 / 4%) !important;
   border-color: rgb(255 255 255 / 10%) !important;
 }
 
-.dashboard .scheduling-checkbox-label strong {
+html[data-admin-theme='dark'] .dashboard .scheduling-checkbox-label strong {
   color: #f1f5f9 !important;
 }
 
-.dashboard .scheduling-checkbox-label small {
+html[data-admin-theme='dark'] .dashboard .scheduling-checkbox-label small {
   color: #94a3b8 !important;
 }
 

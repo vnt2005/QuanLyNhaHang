@@ -1,7 +1,7 @@
 import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import { useVisiblePolling } from '../hooks/useVisiblePolling'
 import { confirmAction } from '../components/ConfirmDialog'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   getKitchenHistory,
   getKitchenOrders,
@@ -54,6 +54,115 @@ const emptyCopy: Record<KitchenItemStatus, string> = {
   Ready: 'Chưa có món chờ giao',
   Served: 'Chưa có món đã phục vụ',
   Cancelled: 'Chưa có món đã hủy',
+}
+
+function TableSelectDropdown({
+  value,
+  onChange,
+  tables,
+}: {
+  value: string
+  onChange: (value: string) => void
+  tables: { id: string; name: string }[]
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const selectedTable = tables.find(t => t.id === value)
+  const displayLabel = selectedTable ? selectedTable.name : 'Tất cả bàn + mang về'
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+        setSearch('')
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsOpen(false)
+        setSearch('')
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen])
+
+  const filteredTables = search.trim()
+    ? tables.filter(t => t.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : tables
+
+  return (
+    <div className="kitchen-table-select" ref={containerRef}>
+      <button
+        type="button"
+        className="kitchen-table-select-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-label="Lọc theo bàn"
+      >
+        <span className="kitchen-table-select-label">{displayLabel}</span>
+        <span className={`kitchen-table-select-chevron ${isOpen ? 'open' : ''}`} aria-hidden="true">
+          ▾
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="kitchen-table-select-menu" role="listbox">
+          {tables.length > 8 && (
+            <div className="kitchen-table-select-search">
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Tìm bàn..."
+                autoFocus
+                onClick={e => e.stopPropagation()}
+              />
+            </div>
+          )}
+          <div className="kitchen-table-select-options">
+            <button
+              type="button"
+              className={`kitchen-table-select-option ${value === '' ? 'selected' : ''}`}
+              onClick={() => {
+                onChange('')
+                setIsOpen(false)
+                setSearch('')
+              }}
+            >
+              Tất cả bàn + mang về
+            </button>
+            {filteredTables.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                className={`kitchen-table-select-option ${value === t.id ? 'selected' : ''}`}
+                onClick={() => {
+                  onChange(t.id)
+                  setIsOpen(false)
+                  setSearch('')
+                }}
+              >
+                {t.name}
+              </button>
+            ))}
+            {filteredTables.length === 0 && (
+              <div className="kitchen-table-select-empty">Không tìm thấy bàn</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function KitchenPage() {
@@ -187,7 +296,7 @@ export default function KitchenPage() {
     <div className="kitchen-controls">
       <div className="kitchen-tabs"><button className={view === 'board' ? 'active' : ''} onClick={() => setView('board')}>Đang xử lý</button><button className={view === 'history' ? 'active' : ''} onClick={() => setView('history')}>Lịch sử</button></div>
       <label className="kitchen-search"><span aria-hidden="true">⌕</span><input value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm mã đơn, bàn, khách hoặc món..." /></label>
-      <select value={tableFilter} onChange={event => setTableFilter(event.target.value)} aria-label="Lọc theo bàn"><option value="">Tất cả bàn + mang về</option>{tables.map(table => <option key={table.id} value={table.id}>{table.name}</option>)}</select>
+      <TableSelectDropdown value={tableFilter} onChange={setTableFilter} tables={tables} />
     </div>
 
     {loading ? <div className="kitchen-empty kitchen-loading"><span className="kitchen-empty-icon">♨</span><strong>Đang tải dữ liệu bếp...</strong></div> : view === 'board' ? <div className="kitchen-board">

@@ -108,6 +108,64 @@ html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls >
   background: #ffffff !important;
 }
 
+html[data-admin-theme='light'] .kitchen-table-select-trigger {
+  color: #263449 !important;
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-trigger:hover {
+  border-color: #b9c6d4 !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-trigger:focus,
+html[data-admin-theme='light'] .kitchen-table-select-trigger[aria-expanded="true"] {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%) !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-menu {
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-search {
+  border-bottom-color: #edf2f7 !important;
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-search input {
+  border-color: #d6e0e9 !important;
+  background: #ffffff !important;
+  color: #172033 !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-search input:focus {
+  border-color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-option {
+  color: #263449 !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-option:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-option.selected {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .kitchen-table-select-empty {
+  color: #64748b !important;
+}
+
 html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-controls > select:hover,
 html[data-admin-theme='light'] .dashboard:has(.kitchen-page) .kitchen-search:hover {
   border-color: #bdc9d6 !important;

@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useVisiblePolling } from '../hooks/useVisiblePolling'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import type { CustomerSession } from '../services/customerAuth'
 import { cancelCustomerOrder, claimCustomerOrder, type CustomerOrder } from '../services/customerOrders'
 import { CUSTOMER_ORDER_CHANGED_EVENT } from '../services/notifications'
@@ -111,6 +112,7 @@ export default function QrOrderPage({ token, session }: { token: string; session
   const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  useAutoDismissMessage(success, setSuccess)
 
   async function load() {
     setLoading(true)

@@ -92,7 +92,7 @@ body:has(.orders-page) {
 }
 
 /* Inputs/selects must not fall back to native white --------------------- */
-.admin-layout:has(.orders-page)
+html:not([data-admin-theme='light']) .admin-layout:has(.orders-page)
   :is(
     .order-filters input,
     .order-filters select,
@@ -113,12 +113,12 @@ body:has(.orders-page) {
   opacity: 1 !important;
 }
 
-.admin-layout:has(.orders-page) :is(.order-form select, .order-filters select, .add-order-item select, .order-card-actions select) option {
+html:not([data-admin-theme='light']) .admin-layout:has(.orders-page) :is(.order-form select, .order-filters select, .add-order-item select, .order-card-actions select) option {
   color: #edf2fa !important;
   background: #071020 !important;
 }
 
-.admin-layout:has(.orders-page)
+html:not([data-admin-theme='light']) .admin-layout:has(.orders-page)
   :is(
     .order-filters input,
     .order-filters select,
@@ -136,7 +136,7 @@ body:has(.orders-page) {
   box-shadow: 0 0 0 3px rgb(255 157 0 / 10%) !important;
 }
 
-.admin-layout:has(.orders-page)
+html:not([data-admin-theme='light']) .admin-layout:has(.orders-page)
   :is(
     .order-filters input,
     .order-form input,

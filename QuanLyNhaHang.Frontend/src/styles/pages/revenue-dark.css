@@ -698,11 +698,16 @@ html:not([data-admin-theme='light']) .dashboard .revenue-reports-page .inline-al
   height: 1.1rem;
   color: var(--revenue-muted);
   pointer-events: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .dashboard .revenue-search-field input {
   min-height: 2.85rem;
-  padding: 0 0.9rem 0 2.75rem;
+  padding: 0 0.9rem 0 2.75rem !important;
 }
 
 .dashboard .revenue-filter-field :is(input, select) {

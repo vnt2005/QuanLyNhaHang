@@ -242,3 +242,8 @@ html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-search
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
 }
+
+html[data-admin-theme='light'] .admin-layout:has(.invoices-page) .invoice-search-field input,
+html[data-admin-theme='light'] .dashboard .invoice-search-field input {
+  padding-left: 3rem !important;
+}

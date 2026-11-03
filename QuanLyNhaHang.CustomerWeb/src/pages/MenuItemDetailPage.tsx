@@ -41,6 +41,7 @@ import {
   getFallbackImagePosition,
 } from '../utils/menuCatalog'
 import { navigate } from '../utils/navigation'
+import { useAutoDismissMessage } from '../hooks/useAutoDismissMessage'
 import {
   addTakeawayItem,
   getTakeawayItemNote,
@@ -91,6 +92,7 @@ export default function MenuItemDetailPage({
   const [selectedPrepIds, setSelectedPrepIds] = useState<string[]>([])
   const [customNote, setCustomNote] = useState('')
   const [message, setMessage] = useState('')
+  useAutoDismissMessage(message, setMessage)
   const [addedPairingId, setAddedPairingId] = useState<string | null>(null)
   const [comboAdded, setComboAdded] = useState(false)
   const [reviewRefreshTick, setReviewRefreshTick] = useState(0)
@@ -101,6 +103,7 @@ export default function MenuItemDetailPage({
   )
   const [reviewComment, setReviewComment] = useState('')
   const [reviewSubmittedNotice, setReviewSubmittedNotice] = useState('')
+  useAutoDismissMessage(reviewSubmittedNotice, setReviewSubmittedNotice)
   const [likedReviewIds, setLikedReviewIds] = useState<string[]>([])
 
   const ratingSummary = useMemo(
