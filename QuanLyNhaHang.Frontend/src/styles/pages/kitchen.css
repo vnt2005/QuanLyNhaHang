@@ -316,6 +316,145 @@
   background: #091427;
 }
 
+/* Custom Table Select that always opens downwards */
+.kitchen-table-select {
+  position: relative;
+  width: 100%;
+}
+
+.kitchen-table-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #21324b;
+  border-radius: 10px;
+  outline: 0;
+  color: #cbd7e7;
+  background: #091427;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.kitchen-table-select-trigger:focus,
+.kitchen-table-select-trigger[aria-expanded="true"] {
+  border-color: #a76a13;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.08);
+}
+
+.kitchen-table-select-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 8px;
+}
+
+.kitchen-table-select-chevron {
+  font-size: 10px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.kitchen-table-select-chevron.open {
+  transform: rotate(180deg);
+}
+
+.kitchen-table-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 220px;
+  max-height: 280px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  border: 1px solid #21324b;
+  background: #091427;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  animation: ds-menu-slide-down 140ms ease-out;
+}
+
+@keyframes ds-menu-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kitchen-table-select-search {
+  padding: 8px;
+  border-bottom: 1px solid #1a273c;
+  background: #070e1c;
+}
+
+.kitchen-table-select-search input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #21324b;
+  border-radius: 6px;
+  background: #091427;
+  color: #cbd7e7;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.kitchen-table-select-search input:focus {
+  border-color: #a76a13;
+}
+
+.kitchen-table-select-options {
+  overflow-y: auto;
+  max-height: 230px;
+  padding: 4px;
+}
+
+.kitchen-table-select-option {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #cbd7e7;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kitchen-table-select-option:hover {
+  background: #142238;
+  color: #ffffff;
+}
+
+.kitchen-table-select-option.selected {
+  background: #192a46;
+  color: #ffae28;
+  font-weight: 700;
+}
+
+.kitchen-table-select-empty {
+  padding: 14px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
 .dashboard:has(.kitchen-page) .kitchen-controls > select:focus,
 .dashboard:has(.kitchen-page) .kitchen-search:focus-within {
   border-color: #a76a13;

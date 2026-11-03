@@ -481,13 +481,13 @@
   background: rgb(251 93 136 / 8%);
 }
 
-.danger {
+:is(button, .order-status, .order-item-status).danger {
   color: #ff8cab !important;
   border-color: rgb(251 93 136 / 26%) !important;
   background: rgb(251 93 136 / 6%) !important;
 }
 
-.danger:hover:not(:disabled) {
+:is(button, .order-status, .order-item-status).danger:hover:not(:disabled) {
   border-color: rgb(251 93 136 / 48%) !important;
   background: rgb(251 93 136 / 11%) !important;
 }

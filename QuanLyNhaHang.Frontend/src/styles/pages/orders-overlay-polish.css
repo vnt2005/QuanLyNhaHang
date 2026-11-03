@@ -29,10 +29,10 @@
 
 /* Generic Orders modal backdrop. */
 .admin-layout:has(.orders-page) .modal-backdrop {
-  background: rgba(0, 0, 0, 0.16) !important;
+  background: rgb(2 8 23 / 76%) !important;
   background-image: none !important;
-  -webkit-backdrop-filter: blur(1px) !important;
-  backdrop-filter: blur(1px) !important;
+  -webkit-backdrop-filter: blur(7px) saturate(82%) !important;
+  backdrop-filter: blur(7px) saturate(82%) !important;
   opacity: 1 !important;
 }
 
@@ -44,6 +44,8 @@
 .admin-layout:has(.orders-page) .employee-modal.order-detail-modal {
   position: relative !important;
   isolation: isolate;
+  background-color: #0b1730 !important;
+  background: linear-gradient(180deg, #0b1730 0%, #071124 100%) !important;
   box-shadow: 0 28px 72px rgb(0 0 0 / 38%) !important;
 }
 
@@ -52,24 +54,22 @@
   content: none !important;
 }
 
-/* Match the visual treatment of the delete confirmation: the Orders page is
-   still clearly visible behind the detail dialog, only lightly dimmed/blurred. */
 .admin-layout:has(.orders-page) .modal-backdrop:has(> .order-detail-modal) {
-  background: rgba(0, 0, 0, 0.16) !important;
-  background-color: rgba(0, 0, 0, 0.16) !important;
+  background: rgb(2 8 23 / 76%) !important;
+  background-color: rgb(2 8 23 / 76%) !important;
   background-image: none !important;
-  -webkit-backdrop-filter: blur(1px) !important;
-  backdrop-filter: blur(1px) !important;
+  -webkit-backdrop-filter: blur(7px) saturate(82%) !important;
+  backdrop-filter: blur(7px) saturate(82%) !important;
   opacity: 1 !important;
 }
 
-/* Confirmation uses the same light treatment so both overlays feel related. */
+/* Confirmation backdrop with standard contrast and blur. */
 body:has(.orders-page) .ds-confirm-backdrop {
-  background: rgba(0, 0, 0, 0.16) !important;
-  background-color: rgba(0, 0, 0, 0.16) !important;
+  background: rgb(2 8 23 / 76%) !important;
+  background-color: rgb(2 8 23 / 76%) !important;
   background-image: none !important;
-  -webkit-backdrop-filter: blur(1px) !important;
-  backdrop-filter: blur(1px) !important;
+  -webkit-backdrop-filter: blur(7px) saturate(82%) !important;
+  backdrop-filter: blur(7px) saturate(82%) !important;
   opacity: 1 !important;
 }
 
@@ -80,9 +80,13 @@ body:has(.orders-page) .ds-confirm-dialog::before {
 }
 
 /* Keep the dialog edge understated now that the accent strip is gone. */
-body:has(.orders-page) .ds-confirm-dialog {
+body:has(.orders-page) .ds-confirm-dialog,
+body:has(.orders-page) .ds-confirm-dialog.danger {
   border-color: #31405d !important;
+  background-color: #081224 !important;
+  background: radial-gradient(circle at 0% 0%, rgb(255 102 143 / 10%), transparent 15rem), linear-gradient(180deg, #0d172b 0%, #081224 100%) !important;
   box-shadow: 0 24px 64px rgb(0 0 0 / 38%) !important;
+  opacity: 1 !important;
 }
 
 /* Compact modal sizing ---------------------------------------------------

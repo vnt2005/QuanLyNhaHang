@@ -21,6 +21,10 @@ html[data-admin-theme='light'] .ds-confirm-dialog {
 
 html[data-admin-theme='light'] .ds-confirm-dialog.danger {
   border-color: #e8d9de !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
 }
 
 html[data-admin-theme='light'] .ds-confirm-icon {
