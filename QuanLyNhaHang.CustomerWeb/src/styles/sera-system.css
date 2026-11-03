@@ -1062,6 +1062,7 @@ body { background: var(--sera-paper); color: var(--sera-ink); }
 /* Shared page composition for transactional screens */
 .sera-page { width: min(var(--sera-max), calc(100% - 2 * var(--sera-gutter))); margin: 0 auto; padding: 64px 0 104px; }
 .sera-page-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr); align-items: end; padding-bottom: 36px; border-bottom: 1px solid var(--sera-line); gap: 48px; }
+.sera-page-head.sera-takeaway-head { align-items: center; padding-bottom: 20px; }
 .sera-page-head p { max-width: 640px; margin: 16px 0 0; color: var(--sera-muted); line-height: 1.75; }
 .sera-page-summary { display: flex; justify-content: flex-end; color: var(--sera-muted); font-size: 12px; }
 .sera-panel { border-top: 1px solid var(--sera-line); padding: 30px 0; }

@@ -391,14 +391,9 @@ export default function TakeawayPage({
   return (
     <main className="sera-page">
       {lines.length > 0 ? (
-      <header className="sera-page-head">
+      <header className="sera-page-head sera-takeaway-head">
         <div>
-          <p className="sera-kicker">Đặt món mang về (Takeaway)</p>
-          <h1 className="sera-display mt-3">Chốt món và ghé nhận tại quầy.</h1>
-          <p>
-            Nhà hàng nhận đơn trước và chuẩn bị món chu đáo theo thời gian hẹn của bạn tại{' '}
-            <strong>{data.restaurant?.restaurantName || 'nhà hàng'}</strong>.
-          </p>
+          <h1 className="sera-kicker">Đặt món mang về (Takeaway)</h1>
         </div>
         <div className="sera-page-summary">
           <span>
