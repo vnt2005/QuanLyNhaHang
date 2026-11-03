@@ -203,3 +203,177 @@ html[data-admin-theme='light'] .dashboard .access-page .access-row-actions butto
   border-color: #fecdd6 !important;
   background: #fff1f4 !important;
 }
+
+
+/* ==========================================================================
+   Light-mode Role Permission Modal & Access Modal Overrides
+   ========================================================================== */
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal,
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-modal {
+  background: #ffffff !important;
+  border: 1px solid #dfe6ee !important;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.16) !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal .modal-heading {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal .modal-heading h2 {
+  color: #0f172a !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal .modal-heading p {
+  color: #64748b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal .modal-heading > button {
+  color: #64748b !important;
+  background: transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal .modal-heading > button:hover:not(:disabled) {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-toolbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-toolbar input {
+  color: #0f172a !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color-scheme: light !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-toolbar input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-toolbar input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-toolbar span {
+  color: #64748b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-groups {
+  background: #f8fafc !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-groups section {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.875rem !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-group-heading {
+  background: #f1f5f9 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding: 0.75rem 0.875rem !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-group-heading h3 {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-group-heading button {
+  color: #2563eb !important;
+  background: transparent !important;
+  font-weight: 700 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-group-heading button:hover {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-item {
+  color: #334155 !important;
+  border-top: 1px solid #eef2f6 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-item:hover {
+  background: #f8fafc !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-item input {
+  accent-color: #2563eb !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-item strong {
+  color: #0f172a !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-item code {
+  color: #64748b !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-empty-state {
+  color: #64748b !important;
+  border: 1px dashed #cbd5e1 !important;
+  background: #ffffff !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-actions,
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal-form .modal-actions {
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  margin: 0 !important;
+  padding: 1rem 1.875rem 1.25rem !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-actions button:not(.primary-button),
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal-form .modal-actions button:not(.primary-button) {
+  min-height: 2.625rem !important;
+  padding: 0 1.125rem !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 0.75rem !important;
+  background: #ffffff !important;
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-actions button:not(.primary-button):hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal-form .modal-actions button:not(.primary-button):hover:not(:disabled) {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-actions .primary-button,
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal-form .modal-actions .primary-button {
+  min-height: 2.625rem !important;
+  padding: 0 1.125rem !important;
+  color: #ffffff !important;
+  border: 1px solid #2563eb !important;
+  border-radius: 0.75rem !important;
+  background: #2563eb !important;
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+  cursor: pointer !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .permission-actions .primary-button:hover:not(:disabled),
+html[data-admin-theme='light'] .admin-layout:has(.access-page) .access-modal-form .modal-actions .primary-button:hover:not(:disabled) {
+  color: #ffffff !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}

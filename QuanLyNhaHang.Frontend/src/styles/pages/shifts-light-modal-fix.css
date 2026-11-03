@@ -104,7 +104,7 @@ html[data-admin-theme='light'] .dashboard .scheduling-modal em {
   color: #d94a68 !important;
 }
 
-html[data-admin-theme='light'] .dashboard .scheduling-modal :is(input, select, textarea) {
+html[data-admin-theme='light'] .dashboard .scheduling-modal :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
   color: #172033 !important;
   border-color: #cfd9e5 !important;
   background: #ffffff !important;
@@ -112,14 +112,47 @@ html[data-admin-theme='light'] .dashboard .scheduling-modal :is(input, select, t
   color-scheme: light !important;
 }
 
-html[data-admin-theme='light'] .dashboard .scheduling-modal :is(input, textarea)::placeholder {
+html[data-admin-theme='light'] .dashboard .scheduling-modal :is(input:not([type='checkbox']):not([type='radio']), textarea)::placeholder {
   color: #8a98aa !important;
   opacity: 1;
 }
 
-html[data-admin-theme='light'] .dashboard .scheduling-modal :is(input, select, textarea):focus {
+html[data-admin-theme='light'] .dashboard .scheduling-modal :is(input:not([type='checkbox']):not([type='radio']), select, textarea):focus {
   border-color: #f59e0b !important;
   box-shadow: 0 0 0 3px rgb(245 158 11 / 14%) !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-overnight-option {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-checkbox-label strong {
+  color: #0f172a !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-checkbox-label small {
+  color: #64748b !important;
+}
+
+html[data-admin-theme='light'] .dashboard .scheduling-modal input[type='checkbox'],
+html[data-admin-theme='light'] .dashboard .scheduling-checkbox-label input[type='checkbox'] {
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+  min-width: 1.125rem !important;
+  min-height: 1.125rem !important;
+  max-width: 1.125rem !important;
+  max-height: 1.125rem !important;
+  padding: 0 !important;
+  margin: 2px 0 0 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  cursor: pointer !important;
+  accent-color: #2563eb !important;
 }
 
 html[data-admin-theme='light'] .dashboard .scheduling-status-field button {
