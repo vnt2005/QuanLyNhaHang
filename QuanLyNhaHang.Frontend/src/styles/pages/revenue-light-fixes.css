@@ -431,3 +431,19 @@ html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue
 html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-detail-totals .final strong {
   color: #2563eb !important;
 }
+
+
+/* Search icon: prevent SVG circle from being filled into a solid black dot in light mode */
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-search-field > svg,
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-search-field > svg :is(circle, path) {
+  color: #748399 !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+html[data-admin-theme='light'] .admin-layout:has(.revenue-reports-page) .revenue-search-field input {
+  padding-left: 2.75rem !important;
+}
